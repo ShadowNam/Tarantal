@@ -651,6 +651,56 @@
       "height": 524,
       "scale": 0.5
     },
+    "oes/farmhouse": {
+      "file": {
+        "path": "assets/oes-hd/img/oes_farmhouse.d29ce8476212.png",
+        "bytes": 6167,
+        "hash": "d29ce8476212"
+      },
+      "width": 760,
+      "height": 500,
+      "scale": 0.5
+    },
+    "oes/harvest": {
+      "file": {
+        "path": "assets/oes-hd/img/oes_harvest.a026c98c4fc0.png",
+        "bytes": 282435,
+        "hash": "a026c98c4fc0"
+      },
+      "width": 3072,
+      "height": 2286,
+      "scale": 0.5
+    },
+    "oes/sunflowers_a": {
+      "file": {
+        "path": "assets/oes-hd/img/oes_sunflowers_a.3292185cb115.png",
+        "bytes": 38424,
+        "hash": "3292185cb115"
+      },
+      "width": 760,
+      "height": 940,
+      "scale": 0.5
+    },
+    "oes/sunflowers_b": {
+      "file": {
+        "path": "assets/oes-hd/img/oes_sunflowers_b.e9e80adf25be.png",
+        "bytes": 33384,
+        "hash": "e9e80adf25be"
+      },
+      "width": 760,
+      "height": 940,
+      "scale": 0.5
+    },
+    "oes/tractor": {
+      "file": {
+        "path": "assets/oes-hd/img/oes_tractor.6fb587f7a430.png",
+        "bytes": 5818,
+        "hash": "6fb587f7a430"
+      },
+      "width": 420,
+      "height": 368,
+      "scale": 0.5
+    },
     "okavango/hippo": {
       "file": {
         "path": "assets/okavango-spring-hd/img/okavango_hippo.275363067980.png",
@@ -1390,6 +1440,114 @@
           "path": "assets/namibie-hd/layers/near-5.2f48a2ef9061.png",
           "bytes": 62017,
           "hash": "2f48a2ef9061"
+        }
+      ],
+      "tileWidth": 1024,
+      "scale": 0.5
+    },
+    "oes/foreground": {
+      "tiles": [
+        {
+          "path": "assets/oes-hd/layers/foreground-0.6f53bcbeb8f0.png",
+          "bytes": 220,
+          "hash": "6f53bcbeb8f0"
+        },
+        {
+          "path": "assets/oes-hd/layers/foreground-1.a50f8e4a93e3.png",
+          "bytes": 17609,
+          "hash": "a50f8e4a93e3"
+        },
+        {
+          "path": "assets/oes-hd/layers/foreground-2.23fa5b2bb9fb.png",
+          "bytes": 42955,
+          "hash": "23fa5b2bb9fb"
+        },
+        {
+          "path": "assets/oes-hd/layers/foreground-3.9c9639de1af5.png",
+          "bytes": 21902,
+          "hash": "9c9639de1af5"
+        },
+        {
+          "path": "assets/oes-hd/layers/foreground-4.e8695f0a06df.png",
+          "bytes": 30859,
+          "hash": "e8695f0a06df"
+        },
+        {
+          "path": "assets/oes-hd/layers/foreground-5.6f53bcbeb8f0.png",
+          "bytes": 220,
+          "hash": "6f53bcbeb8f0"
+        },
+        {
+          "path": "assets/oes-hd/layers/foreground-6.3b4a18c9cc0d.png",
+          "bytes": 142,
+          "hash": "3b4a18c9cc0d"
+        }
+      ],
+      "tileWidth": 1024,
+      "scale": 0.5
+    },
+    "oes/mid": {
+      "tiles": [
+        {
+          "path": "assets/oes-hd/layers/mid-0.a3226f680ce6.png",
+          "bytes": 163572,
+          "hash": "a3226f680ce6"
+        },
+        {
+          "path": "assets/oes-hd/layers/mid-1.3cedb0ad4937.png",
+          "bytes": 163284,
+          "hash": "3cedb0ad4937"
+        },
+        {
+          "path": "assets/oes-hd/layers/mid-2.d6a8326e8dad.png",
+          "bytes": 43740,
+          "hash": "d6a8326e8dad"
+        },
+        {
+          "path": "assets/oes-hd/layers/mid-3.3b8876293799.png",
+          "bytes": 164711,
+          "hash": "3b8876293799"
+        },
+        {
+          "path": "assets/oes-hd/layers/mid-4.71c741b270a8.png",
+          "bytes": 54190,
+          "hash": "71c741b270a8"
+        }
+      ],
+      "tileWidth": 1024,
+      "scale": 0.5
+    },
+    "oes/near": {
+      "tiles": [
+        {
+          "path": "assets/oes-hd/layers/near-0.80b373f40ea1.png",
+          "bytes": 30490,
+          "hash": "80b373f40ea1"
+        },
+        {
+          "path": "assets/oes-hd/layers/near-1.139472020345.png",
+          "bytes": 28681,
+          "hash": "139472020345"
+        },
+        {
+          "path": "assets/oes-hd/layers/near-2.16fcc814f41f.png",
+          "bytes": 31961,
+          "hash": "16fcc814f41f"
+        },
+        {
+          "path": "assets/oes-hd/layers/near-3.2845057581b9.png",
+          "bytes": 30957,
+          "hash": "2845057581b9"
+        },
+        {
+          "path": "assets/oes-hd/layers/near-4.96d7b58c2301.png",
+          "bytes": 27519,
+          "hash": "96d7b58c2301"
+        },
+        {
+          "path": "assets/oes-hd/layers/near-5.2a49f7a3256f.png",
+          "bytes": 17397,
+          "hash": "2a49f7a3256f"
         }
       ],
       "tileWidth": 1024,

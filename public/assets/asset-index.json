@@ -2819,6 +2819,19 @@
       "originX": 0,
       "originY": 0
     },
+    "fruit/oes": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/fruit_oes.a963dc49cb1a.png",
+        "bytes": 152,
+        "hash": "a963dc49cb1a"
+      },
+      "width": 512,
+      "height": 512,
+      "originX": 0,
+      "originY": 0
+    },
     "fruit/okavango-spring": {
       "group": "okavango-spring",
       "origin": "interim",
@@ -3403,6 +3416,71 @@
       "height": 570,
       "originX": 0,
       "originY": 0
+    },
+    "oes/farmhouse": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/oes_farmhouse.ddbd941e49b4.png",
+        "bytes": 2842,
+        "hash": "ddbd941e49b4"
+      },
+      "width": 380,
+      "height": 250,
+      "originX": 0.5,
+      "originY": 0.84
+    },
+    "oes/harvest": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/oes_harvest.650e12837081.png",
+        "bytes": 136830,
+        "hash": "650e12837081"
+      },
+      "width": 1536,
+      "height": 1143,
+      "originX": 0,
+      "originY": 0
+    },
+    "oes/sunflowers_a": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/oes_sunflowers_a.77c2e4a93db8.png",
+        "bytes": 22030,
+        "hash": "77c2e4a93db8"
+      },
+      "width": 380,
+      "height": 470,
+      "originX": 0.5,
+      "originY": 0.7872340425531915
+    },
+    "oes/sunflowers_b": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/oes_sunflowers_b.8040cf69f225.png",
+        "bytes": 19431,
+        "hash": "8040cf69f225"
+      },
+      "width": 380,
+      "height": 470,
+      "originX": 0.5,
+      "originY": 0.7872340425531915
+    },
+    "oes/tractor": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/oes_tractor.79d0ac8df98a.png",
+        "bytes": 2995,
+        "hash": "79d0ac8df98a"
+      },
+      "width": 210,
+      "height": 184,
+      "originX": 0.5,
+      "originY": 0.782608695652174
     },
     "okavango/hippo": {
       "group": "okavango-spring",
@@ -6364,6 +6442,517 @@
           [
             23,
             64
+          ]
+        ]
+      }
+    },
+    "oes/far_ridge": {
+      "group": "oes",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/oes/layers/far_ridge-0.39e3a2ee4034.png",
+          "bytes": 22521,
+          "hash": "39e3a2ee4034"
+        },
+        {
+          "path": "assets/oes/layers/far_ridge-1.082640078252.png",
+          "bytes": 7966,
+          "hash": "082640078252"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 420,
+      "height": 250,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            154,
+            202
+          ],
+          [
+            181,
+            192
+          ],
+          [
+            137,
+            242
+          ],
+          [
+            107,
+            177
+          ],
+          [
+            164,
+            171
+          ],
+          [
+            143,
+            202
+          ],
+          [
+            168,
+            202
+          ],
+          [
+            181,
+            202
+          ],
+          [
+            159,
+            202
+          ],
+          [
+            154,
+            187
+          ],
+          [
+            140,
+            202
+          ],
+          [
+            160,
+            202
+          ]
+        ]
+      }
+    },
+    "oes/far_veld": {
+      "group": "oes",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/oes/layers/far_veld-0.411e48898244.png",
+          "bytes": 15886,
+          "hash": "411e48898244"
+        },
+        {
+          "path": "assets/oes/layers/far_veld-1.44a1037e9b40.png",
+          "bytes": 8428,
+          "hash": "44a1037e9b40"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 440,
+      "height": 300,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            157,
+            300
+          ],
+          [
+            153,
+            300
+          ],
+          [
+            154,
+            300
+          ],
+          [
+            155,
+            300
+          ],
+          [
+            157,
+            300
+          ],
+          [
+            160,
+            300
+          ],
+          [
+            154,
+            300
+          ],
+          [
+            155,
+            300
+          ],
+          [
+            151,
+            300
+          ],
+          [
+            153,
+            300
+          ],
+          [
+            159,
+            300
+          ],
+          [
+            154,
+            300
+          ],
+          [
+            153,
+            300
+          ],
+          [
+            154,
+            300
+          ],
+          [
+            155,
+            300
+          ]
+        ]
+      }
+    },
+    "oes/foreground": {
+      "group": "oes",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/oes/layers/foreground-0.e3ffc338f170.png",
+          "bytes": 8004,
+          "hash": "e3ffc338f170"
+        },
+        {
+          "path": "assets/oes/layers/foreground-1.6c59bdd5377b.png",
+          "bytes": 28043,
+          "hash": "6c59bdd5377b"
+        },
+        {
+          "path": "assets/oes/layers/foreground-2.81c58ac38e47.png",
+          "bytes": 13777,
+          "hash": "81c58ac38e47"
+        },
+        {
+          "path": "assets/oes/layers/foreground-3.67c0d9056c65.png",
+          "bytes": 126,
+          "hash": "67c0d9056c65"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 880,
+      "height": 200,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    },
+    "oes/mid": {
+      "group": "oes",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/oes/layers/mid-0.73047ff7098a.png",
+          "bytes": 141521,
+          "hash": "73047ff7098a"
+        },
+        {
+          "path": "assets/oes/layers/mid-1.dfb1c3fc4b41.png",
+          "bytes": 92531,
+          "hash": "dfb1c3fc4b41"
+        },
+        {
+          "path": "assets/oes/layers/mid-2.1eeb1d7cd46c.png",
+          "bytes": 24430,
+          "hash": "1eeb1d7cd46c"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 540,
+      "height": 380,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            228,
+            380
+          ],
+          [
+            235,
+            380
+          ],
+          [
+            229,
+            380
+          ],
+          [
+            230,
+            380
+          ],
+          [
+            234,
+            380
+          ],
+          [
+            230,
+            380
+          ],
+          [
+            223,
+            380
+          ],
+          [
+            217,
+            238
+          ],
+          [
+            234,
+            380
+          ],
+          [
+            364,
+            380
+          ],
+          [
+            245,
+            380
+          ],
+          [
+            296,
+            380
+          ],
+          [
+            254,
+            380
+          ],
+          [
+            231,
+            380
+          ],
+          [
+            255,
+            380
+          ],
+          [
+            254,
+            380
+          ],
+          [
+            226,
+            380
+          ],
+          [
+            222,
+            380
+          ]
+        ]
+      }
+    },
+    "oes/near": {
+      "group": "oes",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/oes/layers/near-0.b78cd6349561.png",
+          "bytes": 25232,
+          "hash": "b78cd6349561"
+        },
+        {
+          "path": "assets/oes/layers/near-1.bf5838914436.png",
+          "bytes": 26819,
+          "hash": "bf5838914436"
+        },
+        {
+          "path": "assets/oes/layers/near-2.fea164ab38bf.png",
+          "bytes": 19075,
+          "hash": "fea164ab38bf"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 820,
+      "height": 260,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            53,
+            260
+          ],
+          [
+            55,
+            260
+          ],
+          [
+            52,
+            260
+          ],
+          [
+            56,
+            260
+          ],
+          [
+            56,
+            260
+          ],
+          [
+            49,
+            260
+          ],
+          [
+            52,
+            260
+          ],
+          [
+            51,
+            260
+          ],
+          [
+            49,
+            260
+          ],
+          [
+            50,
+            260
+          ],
+          [
+            53,
+            260
+          ],
+          [
+            50,
+            260
+          ],
+          [
+            53,
+            260
+          ],
+          [
+            55,
+            260
+          ],
+          [
+            55,
+            260
+          ],
+          [
+            53,
+            260
+          ],
+          [
+            50,
+            260
+          ],
+          [
+            53,
+            260
+          ],
+          [
+            54,
+            260
+          ],
+          [
+            54,
+            260
+          ],
+          [
+            56,
+            260
+          ],
+          [
+            47,
+            260
+          ],
+          [
+            50,
+            260
+          ]
+        ]
+      }
+    },
+    "oes/sky": {
+      "group": "oes",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/oes/layers/sky-0.2b0b881ad8d9.png",
+          "bytes": 5599,
+          "hash": "2b0b881ad8d9"
+        },
+        {
+          "path": "assets/oes/layers/sky-1.61a1396892f0.png",
+          "bytes": 3902,
+          "hash": "61a1396892f0"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 0,
+      "height": 1080,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
           ]
         ]
       }

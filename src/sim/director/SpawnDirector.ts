@@ -269,7 +269,19 @@ export function createDirector(deps: DirectorDeps): Director {
     const spread = fp.spawnSpreadPx * ratio;
     const centre = planeCentreX(ctx.cameraX, scrollFactorOf(plane));
     const others = ctx.flocks.filter((f) => f.plane === plane);
+    // v1.8c (D-063): on the Harvest's map no flock starts on the stretch from the gap to the
+    // workers (their line of fire): [gap's left post − spread, the last worker + spread].
+    const h = biome.harvest;
+    const gapLayer = h === undefined ? undefined : biome.layers.find((l) => l.id === h.gap.layer);
+    const keepOut =
+      h === undefined || gapLayer?.plane !== plane
+        ? null
+        : {
+            from: h.gap.u * core - h.gap.halfWidthPx - spread,
+            to: h.gap.u * core + Math.max(...h.workers.map((w) => w.dx)) + spread,
+          };
     const spaced = (x: number): boolean =>
+      (keepOut === null || x < keepOut.from || x > keepOut.to) &&
       others.every((f) => f.members.every((b) => Math.abs(b.x - x) >= fp.spawnSpacingPx * ratio));
     const clampX = (x: number): number => Math.min(core - spread, Math.max(spread, x));
     // v1.2: a map's feeding spots for this plane.

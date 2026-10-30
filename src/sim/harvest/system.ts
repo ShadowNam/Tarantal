@@ -292,7 +292,9 @@ export const createHarvestSystem: HarvestSystemFactory = (
         motherId: id,
         index: i,
         spot,
-        x: w.x - w.facing * W.pigletGapPx * spot.scale * (i + 1),
+        // They come in where she does and fall in behind her as she goes (never ahead of the
+        // entry, so never towards the workers beside the gap).
+        x: w.x,
         y: w.y,
         facing: w.facing,
         running: false,
@@ -391,6 +393,8 @@ export const createHarvestSystem: HarvestSystemFactory = (
     const gap = W.pigletGapPx * s.scale * (p.index + 1);
     const tx = m.x - m.facing * gap;
     const ty = m.y + (p.index % 2 === 0 ? 6 : -4) * s.scale;
+    // Only ever towards where she is going: a piglet never walks back the way they came.
+    if ((tx - p.x) * m.facing <= 0) return;
     p.facing = tx >= p.x ? 1 : -1;
     moveTo(p, tx, ty, speed(W.trotPxPerSec * 1.15, s.scale));
   }
