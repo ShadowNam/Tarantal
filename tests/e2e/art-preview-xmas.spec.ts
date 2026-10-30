@@ -50,8 +50,8 @@ test.use({ serviceWorkers: 'block' });
 test.beforeEach(async ({ page }, info) => {
   test.skip(process.env['ART_PREVIEW'] !== '1', 'on demand: ART_PREVIEW=1');
   test.skip(!PROFILES.includes(device(info.project.name)), 'previews: desktop, Pixel 7, iPhone 14');
-  // Software GL is slow: each test gets 12 minutes.
-  test.setTimeout(720_000);
+  // Software GL is slow (a local run can draw ~1 frame a second, ~5 sim ticks): 20 minutes each.
+  test.setTimeout(1_200_000);
   await page.addInitScript(() => {
     const key = 'tm.e2e.save.v1';
     if (localStorage.getItem(key) === null)
@@ -294,29 +294,48 @@ test('the hunt in the sun: the bubble, wide with a tinsel tree, its crown, a San
   save('std-tinsel', info, await cut(page, shot, pad(crown, 40)));
   await release(page);
 
-  // A guineafowl in a Santa hat, close up.
+  // A guineafowl in a Santa hat, close up, its crop on screen and clear of the HUD and the gun:
+  // a near bird any time; a mid one after 10 s of sim time without one; a far one (too small to
+  // judge the hat) only after 25 s.
   const hat = await page.waitForFunction(
     (m) => {
       const g = window.__TM__;
-      const hold = (window as unknown as { __TM_HOLD_AT__?: (t: number) => void }).__TM_HOLD_AT__;
-      const spot = g?.spook?.hats.find(
-        (p) => p.x > m && p.x < g.designWidth - m && p.y > 80 && p.y < g.designHeight - 200,
-      );
-      if (g === undefined || hold === undefined || spot === undefined) return null;
+      const w = window as unknown as { __TM_HOLD_AT__?: (t: number) => void; __xHatFrom?: number };
+      const hold = w.__TM_HOLD_AT__;
+      if (g === undefined || hold === undefined || g.spook === null) return null;
+      w.__xHatFrom ??= g.tick;
+      const waited = g.tick - w.__xHatFrom;
+      const size = { near: 320, mid: 200, far: 160, ver: 160 };
+      const avoid = [...Object.values(g.rects), ...(g.gunRect === null ? [] : [g.gunRect])];
+      const boxOf = (p: { x: number; y: number; plane: keyof typeof size }) => {
+        const s = size[p.plane];
+        return { x: p.x - s / 2, y: p.y - s / 4, w: s, h: (s * 3) / 4 };
+      };
+      const pick = (plane: 'near' | 'mid' | 'far') =>
+        g.spook?.hats.find((p) => {
+          if (p.plane !== plane) return false;
+          const b = boxOf(p);
+          if (b.x < m || b.y < m || b.x + b.w > g.designWidth - m) return false;
+          if (b.y + b.h > g.designHeight - m) return false;
+          return !avoid.some(
+            (r) => b.x < r.x + r.w && r.x < b.x + b.w && b.y < r.y + r.h && r.y < b.y + b.h,
+          );
+        });
+      const spot =
+        pick('near') ??
+        (waited >= 600 ? pick('mid') : undefined) ??
+        (waited >= 1500 ? pick('far') : undefined);
+      if (spot === undefined) return null;
       hold(g.tick + 1);
-      return spot;
+      return { ...boxOf(spot), plane: spot.plane };
     },
-    260,
+    24,
     { timeout: 480_000, polling: 'raf' },
   );
-  const at = (await hat.jsonValue()) as { x: number; y: number };
+  const at = (await hat.jsonValue()) as Rect & { plane: string };
+  info.annotations.push({ type: 'hat plane', description: at.plane });
   await page.waitForTimeout(1200);
-  await closeUp(page, info, 'hat', await grab(page), {
-    x: at.x - 160,
-    y: at.y - 80,
-    w: 320,
-    h: 240,
-  });
+  await closeUp(page, info, 'hat', await grab(page), at);
 });
 
 test('a present shut, just opened and opened; the tally and the share card', async ({
@@ -324,7 +343,9 @@ test('a present shut, just opened and opened; the tally and the share card', asy
 }, info) => {
   const touch = isTouchProject(info);
   // No birds: nothing stands in front of the present (the shot opens it, bags nothing).
-  await boot(page, `${QUERY}&huntSeconds=45&presents=near&birds=0&graphics=standard`);
+  // 30 s: the shots are done by ~tick 520, before the Stampede (the last 15 s), and the hunt
+  // still ends soon after on a slow machine.
+  await boot(page, `${QUERY}&huntSeconds=30&presents=near&birds=0&graphics=standard`);
   await startXmas(page, touch);
   const first = await presentOf(page);
   if (first === null) throw new Error('no present');
@@ -411,7 +432,7 @@ test('a present shut, just opened and opened; the tally and the share card', asy
   // Soft: the tally and the share card are still shot if this fails.
   expect.soft(diff, 'present-open and present-opened differ').toBeGreaterThan(200);
 
-  await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 300_000 });
+  await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 600_000 });
   expect(await page.evaluate(() => window.__TM__?.tally?.frame ?? null)).toBe('christmas');
   await page.waitForFunction(() => window.__TM__?.tallyDone === true, null, { timeout: 120_000 });
   await park(page, touch);

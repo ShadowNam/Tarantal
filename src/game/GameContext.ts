@@ -10,7 +10,7 @@ import type { TreeLifeHook } from './view/tree/TreeLifeView';
 import type { TellHook } from './view/tell/TellView';
 import type { BaboonHook } from './view/baboon/BaboonView';
 import type { HarvestHook } from './view/harvest/HarvestView';
-import type { BaboonsView, HarvestView } from '../sim/types';
+import type { BaboonsView, HarvestView, PlaneId } from '../sim/types';
 import type { NamibLifeHook } from './view/namib/NamibLifeView';
 import type { LoadStatus, SaveStore } from '../meta/save';
 import type { StorageStatus } from '../meta/storage';
@@ -568,8 +568,8 @@ export interface TestHook {
       frame?: string | null;
     }[];
     final: boolean;
-    /** Witch hats (D-064: Santa hats) drawn now (screen design px). */
-    hats: { x: number; y: number }[];
+    /** Witch hats (D-064: Santa hats) drawn now (screen design px), with the wearer's plane. */
+    hats: { x: number; y: number; plane: PlaneId }[];
     /** D-064 (Christmas): presents still shut and the day's total. */
     presentsClosed?: number;
     presentsTotal?: number;
