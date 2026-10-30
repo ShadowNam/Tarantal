@@ -781,20 +781,22 @@
       ]
     },
     "kersfees_son": {
-      "$comment": "D-064 Christmas in the sun: a bright, hot midsummer noon — a pale, white-hot sky low down, a bleached far ridge and a warm sunlit veld; the heat shimmer along the horizon is the special's look (feesdae.looks.christmas.heat, the Namibië mirage strips). Birds stay untinted. No flashes.",
+      "$comment": "D-064 Christmas in the sun: a blazing midsummer noon — the sky bleached white-hot towards the horizon (stacked warm-white bands), the far ridge washed pale in the glare, the veld and the near ground baked golden. The heat band and shimmer along the horizon are the special's look (feesdae.looks.christmas.heat; WorldView). Birds stay untinted. No flashes.",
       "tint": {
-        "sky": "#EEF4FF",
-        "far_ridge": "#F2E4D0",
-        "ver_veld": "#F6EAD6",
-        "far_veld": "#FFF2DC",
-        "mid": "#FFF6E6",
-        "near": "#FFF8EC",
-        "foreground": "#F2E4CE"
+        "sky": "#F2F2F4",
+        "far_ridge": "#F6DEC0",
+        "ver_veld": "#FFE4BC",
+        "far_veld": "#FFE2B4",
+        "mid": "#FFE6BC",
+        "near": "#FFEAC4",
+        "foreground": "#F2D6A8"
       },
       "haze": [
-        { "layer": "sky", "color": "#FFF8E8", "alpha": 0.5, "top": 380, "bottom": 540 },
-        { "layer": "far_ridge", "color": "#FAF0DE", "alpha": 0.34 },
-        { "layer": "far_veld", "color": "#FFF2DA", "alpha": 0.12, "top": 470 }
+        { "layer": "sky", "color": "#FFF6E0", "alpha": 0.22, "top": 260, "bottom": 380 },
+        { "layer": "sky", "color": "#FFF6E0", "alpha": 0.42, "top": 380, "bottom": 470 },
+        { "layer": "sky", "color": "#FFFAEC", "alpha": 0.62, "top": 470, "bottom": 580 },
+        { "layer": "far_ridge", "color": "#FFF1D8", "alpha": 0.46 },
+        { "layer": "far_veld", "color": "#FFF0D2", "alpha": 0.18, "top": 470 }
       ]
     },
     "spookjag": {
