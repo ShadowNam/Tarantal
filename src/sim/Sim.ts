@@ -970,6 +970,7 @@ export function createSim(config: SimConfig): Sim {
         far: scoring.planes.far.minHitRadiusPx,
         ver: scoring.planes.ver.minHitRadiusPx,
       },
+      setup.huntSeconds,
       rng.stream('harvest'),
       {
         tick: () => tick,

@@ -69,6 +69,8 @@ export type HarvestSystemFactory = (
   content: ContentBundle,
   planeScale: Readonly<Record<PlaneId, number>>,
   minHitRadius: Readonly<Record<PlaneId, number>>,
+  /** The rush's length (the mode's huntSeconds; a test build may shorten it). */
+  rushSeconds: number,
   rng: RandomStream,
   host: HarvestHost,
 ) => HarvestSystem | null;
@@ -199,6 +201,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
   content,
   planeScale,
   minHitRadius,
+  rushSeconds,
   rng,
   host,
 ) => {
@@ -209,7 +212,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
   const W = H.warthogs;
   const introTicks = secondsToTicks(H.intro.seconds);
   const outroTicks = secondsToTicks(H.outroSeconds);
-  const rushTicks = secondsToTicks(H.huntSeconds);
+  const rushTicks = secondsToTicks(rushSeconds);
   const breakTick = Math.round(introTicks * H.intro.breakAt);
   const tumbleTicks = secondsToTicks(W.tumbleSeconds);
   const workerCooldown = secondsToTicks(H.workers.cooldownSeconds);

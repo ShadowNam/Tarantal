@@ -143,6 +143,7 @@ describe('workers and piglets are never targets (aimed-at rule)', () => {
       content,
       { near: 1, mid: 0.42, far: 0.15, ver: 0.07 },
       { near: 0, mid: 0, far: 18, ver: 10 },
+      H.huntSeconds,
       createRng(4).stream('harvest'),
       {
         tick: () => tick,

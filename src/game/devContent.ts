@@ -275,3 +275,39 @@ export function withNoBaboons(b: ContentBundle): ContentBundle {
     })),
   };
 }
+
+/**
+ * v1.8c (D-063) e2e/dev only: the Harvest's previews. `duckSeconds`: a worker struck by a pellet
+ * stays down this long (?harvestDuck=600: a screenshot of the duck under a held frame); `rush`:
+ * the rush's peak rate from the start (?harvestRush=1: a full field within seconds).
+ */
+export function withHarvestPreview(
+  b: ContentBundle,
+  opts: { readonly duckSeconds?: number; readonly rush?: boolean },
+): ContentBundle {
+  const h = b.modes.modes.harvest;
+  const peak = h.rush.keyframes.at(-1)?.warthogsPerMin ?? 20;
+  return {
+    ...b,
+    modes: {
+      ...b.modes,
+      modes: {
+        ...b.modes.modes,
+        harvest: {
+          ...h,
+          workers:
+            opts.duckSeconds === undefined
+              ? h.workers
+              : { ...h.workers, duckSeconds: opts.duckSeconds },
+          rush:
+            opts.rush === true
+              ? {
+                  ...h.rush,
+                  keyframes: h.rush.keyframes.map((k) => ({ ...k, warthogsPerMin: peak * 2 })),
+                }
+              : h.rush,
+        },
+      },
+    },
+  };
+}
