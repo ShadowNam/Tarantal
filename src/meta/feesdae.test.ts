@@ -2,7 +2,7 @@
 // a special day, the share card's frame and title, and challenge links that carry the special.
 import { describe, expect, it } from 'vitest';
 import { loadContent, loadContentHash, loadDailyMeta } from '../../tools/testContent';
-import { translator } from '../i18n/i18n';
+import { isI18nKey, translator } from '../i18n/i18n';
 import { challengeFor, challengeHunt, decodeChallenge, encodeChallenge } from './challenge';
 import { dailyMode, dailySetup } from './daily';
 import { dayNumber, daysFromCivil } from './dailyCalendar';
@@ -193,7 +193,9 @@ describe('New Year share card (D-065)', () => {
     // The title the tally builds: the special's name and the year that starts.
     const ny = feesdagById(F, 'newyear');
     const day = daysFromCivil(2026, 12, 31);
-    expect(`${translator('en').text(ny?.nameKey ?? '')} ${shareYear(ny, day)}`).toBe('New Year 2027');
-    expect(`${translator('af').text(ny?.nameKey ?? '')} ${shareYear(ny, day)}`).toBe('Nuwejaar 2027');
+    const key = ny?.nameKey ?? '';
+    if (!isI18nKey(key)) throw new Error(`New Year's name key ${key} is not a string key`);
+    expect(`${translator('en').text(key)} ${shareYear(ny, day)}`).toBe('New Year 2027');
+    expect(`${translator('af').text(key)} ${shareYear(ny, day)}`).toBe('Nuwejaar 2027');
   });
 });
