@@ -1753,7 +1753,12 @@ export class HuntScene extends Phaser.Scene {
 
     const hook = this.ctx.hook;
     if (hook) {
-      hook.scene = 'hunt';
+      // 'hunt' once the HUD is up: launch() creates it on the next step, and its pause button
+      // exists only then (a heavy first frame, such as the HD baboon sheet's upload, left a test
+      // tapping a pause button not yet there).
+      hud.events.once(Phaser.Scenes.Events.CREATE, () => {
+        if (this.sys.isActive()) hook.scene = 'hunt';
+      });
       hook.mode = this.modeId;
       hook.huntSeed = seed;
       hook.daily =
