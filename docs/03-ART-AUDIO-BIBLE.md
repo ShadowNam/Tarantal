@@ -660,7 +660,8 @@ adult male has a darker shoulder mane; a mother is a little smaller and paler wi
 baby (pink face) riding jockey-style on her back, so the player sees at once she is not a target.
 No ink: edges a shade darker than the part; lit from the upper left; a soft contact shadow.
 Drawn from a posed skeleton (`tools/art/baboons.ts`) so every frame is the same animal. One sheet
-(`baboons/sheet`, late group, a 2× master: Standard gets the pack's 1×, HD the 2×), frames facing
+(`baboons/sheet`, its own background group `baboons`, a 2× master: Standard gets the pack's 1×,
+HD the 2× in `baboons-hd`), frames facing
 right with the origin at the feet, each box fitted to its drawing (`tools/art/baboonBoxes.ts`
 writes `src/game/view/baboon/baboonBoxes.ts`): **raiders** at the mid plane's size (a sitting male
 151 px at 1080): walk ×4, run ×2, the hat (wearing Oupa's khaki bush hat, scratching under it),

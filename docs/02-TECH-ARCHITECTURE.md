@@ -515,7 +515,8 @@ while one is on waits); phases warn → climb → travel → on (raiders approac
 flees; a bagged one tumbles). Every draw comes from the `baboons` stream. `spotClear.ts` decides
 which raid spots are clear on a map (shared with the content check). `system.ts` is the hunt's view
 of it through `BaboonHost` (tick, emit, `awardBonus`, base points, penalty, threatening flocks):
-hit extras of kind `baboon` (ridge members: their body and head ellipses, × plane scale × role
+hit extras of kind `baboon`, after the layer's secret parts and tells (ridge members, not while
+climbing over the ridge: their body and head ellipses, × plane scale × role
 scale; raiders: the same with the plane's `minHitRadiusPx` floor, D-049), `PelletResult.baboonId`
 (stops a pellet or a stone; a thing for the Frenzy, D-021), events `baboonRaidWarned`,
 `baboonRaidStarted`, `baboonRaidDone`, `baboonHit`, `baboonBagged`, `troopFled`, bonuses `baboon`

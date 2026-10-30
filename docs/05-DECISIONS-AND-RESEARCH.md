@@ -3409,9 +3409,16 @@ something naughty that might get them to eat a bullet or two."
 - *Size: lazy sim systems.* The baboons' sim code (~5 KB gzip) went into a lazy chunk with
   Namibië's ostriches (D-059) and the tell animals (D-061), moved there unchanged (every golden
   replay passed as recorded), so the first download pays for none of them. The game loads the chunk
-  from the title; a hunt that needs it waits (offline: Retry or Back, D-042). The baboon sheet is in
-  the late group (2× master, Standard 90 KB, HD 189 KB), the view a lazy chunk, Oupa's lines in the
-  lazy guide tables (en/af/de/nl) and voiced in en/af/de with the interim TTS (D-041).
+  from the title; a hunt that needs it waits (offline: Retry or Back, D-042). The baboon sheet is
+  its own group, `baboons` (2× master, Standard 90 KB, `baboons-hd` 189 KB), loading in the
+  background after the first download like the late group; a hunt with a troop waits for that one
+  file (the troop can be hit from the first tick, so it must be drawn then; review round 1). The
+  view is a lazy chunk, Oupa's lines are in the lazy guide tables (en/af/de/nl), voiced in en/af/de
+  with the interim TTS (D-041), and the voice packs' index entries moved to a lazy
+  `asset-index-voice.json` (fetched when a pack first loads), which pays for their ten new lines.
+- *Hit order (review round 1).* The baboons' hit shapes come after a layer's secret parts and tell
+  animals: where a raider walks in past one, the secret takes the pellet (spotClear checks only
+  where raiders stand at their mischief). Members climbing over the ridge can't be hit.
 - *Low tier.* A far ridge with a troop is no longer merged into the far veld on the low tier: merged,
   its art would scroll at the far veld's rate while the troop's hit shapes stay at the ridge's.
 
