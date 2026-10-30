@@ -11,6 +11,7 @@ import {
   feesdagForDay,
   shareYear,
   specialDays,
+  specialTallyLine,
   todaysFeesdag,
   yearOfDay,
 } from './feesdae';
@@ -197,5 +198,28 @@ describe('New Year share card (D-065)', () => {
     if (!isI18nKey(key)) throw new Error(`New Year's name key ${key} is not a string key`);
     expect(`${translator('en').text(key)} ${shareYear(ny, day)}`).toBe('New Year 2027');
     expect(`${translator('af').text(key)} ${shareYear(ny, day)}`).toBe('Nuwejaar 2027');
+  });
+});
+
+describe('the tally line of each special (D-048, D-064, D-065)', () => {
+  const enT = translator('en');
+  const afT = translator('af');
+  const en = (k: Parameters<typeof enT.text>[0]): string => enT.text(k);
+  const af = (k: Parameters<typeof afT.text>[0]): string => afT.text(k);
+  const base = { id: 'x', bats: 2, owls: 1, lanterns: 3, lanternsTotal: 4 };
+  it('Halloween counts bats, owls and lanterns', () => {
+    expect(specialTallyLine({ ...base, id: 'halloween' }, en)).toBe(
+      'Bats 2 · Owls 1 · Lanterns 3/4',
+    );
+  });
+  it('Christmas counts the presents found', () => {
+    const fd = { ...base, id: 'christmas', bats: 0, owls: 0, lanterns: 0, lanternsTotal: 0 };
+    expect(specialTallyLine({ ...fd, presents: 2, presentsTotal: 3 }, en)).toBe('Presents 2/3');
+  });
+  it('New Year shows the points scored in the countdown, never the Spookjag line', () => {
+    const fd = { id: 'newyear', bats: 0, owls: 0, lanterns: 0, lanternsTotal: 0 };
+    expect(specialTallyLine({ ...fd, countdownPoints: 840 }, en)).toBe('Countdown: 840 points');
+    expect(specialTallyLine({ ...fd, countdownPoints: 0 }, af)).toBe('Aftelling: 0 punte');
+    expect(specialTallyLine({ ...fd, countdownPoints: 12 }, en)).not.toMatch(/Bats|Lanterns/);
   });
 });

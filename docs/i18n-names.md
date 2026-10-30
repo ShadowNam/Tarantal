@@ -212,6 +212,7 @@ card. Oupa's Spookjag lines keep his Afrikaans exclamations ("Spookjag, my kind!
 | `feesdag.newyear.badge` | Nuwejaar-aftelling! | New Year countdown! | Neujahrs-Countdown! | Nieuwjaarsaftelling! | the title's badge |
 | `feesdag.countdown_n` | {n} | {n} | {n} | {n} | the HUD's big countdown digit |
 | `feesdag.countdown_mul` | ×{mult} | ×{mult} | ×{mult} | ×{mult} | the tag by the score in the countdown |
+| `feesdag.countdown_points` | Aftelling: {n} punte | Countdown: {n} points | Countdown: {n} Punkte | Aftellen: {n} punten | New Year's tally line: points scored in the countdown |
 | `feesdag.happy_new_year` | Gelukkige Nuwejaar! | Happy New Year! | Frohes neues Jahr! | Gelukkig Nieuwjaar! | the New Year tally's title |
 
 Christmas's name is translated in each language ("Christmas in the sun 2026" on the share card);

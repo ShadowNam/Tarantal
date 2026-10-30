@@ -131,6 +131,16 @@ describe('New Year countdown (D-065)', () => {
       if (e.tick < at) expect(e.award).toBe(p?.award);
       else expect(Math.abs(e.award - 2 * (p?.award ?? 0))).toBeLessThanOrEqual(1);
     });
+    // The tally's line: the points awarded in the countdown (bags and bonuses), on New Year only.
+    const inCountdown = (ev: SimEvent[]): number =>
+      ofType(ev, 'scoreAwarded')
+        .filter((e) => e.tick >= at)
+        .reduce((t, e) => t + e.award, 0) +
+      ofType(ev, 'bonusAwarded')
+        .filter((e) => e.tick >= at)
+        .reduce((t, e) => t + e.award, 0);
+    expect(ny.result().feesdag?.countdownPoints).toBe(inCountdown(a));
+    expect(ny.result().feesdag?.countdownPoints ?? 0).toBeGreaterThan(0);
     // Penalties are never doubled.
     expect(ofType(a, 'penaltyApplied').map((e) => e.points)).toEqual(
       ofType(b, 'penaltyApplied').map((e) => e.points),

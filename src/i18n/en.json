@@ -601,6 +601,7 @@
   "feesdag.countdown_n": "{n}",
   "feesdag.countdown_mul": "×{mult}",
   "feesdag.happy_new_year": "Happy New Year!",
+  "feesdag.countdown_points": "Countdown: {n} points",
   "bark.ny_start": "Last hunt of the year, my kind! Make it a lekker one.",
   "bark.ny_countdown": "Gelukkige Nuwejaar, my kind! Last ten seconds — everything counts double!",
   "bark.ny_bigshot": "Boom! Like the fireworks, my kind!",

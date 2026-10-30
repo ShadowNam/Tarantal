@@ -1147,6 +1147,8 @@ export function createSim(config: SimConfig): Sim {
   const countdownActive = (): boolean => countdownAtTick !== null && tick >= countdownAtTick;
   const countdownMul = (): number =>
     countdownCfg !== null && countdownActive() ? countdownCfg.mult : 1;
+  /** D-065: the points awarded in the countdown (bags and bonuses; the tally's line). */
+  let countdownPoints = 0;
   const airMul = (sign: number): number => windSpeedMul(wind, sign);
 
   emit({ type: 'huntStarted', tick: 0, durationTicks, stampedeAtTick });
@@ -2251,6 +2253,7 @@ export function createSim(config: SimConfig): Sim {
           bag?.modifiers ?? [],
         );
         score += s.award;
+        if (countdownCfg !== null && countdownActive()) countdownPoints += s.award;
         emit({
           type: 'scoreAwarded',
           tick,
@@ -2695,6 +2698,7 @@ export function createSim(config: SimConfig): Sim {
     });
     const paid = ruleMul === 1 ? award : Math.round(award * ruleMul);
     score += paid;
+    if (countdownCfg !== null && countdownActive()) countdownPoints += paid;
     emit({ type: 'bonusAwarded', tick, bonus, base, award: paid });
     return paid;
   }
@@ -3829,6 +3833,7 @@ export function createSim(config: SimConfig): Sim {
                       presentsTotal: spook.presentsTotal,
                     }
                   : {}),
+                ...(countdownCfg === null ? {} : { countdownPoints }),
               },
             }),
       };

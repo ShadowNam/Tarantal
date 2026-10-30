@@ -3,6 +3,8 @@
 // game layer, or the e2e ?today= day); nothing here reads a clock. The special's id then goes
 // into the Daily's mode config, so its replays and challenge links carry it.
 import type { Feesdag, Feesdae } from '../content/schemas';
+import { fill, type I18nKey } from '../i18n/i18n';
+import type { HuntResult } from '../sim/types';
 import { civilFromDays } from './dailyCalendar';
 
 /** True when the special's date rule matches this UTC day. */
@@ -50,4 +52,24 @@ export function yearOfDay(day: number): number {
  *  starts (shareYearDays 1: 31 Dec 2026 → 2027). */
 export function shareYear(special: Feesdag | null, day: number): number {
   return yearOfDay(day + (special?.shareYearDays ?? 0));
+}
+
+/**
+ * The special's own line on the tally (each special its own): Halloween's bats, owls and lanterns;
+ * Christmas's presents found (D-064); New Year's points in the countdown (D-065).
+ */
+export function specialTallyLine(
+  fd: NonNullable<HuntResult['feesdag']>,
+  t: (key: I18nKey) => string,
+): string {
+  if (fd.countdownPoints !== undefined)
+    return fill(t('feesdag.countdown_points'), { n: fd.countdownPoints });
+  if (fd.presentsTotal !== undefined)
+    return fill(t('feesdag.presents_left'), { n: fd.presents ?? 0, total: fd.presentsTotal });
+  return fill(t('feesdag.tally'), {
+    bats: fd.bats,
+    owls: fd.owls,
+    lanterns: fd.lanterns,
+    total: fd.lanternsTotal,
+  });
 }
