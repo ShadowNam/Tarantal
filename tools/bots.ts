@@ -80,11 +80,89 @@ export function createBot(
   }
   const inner =
     kind === 'plinker' || kind === 'competent'
-      ? createHumanBot(kind, seed, content, inputKind)
+      ? harvestHunter(
+          createHumanBot(kind, seed, content, inputKind),
+          seed,
+          content,
+          inputKind,
+          kind === 'competent' ? 1 : 0.5,
+        )
       : kind === 'random'
         ? randomBot(seed)
         : aimBot(seed, content);
   return { kind, next: withRifle(inner, content, seed, style).next };
+}
+
+/**
+ * v1.8c (D-063): in the Harvest a player shoots the warthogs and the raiders in the crops. A warthog
+ * or raider in view (as seen LAG ticks ago) gets the next shot at its body with this chance
+ * (competent 1, plinker 0.5), with the human bots' aim error; otherwise the inner bot hunts the
+ * birds. Outside the Harvest it is the inner bot exactly (no draws from its stream).
+ */
+function harvestHunter(
+  inner: { next(state: SimState): Command[] },
+  seed: number,
+  content: ContentBundle,
+  inputKind: InputKind,
+  eager: number,
+): { next(state: SimState): Command[] } {
+  const rng = createStream((seed ^ fnv1a32('bot:harvest')) >>> 0);
+  const planes = content.scoring.planes;
+  const W = content.modes.modes.harvest.warthogs;
+  const box = content.birds.baboons.hitboxes;
+  const LAG = 15;
+  const SIGMA = inputKind === 'touch' ? 26 : 10;
+  const history: SimState[] = [];
+  let ready = 0;
+  const gauss = (): number => {
+    const u = Math.max(1e-9, rng.next());
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng.next());
+  };
+  return {
+    next(s) {
+      if (s.harvest === null) return inner.next(s);
+      history.push(s);
+      if (history.length > LAG + 1) history.shift();
+      const seen = history[0];
+      const w = s.weapon;
+      if (seen === undefined || w.shells === 0 || w.reloading || w.cooldownTicks > 0)
+        return inner.next(s);
+      if (s.tick < ready || seen.harvest === null || seen.harvest.phase !== 'rush')
+        return inner.next(s);
+      let aim: { dx: number; sy: number } | null = null;
+      let best = Infinity;
+      for (const h of seen.harvest.warthogs) {
+        if (h.phase === 'tumble') continue;
+        const b = (h.phase === 'dig' ? W.hitboxes.dig : W.hitboxes.trot).body;
+        const dx = planeToDx(
+          s.cameraX,
+          planes[h.plane].scrollFactor,
+          h.x + b.ox * h.scale * h.facing,
+        );
+        if (Math.abs(dx) < Math.min(best, VIEW_HALF_WIDTH)) {
+          best = Math.abs(dx);
+          aim = { dx, sy: h.y + b.oy * h.scale };
+        }
+      }
+      for (const r of seen.baboons?.raiders ?? []) {
+        if (r.phase === 'tumble') continue;
+        const b = box[r.phase === 'act' ? 'sit' : 'walk'].body;
+        const dx = planeToDx(
+          s.cameraX,
+          planes[r.plane].scrollFactor,
+          r.x + b.ox * r.scale * r.facing,
+        );
+        if (Math.abs(dx) < Math.min(best, VIEW_HALF_WIDTH)) {
+          best = Math.abs(dx);
+          aim = { dx, sy: r.y + b.oy * r.scale };
+        }
+      }
+      if (aim === null) return inner.next(s);
+      ready = s.tick + 10;
+      if (rng.next() >= eager) return inner.next(s);
+      return [{ t: 'fire', dx: aim.dx + gauss() * SIGMA, sy: aim.sy + gauss() * SIGMA }];
+    },
+  };
 }
 
 /**

@@ -257,7 +257,7 @@
         "entryPx": 700
       },
       "crop": {
-        "drainPerSecond": { "guineafowl": 0.06, "warthog": 0.5, "baboon": 0.8 },
+        "drainPerSecond": { "guineafowl": 0.1, "warthog": 0.8, "baboon": 1.2 },
         "warnBelow": 40,
         "bonusPerPercent": 5
       },
