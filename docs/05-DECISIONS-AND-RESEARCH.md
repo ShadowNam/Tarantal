@@ -3405,9 +3405,17 @@ something naughty that might get them to eat a bullet or two."
   line of fire of every fruit, paying secret part and tell on the near and mid planes over the whole
   camera sweep (the ridge scrolls slower, so x lines up somewhere; y must not overlap):
   `tools/art/troopLineOfFire.ts` and its test. The troops moved to clear stretches (Karoo u 0.425,
-  Okavango 0.8417, Namibië 0.425; Bushveld unchanged), and the Kalahari has no troop on Friday (its
+  Okavango 0.875, Namibië 0.425; Bushveld unchanged), and the Kalahari has no troop on Friday (its
   dead camelthorn's branch lines up with every stretch of the ridge). The "don't shoot it" weaver
   nests are no targets. e2e specs that shoot at other things or count the score use `?baboons=0`.
+- *Nothing floating (screenshot review round 1).* The Okavango's far bank is a thin treeline where
+  its troop is clear of the line of fire, and the troop seemed to float over it: a troop may now
+  have a rock outcrop drawn under it (`rock` in the biome file; `src/game/view/baboon/troopRock.ts`
+  is the rock's top, shared by the art, the seats and the test), and the Okavango troop sits on one.
+  A test checks every seat on every map stands on its ridge's art (within 2 px) or on its rock.
+  The far troop got darker, warmer fur and larger babies so it reads against the haze at 1×, and
+  Start never waits for the baboons (the sheet loads first in the background, the sim systems'
+  chunk at boot).
   Raid spots that would put a raider over a secret's part, a tell animal, a meerkat
   colony or an ostrich pair are left out on that map (`src/sim/baboons/spotClear.ts`, shared by the
   sim and the content check; ≥ 2 clear spots on every map).

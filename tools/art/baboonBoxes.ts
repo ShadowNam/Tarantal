@@ -13,8 +13,8 @@ import { g, svgDoc } from './svg';
 
 /** Clear pixels round each drawing (design px). */
 const MARGIN = 3;
-const CANVAS = 420;
-const ORIGIN: readonly [number, number] = [210, 330];
+const CANVAS = 520;
+const ORIGIN: readonly [number, number] = [260, 380];
 
 const lines: string[] = [];
 for (const name of BABOON_FRAME_NAMES) {

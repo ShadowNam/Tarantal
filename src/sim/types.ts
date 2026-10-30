@@ -296,6 +296,8 @@ export interface TroopView {
   /** The plane scale the troop is drawn at. */
   readonly scale: number;
   readonly fled: boolean;
+  /** v1.8b (review): the rock outcrop drawn under the troop (layer px: middle, base), or null. */
+  readonly rock: { readonly x: number; readonly y: number } | null;
   readonly members: readonly BaboonView[];
 }
 

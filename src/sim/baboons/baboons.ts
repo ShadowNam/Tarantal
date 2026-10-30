@@ -107,6 +107,8 @@ export interface TroopState {
   readonly cx: number;
   readonly seats: readonly { readonly x: number; readonly y: number }[];
   readonly members: Baboon[];
+  /** The rock outcrop drawn under the troop (layer px: its middle and base), or null. */
+  readonly rock: { readonly x: number; readonly y: number } | null;
   /** calm, or fled over the ridge (`awayLeft` ticks until it comes back). */
   fled: boolean;
   awayLeft: number;
@@ -234,6 +236,7 @@ export function createTroop(
     cx,
     seats,
     members: [],
+    rock: def.rock === undefined ? null : { x: cx, y: def.rock.y },
     fled: false,
     awayLeft: 0,
     cooldown: 0,

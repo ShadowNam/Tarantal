@@ -558,15 +558,15 @@
   "palmY": { "near": 1000, "mid": 776 },
   "waterY": { "near": 1030, "mid": 790 },
   "baboons": {
-    "$comment": "v1.8b (D-062): the troop on the far bank east of the sausage tree, clear of its fruit's line of fire (review round 2) (seats on the skyline: tools/art/ridgeLine.ts). Raids: the sausage tree, a mielie cob, fruit thrown at a flock, a chase.",
+    "$comment": "v1.8b (D-062): the troop on a rock outcrop on the far bank east of the sausage tree (the bank is a thin treeline there: the rock gives the troop ground; its seats are on the rock, troopRock.ts), clear of its fruit's line of fire (review rounds 2–3). Raids: the sausage tree, a mielie cob, fruit thrown at a flock, a chase.",
     "troops": [
       {
         "id": "troop",
         "layer": "far_ridge",
         "plane": "far",
-        "u": 0.8417,
-        "seats": [{"dx":-176,"y":540},{"dx":-136,"y":526},{"dx":-98,"y":542},{"dx":-62,"y":537},{"dx":-26,"y":546},{"dx":10,"y":552},{"dx":46,"y":547},{"dx":84,"y":539},{"dx":122,"y":532},{"dx":162,"y":552}],
-        "lookout": 1
+        "u": 0.875,
+        "seats": [{"dx":-170,"y":515},{"dx":-132,"y":500},{"dx":-96,"y":491},{"dx":-62,"y":493},{"dx":-28,"y":490},{"dx":6,"y":479},{"dx":40,"y":486},{"dx":76,"y":490},{"dx":112,"y":502},{"dx":150,"y":504}],
+        "lookout": 5, "rock": { "y": 555 }
       }
     ],
     "spots": [

@@ -278,6 +278,7 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
         plane: t.plane,
         scale: t.scale,
         fled: t.fled,
+        rock: t.rock,
         members: t.members
           .filter((m) => !m.gone)
           .map((m) => ({

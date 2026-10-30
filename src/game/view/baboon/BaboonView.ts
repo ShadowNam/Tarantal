@@ -144,6 +144,8 @@ export function raiderFrame(r: RaiderView, tumbleTicks: number): BaboonFrame {
 
 export class BaboonView {
   private readonly members = new Map<number, Slot>();
+  /** v1.8b (review): each troop's rock outcrop, if it has one. */
+  private readonly rocks = new Map<string, Slot>();
   private readonly raiders = new Map<number, Slot>();
   private fruit: Slot | null = null;
   private water: Slot | null = null;
@@ -209,6 +211,7 @@ export class BaboonView {
   }
 
   private *all(): Iterable<Slot> {
+    yield* this.rocks.values();
     yield* this.members.values();
     yield* this.raiders.values();
     if (this.fruit !== null) yield this.fruit;
@@ -336,6 +339,18 @@ export class BaboonView {
     let n = 0;
     for (const s of this.members.values()) s.seen = false;
     for (const troop of b.troops) {
+      // Its rock outcrop first (under the troop), drawn at the ridge's own size.
+      if (troop.rock !== null) {
+        let r = this.rocks.get(troop.id);
+        if (r === undefined) {
+          const made = this.newSlot(troop.layerId, 'r_rock', -3, 'rock');
+          if (made !== null) {
+            r = made;
+            this.rocks.set(troop.id, r);
+          }
+        }
+        if (r !== undefined) this.place(r, 'r_rock', troop.rock.x, troop.rock.y, 1, false, 1);
+      }
       const base = (troop.scale * T.heightPx) / RIDGE_H;
       for (const m of troop.members) {
         let s = this.members.get(m.id);
@@ -503,6 +518,7 @@ export class BaboonView {
   destroy(): void {
     for (const s of this.all()) s.img.destroy();
     this.members.clear();
+    this.rocks.clear();
     this.raiders.clear();
     this.fruit = null;
     this.water = null;

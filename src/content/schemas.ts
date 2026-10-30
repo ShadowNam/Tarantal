@@ -657,6 +657,9 @@ export const TroopSchema = obj({
   lookout: nonNegInt,
   /** Chance the troop is there on a hunt (absent = always; the Kalahari keeps them rare). */
   chance: fraction.optional(),
+  /** A rock outcrop drawn under the troop, its base at this y (layer px), for a ridge with no high
+   *  ground where the troop sits: the seats are on the rock's top (troopRock.ts). */
+  rock: obj({ y: z.number() }).optional(),
 });
 export type Troop = z.infer<typeof TroopSchema>;
 

@@ -16,6 +16,7 @@ import {
   RIDGE_H,
   type BaboonFrame,
 } from '../../src/game/view/baboon/baboonSheet';
+import { ROCK_H, ROCK_HALF_W, rockTop } from '../../src/game/view/baboon/troopRock';
 import type { Rgba } from '../assets/image';
 import { add, clipOf, limb, mul, sub, unit, nrm, type V } from './farFauna';
 import { renderSvg } from './raster';
@@ -247,7 +248,9 @@ function standPose(o: {
   };
 }
 
-export const POSES: Readonly<Record<Exclude<BaboonFrame, 'fx_fruit' | 'fx_water'>, Pose>> = {
+export const POSES: Readonly<
+  Record<Exclude<BaboonFrame, 'fx_fruit' | 'fx_water' | 'r_rock'>, Pose>
+> = {
   walk_a: walkPose(0),
   walk_b: walkPose(Math.PI / 2),
   walk_c: walkPose(Math.PI),
@@ -713,10 +716,20 @@ function mielieAt(x: number, y: number): string[] {
 }
 
 /** The baby riding on its mother's back (jockey-style): a small dark body, pink face. */
-function baby(p: Pose): string[] {
+/** The baby, k × its size (the far troop's are bigger, so they read at 1× on a phone). */
+function baby(p: Pose, k = 1): string[] {
   const ax = unit(sub(p.front, p.rear));
   const n = nrm(ax);
   const seat = add(lerpV(p.rear, p.front, 0.4), mul(n, -p.thick * 0.5));
+  if (k !== 1)
+    return [
+      g(
+        {
+          transform: `translate(${r2(seat[0])} ${r2(seat[1])}) scale(${r2(k)}) translate(${r2(-seat[0])} ${r2(-seat[1])})`,
+        },
+        ...baby(p),
+      ),
+    ];
   const c = BABY;
   return [
     part(ellipseD(seat[0], seat[1] - 0.08, 0.1, 0.075), c.coat, 0.008),
@@ -850,7 +863,7 @@ export function drawBaboon(p: Pose, coat: Coat, small: boolean, seed: number): s
   body.push(part(ellipseD(toe[0], toe[1] - 0.018, 0.055, 0.022), coat.hand, w));
   const toeF = p.legs[0][p.legs[0].length - 1] ?? [0, 0];
   body.push(part(ellipseD(toeF[0], toeF[1] - 0.018, 0.05, 0.02), shade(coat.hand, -0.1), w));
-  if (p.baby === true) body.push(...baby(p));
+  if (p.baby === true) body.push(...baby(p, small ? 1.45 : 1));
   // Head before the near arm (a hand to the mouth sits in front of the face).
   if (p.back === true) body.push(...faceOn(p.head, coat, p.open === true));
   else body.push(...headParts(p, coat, small));
@@ -905,12 +918,96 @@ function waterAt(x: number, y: number): string[] {
   ];
 }
 
+/** v1.8b (screenshot review round 1): the far troop in darker, warmer fur, so it stands out from
+ *  the pale haze of the far ridge at 1× on a phone (same look, more value contrast). */
+const FAR_MALE: Coat = {
+  ...MALE,
+  coat: '#5C4936',
+  lit: '#7C6448',
+  dark: '#382A1E',
+  belly: '#6E5C48',
+  face: '#2C2420',
+  hand: '#201A16',
+};
+const FAR_MOTHER: Coat = { ...FAR_MALE, coat: '#65513C', lit: '#86704F', belly: '#776450' };
+
 function coatOf(frame: BaboonFrame): Coat {
-  return frame.startsWith('r_mother') ? MOTHER : MALE;
+  const far = frame.startsWith('r_');
+  if (frame.startsWith('r_mother')) return far ? FAR_MOTHER : MOTHER;
+  return far ? FAR_MALE : MALE;
+}
+
+/** The rock outcrop under a troop (ridge px at 1×, base middle at 0): a weathered granite dome
+ *  with boulder knobs, lit from the upper left, a few cracks, grass at its foot (troopRock.ts). */
+function rockArt(): string {
+  const top: [number, number][] = [];
+  for (let dx = -ROCK_HALF_W; dx <= ROCK_HALF_W; dx += 6) top.push([dx, rockTop(dx)]);
+  const outline = smoothD([[-ROCK_HALF_W - 4, 2], ...top, [ROCK_HALF_W + 4, 2]], true, 0.6);
+  const gid = nextId();
+  const clip = clipOf([outline]);
+  const rnd = prng(77);
+  const cracks: string[] = [];
+  for (let i = 0; i < 9; i++) {
+    const x = -ROCK_HALF_W * 0.8 + rnd() * ROCK_HALF_W * 1.6;
+    const y0 = rockTop(x) + 6;
+    cracks.push(
+      `M${r2(x)} ${r2(y0)}q${r2(rnd() * 8 - 4)} ${r2(10 + rnd() * 10)} ${r2(rnd() * 6 - 3)} ${r2(22 + rnd() * 18)}`,
+    );
+  }
+  const grass: string[] = [];
+  for (let i = 0; i < 26; i++) {
+    const x = -ROCK_HALF_W + rnd() * ROCK_HALF_W * 2;
+    grass.push(`M${r2(x)} 2l${r2(rnd() * 4 - 2)} ${r2(-4 - rnd() * 7)}`);
+  }
+  return g(
+    {},
+    el(
+      'defs',
+      {},
+      el(
+        'linearGradient',
+        { id: gid, x1: 0, y1: 0, x2: 0.4, y2: 1 },
+        el('stop', { offset: 0, 'stop-color': '#9C9484' }),
+        el('stop', { offset: 0.55, 'stop-color': '#7E786A' }),
+        el('stop', { offset: 1, 'stop-color': '#5E5A50' }),
+      ),
+      clip.def,
+    ),
+    el('path', { d: outline, fill: `url(#${gid})`, stroke: '#57534A', 'stroke-width': 1.2 }),
+    // The shaded right flank and the lit crest.
+    g(
+      { 'clip-path': `url(#${clip.id})` },
+      el('path', {
+        d: ellipseD(ROCK_HALF_W * 0.55, -ROCK_H * 0.2, ROCK_HALF_W * 0.6, ROCK_H * 0.9),
+        fill: '#4A463E',
+        opacity: 0.35,
+      }),
+      el('path', {
+        d: ellipseD(-ROCK_HALF_W * 0.25, -ROCK_H * 0.85, ROCK_HALF_W * 0.55, ROCK_H * 0.22),
+        fill: '#B4AC9A',
+        opacity: 0.45,
+      }),
+      el('path', {
+        d: cracks.join(''),
+        stroke: '#4E4A42',
+        'stroke-width': 1.1,
+        fill: 'none',
+        opacity: 0.7,
+      }),
+    ),
+    el('path', {
+      d: grass.join(''),
+      stroke: '#6E7A4E',
+      'stroke-width': 1.3,
+      fill: 'none',
+      'stroke-linecap': 'round',
+    }),
+  );
 }
 
 /** One frame's drawing in design px (feet at 0). */
 export function drawFrame(frame: BaboonFrame, seed: number): string {
+  if (frame === 'r_rock') return rockArt();
   if (frame === 'fx_fruit') return g({ transform: `scale(${RAIDER_H})` }, ...fruitAt(0, 0, 0.055));
   if (frame === 'fx_water') {
     // A few drops and a splash arc.

@@ -9,5 +9,5 @@ export const BABOON_SHEET = 'baboons/sheet';
  *  so it must be drawn then (review of v1.8b). Its HD twin is `baboons-hd`. */
 export const BABOON_GROUP = 'baboons';
 /** Sheet size, design px at 1× (baboonSheet.ts packs the frames into it). */
-export const BABOON_SHEET_W = 672;
-export const BABOON_SHEET_H = 946;
+export const BABOON_SHEET_W = 756;
+export const BABOON_SHEET_H = 878;
