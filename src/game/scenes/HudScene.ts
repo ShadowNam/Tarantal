@@ -643,6 +643,10 @@ export class HudScene extends Phaser.Scene {
         zoomIn: l.zoomIn,
         ...Object.fromEntries(l.items.map((r, i) => [`item${i}`, r])),
         ...(this.controls?.skip != null ? { skip: l.skip } : {}),
+        // v1.8c (D-063): the Harvest's crop and fence bars.
+        ...(this.ctx.huntBiome.harvest === undefined
+          ? {}
+          : { harvestCrop: harvestBarsRects(l).crop, harvestRepair: harvestBarsRects(l).repair }),
       };
     }
     const [timerRim, timerWood, scoreRim, scoreEnamel, belt] = this.panels;
@@ -655,7 +659,7 @@ export class HudScene extends Phaser.Scene {
     // Belt: chalk slate.
     belt?.place(l.belt.x, l.belt.y, l.belt.w, l.belt.h);
     this.timer.setPosition(l.timer.x + l.timer.w / 2, l.timer.y + l.timer.h / 2);
-    this.harvestBars?.layout(harvestBarsRects(l.timer, l.score, l.timer.y + 4));
+    this.harvestBars?.layout(harvestBarsRects(l));
     this.frenzyLabel.setPosition(l.frenzy.x, l.frenzy.y + l.frenzy.h / 2);
     this.score.setPosition(l.score.x + l.score.w - 24, l.score.y + l.score.h / 2);
     this.reload.setPosition(

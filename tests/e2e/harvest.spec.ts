@@ -73,6 +73,21 @@ test('from the title: the intro, the rush, the fence closes, the Harvest tally a
   expect(h0.rects['harvest'], 'the Die Oes button').toBeDefined();
   expect(h0.rects['harvestStatus'], 'its line').toBeDefined();
   await startHarvest(page, touch);
+  // Review round 1: the crop and fence bars overlap no other HUD element (the pause button above).
+  await page.waitForFunction(() => window.__TM__?.rects['harvestCrop'] !== undefined, null, {
+    timeout: 120_000,
+  });
+  const rects = (await hook(page)).rects;
+  const hit = (a: { x: number; y: number; w: number; h: number }, b: typeof a): boolean =>
+    a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  for (const bar of ['harvestCrop', 'harvestRepair']) {
+    const r = rects[bar];
+    expect(r, bar).toBeDefined();
+    if (r === undefined) continue;
+    for (const [name, o] of Object.entries(rects))
+      if (!name.startsWith('harvest') && name !== 'charms' && name !== 'quota')
+        expect(hit(r, o), `${bar} over ${name}`).toBe(false);
+  }
   // Every phase in order, read in the same wait that sees them (bounded by the sim's ticks).
   const phases = await page.waitForFunction(
     () => {

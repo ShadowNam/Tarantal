@@ -5,35 +5,11 @@
 import type * as Phaser from 'phaser';
 import type { HarvestView } from '../../sim/types';
 import { fill, t } from '../../i18n/i18n';
-import type { Rect } from './hudLayout';
 import { FONT } from '../view/Fx';
 
-const CROP_H = 46;
-const REPAIR_H = 26;
-const GAP = 10;
+import { cropColor, harvestBarsRects, type HarvestBarsRects } from './harvestBarsLayout';
 
-export interface HarvestBarsRects {
-  readonly crop: Rect;
-  readonly repair: Rect;
-}
-
-/** Where the bars go: centred between the clock (left) and the score (right). */
-export function harvestBarsRects(left: Rect, right: Rect, top: number): HarvestBarsRects {
-  const room = right.x - (left.x + left.w) - 40;
-  const w = Math.max(260, Math.min(640, room));
-  const x = (left.x + left.w + right.x) / 2 - w / 2;
-  return {
-    crop: { x, y: top, w, h: CROP_H },
-    repair: { x: x + w * 0.15, y: top + CROP_H + GAP, w: w * 0.7, h: REPAIR_H },
-  };
-}
-
-/** The crop bar's colour for a crop percent and the warning line. */
-export function cropColor(crop: number, warnBelow: number): number {
-  if (crop < warnBelow) return 0xc8302a;
-  if (crop < 70) return 0xe0a030;
-  return 0x5aa640;
-}
+export { harvestBarsRects };
 
 export class HarvestBars {
   private readonly g: Phaser.GameObjects.Graphics;
