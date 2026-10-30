@@ -101,8 +101,10 @@ function hookState(
 export function openSkietbaan(menu: RangeMenuHost): void {
   const content = menu.content;
   let c = choice ?? defaultChoice(content);
+  // v1.8c (D-063): the Harvest's field is no range backdrop.
+  const biomes = menu.playableBiomes.filter((b) => b !== content.modes.modes.harvest.biome);
   // A stored choice that is no longer offered falls back to the first biome.
-  c = { ...c, biome: biomeOrFirst(c.biome, menu.playableBiomes) };
+  c = { ...c, biome: biomeOrFirst(c.biome, biomes) };
   choice = c;
   const hook = menu.hook;
   if (hook) {
@@ -111,7 +113,7 @@ export function openSkietbaan(menu: RangeMenuHost): void {
   }
   const panel = new RangeSetupPanel(content, {
     choice: c,
-    biomes: menu.playableBiomes,
+    biomes,
     layout: layoutForDay(menu.today()),
     cells: () => stats.list(),
     change: (next) => {

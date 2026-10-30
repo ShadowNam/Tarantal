@@ -12,7 +12,7 @@ export interface AdminHuntSetup {
   readonly options: AdminOptions;
   /** The content the hunt (and the run) uses: quotas × quotaMul, the forced event. */
   readonly content: ContentBundle;
-  readonly mode: 'classic' | 'daily' | 'seasonHunt';
+  readonly mode: 'classic' | 'daily' | 'seasonHunt' | 'harvest';
   readonly classicBiome: string | undefined;
   /** 'none' = the plain biome; undefined = today's layout (bonus maps). */
   readonly classicLayout: string | undefined;

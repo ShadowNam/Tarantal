@@ -37,7 +37,14 @@ describe('admin entries (D-034)', () => {
   const ids = entries.map((e) => e.id);
 
   it('lists every biome plain, Mon…Sun and Verder, the Daily and every Season Run hunt', () => {
-    for (const b of content.biomes) {
+    // v1.8c (D-063): the Harvest's field is one entry, the Harvest.
+    const harvest = content.modes.modes.harvest.biome;
+    expect(entries.find((e) => e.id === 'harvest')).toMatchObject({
+      kind: 'harvest',
+      biome: harvest,
+    });
+    expect(ids.some((id) => id.startsWith(`classic:${harvest}:`))).toBe(false);
+    for (const b of content.biomes.filter((x) => x.id !== harvest)) {
       expect(ids).toContain(`classic:${b.id}:plain`);
       for (const d of ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
         expect(ids).toContain(`classic:${b.id}:${d}`);

@@ -19,6 +19,7 @@ export function entryLabel(e: AdminEntry, content: ContentBundle): string {
     return fill(at('admin.feesdag_date'), { name: tOr(f?.nameKey ?? '', e.feesdag), date });
   }
   if (e.kind === 'daily') return at('admin.daily');
+  if (e.kind === 'harvest') return at('admin.harvest');
   if (e.kind === 'season')
     return `${tOr(`season.${e.season ?? ''}`, e.season ?? '')} · ${atOr(
       `admin.stage_${e.stage ?? ''}`,
@@ -38,6 +39,7 @@ export function groupLabel(e: AdminEntry, content: ContentBundle): string {
   if (e.kind === 'daily' && e.feesdag !== null) return at('admin.group_feesdae');
   if (e.kind === 'daily') return at('admin.group_daily');
   if (e.kind === 'season') return at('admin.group_season');
+  if (e.kind === 'harvest') return at('admin.group_harvest');
   return biomeName(content, e.biome);
 }
 

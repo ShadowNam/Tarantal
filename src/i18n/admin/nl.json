@@ -40,5 +40,7 @@
   "admin.sight": "Sight",
   "admin.project": "Project overview",
   "admin.group_feesdae": "Feestdagen",
-  "admin.feesdag_date": "{name} · {date}"
+  "admin.feesdag_date": "{name} · {date}",
+  "admin.harvest": "De Oogst (30 s)",
+  "admin.group_harvest": "De Oogst"
 }
