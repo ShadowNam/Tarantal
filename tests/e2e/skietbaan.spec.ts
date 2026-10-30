@@ -18,7 +18,10 @@ const RANGE_GUN_COUNT = weaponsJson.weapons.reduce(
 const PLATFORM = process.env['E2E_PLATFORM'] || 'web';
 /** v1.4 B (D-039): the admin Skietbaan offers every playable biome, like admin hunts (every
  *  biome has art on the web build, so all are playable — Namibië too, locked or not). */
-const ALL_BIOMES = loadContent().biomes.map((b) => b.id);
+// v1.8c (D-063): the Skietbaan offers the hunting areas, not a mode's own map (the Harvest's field).
+const ALL_BIOMES = loadContent()
+  .biomes.filter((b) => b.id !== loadContent().modes.modes.harvest.biome)
+  .map((b) => b.id);
 const SHOTS_DIR = 'docs/art-preview/compare';
 
 /** The device name of a project (a local Chromium stand-in for WebKit keeps the device's). */
