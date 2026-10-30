@@ -532,7 +532,9 @@ the ostriches and tells there changed no event: every golden replay passed as re
 The view (`src/game/view/baboon/BaboonView.ts`, lazy) draws from the snapshot on sim time: one
 sprite per baboon, the thrown fruit and the tap's water; properties set on change only, off-screen
 sprites hidden, its own `baboonMs` timer. A far ridge with a troop is never merged into the far
-veld on the low tier (its art would slide away from the troop's hit shapes).
+veld on the low tier (its art would slide away from the troop's hit shapes): troop maps draw 6
+parallax layers on the low tier instead of 5 (the sim is the same on every tier; the low-tier and
+Pixel 7 perf jobs passed with it); `tests/e2e/quality.spec.ts` checks both cases.
 
 ### 3.13 Juggle bodies: tin cans and makalani nuts (v1.8, D-050; 1.9.3, D-056)
 

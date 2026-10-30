@@ -3,6 +3,7 @@
 // medium six with the vignette; a biome other than the home one downloads its art chunk only when
 // a hunt there starts.
 import { expect, test, type Page } from '@playwright/test';
+import karoo from '../../content/biomes/karoo-autumn.json' with { type: 'json' };
 import { boot, hook, isLandscape, isTouchProject, SCREENSHOTS, startHunt } from './helpers';
 
 const SAVE = 'tm.e2e.save.v1';
@@ -37,11 +38,52 @@ test('title benchmark picks a tier and saves it for the next visit', async ({ pa
   expect(q.tier).toBe(q.bench?.tier);
 });
 
+// v1.8b (D-062): a far ridge with a baboon troop is never merged (merged, its art would scroll at
+// the far veld's rate while the troop's hit shapes stay at the ridge's): the merge is checked on
+// a map without a troop (?baboons=0), and a troop map keeps the ridge as its own layer.
 test('low tier: the far ridge merged (5 layers), no camera filters', async ({ page }, info) => {
   await seedQuality(page, 'low');
-  await boot(page, '');
+  await boot(page, 'baboons=0');
   expect((await hook(page)).quality).toMatchObject({ tier: 'low', layers: 5, filters: [] });
   await page.screenshot({ path: `${SCREENSHOTS}/quality-low-${info.project.name}.png` });
+});
+
+test('low tier: a troop map keeps its far ridge (6 layers), the troop on its seats', async ({
+  page,
+}, info) => {
+  test.skip(!isLandscape(info), 'hunts are played in landscape');
+  test.setTimeout(300_000);
+  await seedQuality(page, 'low');
+  await boot(page, 'seed=42&layout=mon&huntSeconds=60');
+  expect((await hook(page)).quality).toMatchObject({ tier: 'low', layers: 6, filters: [] });
+  await startHunt(page, isTouchProject(info));
+  await page.waitForFunction(
+    () =>
+      (
+        (window as unknown as { __TM__?: { baboons?: readonly { visible: boolean }[] | null } })
+          .__TM__?.baboons ?? []
+      ).length > 0,
+    null,
+    { timeout: 120_000 },
+  );
+  // Each listed member's feet are on one of the troop's seats (layer y: the ridge doesn't scroll
+  // vertically; a walker is between two seats, a climber below them).
+  const ys = karoo.baboons.troops[0]?.seats.map((x) => x.y) ?? [];
+  const members = await page.evaluate(() =>
+    (
+      (
+        window as unknown as {
+          __TM__?: { baboons?: readonly { role: string; y: number; alpha: number }[] | null };
+        }
+      ).__TM__?.baboons ?? []
+    ).filter((b) => b.role !== 'raider' && b.alpha === 1),
+  );
+  expect(members.length).toBeGreaterThan(0);
+  for (const m of members) {
+    expect(m.y).toBeGreaterThanOrEqual(Math.min(...ys) - 2);
+    expect(m.y).toBeLessThanOrEqual(Math.max(...ys) + 2);
+  }
+  expect((await hook(page)).quality.layers).toBe(6);
 });
 
 test('medium tier: 6 layers and the vignette', async ({ page }) => {

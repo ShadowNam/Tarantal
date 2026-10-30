@@ -3429,7 +3429,11 @@ something naughty that might get them to eat a bullet or two."
   animals: where a raider walks in past one, the secret takes the pellet (spotClear checks only
   where raiders stand at their mischief). Members climbing over the ridge can't be hit.
 - *Low tier.* A far ridge with a troop is no longer merged into the far veld on the low tier: merged,
-  its art would scroll at the far veld's rate while the troop's hit shapes stay at the ridge's.
+  its art would scroll at the far veld's rate while the troop's hit shapes stay at the ridge's. So
+  troop maps draw 6 layers on the low tier (5 before); the sim must be the same on every tier, and
+  the perf jobs (desktop and Pixel 7, incl. the low tier's 50 fps at 6× throttle) passed with it
+  (supervisor's decision, 30 Oct). quality.spec checks the merge on a map without a troop and the
+  unmerged ridge on a troop map.
 
 ## 3. Research notes (with sources)
 
