@@ -465,6 +465,9 @@ export class AssetManifest {
     const jobs: Promise<void>[] = [];
     // D-029: the late group downloads after everything else (it isn't needed to start a hunt).
     const late: (() => Promise<void>)[] = [];
+    // v1.8b (D-062): the baboon sheet goes first in the background (a hunt with a troop waits for
+    // it), before the larger late and Ver files.
+    const lateFirst: (() => Promise<void>)[] = [];
     // v1.6 (D-042): what this load must deliver before a hunt may start (not the late group),
     // checked once the jobs are done; a failure is a key with the file that failed.
     const expect: { key: string; path: string; done: () => boolean }[] = [];
@@ -491,7 +494,7 @@ export class AssetManifest {
       // v1.3: the Ver strips aren't needed to start a hunt either (only bonus maps show them).
       // v1.8b (D-062): the baboon sheet too (a hunt with a troop waits for that one file).
       if (group === LATE_GROUP || group === VER_GROUP || group === BABOON_GROUP) {
-        late.push(job);
+        (group === BABOON_GROUP ? lateFirst : late).push(job);
         if (need !== undefined) expectLate.push({ ...need, group });
       } else {
         jobs.push(job());
@@ -672,12 +675,14 @@ export class AssetManifest {
       console.warn(`[assets] ${m.key}: delivered file failed to load (${m.path})`);
     this.lateDone = false;
     this.missingLate = [];
-    this.lateLoaded = Promise.all(late.map((job) => job())).then(() => {
-      this.missingLate = expectLate
-        .filter((e) => !e.done())
-        .map((e) => ({ key: e.key, path: e.path, group: e.group }));
-      this.lateDone = true;
-    });
+    this.lateLoaded = Promise.all(lateFirst.map((job) => job()))
+      .then(() => Promise.all(late.map((job) => job())))
+      .then(() => {
+        this.missingLate = expectLate
+          .filter((e) => !e.done())
+          .map((e) => ({ key: e.key, path: e.path, group: e.group }));
+        this.lateDone = true;
+      });
   }
 
   /**

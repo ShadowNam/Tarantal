@@ -129,6 +129,10 @@ test.describe('Classic hunt', () => {
     });
     await startHunt(page, false);
     const h = await hook(page);
+    // v1.8b (D-062): Start never waits for the baboon sheet or the sim systems' chunk (both are
+    // fetched first, right after the first download, while the title shows).
+    expect(h.boot['baboonSheetWaitMs'], 'Start waited for the baboon sheet').toBeUndefined();
+    expect(h.boot['simSystemsWaitMs'], 'Start waited for the sim systems').toBeUndefined();
     const p = await toClient(page, h.designWidth / 2, h.designHeight * 0.3);
     await page.mouse.click(p.x, p.y);
     await page.waitForFunction(() => window.__TM__?.firstShotAtMs !== null, null, {

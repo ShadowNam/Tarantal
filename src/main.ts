@@ -515,6 +515,9 @@ const initialDesign = designSizeFor(viewport().width, viewport().height);
 let portrait = isPortrait(viewport().width, viewport().height);
 let contextLost = false;
 
+// v1.8b (D-062): the lazy sim systems (baboons, ostriches, tells) from the start, so a hunt's Start
+// never waits for them.
+void loadSimSystems();
 const platform = createPlatform({
   serviceWorker: import.meta.env.PROD,
   // v1.6 (D-042): the worker names its build; the update bar shows only when it differs.

@@ -1104,6 +1104,7 @@ export class HuntScene extends Phaser.Scene {
       .text(width / 2, height / 2, t('ui.loading'), textStyle(48, '#F3EAD3'))
       .setOrigin(0.5)
       .setDepth(10_000);
+    const t0 = performance.now();
     const poll = this.time.addEvent({
       delay: 200,
       loop: true,
@@ -1113,6 +1114,8 @@ export class HuntScene extends Phaser.Scene {
         if (!ok && !manifest.lateDone) return;
         poll.remove();
         if (label.active) label.destroy();
+        // e2e: how long Start waited for the sheet (hunt.spec: the first hunt never does).
+        if (this.ctx.hook) this.ctx.hook.boot['baboonSheetWaitMs'] = performance.now() - t0;
         if (ok) {
           if (veil.active) veil.destroy();
           // Files arrived while waiting (the sheet, and with it any background file such as a
@@ -1135,7 +1138,10 @@ export class HuntScene extends Phaser.Scene {
       .setDepth(9_999);
     const def = this.ctx.content.biomes.find((b) => b.id === biomeId);
     const area = def === undefined ? biomeId : tOr(def.nameKey, biomeId);
+    const t0 = performance.now();
     void loadSimSystems().then((ok) => {
+      // e2e: how long Start waited for the sim systems' chunk.
+      if (this.ctx.hook) this.ctx.hook.boot['simSystemsWaitMs'] = performance.now() - t0;
       if (ok || !veil.active) {
         if (veil.active) veil.destroy();
         then(ok);
