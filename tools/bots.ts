@@ -131,7 +131,22 @@ function harvestHunter(
         return inner.next(s);
       let aim: { dx: number; sy: number } | null = null;
       let best = Infinity;
-      for (const h of seen.harvest.warthogs) {
+      // Review round 2: a player takes the warthog or raider with a clear line of fire (no bird
+      // in front of the aim point: a bird on the same or a nearer plane within its body's reach).
+      const bird = content.birds.creatures.find((c) => c.id === 'tarentaal');
+      const birdR =
+        bird?.kind === 'target' ? Math.max(bird.hitbox.body.rx, bird.hitbox.body.ry) : 110;
+      const clear = (dx: number, sy: number, sf: number): boolean =>
+        !seen.birds.some((b) => {
+          const bf = planes[b.plane].scrollFactor;
+          if (bf < sf) return false;
+          const r = birdR * planes[b.plane].scale + 12;
+          return Math.abs(planeToDx(s.cameraX, bf, b.x) - dx) < r && Math.abs(b.y - sy) < r;
+        });
+      // A player tracks a warthog or raider in view (they run off fast once hit): aim at where it
+      // is now, not where it was LAG ticks ago (the birds' reaction lag stays in the inner bot).
+      const now = s.harvest;
+      for (const h of now.warthogs) {
         if (h.phase === 'tumble') continue;
         const b = (h.phase === 'dig' ? W.hitboxes.dig : W.hitboxes.trot).body;
         const dx = planeToDx(
@@ -139,12 +154,16 @@ function harvestHunter(
           planes[h.plane].scrollFactor,
           h.x + b.ox * h.scale * h.facing,
         );
-        if (Math.abs(dx) < Math.min(best, VIEW_HALF_WIDTH)) {
+        const sy = h.y + b.oy * h.scale;
+        if (
+          Math.abs(dx) < Math.min(best, VIEW_HALF_WIDTH) &&
+          clear(dx, sy, planes[h.plane].scrollFactor)
+        ) {
           best = Math.abs(dx);
-          aim = { dx, sy: h.y + b.oy * h.scale };
+          aim = { dx, sy };
         }
       }
-      for (const r of seen.baboons?.raiders ?? []) {
+      for (const r of s.baboons?.raiders ?? []) {
         if (r.phase === 'tumble') continue;
         const b = box[r.phase === 'act' ? 'sit' : 'walk'].body;
         const dx = planeToDx(
@@ -152,9 +171,13 @@ function harvestHunter(
           planes[r.plane].scrollFactor,
           r.x + b.ox * r.scale * r.facing,
         );
-        if (Math.abs(dx) < Math.min(best, VIEW_HALF_WIDTH)) {
+        const sy = r.y + b.oy * r.scale;
+        if (
+          Math.abs(dx) < Math.min(best, VIEW_HALF_WIDTH) &&
+          clear(dx, sy, planes[r.plane].scrollFactor)
+        ) {
           best = Math.abs(dx);
-          aim = { dx, sy: r.y + b.oy * r.scale };
+          aim = { dx, sy };
         }
       }
       if (aim === null) return inner.next(s);
