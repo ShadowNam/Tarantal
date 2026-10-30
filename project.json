@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-30T06:29:19Z",
+ "updated": "2026-10-30T13:09:39Z",
  "by": "Claude",
- "summary": "Live on the test build: baboon troops (1.10.0, merged 08:29 Namibia time on 30 Oct, your request of 25 Oct): a chacma troop sits on the far ridge of most maps (lookout, males, youngsters, mothers with a baby on the back), and about once a minute a raider climbs down to cause trouble: Oupa's hat off the bakkie, the tap, fruit trees, a mielie cob, fruit thrown at a flock, a moon from a fence post. Two hits bag a raider like a guineafowl; stopping it before the raid is done pays +15. A mother costs points only when you aimed at her. Tank has started The Harvest (a new 30-second mode); first screenshots ≈ 16:00–17:00 today. Then the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
+ "summary": "Live on the test build: Die Oes (The Harvest) (1.11.0, merged 15:09 Namibia time on 30 Oct, your idea of 25 Oct): a new 30-second mode on the title screen. A warthog family breaks the farm fence, then guineafowl flocks, francolins, doves, warthogs and baboon raiders pour into the mielies, pumpkins and sunflowers while three farm workers mend the gap. Warthogs take 2 hits; a crop meter drains while animals eat, and what is left pays a crop bonus; its own tally and best score. Workers and piglets cost points only when you aimed at them. Also fixed: animals facing left were drawn up to ~20 px beside where shots hit them (baboons, meerkats, tree residents, ostriches too). Tank has started the Christmas Daily (\"Christmas in the sun\"); then the New Year Daily and v1.9–v1.13; Oupa's new voices last.",
  "current": {
-  "version": "1.10.0",
-  "commit": "6e3d024"
+  "version": "1.11.0",
+  "commit": "86244d9"
  },
  "links": [
   {
@@ -36,23 +36,23 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.10.0",
-   "note": "commit 6e3d024, merged 30 Oct, 08:29 Namibia time (the test build deploys a few minutes after)"
+   "value": "1.11.0",
+   "note": "commit 86244d9, merged 30 Oct, 15:08 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "102",
-   "note": "#1 to #105"
+   "value": "103",
+   "note": "#1 to #106"
   },
   {
    "label": "Unit tests",
-   "value": "1,642",
+   "value": "1,713",
    "note": "plus the browser test suites on 3 devices"
   },
   {
    "label": "First download",
    "value": "2.97 MB",
-   "note": "2,965.1 KB of the 3,072 KB budget"
+   "note": "2,971.8 KB of the 3,072 KB budget"
   },
   {
    "label": "Hunting areas",
@@ -70,8 +70,8 @@
   },
   {
    "label": "Decisions logged",
-   "value": "62",
-   "note": "D-001 to D-062 on main"
+   "value": "63",
+   "note": "D-001 to D-063 on main"
   }
  ],
  "needsYou": [
@@ -2118,33 +2118,37 @@
   },
   {
    "id": "v1.8c",
-   "title": "v1.8c: Die Oes (The Harvest): a new 30-second mode; hold the animals off the crops while the fence is fixed (your idea, 25 Oct)",
+   "title": "v1.8c: Die Oes (The Harvest): a new 30-second mode; hold the animals off the crops while the fence is fixed; workers and piglets cost points only when aimed at; left-facing animals now stand on their hit areas everywhere; version 1.11.0 (your idea, 25 Oct)",
    "phase": "Version 1.x",
-   "status": "running",
-   "start": "2026-10-30T06:29:19Z",
-   "end": "2026-10-30T19:00:00Z",
-   "estimate": true,
+   "status": "done",
+   "start": "2026-10-30T06:33:52Z",
+   "end": "2026-10-30T13:08:55Z",
+   "estimate": false,
+   "prs": [
+    106
+   ],
    "version": "1.8.2",
-   "summary": "A new mode on the title screen. The fence breaks, guineafowl, warthogs and baboons pour into the harvest field, and you have 30 seconds to hold them off while the farm workers fix the fence. A crop meter shows what you saved; the workers are never targets. Tank writes a short plan first.",
-   "owner": "Tank builds it (task a12eaaee, started 08:29 Namibia); Claude runs the screenshots and checks",
+   "summary": "A new 30-second mode on the title screen: the fence breaks, guineafowl, francolins, doves, warthogs and baboon raiders pour into the harvest field, and you hold them off while three farm workers fix the gap. Warthogs take 2 hits (3× a guineafowl); the crop meter drains while animals eat and the rest pays a crop bonus; the Harvest tally has Share, Again, Menu and your best. Workers (−100) and piglets cost points only when you aimed at them. A good player with the Dubbelloop saves about two thirds of the crop.",
+   "owner": "Tank built it (task a12eaaee); Claude reviewed it, found the left-facing drawing bug, ran the screenshots and merged it (#106)",
    "requestedBy": "You, 25 Oct ~20:20: \"we could call it the harvest … you've got 30 seconds to shoot as many animals as possible while the fence gets repaired\"."
   },
   {
    "id": "christmas-daily-25-dec-christmas-in-the-",
    "title": "Christmas Daily (25 Dec): Christmas in the sun, tinsel on the camelthorn, Oupa in a Santa hat and shorts (your pick, 27 Oct)",
    "phase": "Version 1.x",
-   "status": "next",
-   "start": "2026-10-30T19:00:00Z",
-   "end": "2026-10-31T01:00:00Z",
-   "estimate": true
+   "status": "running",
+   "start": "2026-10-30T13:09:39Z",
+   "end": "2026-10-30T19:30:00Z",
+   "estimate": true,
+   "summary": "Tank task 91acb5c8"
   },
   {
    "id": "new-year-daily-a-countdown-hunt-with-par",
    "title": "New Year Daily: a countdown hunt with party hats, small fireworks and double points in the last 10 s (your pick, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T01:00:00Z",
-   "end": "2026-10-31T06:00:00Z",
+   "start": "2026-10-30T19:30:00Z",
+   "end": "2026-10-31T00:30:00Z",
    "estimate": true
   },
   {
@@ -2152,8 +2156,8 @@
    "title": "v1.9: the veld soundscape and local music (doves, hadedas, cicadas, fish eagle; marimba, mbira, drums)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T06:00:00Z",
-   "end": "2026-10-31T11:00:00Z",
+   "start": "2026-10-31T00:30:00Z",
+   "end": "2026-10-31T05:30:00Z",
    "estimate": true,
    "version": "1.9.0"
   },
@@ -2162,8 +2166,8 @@
    "title": "v1.10: Reënbui — the first rain and the flying-ant feast",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T11:00:00Z",
-   "end": "2026-10-31T16:00:00Z",
+   "start": "2026-10-31T05:30:00Z",
+   "end": "2026-10-31T10:30:00Z",
    "estimate": true,
    "version": "1.10.0"
   },
@@ -2172,8 +2176,8 @@
    "title": "v1.11: Die Braai — the day ends at Oupa's fire under the Milky Way",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T16:00:00Z",
-   "end": "2026-10-31T21:00:00Z",
+   "start": "2026-10-31T10:30:00Z",
+   "end": "2026-10-31T15:30:00Z",
    "estimate": true,
    "version": "1.11.0"
   },
@@ -2182,8 +2186,8 @@
    "title": "v1.12: Brakkie, the farm dog",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T21:00:00Z",
-   "end": "2026-11-01T03:00:00Z",
+   "start": "2026-10-31T15:30:00Z",
+   "end": "2026-10-31T21:30:00Z",
    "estimate": true,
    "version": "1.12.0"
   },
@@ -2192,8 +2196,8 @@
    "title": "v1.13: veld cameos — warthogs, baboons, springbok, elephants, ostrich, dung beetle",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-11-01T03:00:00Z",
-   "end": "2026-11-01T09:00:00Z",
+   "start": "2026-10-31T21:30:00Z",
+   "end": "2026-11-01T03:30:00Z",
    "estimate": true,
    "version": "1.13.0"
   },
@@ -2202,8 +2206,8 @@
    "title": "Oupa's new voices, once all the text is final: English, Afrikaans and German generated through one voice API key (OpenRouter), each clip checked automatically by speech-to-text and redone if wrong; a short sample test first (your plan, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-11-01T09:00:00Z",
-   "end": "2026-11-01T14:00:00Z",
+   "start": "2026-11-01T03:30:00Z",
+   "end": "2026-11-01T08:30:00Z",
    "estimate": true
   }
  ],
@@ -2739,6 +2743,21 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-30T13:09:39Z",
+   "kind": "merge",
+   "text": "Die Oes (The Harvest) is on the test build (1.11.0, #106): a new 30-second mode where you hold warthogs, baboons and flocks off the crops while the workers fix the fence. Full CI green on desktop and both phones; 54 reviewed screenshots."
+  },
+  {
+   "at": "2026-10-30T13:09:39Z",
+   "kind": "note",
+   "text": "Claude found a drawing bug while checking the Harvest: animals facing left were drawn up to ~20 px beside the spot where shots hit them (a sprite mirrored twice). Tank fixed it everywhere it occurred: the Harvest's workers and warthogs, the baboons, meerkat colonies, tree residents, tell animals and ostriches."
+  },
+  {
+   "at": "2026-10-30T13:09:39Z",
+   "kind": "decision",
+   "text": "Harvest workers and piglets cost points only when the shot was aimed at them (the same rule as the baboon mothers); accidental worker hits stay at most 0.01 a run on every gun. Claude went with the recommended option; say if you want it changed."
+  },
   {
    "at": "2026-10-30T06:29:19Z",
    "kind": "merge",
