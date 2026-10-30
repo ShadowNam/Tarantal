@@ -49,7 +49,15 @@ export interface BaboonSystem {
   /** The plane a baboon is on (null: not one of them). */
   plane(id: number): PlaneId | null;
   /** A shot's baboon hits; `loud`: the Langloop's shot (every troop runs). */
-  shot(shotId: number, hits: readonly number[], loud: boolean): void;
+  shot(
+    shotId: number,
+    hits: readonly number[],
+    loud: boolean,
+    /** Pellets of this shot that struck a baboon. */
+    pellets: (id: number) => number,
+    /** Pellets the gun fires per shot. */
+    gunPellets: number,
+  ): void;
   step(): void;
   view(): BaboonsView;
 }
@@ -128,7 +136,13 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
    * its raid wasn't done), anything less sends it running; either way its troop runs over the
    * ridge. A ridge member: a mother costs the penalty (with a cooldown), and the troop runs.
    */
-  function shot(shotId: number, hits: readonly number[], loud: boolean): void {
+  function shot(
+    shotId: number,
+    hits: readonly number[],
+    loud: boolean,
+    pellets: (id: number) => number,
+    gunPellets: number,
+  ): void {
     const tick = host.tick();
     const scared = new Set<string>();
     for (const id of hits) {
@@ -183,8 +197,14 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
       const found = findMember(state, id);
       if (found === null || !memberPresent(found.member)) continue;
       const { troop, member } = found;
+      // A mother costs points when motherPellets of one shot strike her (a one-pellet gun's one
+      // hit is enough): a stray pellet of a spread aimed at a bird below never does (it still
+      // sends the troop away).
+      const struck = pellets(member.id) >= Math.min(bb.hit.motherPellets, gunPellets);
       const points =
-        member.role === 'mother' && troop.cooldown === 0 && !host.ranged ? -bb.hit.penalty : 0;
+        member.role === 'mother' && struck && troop.cooldown === 0 && !host.ranged
+          ? -bb.hit.penalty
+          : 0;
       if (points < 0) {
         host.penalty(points);
         troop.cooldown = cooldownTicks;

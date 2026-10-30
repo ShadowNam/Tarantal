@@ -1938,6 +1938,8 @@ export function createSim(config: SimConfig): Sim {
     const spookHits: number[] = [];
     const tellHits: number[] = [];
     const baboonHits: number[] = [];
+    /** v1.8b (D-062): pellets per baboon (a mother counts from motherPellets). */
+    const baboonPellets = new Map<number, number>();
     /** v1.8: pellets per tin can, their summed offsets and the dents (in landing order). */
     const canHits = new Map<
       number,
@@ -1982,7 +1984,10 @@ export function createSim(config: SimConfig): Sim {
         ostrichHits.push(r.ostrichId);
       if (r.spookId !== undefined && !spookHits.includes(r.spookId)) spookHits.push(r.spookId);
       if (r.tellId !== undefined && !tellHits.includes(r.tellId)) tellHits.push(r.tellId);
-      if (r.baboonId !== undefined && !baboonHits.includes(r.baboonId)) baboonHits.push(r.baboonId);
+      if (r.baboonId !== undefined) {
+        if (!baboonHits.includes(r.baboonId)) baboonHits.push(r.baboonId);
+        baboonPellets.set(r.baboonId, (baboonPellets.get(r.baboonId) ?? 0) + 1);
+      }
       if (r.canId !== undefined) {
         const h = canHits.get(r.canId) ?? { n: 0, dx: 0, dy: 0, at: [] };
         h.n++;
@@ -2243,7 +2248,13 @@ export function createSim(config: SimConfig): Sim {
     ostriches?.shot(shotId, ostrichHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
     tells?.shot(shotId, tellHits);
     if (baboonHits.length > 0 || (shot.alertsAllFlocks && radius > 0))
-      baboons?.shot(shotId, baboonHits, shot.alertsAllFlocks && radius > 0);
+      baboons?.shot(
+        shotId,
+        baboonHits,
+        shot.alertsAllFlocks && radius > 0,
+        (id) => baboonPellets.get(id) ?? 0,
+        shot.pellets,
+      );
     const near = shotThreats(flocks, impacts, shotCx, radius, planeGeo, baggedFlockIds);
     threaten(near, radius > 0 ? 'shot' : 'silentBag');
     // v1.4 (D-038): a very loud gun alerts every other flock too (unless a charm or the rain

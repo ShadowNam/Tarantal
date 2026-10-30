@@ -640,6 +640,9 @@ export const BaboonsSchema = obj({
     tumbleSeconds: pos,
     /** A hit on a mother (and her baby): points off, then a cooldown. */
     penalty: posInt,
+    /** Pellets of one shot that must strike a mother for the penalty (a gun with fewer pellets:
+     *  all of them), like the balloons: a stray pellet of a spread costs nothing. */
+    motherPellets: posInt,
     cooldownSeconds: pos,
   }),
 });

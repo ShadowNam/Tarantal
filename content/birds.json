@@ -839,7 +839,7 @@
     ]
   },
   "baboons": {
-    "$comment": "v1.8b (D-062): chacma baboon troops (GDD §11.3d). A troop sits on the far ridge (never a target: a hit on a mother carrying her baby costs the penalty with a 2 s cooldown; any hit, or the Langloop, sends the troop over the ridge for awaySeconds). Raids: the lookout barks, one or two males climb down and come in from the side of a raid spot on the mid plane, do their mischief for actSeconds, then go back. A raider is a target: 2 hits bag it (each shot that hits it is one hit), for 3 × a guineafowl's base on its plane (× Frenzy × Stampede) and stopBonus when its raid wasn't done. Sizes and speeds are design px at plane scale 1 (a sitting male is 360 px: 54 px on the far ridge, 151 px on the mid plane); times in seconds. Where troops sit and raid is in the biome files (baboons). Oupa's lines are the guide tables' guide.baboon.* (lazy).",
+    "$comment": "v1.8b (D-062): chacma baboon troops (GDD §11.3d). A troop sits on the far ridge (never a target: a hit on a mother carrying her baby (2 pellets of one shot, or a one-pellet gun's hit) costs the penalty with a 2 s cooldown; any hit, or the Langloop, sends the troop over the ridge for awaySeconds). Raids: the lookout barks, one or two males climb down and come in from the side of a raid spot on the mid plane, do their mischief for actSeconds, then go back. A raider is a target: 2 hits bag it (each shot that hits it is one hit), for 3 × a guineafowl's base on its plane (× Frenzy × Stampede) and stopBonus when its raid wasn't done. Sizes and speeds are design px at plane scale 1 (a sitting male is 360 px: 54 px on the far ridge, 151 px on the mid plane); times in seconds. Where troops sit and raid is in the biome files (baboons). Oupa's lines are the guide tables' guide.baboon.* (lazy).",
     "heightPx": 360,
     "motherScale": 0.82,
     "juvenileScale": 0.56,
@@ -880,6 +880,7 @@
       "stopBonus": 15,
       "tumbleSeconds": 0.9,
       "penalty": 15,
+      "motherPellets": 2,
       "cooldownSeconds": 2
     }
   }

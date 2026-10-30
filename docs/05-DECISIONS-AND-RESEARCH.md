@@ -3408,6 +3408,12 @@ something naughty that might get them to eat a bullet or two."
   Okavango 0.875, Namibië 0.425; Bushveld unchanged), and the Kalahari has no troop on Friday (its
   dead camelthorn's branch lines up with every stretch of the ridge). The "don't shoot it" weaver
   nests are no targets. e2e specs that shoot at other things or count the score use `?baboons=0`.
+- *Two pellets for a mother (round 2, the supervisor's gate: < 0.1 accidental mother hits a hunt
+  for every area and gun).* Even out of the line of fire, the Dubbelloop's spread at far birds
+  below the ridge drew 0.1–0.8 accidental mother hits a hunt (most on the Okavango, whose ridge is
+  low). A mother now costs points only when `baboons.hit.motherPellets` (2) pellets of one shot
+  strike her, or the one pellet of a one-pellet gun (the Windbuks, the rifles, the Kettie); a stray
+  pellet still sends the troop away. Numbers: docs/balance/v1.8b-baboons.md.
 - *Nothing floating (screenshot review round 1).* The Okavango's far bank is a thin treeline where
   its troop is clear of the line of fire, and the troop seemed to float over it: a troop may now
   have a rock outcrop drawn under it (`rock` in the biome file; `src/game/view/baboon/troopRock.ts`
