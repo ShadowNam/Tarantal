@@ -349,6 +349,8 @@ export class HuntScene extends Phaser.Scene {
         id = c.run.current === null ? undefined : c.run.info().biome;
       else if (data.mode === 'daily') id = c.daily.todaySetup().biome;
       else if (data.mode === 'ftue') id = c.content.modes.modes.ftue.biome;
+      // v1.8c (D-063): [Again] after the Harvest builds its field straight away.
+      else if (data.mode === 'harvest') id = c.content.modes.modes.harvest.biome;
       else id = c.classicBiome ?? c.classicArea();
     }
     const b = id === undefined ? undefined : c.content.biomes.find((x) => x.id === id);
@@ -367,7 +369,7 @@ export class HuntScene extends Phaser.Scene {
         const b = data.challenge.b;
         return l === undefined ? {} : b === undefined ? { layout: l } : { layout: l, bonus: b };
       }
-      if (data.mode === 'seasonHunt' || data.mode === 'ftue') return {};
+      if (data.mode === 'seasonHunt' || data.mode === 'ftue' || data.mode === 'harvest') return {};
       if (data.mode === 'daily') return { layout: c.daily.todaySetup().layout };
     }
     if (c.classicLayout === 'none') return {};
