@@ -77,7 +77,8 @@ export function encodeChallenge(c: Challenge): string {
 }
 
 export interface ChallengeContext {
-  readonly content: Pick<ContentBundle, 'weapons'> & Partial<Pick<ContentBundle, 'feesdae'>>;
+  readonly content: Pick<ContentBundle, 'weapons'> &
+    Partial<Pick<ContentBundle, 'feesdae' | 'modes'>>;
   /** Biomes this build can play and draw. */
   readonly playableBiomes: readonly string[];
   readonly contentHash: string;
@@ -110,7 +111,9 @@ export function decodeChallenge(param: string, ctx: ChallengeContext): Challenge
     (c.mode !== 'daily' || ctx.content.feesdae?.specials.some((x) => x.id === c.f) !== true)
   )
     return { ok: false, reason: 'badShape' };
-  if (!ctx.playableBiomes.includes(c.biome)) return { ok: false, reason: 'unknownBiome' };
+  // v1.8c (D-063): the Harvest's field is played by the Harvest only (no Classic link to it).
+  if (!ctx.playableBiomes.includes(c.biome) || ctx.content.modes?.modes.harvest.biome === c.biome)
+    return { ok: false, reason: 'unknownBiome' };
   const w = ctx.content.weapons.weapons.find((x) => x.id === c.weapon);
   // A challenge lends its gun for that hunt (unlocks don't matter), but only a primary.
   if (w === undefined || w.kind !== 'primary') return { ok: false, reason: 'unknownWeapon' };
