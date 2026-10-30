@@ -293,12 +293,12 @@
     },
     "feesdae/christmas": {
       "file": {
-        "path": "assets/feesdae-christmas-hd/img/feesdae_christmas.d6fe37d8440e.png",
-        "bytes": 132703,
-        "hash": "d6fe37d8440e"
+        "path": "assets/feesdae-christmas-hd/img/feesdae_christmas.50eee246f364.png",
+        "bytes": 126865,
+        "hash": "50eee246f364"
       },
-      "width": 1200,
-      "height": 1420,
+      "width": 1288,
+      "height": 1388,
       "scale": 0.5
     },
     "fx/bolt": {

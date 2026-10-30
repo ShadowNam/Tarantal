@@ -199,12 +199,16 @@ const presentOf = async (
     );
     return t === undefined ? null : { id: t.id, x: t.x, y: t.y };
   }, id);
+/** Round a present: wide enough for the lid landing behind it, tall enough for the lid and the
+ *  bow in the air as it opens. */
 const presentBox = (p: { x: number; y: number }): Rect => ({
-  x: p.x - 110 * MID - 30,
-  y: p.y - 150 * MID - 24,
-  w: 220 * MID + 60,
-  h: 220 * MID + 36,
+  x: p.x - 130 * MID - 30,
+  y: p.y - 300 * MID - 24,
+  w: 260 * MID + 60,
+  h: 370 * MID + 36,
 });
+/** Ticks after the opening that `present-open` holds on (the lid at the top of its hop). */
+const OPEN_TICKS = 18;
 
 test('the title: the Daily as Christmas in the sun, its badge and Oupa', async ({ page }, info) => {
   await boot(page, QUERY);
@@ -349,12 +353,42 @@ test('a present shut, just opened and opened; the tally and the share card', asy
   save('std-present', info, await cut(page, shot, box));
   await release(page);
 
+  // The opening moment: an in-page watcher (every frame, bounded) holds the sim OPEN_TICKS after
+  // the tick the present opens (the flash gone, the lid and bow in the air, the confetti up),
+  // whatever the frame rate; then the shot.
+  await page.evaluate(
+    ([pid, after]) => {
+      const w = window as unknown as { __xOpenHeld?: boolean };
+      w.__xOpenHeld = false;
+      let frames = 0;
+      const watch = (): void => {
+        const g = window.__TM__;
+        const hold = (window as unknown as { __TM_HOLD_AT__?: (t: number) => void }).__TM_HOLD_AT__;
+        const t = g?.spook?.things.find((x) => x.id === pid);
+        if (g !== undefined && hold !== undefined && t?.dark === true) {
+          hold(g.tick + after);
+          w.__xOpenHeld = true;
+          return;
+        }
+        if (++frames < 6000) requestAnimationFrame(watch);
+      };
+      requestAnimationFrame(watch);
+    },
+    [first.id, OPEN_TICKS] as const,
+  );
   expect(await shootPresentOpen(page, touch, first.id)).toBe(true);
   await park(page, touch, 0.78);
-  // A dozen ticks on: the flash is gone, the lid in the air, the confetti rising.
-  const t0 = await page.evaluate(() => window.__TM__?.tick ?? 0);
-  await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 12, t0, { timeout: 60_000 });
-  await holdFresh(page);
+  await page.waitForFunction(
+    () => (window as unknown as { __xOpenHeld?: boolean }).__xOpenHeld === true,
+    null,
+    { timeout: 60_000 },
+  );
+  // Held: wait for fresh frames of the held tick.
+  const f0 = await page.evaluate(() => window.__TM__?.sceneryFrames ?? 0);
+  await page.waitForFunction((f) => (window.__TM__?.sceneryFrames ?? 0) >= f + 3, f0, {
+    timeout: 60_000,
+  });
+  await page.waitForTimeout(500);
   box = await clearOf();
   shot = await grab(page);
   const open = await closeUp(page, info, 'present-open', shot, box);
@@ -370,7 +404,8 @@ test('a present shut, just opened and opened; the tally and the share card', asy
   const n = Math.min(open.data.length, opened.data.length);
   for (let i = 0; i < n; i += 4)
     if (Math.abs((open.data[i] ?? 0) - (opened.data[i] ?? 0)) > 30) diff++;
-  expect(diff, 'present-open and present-opened differ').toBeGreaterThan(200);
+  // Soft: the tally and the share card are still shot if this fails.
+  expect.soft(diff, 'present-open and present-opened differ').toBeGreaterThan(200);
 
   await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 300_000 });
   expect(await page.evaluate(() => window.__TM__?.tally?.frame ?? null)).toBe('christmas');
