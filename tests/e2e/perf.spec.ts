@@ -428,6 +428,157 @@ test('perf: a Christmas in the sun hunt at 4× CPU throttle (Pixel 7)', async ({
   expect(errors).toEqual([]);
 });
 
+// D-065: a New Year countdown hunt in HD on its heaviest map — the Okavango (253.9 MB on its own
+// in HD), which is 31 Dec 2026's own Daily map — reached from the title: New Year's sheet is
+// Standard in HD from the start (400 × 358 px, ~0.57 MB on the GPU), the fireworks and stars use
+// its 16 px spark and 12 px star (no stand-in: the hunt waits for its listed sheet), no other
+// area's HD layers. ≤ 256 MB asserted.
+test('HD texture memory, a New Year hunt on its heaviest map (okavango)', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'the Pixel 7 profile (medium tier)',
+  );
+  test.setTimeout(400_000);
+  await emulateCores(page);
+  await boot(
+    page,
+    'feesdag=newyear&today=2026-12-31&layout=none&seed=3&huntSeconds=60&graphics=hd&omen=0',
+  );
+  await page.waitForFunction(() => window.__TM__?.rects['daily'] !== undefined, null, {
+    timeout: 60_000,
+  });
+  await tapRect(page, isTouchProject(info), 'daily');
+  await page.waitForFunction(
+    () => {
+      const tm = window.__TM__;
+      const fauna = (tm?.graphics.bounds ?? []).filter((b) => b.key.startsWith('fauna/'));
+      return (
+        tm?.biome === 'okavango-spring' &&
+        tm.spook?.final === true &&
+        tm.graphics.hdTextures > 0 &&
+        fauna.length > 0 &&
+        fauna.every((b) => b.hd)
+      );
+    },
+    null,
+    { timeout: 180_000 },
+  );
+  const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
+  await page
+    .waitForFunction(
+      (from) => {
+        const tm = window.__TM__;
+        if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
+        return !tm.textureTop.some(
+          (t) =>
+            t.key.includes('/hd/') &&
+            t.key.includes('layer/') &&
+            !t.key.includes('layer/okavango/'),
+        );
+      },
+      r0,
+      { timeout: 90_000 },
+    )
+    .catch(() => undefined);
+  await page.waitForTimeout(4000);
+  const h = await hook(page);
+  const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
+  console.log(`[perf] new year (okavango) HD texture memory (title → hunt) ${mb} MB`);
+  await info.attach('hd-memory-newyear-okavango.json', {
+    body: JSON.stringify({ biome: 'okavango-spring', textureMB: mb, top: h.textureTop }, null, 1),
+    contentType: 'application/json',
+  });
+  const others = h.textureTop.filter(
+    (t) => t.key.includes('/hd/') && t.key.includes('layer/') && !t.key.includes('layer/okavango/'),
+  );
+  expect(others, "another area's HD layers on the GPU").toEqual([]);
+  expect(
+    h.textureTop.filter((t) => t.key.includes('#standin')),
+    'a special-day stand-in on the GPU',
+  ).toEqual([]);
+  // Standard in HD: the New Year sheet drawn is the 1× one, and no HD New Year texture is in.
+  expect(h.spook?.newYear?.sheet).toBe('standard');
+  expect(
+    h.textureTop.filter((t) => t.key.includes('newyear') && t.key.includes('hd')),
+    'an HD New Year texture on the GPU',
+  ).toEqual([]);
+  expect(mb, 'new year (okavango): texture memory (MB) with HD').toBeLessThanOrEqual(256);
+});
+
+// D-065: a New Year countdown hunt on the Pixel 7 profile at 4× CPU throttle, on the medium tier,
+// with the fireworks at their most (?fireworks=max: a burst every slot, 3 a second) through the
+// countdown: the pooled sparks, the stars, the blue hour, the party hats. The special's view on
+// its own timer (feesdagMs per scenery frame), the frame within the smoke's budget.
+test('perf: a New Year countdown hunt at 4× CPU throttle, fireworks at their most (Pixel 7)', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await emulateCores(page);
+  await page.addInitScript(() => {
+    const key = 'tm.e2e.save.v1';
+    if (localStorage.getItem(key) === null)
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          v: 1,
+          settings: { quality: 'medium' },
+          ftue: { done: true, skipped: false, step: '' },
+        }),
+      );
+  });
+  await boot(
+    page,
+    'feesdag=newyear&today=2026-12-31&layout=none&seed=3&huntSeconds=30&graphics=standard&fireworks=max',
+  );
+  await page.waitForFunction(() => window.__TM__?.rects['daily'] !== undefined, null, {
+    timeout: 60_000,
+  });
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await tapRect(page, touch, 'daily');
+  await page.waitForFunction(
+    () => (window.__TM__?.tick ?? 0) > 30 && window.__TM__?.spook?.final === true,
+    null,
+    { timeout: 180_000 },
+  );
+  const first = await hook(page);
+  while (!(await hook(page)).over) await waitTicks(page, 60);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const real = stats(h.frameTimes.slice(30));
+  const cpu = stats(h.cpuFrameMs.slice(30));
+  const report = {
+    project: info.project.name,
+    tier: h.quality.tier,
+    throttle: 4,
+    stars: first.spook?.newYear?.stars ?? 0,
+    bursts: h.spook?.newYear?.starts.length ?? 0,
+    feesdagMsPerFrame: h.sceneryFrames > 0 ? h.feesdagMs / h.sceneryFrames : 0,
+    realFrameMs: real,
+    cpuFrameMs: cpu,
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf.json'), JSON.stringify(report, null, 2));
+  expect(report.stars, 'stars on the sky').toBeGreaterThan(0);
+  expect(report.bursts, 'fireworks through the hunt').toBeGreaterThan(20);
+  expect(cpu.n).toBeGreaterThan(30);
+  expect(report.feesdagMsPerFrame, 'New Year view ms per frame, 4× throttle').toBeLessThanOrEqual(
+    0.3,
+  );
+  expect(cpu.avg, 'CPU cost per frame (ms), New Year, 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
+  expect(errors).toEqual([]);
+});
+
 // v1.8c (D-063): the Harvest's rush at its peak (?harvestRush=1: the peak rate from the start) on
 // the Pixel 7 profile at 4× CPU throttle: the warthogs, piglets, workers and the fence drawn, the
 // Harvest view on its own timer (harvestMs per scenery frame), the frame within the other maps'
