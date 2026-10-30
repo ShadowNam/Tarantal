@@ -13,6 +13,7 @@ import type { BaboonTuning } from '../../../content/schemas';
 import type { SimEvent } from '../../../sim/events';
 import type { BaboonView as SimBaboon, PlaneId, RaiderView, SimState } from '../../../sim/types';
 import type { AudioDirector } from '../../audio/AudioDirector';
+import { designSize } from '../../layout';
 import type { ParallaxView } from '../ParallaxView';
 import {
   BABOON_SHEET,
@@ -254,7 +255,7 @@ export class BaboonView {
     if (show && layer !== undefined) {
       // Hidden off screen (each layer pans on its own).
       const sx = layer.root.x + x * layer.root.scaleX;
-      const w = this.scene.scale.width;
+      const w = designSize().width;
       if (sx < -CULL_PX || sx > w + CULL_PX) show = false;
     }
     if (show !== s.shown) {
