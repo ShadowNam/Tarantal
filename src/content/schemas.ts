@@ -2285,6 +2285,7 @@ const HALLOWEEN_LOOK = obj({
       /** Cobwebs on props: the prop, the corner (fractions of its texture), mirrored, size. */
       cobwebs: z.array(obj({ prop: id, at: z.tuple([fraction, fraction]), flip: z.boolean(), scale: pos })),
       });
+export type HalloweenLook = z.infer<typeof HALLOWEEN_LOOK>;
 
 /** D-064: an [dx, dy] point relative to a prop's position (design px, the prop's own size). */
 const propPoint = z.tuple([z.number(), z.number()]);
@@ -2319,6 +2320,7 @@ const CHRISTMAS_LOOK = obj({
   lidSeconds: pos,
   confettiSeconds: pos,
 });
+export type ChristmasLook = z.infer<typeof CHRISTMAS_LOOK>;
 
 export const FeelSchema = obj({
   version,

@@ -475,7 +475,7 @@ export class HuntScene extends Phaser.Scene {
     const planes = this.ctx.content.scoring.planes;
     this.spookView?.clear();
     this.spookView = null;
-    const look = special === null ? undefined : this.ctx.feel.feesdae.looks[special.id];
+    const look = special?.id === 'halloween' ? this.ctx.feel.feesdae.looks.halloween : undefined;
     if (special !== null && look !== undefined && feesdaeModule !== null) {
       const textures = this.textures;
       const manifest = this.manifest;

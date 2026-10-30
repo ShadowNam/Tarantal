@@ -39,7 +39,7 @@ const HAT_ANCHORS = anchorsJson as unknown as {
   readonly clips: Readonly<Record<string, readonly Anchor[]>>;
 };
 
-export type SpecialLook = Feel['feesdae']['looks'][string];
+export type SpecialLook = Feel['feesdae']['looks']['halloween'];
 
 /** The stand-in's texture key (the delivered sheet takes HALLOWEEN_SHEET itself). */
 const STANDIN = `${HALLOWEEN_SHEET}#standin`;
@@ -196,7 +196,7 @@ export function loadFeesdaeAssets(audio: AudioDirector): Promise<HTMLImageElemen
           voices.delete(lang);
           return;
         }
-        const group = specialVoiceGroup(lang);
+        const group = specialVoiceGroup(lang, 'halloween');
         // v1.8b (D-062): the special days' lines are in the voice half of the index.
         // An index without any audio: none delivered, no voice either.
         const voice = Object.keys(ix.audio).length === 0 ? null : await loadVoiceIndex();

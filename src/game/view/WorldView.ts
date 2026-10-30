@@ -164,7 +164,7 @@ export class WorldView {
       this.drawStorm(s, width, height);
     if (s.stampedeActive || this.stampedeTint !== null)
       this.drawStampede(s.stampedeActive, width, height);
-    if (s.mirage || this.mirageStrips !== null) this.drawMirage(s);
+    if (s.mirage || this.heatOn() || this.mirageStrips !== null) this.drawMirage(s);
     this.drawRings(s);
     this.drawHelper(s, width, height);
     this.blowWind(s, width, height);
@@ -303,6 +303,16 @@ export class WorldView {
    */
   /** v1.4 B (e2e perf): ms the mirage took to draw this frame. */
   mirageMs = 0;
+  /**
+   * D-064: a special day's heat shimmer (Christmas in the sun), 0 … 1: the same mirage strips
+   * along the horizon at this strength on any map. Off on the low tier and with reduced motion.
+   */
+  heat = 0;
+
+  /** D-064: whether the special's heat shimmer shows on this device. */
+  heatOn(): boolean {
+    return this.heat > 0 && this.prefs.tier !== 'low' && !this.reducedMotion;
+  }
 
   private drawMirage(s: SimState): void {
     const t0 = performance.now();
@@ -340,11 +350,14 @@ export class WorldView {
     }
     const still = this.prefs.reduceFlashes || this.reducedMotion;
     const t = s.tick / TICKS_PER_SECOND;
+    // D-064: the special's heat shows the strips at its strength (the omen's mirage wins).
+    const strength = s.mirage ? 1 : this.heatOn() ? this.heat : 0;
     for (const m of this.mirageStrips) {
-      m.img.setVisible(s.mirage);
-      if (!s.mirage) continue;
+      const on = strength > 0;
+      if (m.img.visible !== on) m.img.setVisible(on);
+      if (!on) continue;
       const look = mirageLook(m, t, still);
-      m.img.setAlpha(look.alpha);
+      m.img.setAlpha(look.alpha * strength);
       m.img.setScale(m.sx * look.scaleX, m.img.scaleY);
     }
   }

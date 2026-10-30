@@ -57,6 +57,11 @@ import {
   HALLOWEEN_SHEET,
   SHEET_MASTER as FEESDAE_MASTER,
 } from '../../src/game/feesdae/feesdaeAssets';
+import {
+  CHRISTMAS_GROUP,
+  CHRISTMAS_SHEET,
+  XMAS_MASTER,
+} from '../../src/game/feesdae/christmasAssets';
 import { DESERT_GROUP, MEERKAT_SHEET, SHEET_MASTER } from '../../src/game/assets/desertAssets';
 import type { ContentBundle } from '../../src/content/schemas';
 import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
@@ -867,8 +872,10 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       if (o.catalog.entries.get(key)?.group === RANGE_GROUP) group = RANGE_GROUP;
       // v1.7 (D-044): the meerkats' sounds load with the desert maps.
       if (o.catalog.entries.get(key)?.group === DESERT_GROUP) group = DESERT_GROUP;
-      // D-048: the special days' sounds load with their lazy "feesdae" group.
+      // D-048: the special days' sounds load with their lazy "feesdae" group; D-064: Christmas's
+      // with "feesdae-christmas".
       if (o.catalog.entries.get(key)?.group === FEESDAE_GROUP) group = FEESDAE_GROUP;
+      if (o.catalog.entries.get(key)?.group === CHRISTMAS_GROUP) group = CHRISTMAS_GROUP;
     } else if (parts[0] === 'voice' && parts.length === 3) {
       // v1.5 (D-041): audio/voice/<lang>/<bark key>.wav, one lazy pack per voice language.
       key = `voice/${parts[1]}/${parts[2]}`;
@@ -1018,6 +1025,8 @@ export function propPlaneRes(content: ContentBundle, key: string): number {
   if (key === MEERKAT_SHEET) return SHEET_MASTER;
   // D-048: the Halloween sheet keeps its 2× master (its frame table is in texture px at 2×).
   if (key === HALLOWEEN_SHEET) return FEESDAE_MASTER;
+  // D-064: the Christmas sheet too (its frame table is in texture px at 2×).
+  if (key === CHRISTMAS_SHEET) return XMAS_MASTER;
   // v1.8 (D-050): the tin cans keep their 2× master (near cans are seen close up).
   if (key === CAN_SHEET) return CAN_MASTER;
   let res = 0;

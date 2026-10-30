@@ -86,7 +86,7 @@ for (const [trigger, cfg] of Object.entries(feel.feel.barks.triggers)) {
 }
 // D-048: every special has its look (client/feel.json feesdae.looks).
 for (const f of parsed.bundle.feesdae.specials)
-  if (feel.feel.feesdae.looks[f.id] === undefined)
+  if (!Object.keys(feel.feel.feesdae.looks).includes(f.id))
     errors.push({
       file: 'client/feel.json',
       message: `special "${f.id}" has no feesdae.looks entry`,

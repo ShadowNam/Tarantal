@@ -13,6 +13,14 @@ import {
   SHEET_W as FEESDAE_SHEET_W,
   SPOOK_SOUNDS,
 } from '../../src/game/feesdae/feesdaeAssets';
+import {
+  CHRISTMAS_GROUP,
+  CHRISTMAS_SHEET,
+  XMAS_SHEET_H,
+  XMAS_SHEET_W,
+  XMAS_SOUNDS,
+} from '../../src/game/feesdae/christmasAssets';
+import { specialLinesOf } from '../../src/game/audio/barks';
 import type { AssetKind } from '../../src/game/assets/AssetManifest';
 import {
   createPlaceholderManifest,
@@ -151,12 +159,24 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   });
   for (const key of Object.values(SPOOK_SOUNDS))
     entries.set(key, { key, kind: 'sound', group: FEESDAE_GROUP, biomes: everyBiome });
+  // D-064: Christmas's sheet and sounds in a lazy group of their own (never with Halloween's).
+  entries.set(CHRISTMAS_SHEET, {
+    key: CHRISTMAS_SHEET,
+    kind: 'texture',
+    group: CHRISTMAS_GROUP,
+    biomes: everyBiome,
+    width: XMAS_SHEET_W,
+    height: XMAS_SHEET_H,
+  });
+  for (const key of Object.values(XMAS_SOUNDS))
+    entries.set(key, { key, kind: 'sound', group: CHRISTMAS_GROUP, biomes: everyBiome });
   // v1.5 (D-041): Oupa's voice, one lazy pack per voice language (voice/<lang>/<bark key>): his
   // trigger lines (feel.json barks) and every secret's bark.
   // D-048: a special day's own lines go in a lazy group per language, loaded with that day.
   const specialBarks = content.feesdae.specials.map((f) => f.barks);
-  const special = new Set(
-    specialBarks.flatMap((b) => [b.start, b.bat, b.owl, b.lanternsOut, b.end]),
+  // D-064: each special's lines in its own pack per language (specialVoiceGroup).
+  const special = new Map(
+    content.feesdae.specials.flatMap((f) => specialLinesOf(f.barks).map((l) => [l, f.id] as const)),
   );
   for (const lang of VOICE_LANGUAGES)
     for (const line of voicedLines(
@@ -171,7 +191,8 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
       ],
     )) {
       const key = voiceKey(lang, line);
-      const group = special.has(line) ? specialVoiceGroup(lang) : voiceGroup(lang);
+      const owner = special.get(line);
+      const group = owner === undefined ? voiceGroup(lang) : specialVoiceGroup(lang, owner);
       entries.set(key, { key, kind: 'sound', group, biomes: everyBiome });
     }
   return {

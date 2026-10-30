@@ -61,14 +61,14 @@ export type XmasFrame =
 
 /** A present: the box (100 px tall) under its lid and bow; origin at the box's centre, its foot
  *  PRESENT_GROUND_PX below. */
-const PRESENT = { w: 140, h: 150, ox: 70, oy: 100 };
+const PRESENT = { w: 140, h: 182, ox: 70, oy: 130 };
 /** The lid with its bow, origin where it sits on the box (its bottom centre). */
-const LID = { w: 140, h: 70, ox: 70, oy: 62 };
+const LID = { w: 140, h: 92, ox: 70, oy: 84 };
 const BAUBLE = { w: 30, h: 38, ox: 15, oy: 2 };
 
 /** Packed in shelves in this order. */
 const SPECS: readonly FrameSpec[] = [
-  { name: 'oupa', w: 240, h: 330, ox: 120, oy: 322 },
+  { name: 'oupa', w: 240, h: 420, ox: 110, oy: 412 },
   { name: 'garland_silver', w: GARLAND_SPAN_PX + 20, h: 90, ox: 10 + GARLAND_SPAN_PX / 2, oy: 14 },
   { name: 'garland_red', w: GARLAND_SPAN_PX + 20, h: 90, ox: 10 + GARLAND_SPAN_PX / 2, oy: 14 },
   { name: 'present_a_shut', ...PRESENT },
@@ -82,7 +82,7 @@ const SPECS: readonly FrameSpec[] = [
   { name: 'lid_c', ...LID },
   { name: 'hat_l', w: 130, h: 120, ox: 65, oy: 104, forScale: 1 },
   { name: 'confetti', w: 140, h: 140, ox: 70, oy: 70 },
-  { name: 'oupa_head', w: 120, h: 140, ox: 60, oy: 80 },
+  { name: 'oupa_head', w: 130, h: 200, ox: 62, oy: 136 },
   { name: 'hat_m', w: 70, h: 64, ox: 35, oy: 55, forScale: 0.5 },
   { name: 'hat_s', w: 36, h: 34, ox: 18, oy: 29, forScale: 0.22 },
   { name: 'glint', w: 44, h: 44, ox: 22, oy: 22 },

@@ -15,6 +15,7 @@ import {
   voicedLines,
   voiceLanguageOfGroup,
 } from './voiceLines';
+import { specialLinesOf } from './barks';
 import { RaidActionSchema } from '../../content/schemas';
 import { readFullIndex } from '../../../tools/assets/fullIndex';
 import { VOICE_LANGUAGES } from '../../i18n/i18n';
@@ -29,15 +30,11 @@ const LINES = voicedLines(
   // v1.8b (D-062): Oupa's baboon lines; v1.8c (D-063): his Harvest lines.
   [...baboonBarks(RaidActionSchema.options), ...harvestBarks()],
 );
-/** D-048: the special days' own lines (their own lazy voice groups). */
-const SPECIAL = new Set(
-  loadContent().feesdae.specials.flatMap((f) => [
-    f.barks.start,
-    f.barks.bat,
-    f.barks.owl,
-    f.barks.lanternsOut,
-    f.barks.end,
-  ]),
+/** D-048: the special days' own lines (their own lazy voice groups, D-064: one per special). */
+const SPECIAL = new Map(
+  loadContent().feesdae.specials.flatMap((f) =>
+    specialLinesOf(f.barks).map((l) => [l, f.id] as const),
+  ),
 );
 /** Voiced keys with no file in a voice language yet (none today). */
 const GAPS: Readonly<Record<string, readonly string[]>> = {};
@@ -228,7 +225,8 @@ describe('voice packs (v1.5, D-041)', () => {
         const wav = join(root, 'art-source', 'audio', 'voice', lang, `${key}.wav`);
         const e = index.audio[`voice/${lang}/${key}`];
         // D-048: a special day's lines are in its own lazy group per language.
-        const group = SPECIAL.has(key) ? specialVoiceGroup(lang) : voiceGroup(lang);
+        const special = SPECIAL.get(key);
+        const group = special === undefined ? voiceGroup(lang) : specialVoiceGroup(lang, special);
         if (!existsSync(wav) || e === undefined || e.group !== group)
           missing.push(`${lang} ${key}`);
       }

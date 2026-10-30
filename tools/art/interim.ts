@@ -2,7 +2,7 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|blikkies|makalani|treelife|colony|namiblife|tells|baboons
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|christmas|blikkies|makalani|treelife|colony|namiblife|tells|baboons
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
 //                         range = the Skietbaan's steel plate (24 Oct update),
@@ -92,6 +92,8 @@ import {
   HALLOWEEN_SHEET,
   SHEET_MASTER as FEESDAE_MASTER,
 } from '../../src/game/feesdae/feesdaeAssets';
+import { CHRISTMAS_SHEET, XMAS_MASTER } from '../../src/game/feesdae/christmasAssets';
+import { renderChristmasSheet } from './christmas';
 import { renderHalloweenSheet } from './halloween';
 import { CAN_MASTER, renderCanSheet } from './blikkies';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
@@ -632,6 +634,27 @@ if (wants('feesdae')) {
     await json(hatAnchors(cfg, content)),
   );
   console.log('src/game/feesdae/hatAnchors.json');
+}
+if (wants('christmas')) {
+  // D-064: Christmas in the sun's sheet (presents, tinsel, baubles, Santa hats, Oupa), drawn at
+  // 2× (layout: src/game/feesdae/christmasAssets.ts). Its group ("feesdae-christmas", lazy)
+  // comes from the catalog.
+  const png = join(src, 'sprites', `${CHRISTMAS_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${CHRISTMAS_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderChristmasSheet()));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({
+        origin: 'interim',
+        encode: 'png8',
+        master: XMAS_MASTER,
+        originX: 0,
+        originY: 0,
+      }),
+    );
+    console.log(`sprites/${CHRISTMAS_SHEET}`);
+  }
 }
 if (wants('blikkies')) {
   // v1.8 (D-050): the tin cans and fence posts, one small shared sheet at 2× (layout:

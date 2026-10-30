@@ -14,12 +14,17 @@ export function voiceGroup(lang: VoiceLanguage): string {
 
 /**
  * D-048: a special day's own lines in one voice language, a lazy group of their own (loaded with
- * that day's hunt, src/game/feesdae), so the year-round voice packs don't carry them.
+ * that day's hunt, src/game/feesdae), so the year-round voice packs don't carry them. D-064: one
+ * pack per special and language, so a Halloween hunt never downloads Christmas's lines and the
+ * other way round; Halloween keeps its first key (`feesdae-voice-<lang>`), every later special is
+ * `feesdae-voice-<id>-<lang>`.
  */
 export const SPECIAL_VOICE_GROUP_PREFIX = 'feesdae-voice-';
 
-export function specialVoiceGroup(lang: string): string {
-  return `${SPECIAL_VOICE_GROUP_PREFIX}${lang}`;
+export function specialVoiceGroup(lang: string, special: string): string {
+  return special === 'halloween'
+    ? `${SPECIAL_VOICE_GROUP_PREFIX}${lang}`
+    : `${SPECIAL_VOICE_GROUP_PREFIX}${special}-${lang}`;
 }
 
 /** The voice language a pack group belongs to, or null for any other group. */

@@ -2753,6 +2753,20 @@
         ]
       }
     },
+    "feesdae/christmas": {
+      "group": "feesdae-christmas",
+      "origin": "interim",
+      "file": {
+        "path": "assets/feesdae-christmas/img/feesdae_christmas.d86111d2eab3.png",
+        "bytes": 100929,
+        "hash": "d86111d2eab3"
+      },
+      "width": 1520,
+      "height": 2076,
+      "scale": 0.5,
+      "originX": 0,
+      "originY": 0
+    },
     "feesdae/halloween": {
       "group": "feesdae",
       "origin": "interim",
@@ -9978,6 +9992,24 @@
       "lufs": -14,
       "peakDb": -1.4
     },
+    "sfx/present_open": {
+      "group": "feesdae-christmas",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/feesdae-christmas/audio/sfx/present_open.9ab43923d8e0.ogg",
+        "bytes": 9323,
+        "hash": "9ab43923d8e0"
+      },
+      "mp3": {
+        "path": "assets/feesdae-christmas/audio/sfx/present_open.e099c0c570ed.mp3",
+        "bytes": 9694,
+        "hash": "e099c0c570ed"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -3.5
+    },
     "sfx/rackPomp": {
       "group": "common",
       "origin": "interim",
@@ -10463,6 +10495,42 @@
       "loop": false,
       "lufs": -14,
       "peakDb": -2.1
+    },
+    "sfx/xmas_sting": {
+      "group": "feesdae-christmas",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/feesdae-christmas/audio/sfx/xmas_sting.3416027be417.ogg",
+        "bytes": 23468,
+        "hash": "3416027be417"
+      },
+      "mp3": {
+        "path": "assets/feesdae-christmas/audio/sfx/xmas_sting.ef93c70c5b25.mp3",
+        "bytes": 22742,
+        "hash": "ef93c70c5b25"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -1.8
+    },
+    "sfx/xmas_tally": {
+      "group": "feesdae-christmas",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/feesdae-christmas/audio/sfx/xmas_tally.6c2a6293f500.ogg",
+        "bytes": 20660,
+        "hash": "6c2a6293f500"
+      },
+      "mp3": {
+        "path": "assets/feesdae-christmas/audio/sfx/xmas_tally.e415cd94104c.mp3",
+        "bytes": 19005,
+        "hash": "e415cd94104c"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -5.6
     },
     "sfx/zip": {
       "group": "common",
