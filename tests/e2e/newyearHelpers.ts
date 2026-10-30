@@ -52,7 +52,7 @@ export async function countdownOn(page: Page): Promise<number> {
 async function fireAtBird(
   page: Page,
   touch: boolean,
-): Promise<{ shots: number; score: number } | null> {
+): Promise<{ shots: number; score: number; tick: number } | null> {
   return page.evaluate((isTouch) => {
     const g = window.__TM__;
     const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
@@ -69,9 +69,12 @@ async function fireAtBird(
     const w = window as unknown as { __nyPointer?: number };
     w.__nyPointer = (w.__nyPointer ?? 6200) + 1;
     const r = canvas.getBoundingClientRect();
+    // The finger goes the aim offset below the bird (Settings → offset crosshair: the game aims
+    // that far above a finger; 0 when it is off, and always 0 for a mouse).
+    const off = isTouch ? g.aimOffsetPx : 0;
     const init: PointerEventInit = {
       clientX: r.left + (b.x / g.designWidth) * r.width,
-      clientY: r.top + (b.y / g.designHeight) * r.height,
+      clientY: r.top + ((b.y + off) / g.designHeight) * r.height,
       pointerId: w.__nyPointer,
       pointerType: isTouch ? 'touch' : 'mouse',
       isPrimary: true,
@@ -80,7 +83,7 @@ async function fireAtBird(
       bubbles: true,
       cancelable: true,
     };
-    const before = { shots: g.shots, score: g.score };
+    const before = { shots: g.shots, score: g.score, tick: g.tick };
     canvas.dispatchEvent(new PointerEvent('pointerdown', init));
     canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
     return before;
@@ -111,23 +114,20 @@ export async function bagInCountdown(
     }
     const got = await page
       .waitForFunction(
-        ([t0, n, score]) => {
+        ([t0, n, score, fired]) => {
           const g = window.__TM__;
           if (g === undefined || g.shots <= n) return null;
-          const w = window as unknown as { __nyShot?: number };
-          const shot = (w.__nyShot ??= g.tick);
-          const a = g.awards.find((x) => x.tick >= t0 && x.tick >= shot - 1);
+          // An award from this shot: at or after the tick it was fired (a slow page may first
+          // look several ticks after the bag), and in the countdown.
+          const a = g.awards.find((x) => x.tick >= t0 && x.tick >= fired);
           if (a !== undefined) return { ...a, delta: g.score - score };
-          return g.tick - shot >= 20 || g.over ? 'miss' : null;
+          return g.tick - fired >= 20 || g.over ? 'miss' : null;
         },
-        [at, before.shots, before.score] as const,
+        [at, before.shots, before.score, before.tick] as const,
         { timeout: 30_000, polling: 'raf' },
       )
       .then((h) => h.jsonValue())
       .catch(() => null);
-    await page.evaluate(() => {
-      delete (window as unknown as { __nyShot?: number }).__nyShot;
-    });
     if (got !== null && got !== 'miss') return got;
   }
   return null;
