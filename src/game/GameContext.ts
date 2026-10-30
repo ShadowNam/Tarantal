@@ -316,6 +316,8 @@ export interface TestHook {
     } | null;
   }[];
   specialBirds: { id: number; creature: string; phase: string; x: number; y: number }[];
+  /** v1.8c (D-063), the Harvest only: its fly-overs on screen (creature, plane, design px). */
+  harvestFlyovers: { id: number; creature: string; plane: string; x: number; y: number }[];
   /** Active weapon id, power-up ids, wind (omen) and hunt length (bonus time grows it). */
   weapon: string;
   /** M8: biome of the hunt on screen, and the omen's glare side (Bushveld) or null. */

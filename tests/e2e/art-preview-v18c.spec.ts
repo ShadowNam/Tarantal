@@ -225,16 +225,40 @@ async function fieldBox(page: Page): Promise<{ x: number; y: number; w: number; 
 async function warthogBox(
   page: Page,
 ): Promise<{ box: { x: number; y: number; w: number; h: number }; near: boolean }> {
-  const hogs = (await actorsOf(page)).filter(
-    (a) => a.role === 'warthog' && a.visible && a.frame !== null && a.frame.startsWith('wh_'),
-  );
-  if (hogs.length === 0) throw new Error('no warthog on screen');
-  // The lowest feet = the nearest plane (drawn biggest).
-  const w = hogs.reduce((a, b) => (b.y > a.y ? b : a));
-  const near = w.y > 900;
-  const k = near ? scoring.planes.near.scale : scoring.planes.mid.scale;
-  const h = H.warthogs.heightPx * k * 1.35;
-  return { box: { x: w.x - h * 1.25, y: w.y - h, w: h * 2.5, h: h + 24 }, near };
+  const w0 = (await hook(page)).designWidth;
+  const sized = (a: Actor) => {
+    const near = a.y > 900;
+    const k = near ? scoring.planes.near.scale : scoring.planes.mid.scale;
+    const h = H.warthogs.heightPx * k * 1.5;
+    return { a, near, box: { x: a.x - h * 1.4, y: a.y - h, w: h * 2.8, h: h + 30 } };
+  };
+  // Review round 1: only a warthog whose whole body (and a margin) is inside the view, clear of
+  // the HUD's bottom corners; the nearest (lowest feet, drawn biggest) of those.
+  const ok = (await actorsOf(page))
+    .filter((a) => a.role === 'warthog' && a.visible && a.frame?.startsWith('wh_') === true)
+    .map(sized)
+    .filter((c) => c.box.x >= 20 && c.box.x + c.box.w <= w0 - 20 && c.box.y >= 20)
+    .sort((a, b) => b.a.y - a.a.y);
+  const best = ok[0];
+  if (best === undefined) throw new Error('no warthog fully on screen');
+  return { box: best.box, near: best.near };
+}
+
+/** The busy count of the rush on screen: flocks, warthogs, raiders, fly-ins (review round 1). */
+async function rushCount(
+  page: Page,
+): Promise<{ flocks: number; warthogs: number; raiders: number; flyins: number }> {
+  return page.evaluate(() => {
+    const tm = window.__TM__;
+    const w = tm?.designWidth ?? 1920;
+    const on = (x: number): boolean => x > 0 && x < w;
+    return {
+      flocks: (tm?.flockSpots ?? []).filter((f) => f.alive > 0 && on(f.x)).length,
+      warthogs: (tm?.harvestActors ?? []).filter((a) => a.role === 'warthog' && a.visible).length,
+      raiders: (tm?.baboons ?? []).filter((b) => b.role === 'raider' && b.visible).length,
+      flyins: (tm?.harvestFlyovers ?? []).filter((b) => on(b.x)).length,
+    };
+  });
 }
 
 /** The box round the workers on screen. */
@@ -299,7 +323,11 @@ test('the Harvest: title, intro, mid-run, a worker ducking, the rush, the end, t
 }, info) => {
   const touch = isTouchProject(info);
   // Held at the intro from the start (the fence just broke, the family barging in).
-  await bootTitle(page, `harvestDuck=600&harvestRush=1&holdAt=${String(BREAK + 40)}`, 'standard');
+  await bootTitle(
+    page,
+    `harvestDuck=600&harvestRush=1&baboonRaid=mielie&holdAt=${String(BREAK + 40)}`,
+    'standard',
+  );
   await park(page, touch);
   await page.waitForTimeout(1500);
   save('title', info, (await grab(page)).img);
@@ -354,12 +382,26 @@ test('the Harvest: title, intro, mid-run, a worker ducking, the rush, the end, t
   save('duck', info, duck.img);
   save('duck-2x', info, scaled(cut(duck, await workerBox(page)), 2));
 
-  // The rush at its peak (2 s before the fence is whole).
-  await holdAt(page, touch, INTRO + RUSH - 2 * 60);
+  // The rush at its peak: from 6 s before the end, hold at the first tick (checked every 10)
+  // with at least 2 flocks, 3 warthogs and a raider on screen; fail when it never gets busy.
+  let busy = false;
+  for (let at = INTRO + RUSH - 6 * 60; at <= INTRO + RUSH - 10 && !busy; at += 10) {
+    await holdAt(page, touch, at);
+    const c = await rushCount(page);
+    busy = c.flocks >= 2 && c.warthogs >= 3 && c.raiders >= 1;
+    if (at + 10 > INTRO + RUSH - 10 && !busy)
+      throw new Error(`the rush is thin at its peak: ${JSON.stringify(c)}`);
+  }
   const rush = await grab(page);
   save('rush', info, rush.img);
   const hog = await warthogBox(page);
   save('warthog-2x', info, scaled(cut(rush, hog.box), hog.near ? 1 : 2));
+  // A fly-in close up: a francolin or a turtle dove on screen (else any fly-over), 2×.
+  const flyins = await page.evaluate(() => window.__TM__?.harvestFlyovers ?? []);
+  const bird =
+    flyins.find((b) => b.creature === 'fisant' || b.creature === 'tortelduif') ?? flyins[0];
+  if (bird === undefined) throw new Error('no fly-in on screen at the peak');
+  save('flyin-2x', info, scaled(cut(rush, { x: bird.x - 90, y: bird.y - 70, w: 180, h: 140 }), 2));
 
   // The end: the fence whole, the animals running off.
   await holdAt(page, touch, INTRO + RUSH + 30);
@@ -408,7 +450,14 @@ test('the Harvest crops (Standard) and a baboon raider at the mielies', async ({
     (await page.evaluate(() => (window as unknown as Hooked).__TM__?.baboons ?? [])).find(
       (b) => b.role === 'raider',
     )?.x ?? null;
-  await panToX(page, touch, raiderX);
+  // Review round 1: the raider in the left third, clear of the gun barrel (pan so it stands a
+  // quarter of the width from the left edge).
+  const w4 = (await hook(page)).designWidth / 4;
+  const offCentre = async (): Promise<number | null> => {
+    const x = await raiderX();
+    return x === null ? null : x + w4;
+  };
+  await panToX(page, touch, offCentre);
   const t0 = await page.evaluate(() => window.__TM__?.tick ?? 0);
   await page.waitForFunction(
     (until) => {

@@ -428,6 +428,7 @@ const hook: TestHook = {
   baboonRaid: null,
   baboonMs: 0,
   harvestActors: null,
+  harvestFlyovers: [],
   harvest: null,
   harvestMs: 0,
   reloadFx: { chipIcons: [], bolts: 0, oupaHand: false, autoReloads: 0 },

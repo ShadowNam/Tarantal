@@ -2134,6 +2134,18 @@ export class HuntScene extends Phaser.Scene {
           x: this.parallax.screenX(b.plane, b.x),
           y: b.y,
         }));
+      hook.harvestFlyovers =
+        state.harvest === null
+          ? []
+          : state.birds
+              .filter((b) => b.motion === 'flyover')
+              .map((b) => ({
+                id: b.id,
+                creature: b.creature,
+                plane: b.plane,
+                x: this.parallax.screenX(b.plane, b.x),
+                y: b.y,
+              }));
       hook.weapon = state.weapon.id;
       hook.powerups = state.powerups.map((p) => p.id);
       hook.wind = state.wind;
