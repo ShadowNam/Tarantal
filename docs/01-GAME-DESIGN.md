@@ -111,7 +111,7 @@ mult   = 1 + behaviourAdd                                         // "Maal" star
 for each charm in slot order, left → right:                       // order MATTERS (Balatro-style)
     for each matching effect in that charm, in listed order:
         addMult → mult += x        mulMult → mult ×= x
-mult  ×= weaponScoreMul × frenzyMul × stampedeMul                  // system multipliers, always last
+mult  ×= weaponScoreMul × frenzyMul × stampedeMul × countdownMul   // system multipliers, always last
 award  = round(points × mult)
 ```
 
@@ -125,6 +125,10 @@ award  = round(points × mult)
   Lanterns out, D-048) are flat amounts multiplied
   only by `frenzyMul × stampedeMul` (not behaviour, weapon or per-bird charm effects), unless a
   charm's `bonusMul` targets that bonus.
+- **`countdownMul`** (D-065) is New Year's "Countdown ×2": 2 in the last 10 s of a New Year Daily,
+  1 everywhere else. It is the last system multiplier (after the Stampede's, before a Boss Rule's)
+  and it **stacks** with the Stampede, so those 10 s are ×4. It multiplies every award — bags and
+  event bonuses alike — and never a penalty.
 
 ## 6. The Flock — signature mechanic
 
@@ -1143,9 +1147,10 @@ note "verskrikker", not the Dutch "verschrikker" used in the earlier draft.)
   (in the sim, from content), Oupa's own lines, a music sting and a share-card frame. Classic,
   Season Run and challenge links to other modes are unchanged; a challenge to a special Daily
   carries the special. The title's Daily button shows the special's name and a badge. Specials are
-  content (`content/feesdae.json`: a date rule — a fixed UTC month/day for now — map, light, twist
-  numbers, decoration ids, bark keys, sting, share frame); Halloween and Christmas are chosen so
-  far (New Year is next, D-064). No two specials share a date (content check).
+  content (`content/feesdae.json`: a date rule — a fixed UTC month/day, or a list of days (D-065) —
+  map, light, twist numbers, decoration ids, bark keys, sting, share frame); Halloween, Christmas
+  and New Year so far (D-048, D-064, D-065). No two specials share a day (content check, every
+  day of every rule).
   - **Halloween, 31 Oct — "Spookjag":** a dark, cool dusk hunt (its own grade, not the warm
     sunset of the dusk maps) under a big low moon, bats flitting round it,
     pumpkin lanterns glowing on rocks and fence posts (small warm local light, a slow flicker,
@@ -1173,6 +1178,19 @@ note "verskrikker", not the Dutch "verschrikker" used in the earlier draft.)
     phrase of "Silent Night" on the tally (public-domain melodies). The share card is framed
     ✨🎁 … 🎅☀️ and titled "Christmas in the sun 2026"; the tally slate has tinsel, a present and
     Oupa's head in his Santa hat round it.
+  - **New Year, 31 Dec and 1 Jan — "New Year countdown" / "Nuwejaar-aftelling" (D-065):** a warm
+    summer dusk that turns to blue hour over the hunt (its own light, `nuwejaar_skemer`), the stars
+    coming out, small fireworks low over the far horizon (gold, red, green, white; a few at a time,
+    more in the countdown, fewer on the low tier; never a large flash, at most 3 bursts a second,
+    and with "reduce flashes" only a dim twinkle), some guineafowl in small striped party hats.
+    Twist: **the countdown** — in the hunt's last 10 s every award is doubled ("Countdown ×2",
+    §5.3), stacked on the Stampede (×4). A big "10 … 1" counts down on the HUD with a "×2" tag by
+    the score and a tick on the last 3 s. Quota, omens and crates are as on any Daily. Oupa wears a
+    party hat (beside the title's badge with a party blower, on the tally slate and on his bubble):
+    "Gelukkige Nuwejaar, my kind! Laaste tien sekondes — alles tel dubbel!" A pennywhistle plays
+    "Auld Lang Syne" (traditional) at the start and on the tally; fireworks pop softly in the
+    distance. The tally says "Happy New Year!"; the share card is framed 🎊🥳 … 🎆🎊 and titled
+    with the year that starts ("New Year 2027" on 31 Dec 2026 and 1 Jan 2027).
 - **Weekly seeded Season Run** (v1.x) with a leaderboard once replay validation exists.
 - **Bird Book completion**, **Notaboek challenges**, **rank titles**, **per-biome bests**.
 

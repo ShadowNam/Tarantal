@@ -972,3 +972,39 @@ chopped guitar and a bass; on the tally the opening of "Silent Night" (1818, pub
 whistle; a present opening: wrapping paper crackling and a little bell. Captions: "[a pennywhistle
 plays a carol]", "[paper rustles, a little bell rings]". Oupa's five Christmas lines are voiced
 like his others (§10.1; nl text speaks Afrikaans).
+
+**New Year — the countdown (D-065; interim art: `npm run art:interim -- --only newyear`,
+tools/art/newyear.ts; 400 × 358 design px, drawn at 2× and shipped as a 1× pack, ~0.57 MB on the
+GPU; Standard in HD from the start, so an HD hunt on the Okavango stays ≤ 256 MB):**
+- *Light:* its own preset, `nuwejaar_skemer`: a warm summer dusk — a deepening blue sky over a
+  rose-gold afterglow low on the horizon, the far ridge mauve, the veld warm and dim. Over the hunt
+  a midnight-blue wash darkens the sky to blue hour (`looks.newyear.blueHour`) and ~34 stars come
+  out and twinkle slowly (sim time). Birds stay untinted.
+- *Fireworks:* small bursts low over the far horizon, on the sky layer behind the far ridge: a
+  dim rocket climbs, then a ring of 14 small sparks (one 16 px soft dot, tinted gold, red, green
+  or white) opens, drifts down and fades over 1.3 s. Never a large or full-screen flash: each
+  burst is ≤ ~120 px across, at most 3 start in any second (one per 1/3 s slot), more in the
+  countdown (2.4/s) than before it (0.7/s), half as many on the low tier; with "reduce flashes"
+  they only twinkle where they hang (≤ 35 % alpha: never brighter than the sky). A fixed pool of
+  sprites, made once.
+- *Party hats:* a striped paper cone (gold, red, blue bands, shaded round), a white zigzag trim and
+  a gold pompom, on about 30 % of the guineafowl, on the witch and Santa hats' head anchors and
+  sizes (three drawings; the small one two-tone).
+- *Oupa:* D-064's figure in a party hat worn a little to one side, a striped party blower blown
+  out in his waving hand (the title, beside the midnight-blue badge with gold text); his head in
+  the party hat on the tally slate's corner and on his bark bubble.
+- *HUD:* the countdown "10 … 1" big in gold (150 px, × the text-size setting) at the top centre,
+  under the pause button and the charm row, with a short pulse as each second starts; a "×2" tag
+  in gold left of the score plate.
+- *Tally and share card:* a midnight-blue edge with a gold line round the slate, curled gold and
+  blue paper streamers along the top, a small firework burst on the right edge and Oupa's head in
+  his party hat on the left edge (kept on screen and clear of the buttons); the slate's title
+  "Happy New Year!". The share text is framed 🎊🥳 … 🎆🎊 and titled "New Year 2027".
+
+**Sounds (interim, `npm run audio:interim -- --only sfx`):** the sting, the first line of "Auld
+Lang Syne" (traditional tune, words Burns 1788; public domain) on the pennywhistle in D over a
+walking bass; on the tally its first phrase, slower, coming home to D; a firework far off — a soft
+low thump and a faint crackle through a long dull reverb (quiet, under the hunt); the countdown's
+tick on the last 3 s. Captions: "[a pennywhistle plays Auld Lang Syne]", "[fireworks pop in the
+distance]". Oupa's four New Year lines are voiced like his others (§10.1; nl text speaks
+Afrikaans).

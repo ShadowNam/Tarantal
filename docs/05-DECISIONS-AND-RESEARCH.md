@@ -3550,6 +3550,44 @@ secrets, carols on the pennywhistle." New Year is next, as its own job.
 - *Also fixed.* Lifting a page hold (`__TM_HOLD_AT__`) now unfreezes the tweens and animations it
   froze (screenshot specs saw a held muzzle flash and pops in every later frame).
 
+**D-065 1.11.2 Feesdae: New Year countdown (31 Dec–1 Jan) (30 Oct 2026):** the third special on
+the Feesdae system (D-048, D-064), picked by the product owner on 27 Oct from the list of 24 Oct:
+"a countdown hunt with party hats, small fireworks on the horizon (never full-screen flashes),
+double points in the last 10 s; 31 Dec–1 Jan UTC."
+- *Dates.* A date rule may now be a list of UTC days (`date.type: "days"`); New Year covers 31 Dec
+  and 1 Jan, and the "no two specials share a day" check covers every day of every rule. The share
+  card names the year that starts (`shareYearDays: 1`: 31 Dec 2026 and 1 Jan 2027 both say "New
+  Year 2027"); Halloween's and Christmas's stay the play day's year.
+- *Rule.* The twist `nuwejaar` puts nothing up to shoot and draws nothing (no stream): in the hunt's
+  last `countdown.lastSeconds` (10) every award is × `countdown.mult` (2) — bags and event bonuses
+  (Twee Vlieë, Whole Flock, secrets, cans), never a penalty. In the GDD §5.3 pipeline it is the last
+  system multiplier, after weapon × Frenzy × Stampede (then a Boss Rule's). **It stacks with the
+  Stampede** (the Daily's last 15 s are ×2), so the last 10 s are ×4: the finale is the point of
+  the day. Balance (docs/balance/newyear-countdown.md, 31 Dec 2026's Okavango map, 500 seeds a bot
+  in chunks of 100): means rise 15–19 % against the same Daily without the special (random +15 %,
+  plinker +19 %, competent +16 %); the spread between bots is kept and each Daily has its own
+  board. Bonus time moves the countdown with the end, like the Stampede. A `countdownStarted`
+  event (and `feesdag.countdown` in the snapshot) feeds the HUD, the barks and the captions. Every
+  existing golden replays unchanged (content hash only); a New Year golden is added.
+- *Groups.* `feesdae-newyear` (the sheet, four sounds) and `feesdae-voice-newyear-<lang>`, lazy,
+  loaded only by a New Year hunt or the title on the day. The sheet is **Standard in HD from the
+  start** (D-064: a 1× pack, 400 × 358 px, ~0.57 MB on the GPU; no `-hd` twin): the Okavango leaves
+  ~2 MB of HD texture memory. The fireworks and stars use a 16 px spark and a 12 px star frame.
+- *Look.* Its own light (`nuwejaar_skemer`: a warm rose-gold dusk) that deepens to blue hour over
+  the hunt (a wash on the sky layer, sim time), stars coming out; small fireworks low over the far
+  horizon on the sky layer (behind the far ridge): a fixed pool made once (4 bursts × 14 sparks and
+  a rocket), the schedule a pure function of the tick (one 1/3 s slot can start at most one burst:
+  never more than 3 a second), more in the countdown, half as many on the low tier, and with
+  "reduce flashes" only a dim twinkle; party hats on the witch and Santa hats' anchors; Oupa (D-064's
+  figure) in a party hat with a party blower beside the title badge, on the tally slate and on his
+  bubble. HUD: the big "10 … 1" under the top row (below the pause button and the Season Run's charm
+  row, so it covers no HUD rect; the banner moves under it), the "×2" tag left of the score, a tick
+  on the last 3 s. Tally: "Happy New Year!" as the slate's title (the card keeps "New Year 2027")
+  and Auld Lang Syne's first phrase. Sounds: "Auld Lang Syne" (traditional tune, words Burns 1788;
+  public domain) on the pennywhistle, soft distant firework pops, a tick (synthesised); four voiced
+  lines (en/af/de interim TTS; nl speaks Afrikaans). The ten-second call on New Year is the
+  countdown's own line.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

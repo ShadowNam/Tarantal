@@ -1261,6 +1261,17 @@ The friends' Android app before any store account (docs/ANDROID-TEST-APP.md). Ca
   never builds a stand-in on the GPU. On the special day the title fetches the group in the
   background for Oupa beside the badge (it never blocks the title). The heat shimmer reuses the
   mirage strips (`WorldView.heat`, no new texture; off on the low tier and with reduced motion).
+  D-065: a date rule may list several UTC days (`date.type: "days"`, `specialDays()` in
+  `src/meta/feesdae.ts`; the content check covers every day of every rule), and `shareYearDays`
+  sets the card's year (`shareYear()`: New Year's is the year that starts). New Year's rule
+  (`nuwejaar`) puts nothing up and draws nothing: the Sim's `countdownAtTick` (the last
+  `countdown.lastSeconds`, moved by bonus time like the Stampede's) gives `countdownMul` to both
+  `scoreBag` (a `countdown` breakdown step after `stampede`) and `scoreEventBonus`; penalties are
+  untouched; `countdownStarted` and `feesdag.countdown` (atTick, active, mult) in the snapshot.
+  Its files are `feesdae-newyear` and `feesdae-voice-newyear-<lang>`, the sheet Standard in HD from
+  the start (1×, ~0.57 MB); the hunt waits for it like Christmas's. `NuwejaarView` keeps a fixed
+  pool of firework sprites on the sky layer (made once; the schedule is a pure function of the
+  tick: one burst at most per 1/maxPerSecond slot) and sets properties only when they change.
 
 ## 13. Leaderboards (v1.x)
 Small serverless API (e.g. Cloudflare Workers + D1, or Supabase). Client submits
