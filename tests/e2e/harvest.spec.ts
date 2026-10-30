@@ -5,9 +5,9 @@
 // spot differ once the workers stand there). Short rushes via ?huntSeconds (the rush follows it);
 // the troop is off (?baboons=0) where a raid would only add noise. Shots are in-page pointer events
 // with a fresh pointerId each (feesdaeHelpers.fireAt); every wait is bounded by sim ticks.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import modes from '../../content/modes.json' with { type: 'json' };
-import { decodePng } from '../../tools/assets/image';
+import { crop, decodePng, encodePng8, type Rgba } from '../../tools/assets/image';
 import { fireAt } from './feesdaeHelpers';
 import { boot, hook, isLandscape, isTouchProject, tapRect } from './helpers';
 
@@ -23,6 +23,7 @@ interface Actor {
   readonly visible: boolean;
   /** The body's hit ellipse on screen (workers, warthogs). */
   readonly body: { x: number; y: number; rx: number; ry: number } | null;
+  readonly facing: 1 | -1;
 }
 
 async function actorsOf(page: Page): Promise<readonly Actor[]> {
@@ -46,6 +47,77 @@ async function untilTick(page: Page, t: number): Promise<void> {
     t,
     { timeout: 300_000, polling: 250 },
   );
+}
+
+/** The canvas with and without the Harvest's actors, at the same held tick (test hook). */
+async function withAndWithout(page: Page): Promise<{ on: Rgba; off: Rgba; k: number }> {
+  const grab = async (): Promise<Rgba> =>
+    decodePng(await page.locator('#game canvas').screenshot());
+  const hide = async (on: boolean): Promise<void> => {
+    await page.evaluate((o) => {
+      (window as { __TM_HARVEST_HIDE__?: (x: boolean) => void }).__TM_HARVEST_HIDE__?.(o);
+    }, on);
+    await page.waitForTimeout(800);
+  };
+  await hide(false);
+  const on = await grab();
+  await hide(true);
+  const off = await grab();
+  await hide(false);
+  const h = await hook(page);
+  return { on, off, k: on.height / h.designHeight };
+}
+
+/**
+ * Review round 3: the horizontal centroid (design px) of the pixels that change when the actors
+ * are hidden, in a band ±halfW round the body's centre at torso height (±ry/2); null: none.
+ */
+function changedCentroidX(
+  pair: { on: Rgba; off: Rgba; k: number },
+  b: { x: number; y: number; ry: number },
+  halfW: number,
+): number | null {
+  const { on, off, k } = pair;
+  let sum = 0;
+  let n = 0;
+  for (let y = b.y - b.ry / 2; y <= b.y + b.ry / 2; y += 1)
+    for (let x = b.x - halfW; x <= b.x + halfW; x += 1) {
+      const px = Math.round(x * k);
+      const py = Math.round(y * k);
+      if (px < 0 || py < 0 || px >= on.width || py >= on.height) continue;
+      const i = (py * on.width + px) * 4;
+      const d =
+        Math.abs((on.data[i] ?? 0) - (off.data[i] ?? 0)) +
+        Math.abs((on.data[i + 1] ?? 0) - (off.data[i + 1] ?? 0)) +
+        Math.abs((on.data[i + 2] ?? 0) - (off.data[i + 2] ?? 0));
+      if (d > 40) {
+        sum += x;
+        n++;
+      }
+    }
+  return n === 0 ? null : sum / n;
+}
+
+/** On failure: the actor's crop with and without the actors, attached to the report. */
+async function attachPair(
+  info: TestInfo,
+  name: string,
+  pair: { on: Rgba; off: Rgba; k: number },
+  b: { x: number; y: number; rx: number; ry: number },
+): Promise<void> {
+  const k = pair.k;
+  const x0 = Math.max(0, Math.round((b.x - b.rx - 60) * k));
+  const y0 = Math.max(0, Math.round((b.y - b.ry - 60) * k));
+  const w = Math.min(pair.on.width - x0, Math.round((2 * b.rx + 120) * k));
+  const hh = Math.min(pair.on.height - y0, Math.round((2 * b.ry + 120) * k));
+  for (const [tag, img] of [
+    ['with', pair.on],
+    ['without', pair.off],
+  ] as const)
+    await info.attach(`${name}-${tag}.png`, {
+      body: Buffer.from(encodePng8(crop(img, x0, y0, Math.max(1, w), Math.max(1, hh)))),
+      contentType: 'image/png',
+    });
 }
 
 async function startHarvest(page: Page, touch: boolean): Promise<void> {
@@ -212,6 +284,22 @@ test('a shot aimed at a worker costs the penalty and the worker ducks; the sheet
     workers.length,
   );
 
+  // Review round 3: each worker's art sits on its hit ellipse — the centroid of the pixels that
+  // change when the actors are hidden (same held tick), in a ±45 px band at torso height, lies
+  // within half the ellipse's radius of its centre (a mirrored frame was drawn up to 20 px off).
+  const pair = await withAndWithout(page);
+  for (const w of workers) {
+    const b = w.body;
+    if (b === null) continue;
+    const cx = changedCentroidX(pair, b, 45);
+    const ok = cx !== null && Math.abs(cx - b.x) <= 0.5 * b.rx;
+    if (!ok) await attachPair(info, `worker-${String(w.id)}`, pair, b);
+    expect(
+      ok,
+      `worker ${String(w.id)} drawn on its ellipse (centroid ${String(cx)} vs ${b.x.toFixed(1)} ± ${(0.5 * b.rx).toFixed(1)})`,
+    ).toBe(true);
+  }
+
   // A shot aimed at a worker's body centre (the sim's own ellipse, from the hook): the penalty
   // and the duck, read in the same wait; bounded attempts, each held 30 ticks.
   const score0 = (await hook(page)).score;
@@ -253,4 +341,47 @@ test('a shot aimed at a worker costs the penalty and the worker ducks; the sheet
   expect(r.penalty).toBe(H.workers.penalty);
   expect(r.score).toBe(score0 - H.workers.penalty);
   expect(r.ducked, 'the worker ducks').toBe(true);
+
+  // Review round 3: a LEFT-facing (mirrored) warthog's art sits on its hit ellipse too. Step on
+  // (bounded) until one is fully on screen with no other actor near it, then the same check.
+  let checked = false;
+  for (let step = 0; step < 8 && !checked; step++) {
+    const t = (await hook(page)).tick + 60;
+    await page.evaluate((x) => {
+      (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(x);
+    }, t);
+    await untilTick(page, t);
+    await page.waitForTimeout(800);
+    const hw = (await hook(page)).designWidth;
+    const all = await actorsOf(page);
+    const hog = all.find((a) => {
+      const b = a.body;
+      if (a.role !== 'warthog' || !a.visible || a.facing !== -1 || b === null) return false;
+      if (a.frame === null || !a.frame.startsWith('wh_') || a.frame.startsWith('wh_tumble'))
+        return false;
+      if (b.x - b.rx - 40 < 0 || b.x + b.rx + 40 > hw || b.y - b.ry < 0) return false;
+      // Nothing else of the Harvest's reaching into the band (her piglets trail ~100 px behind).
+      return !all.some(
+        (o) =>
+          o !== a &&
+          o.visible &&
+          o.role !== 'gap' &&
+          o.role !== 'sign' &&
+          Math.abs(o.x - b.x) < b.rx + 45 &&
+          Math.abs(o.y - a.y) < b.ry * 3,
+      );
+    });
+    const b = hog?.body ?? null;
+    if (hog === undefined || b === null) continue;
+    const pairW = await withAndWithout(page);
+    const cx = changedCentroidX(pairW, b, b.rx + 20);
+    const ok = cx !== null && Math.abs(cx - b.x) <= 0.5 * b.rx;
+    if (!ok) await attachPair(info, `warthog-${String(hog.id)}`, pairW, b);
+    expect(
+      ok,
+      `a left-facing warthog drawn on its ellipse (centroid ${String(cx)} vs ${b.x.toFixed(1)} ± ${(0.5 * b.rx).toFixed(1)})`,
+    ).toBe(true);
+    checked = true;
+  }
+  expect(checked, 'a left-facing warthog came clear on screen within 8 steps').toBe(true);
 });

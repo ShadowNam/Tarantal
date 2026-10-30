@@ -6,6 +6,7 @@
 // per-frame allocations beyond a new actor's slot, sprites off screen hidden, its own timer
 // (harvestMs) for the perf test. The sheet is in the map's own lazy group: until the delivered
 // file is under the key nothing is drawn, and the view looks for it every 30 frames.
+import { setFootOrigin } from '../footOrigin';
 import type * as Phaser from 'phaser';
 import type { HarvestSetup } from '../../../content/schemas';
 import type { SimEvent } from '../../../sim/events';
@@ -60,6 +61,8 @@ export interface HarvestHook {
   /** Its ground line on screen (design px): the feet must stand on it. */
   readonly groundY: number;
   readonly visible: boolean;
+  /** −1: drawn mirrored (facing left). */
+  readonly facing: 1 | -1;
   /** Review round 2: the body's hit ellipse on screen (design px: centre and radii), as the sim
    *  tests a shot against it (workers and warthogs; null for the rest). */
   readonly body: {
@@ -107,6 +110,8 @@ export class HarvestView {
   /** Milliseconds the last update took (perf.spec: harvestMs). */
   lastMs = 0;
   private readonly tumbleTicks: number;
+  /** e2e only: every actor hidden (__TM_HARVEST_HIDE__). */
+  private hidden = false;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -118,6 +123,12 @@ export class HarvestView {
     private readonly hooks = false,
   ) {
     this.tumbleTicks = Math.max(1, Math.round(tuning.warthogs.tumbleSeconds * 60));
+    // e2e only (test hooks on): hide every Harvest actor, so a spec can grab the same held tick
+    // with and without them (review round 3: the drawn art must sit on the hit ellipses).
+    if (hooks)
+      (window as { __TM_HARVEST_HIDE__?: (on: boolean) => void }).__TM_HARVEST_HIDE__ = (on) => {
+        this.hidden = on;
+      };
   }
 
   /** The e2e hook's entries (empty without hooks). */
@@ -189,15 +200,23 @@ export class HarvestView {
       flip: false,
       shown: false,
       seen: false,
-      hook: { id, role, frame: null, x: 0, y: 0, groundY: 0, visible: false, body: null },
+      hook: {
+        id,
+        role,
+        frame: null,
+        x: 0,
+        y: 0,
+        groundY: 0,
+        visible: false,
+        facing: 1,
+        body: null,
+      },
     };
   }
 
-  /** Phaser flips round the frame's centre: a mirrored frame keeps its feet by mirroring the
-   *  origin too. */
+  /** The origin at the frame's feet; a custom-pivot frame is mirrored round it (footOrigin.ts). */
   private origin(s: Slot): void {
-    const f = s.img.frame;
-    s.img.setOrigin(s.flip ? 1 - f.pivotX : f.pivotX, f.pivotY);
+    setFootOrigin(s.img, s.flip);
   }
 
   /** Puts a slot at (x, y) on its layer with `frame` (null: hidden); returns whether shown. */
@@ -284,15 +303,17 @@ export class HarvestView {
     const same =
       (h.body === null && b === null) ||
       (h.body !== null && b !== null && h.body.x === b.x && h.body.y === b.y && h.body.rx === b.rx);
+    const facing: 1 | -1 = s.flip ? -1 : 1;
     if (
       h.x !== hx ||
       h.y !== hy ||
       h.visible !== show ||
       h.frame !== f ||
       h.groundY !== gy ||
+      h.facing !== facing ||
       !same
     )
-      s.hook = { ...h, x: hx, y: hy, visible: show, frame: f, groundY: gy, body: b };
+      s.hook = { ...h, x: hx, y: hy, visible: show, frame: f, groundY: gy, facing, body: b };
   }
 
   /** A hit box's body ellipse on its layer (as the sim builds it: × scale, mirrored by facing). */
@@ -483,6 +504,12 @@ export class HarvestView {
       );
       this.hookOf(this.sign, shown, h.gap.x, sy, h.gap.y);
     }
+    // (The actors only: the gap's panel and the sign stay, so a with/without pair shows the actors.)
+    if (this.hidden)
+      for (const s of this.slots.values()) {
+        s.img.setVisible(false);
+        s.shown = false;
+      }
     if (this.hooks) {
       const list: HarvestHook[] = [];
       for (const s of this.all()) list.push(s.hook);

@@ -7,6 +7,7 @@
 // a little bigger and filled warm, gives it a soft warm outline. Phone rules (D-059): two images
 // per tell at most, properties set only when they change, no per-frame allocations, and its own
 // timer (tellMs) for the perf test.
+import { setFootOrigin } from '../footOrigin';
 import * as Phaser from 'phaser';
 import type { Biome } from '../../../content/schemas';
 import type { SimState, TellView as SimTell } from '../../../sim/types';
@@ -265,12 +266,9 @@ export class TellView {
         if (frame !== s.frame) {
           s.img.setFrame(frame);
           s.glow.setFrame(frame);
-          // Phaser flips round the texture's centre: a mirrored frame keeps its feet by
-          // mirroring the origin too.
-          if (t.facing === -1) {
-            s.img.setOrigin(1 - s.img.frame.pivotX, s.img.frame.pivotY);
-            s.glow.setOrigin(1 - s.glow.frame.pivotX, s.glow.frame.pivotY);
-          }
+          // The origin at the frame's feet, flipped or not (a custom pivot: footOrigin.ts).
+          setFootOrigin(s.img, t.facing === -1);
+          setFootOrigin(s.glow, t.facing === -1);
           s.frame = frame;
         }
         if (x !== s.x || y !== s.y) {
