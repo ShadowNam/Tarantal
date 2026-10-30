@@ -649,6 +649,8 @@ if (wants('christmas')) {
         origin: 'interim',
         encode: 'png8',
         master: XMAS_MASTER,
+        // D-064: Standard in HD (no HD twin; an HD Christmas hunt stays ≤ 256 MB).
+        hd: false,
         originX: 0,
         originY: 0,
       }),

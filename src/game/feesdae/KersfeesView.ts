@@ -28,7 +28,7 @@ import {
 } from './christmasAssets';
 import { drawChristmasStandin } from './christmasStandin';
 import anchorsJson from './hatAnchors.json';
-import { CHRISTMAS_SHEET_HD, xmasKeyIn, xmasMasterOf } from './christmasKeys';
+import { xmasKeyIn, xmasMasterOf } from './christmasKeys';
 
 type Anchor = readonly [number, number, number, number];
 /** The guineafowl's head in every frame of every clip (tools/art/hatAnchors.ts): the Santa hats
@@ -61,7 +61,8 @@ export function ensureXmasTexture(scene: Phaser.Scene, sheet: HTMLImageElement |
   const textures = scene.textures;
   if (sheet !== null) {
     const master = xmasMasterOf(sheet.width);
-    const key = master >= 2 ? CHRISTMAS_SHEET_HD : CHRISTMAS_SHEET;
+    // D-064: the Standard sheet in Standard and HD alike (an HD Christmas hunt stays ≤ 256 MB).
+    const key = CHRISTMAS_SHEET;
     if (!textures.exists(key)) {
       const tex = textures.addImage(key, sheet);
       if (tex !== null) addXmasFrames(tex, master);
@@ -411,16 +412,12 @@ export class KersfeesSceneView {
 
   /** Whether the delivered sheet (not the stand-in) is drawn. */
   get final(): boolean {
-    return this.key === CHRISTMAS_SHEET || this.key === CHRISTMAS_SHEET_HD;
+    return this.key === CHRISTMAS_SHEET;
   }
 
-  /** e2e: which sheet is drawn ('hd', 'standard' or 'standin'). */
-  get sheetKind(): 'hd' | 'standard' | 'standin' {
-    return this.key === CHRISTMAS_SHEET_HD
-      ? 'hd'
-      : this.key === CHRISTMAS_SHEET
-        ? 'standard'
-        : 'standin';
+  /** e2e: which sheet is drawn ('standard' — Standard in HD too — or 'standin'). */
+  get sheetKind(): 'standard' | 'standin' {
+    return this.key === CHRISTMAS_SHEET ? 'standard' : 'standin';
   }
 
   /** One frame: the presents (shut, or open with the lid hop and confetti on sim time), the glint. */
@@ -574,7 +571,7 @@ export class KersfeesSceneView {
     garlands: number;
     baubles: number;
     found: number | null;
-    sheet: 'hd' | 'standard' | 'standin';
+    sheet: 'standard' | 'standin';
     crowns: { id: string; x: number; y: number; w: number; h: number }[];
   } {
     return {

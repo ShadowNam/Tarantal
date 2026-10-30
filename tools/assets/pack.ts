@@ -1021,8 +1021,8 @@ export function propPlaneRes(content: ContentBundle, key: string): number {
   if (key === MEERKAT_SHEET) return SHEET_MASTER;
   // D-048: the Halloween sheet keeps its 2× master (its frame table is in texture px at 2×).
   if (key === HALLOWEEN_SHEET) return FEESDAE_MASTER;
-  // D-064 round 2: the Christmas sheet packs at 1× for Standard (its frames scale by the image's
-  // own width), and its 2× master is the HD twin (feesdae-christmas-hd): HD shows more detail.
+  // D-064: the Christmas sheet packs at 1× (its frames scale by the image's own width); it stays
+  // Standard in HD (sidecar hd: false), like D-054's specials.
   if (key === CHRISTMAS_SHEET) return 1;
   // v1.8 (D-050): the tin cans keep their 2× master (near cans are seen close up).
   if (key === CAN_SHEET) return CAN_MASTER;

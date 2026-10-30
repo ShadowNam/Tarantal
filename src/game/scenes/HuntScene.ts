@@ -130,7 +130,7 @@ interface KersfeesHook {
     garlands: number;
     baubles: number;
     found: number | null;
-    sheet: 'hd' | 'standard' | 'standin';
+    sheet: 'standard' | 'standin';
     crowns: { id: string; x: number; y: number; w: number; h: number }[];
   };
 }
@@ -512,7 +512,7 @@ export class HuntScene extends Phaser.Scene {
         planeScale: planeScales,
         mapBiome,
         decorations: special.decorations,
-        sheet: feesdaeSheets.get(this.sheetId(special.id)) ?? null,
+        sheet: feesdaeSheets.get(special.id) ?? null,
         reduceFlashes: this.ctx.prefs.reduceFlashes,
         setHeat: (h) => {
           world.heat = h;
@@ -548,7 +548,7 @@ export class HuntScene extends Phaser.Scene {
         },
         special.decorations,
         this.screenFixed,
-        feesdaeSheets.get(this.sheetId(special.id)) ?? null,
+        feesdaeSheets.get(special.id) ?? null,
       );
       this.birds.hats = this.spookView.hats;
     } else this.birds.hats = null;
@@ -1115,13 +1115,10 @@ export class HuntScene extends Phaser.Scene {
         this.loadFeesdaeArt();
         // D-064: Christmas waits for its own sheet when the index lists it (bounded by the file
         // timeout; unlisted or failed: the stand-in draws instead).
-        if (
-          WAIT_FOR_SHEET.includes(special.id) &&
-          !feesdaeSheetTried.has(this.sheetId(special.id))
-        ) {
-          feesdaeSheetTried.add(this.sheetId(special.id));
-          const img = await m.loadSpecialSheet(special.id, this.manifest.hdWanted);
-          if (img !== null) feesdaeSheets.set(this.sheetId(special.id), img);
+        if (WAIT_FOR_SHEET.includes(special.id) && !feesdaeSheetTried.has(special.id)) {
+          feesdaeSheetTried.add(special.id);
+          const img = await m.loadSpecialSheet(special.id);
+          if (img !== null) feesdaeSheets.set(special.id, img);
         }
         return true;
       })
@@ -1129,9 +1126,7 @@ export class HuntScene extends Phaser.Scene {
       .then((ok) => {
         if (label.active) label.destroy();
         if (this.ctx.hook)
-          this.ctx.hook.feesdaeArt = feesdaeSheets.has(this.sheetId(special.id))
-            ? 'final'
-            : 'standin';
+          this.ctx.hook.feesdaeArt = feesdaeSheets.has(special.id) ? 'final' : 'standin';
         if (ok || !veil.active) {
           if (veil.active) veil.destroy();
           then(ok);
@@ -1226,11 +1221,6 @@ export class HuntScene extends Phaser.Scene {
     });
   }
 
-  /** D-064: a special's sheet slot — the HD twin and the Standard pack are kept apart. */
-  private sheetId(special: string): string {
-    return special === 'christmas' && this.manifest.hdWanted ? `${special}@hd` : special;
-  }
-
   /** D-048: the special's own group's files in the background (D-064: only that special's);
    *  the sheet goes into the view on arrival. */
   private loadFeesdaeArt(): void {
@@ -1239,9 +1229,9 @@ export class HuntScene extends Phaser.Scene {
     const special = this.special;
     if (feesdaeModule === null || special === null) return;
     const id = special.id;
-    void feesdaeModule.loadFeesdaeAssets(this.ctx.audio, id, this.manifest.hdWanted).then((img) => {
-      if (img === null || feesdaeSheets.has(this.sheetId(id))) return;
-      feesdaeSheets.set(this.sheetId(id), img);
+    void feesdaeModule.loadFeesdaeAssets(this.ctx.audio, id).then((img) => {
+      if (img === null || feesdaeSheets.has(id)) return;
+      feesdaeSheets.set(id, img);
       if (this.special?.id !== id) return;
       if (this.ctx.hook) this.ctx.hook.feesdaeArt = 'final';
       if (this.sys.isActive()) this.spookView?.useSheet(img);
@@ -1582,8 +1572,7 @@ export class HuntScene extends Phaser.Scene {
     if (
       this.special !== null &&
       (feesdaeModule === null ||
-        (WAIT_FOR_SHEET.includes(this.special.id) &&
-          !feesdaeSheetTried.has(this.sheetId(this.special.id))))
+        (WAIT_FOR_SHEET.includes(this.special.id) && !feesdaeSheetTried.has(this.special.id)))
     ) {
       this.waitForFeesdae(this.special, (ok) => {
         if (ok) this.begin(kind, startPointer, modeId, challenge, bonus);

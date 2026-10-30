@@ -582,7 +582,7 @@ export interface TestHook {
       garlands: number;
       baubles: number;
       found: number | null;
-      sheet: 'hd' | 'standard' | 'standin';
+      sheet: 'standard' | 'standin';
       crowns: { id: string; x: number; y: number; w: number; h: number }[];
     };
     heat?: number;

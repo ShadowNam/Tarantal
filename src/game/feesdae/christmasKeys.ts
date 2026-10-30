@@ -29,18 +29,14 @@ export const OUPA_DRAWN = 0.5;
 /** Sheet width in design px (christmasAssets.ts packs the frames into it). */
 export const XMAS_SHEET_W = 644;
 
-/** D-064 round 2: the HD sheet (2×) has its own key; the Standard pack is 1× under
- *  CHRISTMAS_SHEET. Which one a hunt draws follows the Graphics setting. */
-export const CHRISTMAS_SHEET_HD = `${CHRISTMAS_SHEET}@hd`;
-
-/** Texture px per design px of a Christmas texture (1 Standard, 2 HD or the stand-in). */
+/** Texture px per design px of a Christmas texture (1: the Standard sheet, which HD shows too
+ *  (D-064: Standard in HD, like D-054's specials); 2: the code-drawn stand-in). */
 export function xmasMasterOf(width: number): number {
   return Math.max(1, Math.round(width / XMAS_SHEET_W));
 }
 
-/** The best Christmas texture in this texture manager (HD, Standard, the stand-in), or null. */
+/** The best Christmas texture in this texture manager (the sheet, else the stand-in), or null. */
 export function xmasKeyIn(textures: { exists(key: string): boolean }): string | null {
-  for (const k of [CHRISTMAS_SHEET_HD, CHRISTMAS_SHEET, `${CHRISTMAS_SHEET}#standin`])
-    if (textures.exists(k)) return k;
+  for (const k of [CHRISTMAS_SHEET, `${CHRISTMAS_SHEET}#standin`]) if (textures.exists(k)) return k;
   return null;
 }
