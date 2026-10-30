@@ -58,6 +58,7 @@ import {
   SHEET_MASTER as FEESDAE_MASTER,
 } from '../../src/game/feesdae/feesdaeAssets';
 import { CHRISTMAS_GROUP, CHRISTMAS_SHEET } from '../../src/game/feesdae/christmasAssets';
+import { NEWYEAR_GROUP, NEWYEAR_SHEET } from '../../src/game/feesdae/newyearAssets';
 import { DESERT_GROUP, MEERKAT_SHEET, SHEET_MASTER } from '../../src/game/assets/desertAssets';
 import type { ContentBundle } from '../../src/content/schemas';
 import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
@@ -872,6 +873,8 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       // with "feesdae-christmas".
       if (o.catalog.entries.get(key)?.group === FEESDAE_GROUP) group = FEESDAE_GROUP;
       if (o.catalog.entries.get(key)?.group === CHRISTMAS_GROUP) group = CHRISTMAS_GROUP;
+      // D-065: New Year's with "feesdae-newyear".
+      if (o.catalog.entries.get(key)?.group === NEWYEAR_GROUP) group = NEWYEAR_GROUP;
     } else if (parts[0] === 'voice' && parts.length === 3) {
       // v1.5 (D-041): audio/voice/<lang>/<bark key>.wav, one lazy pack per voice language.
       key = `voice/${parts[1]}/${parts[2]}`;
@@ -1024,6 +1027,8 @@ export function propPlaneRes(content: ContentBundle, key: string): number {
   // D-064: the Christmas sheet packs at 1× (its frames scale by the image's own width); it stays
   // Standard in HD (sidecar hd: false), like D-054's specials.
   if (key === CHRISTMAS_SHEET) return 1;
+  // D-065: New Year's sheet likewise (1×, Standard in HD from the start).
+  if (key === NEWYEAR_SHEET) return 1;
   // v1.8 (D-050): the tin cans keep their 2× master (near cans are seen close up).
   if (key === CAN_SHEET) return CAN_MASTER;
   let res = 0;
