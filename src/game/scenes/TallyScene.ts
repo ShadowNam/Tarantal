@@ -15,8 +15,9 @@ import type { TallyExtras } from '../daily/DailyFlow';
 import type { GameContext } from '../GameContext';
 import { formatPercent, formatScore } from '../ui/format';
 import { tallyBarkSlot, type Rect } from '../ui/hudLayout';
-import { drawSlateFrame, lastXmasPresent } from '../ui/specialBadge';
+import { drawSlateFrame, lastNyBurst, lastXmasPresent } from '../ui/specialBadge';
 import { XMAS_SOUNDS } from '../feesdae/christmasKeys';
+import { NY_SOUNDS } from '../feesdae/newyearKeys';
 import { BarkBubble, sayBark } from '../ui/BarkBubble';
 import { powerupIcon } from '../ui/powerupIcons';
 import type { BarkTrigger } from '../../content/schemas';
@@ -175,17 +176,26 @@ export class TallyScene extends Phaser.Scene {
     // D-064: Christmas's tally plays a phrase of a carol on the pennywhistle (its recording came
     // with the hunt's lazy group; silent until then).
     if (special?.frame === 'christmas') this.ctx.audio.playExtra(XMAS_SOUNDS.tally, 0, () => 0);
+    // D-065: New Year's tally plays Auld Lang Syne's first phrase on the pennywhistle.
+    if (special?.frame === 'newyear') this.ctx.audio.playExtra(NY_SOUNDS.tally, 0, () => 0);
     // D-048: the frame's moon and the tag's rects ride along into the hook's final rects below.
     const frameRects: Record<string, Rect> = {};
     if (moon !== null) frameRects['tallyMoon'] = moon;
     // D-064: Christmas's present on the frame (kept clear of the buttons; e2e checks it).
     if (special?.frame === 'christmas' && lastXmasPresent !== null)
       frameRects['tallyPresent'] = lastXmasPresent;
+    // D-065: New Year's firework burst on the frame (likewise).
+    if (special?.frame === 'newyear' && lastNyBurst !== null)
+      frameRects['tallyBurst'] = lastNyBurst;
+    // D-065: the New Year slate greets the year ("Happy New Year!"); the card keeps its title.
+    const greeting = special?.frame === 'newyear' ? t('feesdag.happy_new_year') : null;
     const title = this.add
       .text(
         px + panelW / 2,
         py + 64,
-        special?.title ?? t(data.harvest === undefined ? 'tally.title' : 'tally.harvest_title'),
+        greeting ??
+          special?.title ??
+          t(data.harvest === undefined ? 'tally.title' : 'tally.harvest_title'),
         chalk(64, special == null ? '#FFD25A' : '#FFB347', false),
       )
       .setOrigin(0.5);
@@ -483,6 +493,7 @@ export class TallyScene extends Phaser.Scene {
         share: shareMsg !== null,
         frame: special?.frame ?? null,
         ...(special == null ? {} : { title: special.title }),
+        ...(greeting === null ? {} : { greeting }),
       };
     }
   }

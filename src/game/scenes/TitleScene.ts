@@ -27,6 +27,7 @@ import {
   specialStatusStyle,
 } from '../ui/specialBadge';
 import { CHRISTMAS_SHEET } from '../feesdae/christmasKeys';
+import { NEWYEAR_SHEET } from '../feesdae/newyearKeys';
 
 export interface TitleData {
   /** Starts the hunt; pointerId is the pressing pointer (null from the keyboard). */
@@ -332,7 +333,9 @@ export class TitleScene extends Phaser.Scene {
           if (this.ctx.hook) this.ctx.hook.rects['dailyBadge'] = r;
           // D-064: on Christmas, Oupa in his Santa hat waves beside the badge once Christmas's
           // lazy group is in (fetched in the background on the day only; never blocks the title).
-          if (special?.id === 'christmas') this.badgeOupa(r);
+          // D-065: on New Year, in his party hat with a party blower.
+          if (special?.id === 'christmas' || special?.id === 'newyear')
+            this.badgeOupa(r, special.id);
         }
         if (this.ctx.hook) {
           const b = status.getBounds();
@@ -503,24 +506,25 @@ export class TitleScene extends Phaser.Scene {
    * load in the background on the day only; he appears when the sheet is in, if the title is
    * still up. Never blocks the title or a hunt.
    */
-  private badgeOupa(badge: Rect): void {
+  private badgeOupa(badge: Rect, special: 'christmas' | 'newyear'): void {
     const show = (): void => {
       if (!this.sys.isActive()) return;
       const at = this.oupaSpot(badge);
       if (this.ctx.hook) this.ctx.hook.titleOupa = at === null ? 'nospace' : 'drawn';
       if (at === null) return;
-      const r = drawBadgeOupa(this, at.x, at.y, at.s);
+      const r = drawBadgeOupa(this, at.x, at.y, at.s, special);
       if (r !== null && this.ctx.hook) this.ctx.hook.rects['dailyOupa'] = r;
     };
-    if (this.textures.exists(CHRISTMAS_SHEET)) {
+    if (this.textures.exists(special === 'newyear' ? NEWYEAR_SHEET : CHRISTMAS_SHEET)) {
       show();
       return;
     }
     void import('../feesdae/FeesdagView')
       .then(async (m) => {
-        const img = await m.loadFeesdaeAssets(this.ctx.audio, 'christmas');
+        const img = await m.loadFeesdaeAssets(this.ctx.audio, special);
         if (img === null || !this.sys.isActive()) return;
-        m.ensureXmasTexture(this, img);
+        if (special === 'newyear') m.ensureNyTexture(this, img);
+        else m.ensureXmasTexture(this, img);
         show();
       })
       .catch(() => undefined);

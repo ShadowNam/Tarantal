@@ -610,6 +610,8 @@ export interface TestHook {
     /** D-048: the special day's frame on the slate (null on an ordinary tally). */
     frame?: string | null;
     title?: string;
+    /** D-065: the slate's greeting in its title row ("Happy New Year!"), New Year only. */
+    greeting?: string;
   } | null;
   /** M7: the last [Share] (outcome and the message sent). */
   lastShare: { outcome: string; text: string; url: string } | null;

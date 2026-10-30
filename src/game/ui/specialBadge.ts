@@ -3,6 +3,7 @@
 import * as Phaser from 'phaser';
 import { HALLOWEEN_SHEET, SHEET_MASTER } from '../feesdae/feesdaeAssets';
 import { OUPA_DRAWN, xmasKeyIn, xmasMasterOf } from '../feesdae/christmasKeys';
+import { NEWYEAR_SHEET, nyMasterOf } from '../feesdae/newyearKeys';
 import type { Rect } from './hudLayout';
 
 const FILL = 0xf28c28;
@@ -10,6 +11,8 @@ const EDGE = 0x3b1d4a;
 const TEXT = '#2A1033';
 /** D-064: Christmas's badge — a Christmas-red pill with a green edge and cream text. */
 const XMAS = { fill: 0xc8202a, edge: 0x1e5e36, text: '#FFF8E8', stroke: '#5A0A10' } as const;
+/** D-065: New Year's badge — a midnight-blue pill with a gold edge and gold text. */
+const NY = { fill: 0x1c2860, edge: 0xe6b23a, text: '#FFE48A', stroke: '#0A1030' } as const;
 
 /**
  * The badge is a pumpkin-orange pill behind the Daily's status line on a special day
@@ -22,7 +25,12 @@ export function drawSpecialBadge(
   text: { x: number; y: number; width: number; height: number },
   special = 'halloween',
 ): Rect {
-  const xmas = special === 'christmas';
+  const look =
+    special === 'christmas'
+      ? XMAS
+      : special === 'newyear'
+        ? NY
+        : { fill: FILL, edge: EDGE, text: TEXT, stroke: '' };
   const padX = 14;
   const padY = 3;
   const w = text.width + padX * 2;
@@ -30,8 +38,8 @@ export function drawSpecialBadge(
   const x = text.x - padX;
   const y = text.y - padY;
   const g = scene.add.graphics().setDepth(5);
-  g.fillStyle(xmas ? XMAS.edge : EDGE, 1).fillRoundedRect(x - 3, y - 3, w + 6, h + 6, 12);
-  g.fillStyle(xmas ? XMAS.fill : FILL, 1).fillRoundedRect(x, y, w, h, 10);
+  g.fillStyle(look.edge, 1).fillRoundedRect(x - 3, y - 3, w + 6, h + 6, 12);
+  g.fillStyle(look.fill, 1).fillRoundedRect(x, y, w, h, 10);
   return { x: x - 3, y: y - 3, w: w + 6, h: h + 6 };
 }
 
@@ -46,7 +54,9 @@ export function specialStatusStyle(special: string): {
 } {
   return special === 'christmas'
     ? { color: XMAS.text, stroke: XMAS.stroke, strokeThickness: 3 }
-    : { ...SPECIAL_STATUS_STYLE };
+    : special === 'newyear'
+      ? { color: NY.text, stroke: NY.stroke, strokeThickness: 3 }
+      : { ...SPECIAL_STATUS_STYLE };
 }
 
 /** D-064: the best Christmas texture in (HD, Standard, the stand-in) and its master. */
@@ -54,6 +64,21 @@ function xmasKey(scene: Phaser.Scene): { key: string; m: number } | null {
   const key = xmasKeyIn(scene.textures);
   if (key === null) return null;
   return { key, m: xmasMasterOf(scene.textures.get(key).getSourceImage().width) };
+}
+
+/** D-065: the delivered New Year sheet and its master (null until it is in: the stand-in has
+ *  only the fireworks' spark). */
+function nyKey(scene: Phaser.Scene): { key: string; m: number } | null {
+  if (!scene.textures.exists(NEWYEAR_SHEET)) return null;
+  return {
+    key: NEWYEAR_SHEET,
+    m: nyMasterOf(scene.textures.get(NEWYEAR_SHEET).getSourceImage().width),
+  };
+}
+
+/** The special's sheet with Oupa's frames on it (Christmas's or New Year's), or null. */
+function oupaKey(scene: Phaser.Scene, special: string): { key: string; m: number } | null {
+  return special === 'newyear' ? nyKey(scene) : xmasKey(scene);
 }
 
 /** Moves an image so its bounds stay inside the screen (design px) with a margin. */
@@ -76,10 +101,17 @@ export function badgeOupaRect(x: number, y: number, s: number): Rect {
 }
 
 /** D-064: Oupa in his Santa hat and shorts, waving on the title, his feet at (x, y), at art
- *  scale `s` (the title lays him out clear of every title rect: TitleScene.badgeOupa). Null
- *  until Christmas's sheet is in. */
-export function drawBadgeOupa(scene: Phaser.Scene, x: number, y: number, s: number): Rect | null {
-  const tex = xmasKey(scene);
+ *  scale `s` (the title lays him out clear of every title rect: TitleScene.badgeOupa). D-065: on
+ *  New Year in his party hat with a party blower (the same frame size). Null until the special's
+ *  sheet is in. */
+export function drawBadgeOupa(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  s: number,
+  special = 'christmas',
+): Rect | null {
+  const tex = oupaKey(scene, special);
   if (tex === null) return null;
   const img = scene.add
     .image(x, y, tex.key, 'oupa')
@@ -103,9 +135,12 @@ function sheetKey(scene: Phaser.Scene): string | null {
  */
 /** D-064: the tally present's rect (the tally hook keeps it for the overlap checks). */
 export let lastXmasPresent: Rect | null = null;
+/** D-065: the New Year frame's firework burst rect (likewise). */
+export let lastNyBurst: Rect | null = null;
 
 export function drawSlateFrame(scene: Phaser.Scene, frame: string, slate: Rect): Rect | null {
   if (frame === 'christmas') return drawXmasFrame(scene, slate);
+  if (frame === 'newyear') return drawNyFrame(scene, slate);
   if (frame !== 'halloween') return null;
   const g = scene.add.graphics();
   g.lineStyle(6, 0x6a3d8f, 1).strokeRoundedRect(
@@ -190,4 +225,50 @@ function drawXmasFrame(scene: Phaser.Scene, slate: Rect): Rect | null {
   const hr = keepOnScreen(scene, head);
   lastXmasPresent = pr;
   return hr;
+}
+
+/**
+ * D-065: New Year's frame round the tally slate: a midnight-blue edge with a gold line, curled
+ * streamers along the top (where Christmas's tinsel hangs: clear of the tag and [Share]), Oupa's
+ * head in his party hat on the left edge (where Christmas's sits) and a small firework burst on
+ * the right edge. Returns Oupa's rect (the tally hook keeps it as its corner piece).
+ */
+function drawNyFrame(scene: Phaser.Scene, slate: Rect): Rect | null {
+  const g = scene.add.graphics();
+  g.lineStyle(8, NY.fill, 1).strokeRoundedRect(
+    slate.x - 5,
+    slate.y - 5,
+    slate.w + 10,
+    slate.h + 10,
+    20,
+  );
+  g.lineStyle(3, NY.edge, 1).strokeRoundedRect(
+    slate.x - 1,
+    slate.y - 1,
+    slate.w + 2,
+    slate.h + 2,
+    18,
+  );
+  const tex = nyKey(scene);
+  lastNyBurst = null;
+  if (tex === null) return null;
+  const { key, m } = tex;
+  const streamers: [number, number, string][] = [
+    [slate.x + 150, slate.y - 4, 'streamer_a'],
+    [slate.x + slate.w - 470, slate.y - 4, 'streamer_b'],
+  ];
+  for (const [x, y, f] of streamers)
+    scene.add
+      .image(x, y, key, f)
+      .setOrigin(125 / 250, 12 / 70)
+      .setScale(0.7 / m);
+  const burst = scene.add
+    .image(slate.x + slate.w + 4, slate.y + slate.h * 0.5, key, 'burst')
+    .setScale(0.6 / m);
+  lastNyBurst = keepOnScreen(scene, burst);
+  const head = scene.add
+    .image(slate.x - 4, slate.y + 64, key, 'oupa_head')
+    .setOrigin(31 / 66, 68 / 100)
+    .setScale(0.4 / OUPA_DRAWN / m);
+  return keepOnScreen(scene, head);
 }
