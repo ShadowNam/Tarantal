@@ -64,6 +64,8 @@ import type { TreeLifeView } from '../view/tree/TreeLifeView';
 import type { NamibLifeView } from '../view/namib/NamibLifeView';
 import type { TellView } from '../view/tell/TellView';
 import type { BaboonView } from '../view/baboon/BaboonView';
+import type { HarvestView } from '../view/harvest/HarvestView';
+import type { HarvestTally } from './TallyScene';
 import { playPotjieSound } from '../view/potjieSounds';
 import { playMeerkatSound } from '../audio/meerkatSounds';
 import { largestTextures, textureBytes } from '../assets/textureBytes';
@@ -158,6 +160,9 @@ export class HuntScene extends Phaser.Scene {
   /** v1.8b (D-062): the baboon troops and raiders (lazy chunk; null until it is in, or none). */
   private baboons: BaboonView | null = null;
   private baboonsGen = 0;
+  /** v1.8c (D-063): the Harvest's view (its lazy chunk), on the Harvest's map only. */
+  private harvest: HarvestView | null = null;
+  private harvestGen = 0;
   /** Family nests by prop id (layer, x on it): the weavers' scolding is panned from here. */
   private weaverNests = new Map<string, { layer: string; x: number }>();
   /** Nest shots before the tree-life chunk was in (its burst plays them once it is). */
@@ -561,6 +566,7 @@ export class HuntScene extends Phaser.Scene {
     this.loadNamibLife(mapBiome);
     this.loadTells(mapBiome);
     this.loadBaboons(mapBiome);
+    this.loadHarvest(mapBiome);
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -1434,12 +1440,14 @@ export class HuntScene extends Phaser.Scene {
     // own gun; a challenge the gun it names.
     const loadout = this.ctx.content.weapons.weapons.find((w) => w.id === save.loadout.weapon);
     const plainMode = modeId === 'classic' || modeId === 'daily' ? modeId : null;
-    const adminGun = plainMode === null ? undefined : this.ctx.weaponOverride;
+    // v1.8c (D-063): the Harvest plays the Classic loadout too.
+    const gunMode = plainMode ?? (modeId === 'harvest' ? modeId : null);
+    const adminGun = gunMode === null ? undefined : this.ctx.weaponOverride;
     const weapon =
       adminGun ??
-      (plainMode !== null &&
+      (gunMode !== null &&
       loadout !== undefined &&
-      loadout.id !== this.ctx.content.modes.modes[plainMode].weapon &&
+      loadout.id !== this.ctx.content.modes.modes[gunMode].weapon &&
       isWeaponEquippable(loadout, save, this.ctx.content)
         ? loadout.id
         : undefined);
@@ -1801,6 +1809,9 @@ export class HuntScene extends Phaser.Scene {
       hook.tellMs = 0;
       hook.baboons = null;
       hook.baboonMs = 0;
+      hook.harvestActors = null;
+      hook.harvest = null;
+      hook.harvestMs = 0;
       hook.fruit = null;
       hook.hunts++;
     }
@@ -1966,6 +1977,11 @@ export class HuntScene extends Phaser.Scene {
     if (this.baboons !== null) {
       this.baboons.update(state);
       if (this.ctx.hook) this.ctx.hook.baboonMs += this.baboons.lastMs;
+    }
+    // v1.8c (D-063): the Harvest's warthogs, workers and fence, on their own timer.
+    if (this.harvest !== null) {
+      this.harvest.update(state);
+      if (this.ctx.hook) this.ctx.hook.harvestMs += this.harvest.lastMs;
     }
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
     // v1.7b (D-046): Chilli Biltong's sparks at the muzzle.
@@ -2171,6 +2187,23 @@ export class HuntScene extends Phaser.Scene {
       hook.tells = this.tells?.tells ?? null;
       hook.baboons = this.baboons?.baboons ?? null;
       hook.baboonRaid = state.baboons?.raid ?? null;
+      hook.harvestActors = this.harvest?.actors ?? null;
+      const hv = state.harvest;
+      hook.harvest =
+        hv === null
+          ? null
+          : {
+              phase: hv.phase,
+              crop: hv.crop,
+              repair: hv.repair,
+              clockTicksLeft: hv.clockTicksLeft,
+              warthogs: hv.warthogs.length,
+              piglets: hv.piglets.length,
+              workers: hv.workers.map((w) => ({ id: w.id, phase: w.phase, x: w.x, y: w.y })),
+              warthogsBagged: hv.warthogsBagged,
+              cropBonus: hv.cropBonus,
+              bystanderPenalty: hv.bystanderPenalty,
+            };
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
@@ -2283,6 +2316,29 @@ export class HuntScene extends Phaser.Scene {
       })
       .catch(() => {
         // Offline without the chunk cached: the troops are simply not drawn.
+      });
+  }
+
+  /** v1.8c (D-063): the Harvest's chunk, for the Harvest's map. */
+  private loadHarvest(mapBiome: Biome): void {
+    this.harvest?.destroy();
+    this.harvest = null;
+    const gen = ++this.harvestGen;
+    if (mapBiome.harvest === undefined) return;
+    void import('../view/harvest/HarvestView')
+      .then((m) => {
+        if (gen !== this.harvestGen) return;
+        this.harvest = new m.HarvestView(
+          this,
+          this.parallax,
+          () => performance.now(),
+          this.manifest,
+          this.ctx.content.modes.modes.harvest,
+          this.ctx.hook !== null,
+        );
+      })
+      .catch(() => {
+        // Offline without the chunk cached: the Harvest's actors are simply not drawn.
       });
   }
 
@@ -2416,6 +2472,7 @@ export class HuntScene extends Phaser.Scene {
     this.makalani?.handle(events, this.ctx.audio, width);
     // v1.8b (D-062): the baboons' barks, screeches and raid sounds.
     this.baboons?.handle(events, state, this.ctx.audio, width);
+    this.harvest?.handle(events);
     this.world.potjie.handle(events);
     if (this.ctx.hook) {
       const log = this.ctx.hook.canLog;
@@ -2580,6 +2637,9 @@ export class HuntScene extends Phaser.Scene {
       finished === null || verder === null
         ? finished
         : { ...finished, news: [verder, ...finished.news] };
+    // v1.8c (D-063): the Harvest's own tally lines and its local best.
+    const harvest =
+      this.modeId === 'harvest' ? this.harvestTally(runner.state.harvest, result) : null;
     if (this.modeId === 'seasonHunt') {
       this.ctx.run.afterHunt(result);
       this.afterRealMs(END_DELAY_MS, () => {
@@ -2596,6 +2656,7 @@ export class HuntScene extends Phaser.Scene {
         outcome,
         ftue,
         extras,
+        ...(harvest === null ? {} : { harvest }),
         share: (x) => this.ctx.daily.share(x),
         again: (pointerType) => {
           this.afterBreak(() => {
@@ -2606,7 +2667,7 @@ export class HuntScene extends Phaser.Scene {
             const bonusAgain = plan?.mode.bonus;
             this.scene.restart({
               autoStart: inputKindOf(pointerType),
-              mode: this.modeId === 'daily' ? 'daily' : 'classic',
+              mode: this.modeId === 'daily' || this.modeId === 'harvest' ? this.modeId : 'classic',
               ...(challengeAgain === null ? {} : { challenge: challengeAgain }),
               ...(bonusAgain === undefined ? {} : { bonus: bonusAgain }),
             } satisfies HuntData);
@@ -2629,6 +2690,31 @@ export class HuntScene extends Phaser.Scene {
       };
       this.scene.launch('Tally', data);
     });
+  }
+
+  /** v1.8c (D-063): the Harvest's tally lines, and its best kept in the save (not when unranked). */
+  private harvestTally(h: SimState['harvest'], result: HuntResult): HarvestTally {
+    const before = this.ctx.save.data.harvest.best;
+    const ranked = !this.ctx.daily.unranked && this.ctx.capture === null;
+    const newBest = ranked && (before === null || result.score > before);
+    if (ranked)
+      this.ctx.save.update((d) => ({
+        ...d,
+        harvest: {
+          best: newBest ? result.score : d.harvest.best,
+          played: d.harvest.played + 1,
+        },
+      }));
+    return {
+      birds: result.bagged,
+      warthogs: h?.warthogsBagged ?? 0,
+      baboons: this.harvest?.baboonsBagged ?? 0,
+      crop: Math.max(0, Math.floor(h?.crop ?? 0)),
+      cropBonus: h?.cropBonus ?? 0,
+      bystanderPenalty: h?.bystanderPenalty ?? 0,
+      best: newBest ? result.score : before,
+      newBest,
+    };
   }
 
   /**
@@ -2854,6 +2940,9 @@ export class HuntScene extends Phaser.Scene {
     this.baboons?.destroy();
     this.baboons = null;
     this.baboonsGen++;
+    this.harvest?.destroy();
+    this.harvest = null;
+    this.harvestGen++;
     this.game.canvas.style.cursor = '';
   }
 }

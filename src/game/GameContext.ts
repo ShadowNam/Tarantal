@@ -9,7 +9,8 @@ import type { FruitHookSpot } from './view/fruit/FruitView';
 import type { TreeLifeHook } from './view/tree/TreeLifeView';
 import type { TellHook } from './view/tell/TellView';
 import type { BaboonHook } from './view/baboon/BaboonView';
-import type { BaboonsView } from '../sim/types';
+import type { HarvestHook } from './view/harvest/HarvestView';
+import type { BaboonsView, HarvestView } from '../sim/types';
 import type { NamibLifeHook } from './view/namib/NamibLifeView';
 import type { LoadStatus, SaveStore } from '../meta/save';
 import type { StorageStatus } from '../meta/storage';
@@ -496,6 +497,23 @@ export interface TestHook {
   baboons: readonly BaboonHook[] | null;
   baboonRaid: BaboonsView['raid'];
   baboonMs: number;
+  /** v1.8c (D-063): the Harvest's actors drawn this frame (null: not the Harvest, or the chunk
+   *  not in yet), its state from the snapshot (phase, crop, repair, counts; null outside the
+   *  Harvest), and the ms its view took (perf.spec: per scenery frame). */
+  harvestActors: readonly HarvestHook[] | null;
+  harvest: {
+    phase: HarvestView['phase'];
+    crop: number;
+    repair: number;
+    clockTicksLeft: number;
+    warthogs: number;
+    piglets: number;
+    workers: { id: number; phase: string; x: number; y: number }[];
+    warthogsBagged: number;
+    cropBonus: number;
+    bystanderPenalty: number;
+  } | null;
+  harvestMs: number;
   /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
    *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
   reloadFx: { chipIcons: (string | null)[]; bolts: number; oupaHand: boolean; autoReloads: number };

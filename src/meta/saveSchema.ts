@@ -233,6 +233,9 @@ const sections = {
   /** v1.7b (D-046): power-ups and crate guns picked up at least once (the first pickup gets the
    *  long card; the Gun Shed marks the others "Not found yet"). A new section: no migration. */
   powerups: z.object({ seen: ids }),
+  /** v1.8c (D-063): Die Oes — the best Harvest score (null = never played) and hunts played. A
+   *  new section: older saves get the default, no migration. */
+  harvest: z.object({ best: z.number().int().nullable(), played: count }),
 } as const;
 
 export const SaveSchema = z.object({ v: z.literal(SAVE_VERSION), ...sections });
@@ -261,6 +264,7 @@ export function defaultSave(): SaveData {
     bonusMaps: { day: null, unlocked: [], bests: {} },
     areas: { unlocked: [], classic: null },
     powerups: { seen: [] },
+    harvest: { best: null, played: 0 },
     daily: {
       streak: 0,
       bestStreak: 0,

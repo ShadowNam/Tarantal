@@ -23,7 +23,24 @@ import { drawButton, fitText, Menu } from '../ui/menu';
 import { FONT } from '../view/Fx';
 import { fontPx, outline } from '../ui/textLook';
 
+/** v1.8c (D-063): what the Harvest's tally shows instead of the plane rows. */
+export interface HarvestTally {
+  readonly birds: number;
+  readonly warthogs: number;
+  readonly baboons: number;
+  /** Crop saved, whole percent. */
+  readonly crop: number;
+  readonly cropBonus: number;
+  /** Points lost to aimed shots at workers and piglets (positive). */
+  readonly bystanderPenalty: number;
+  /** The local best after this hunt (null: unranked and never played). */
+  readonly best: number | null;
+  readonly newBest: boolean;
+}
+
 export interface TallyData {
+  /** v1.8c (D-063): the Harvest's lines (absent for every other mode). */
+  readonly harvest?: HarvestTally;
   readonly result: HuntResult;
   /** Called when the player presses [Again], with the pointer type that pressed it. */
   readonly again: (pointerType: string) => void;
@@ -161,7 +178,7 @@ export class TallyScene extends Phaser.Scene {
       .text(
         px + panelW / 2,
         py + 64,
-        special?.title ?? t('tally.title'),
+        special?.title ?? t(data.harvest === undefined ? 'tally.title' : 'tally.harvest_title'),
         chalk(64, special == null ? '#FFD25A' : '#FFB347', false),
       )
       .setOrigin(0.5);
@@ -211,19 +228,35 @@ export class TallyScene extends Phaser.Scene {
       this.ctx.audio.setTallyCounting(false);
     });
 
-    const rows: [I18nKey, string][] = [
-      ['tally.accuracy', `${formatPercent(r.accuracy)}  (${r.hitShots}/${r.shots})`],
-      ['tally.bagged_near', String(r.baggedByPlane.near)],
-      ['tally.bagged_mid', String(r.baggedByPlane.mid)],
-      ['tally.bagged_far', String(r.baggedByPlane.far)],
-      ['tally.wing_shots', String(r.wingShots)],
-      ['tally.flushes', String(r.flushes)],
-      ['tally.whole_flocks', r.wholeFlocks > 0 ? `★ ${r.wholeFlocks}` : '0'],
-      ['tally.best_streak', String(r.bestStreak)],
-      ['tally.secrets', r.secrets > 0 ? `★ ${r.secrets}` : '0'],
-      ['tally.crates', String(r.crates)],
-      ['tally.penalties', String(r.penalties)],
-    ];
+    const hv = data.harvest;
+    const rows: [I18nKey, string][] =
+      hv !== undefined
+        ? [
+            ['tally.harvest_birds', String(hv.birds)],
+            ['tally.harvest_warthogs', String(hv.warthogs)],
+            ['tally.harvest_baboons', String(hv.baboons)],
+            ['tally.harvest_crop', `${String(hv.crop)} %`],
+            ['tally.harvest_crop_bonus', `+${formatScore(hv.cropBonus)}`],
+            ['tally.best_streak', String(r.bestStreak)],
+            ['tally.accuracy', `${formatPercent(r.accuracy)}  (${r.hitShots}/${r.shots})`],
+            [
+              'tally.harvest_bystanders',
+              hv.bystanderPenalty > 0 ? `-${formatScore(hv.bystanderPenalty)}` : '0',
+            ],
+          ]
+        : [
+            ['tally.accuracy', `${formatPercent(r.accuracy)}  (${r.hitShots}/${r.shots})`],
+            ['tally.bagged_near', String(r.baggedByPlane.near)],
+            ['tally.bagged_mid', String(r.baggedByPlane.mid)],
+            ['tally.bagged_far', String(r.baggedByPlane.far)],
+            ['tally.wing_shots', String(r.wingShots)],
+            ['tally.flushes', String(r.flushes)],
+            ['tally.whole_flocks', r.wholeFlocks > 0 ? `★ ${r.wholeFlocks}` : '0'],
+            ['tally.best_streak', String(r.bestStreak)],
+            ['tally.secrets', r.secrets > 0 ? `★ ${r.secrets}` : '0'],
+            ['tally.crates', String(r.crates)],
+            ['tally.penalties', String(r.penalties)],
+          ];
     // D-048: the Spookjag's bats, owls and lanterns.
     if (special != null && isI18nKey(special.nameKey)) rows.push([special.nameKey, special.line]);
     // v1.7b (D-046): the power-ups used, as icons and names (a row of their own).
@@ -425,8 +458,21 @@ export class TallyScene extends Phaser.Scene {
       ...(data.extras?.compare != null ? [data.extras.compare] : []),
       ...(data.extras?.news ?? []),
     ];
+    // v1.8c (D-063): the Harvest's best first.
+    const hv = data.harvest;
+    if (hv !== undefined)
+      parts.unshift(
+        hv.newBest
+          ? t('tally.harvest_new_best')
+          : hv.best === null
+            ? ''
+            : fill(t('tally.harvest_best'), { score: formatScore(hv.best) }),
+      );
     const o = data.outcome;
-    if (o === null) return parts.length === 0 ? null : parts.slice(0, 2).join('  ·  ');
+    if (o === null) {
+      const some = parts.filter((p) => p !== '');
+      return some.length === 0 ? null : some.slice(0, 2).join('  ·  ');
+    }
     for (const w of o.unlockedWeapons)
       parts.push(fill(t('tally.unlocked'), { weapon: tOr(`weapon.${w}`, w) }));
     if (o.newBest !== null && o.newBest.previous !== null) parts.push(t('tally.new_best'));
@@ -450,6 +496,7 @@ export class TallyScene extends Phaser.Scene {
         fill(t('tally.notaboek_done'), { goal: fill(tOr(`notaboek.${id}`, id), { n: c.target }) }),
       );
     }
-    return parts.length === 0 ? null : parts.slice(0, 2).join('  ·  ');
+    const some = parts.filter((p) => p !== '');
+    return some.length === 0 ? null : some.slice(0, 2).join('  ·  ');
   }
 }

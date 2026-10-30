@@ -56,6 +56,7 @@ import { captionItem, updateCaptions, type CaptionLine } from '../audio/captions
 import { FAMILIEFOTO_SECRET } from '../../sim/meerkats/colony';
 import { BLIKKIESDANS_SECRET } from '../../sim/cans/cans';
 import { MAKALANI_SECRET } from '../../sim/nuts/makalani';
+import { HarvestBars, harvestBarsRects } from '../ui/HarvestBars';
 
 export interface HudControls {
   readonly pause: () => void;
@@ -102,6 +103,8 @@ export class HudScene extends Phaser.Scene {
   /** M9: HUD panels are cached shapes (no per-frame tessellation, see ui/shapes.ts). */
   private panels: RoundRect[] = [];
   private timer!: Phaser.GameObjects.Text;
+  /** v1.8c (D-063): the Harvest's crop meter and fence bar (null outside the Harvest). */
+  private harvestBars: HarvestBars | null = null;
   private frenzyLabel!: Phaser.GameObjects.Text;
   private frenzyBack!: RoundRect;
   private frenzyFill!: RoundRect;
@@ -256,6 +259,10 @@ export class HudScene extends Phaser.Scene {
     this.drawBack.hide();
     this.drawFill.hide();
     this.drawTotal = 1;
+    this.harvestBars =
+      this.ctx.content.modes.modes.harvest.crop.warnBelow >= 0
+        ? new HarvestBars(this, this.ctx.content.modes.modes.harvest.crop.warnBelow)
+        : null;
     this.reload = text(56, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.banner = text(84, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.gadgetPanel = new BakedDrawing(this, 'hud.gadget');
@@ -648,6 +655,7 @@ export class HudScene extends Phaser.Scene {
     // Belt: chalk slate.
     belt?.place(l.belt.x, l.belt.y, l.belt.w, l.belt.h);
     this.timer.setPosition(l.timer.x + l.timer.w / 2, l.timer.y + l.timer.h / 2);
+    this.harvestBars?.layout(harvestBarsRects(l.timer, l.score, l.timer.y + 4));
     this.frenzyLabel.setPosition(l.frenzy.x, l.frenzy.y + l.frenzy.h / 2);
     this.score.setPosition(l.score.x + l.score.w - 24, l.score.y + l.score.h / 2);
     this.reload.setPosition(
@@ -906,7 +914,9 @@ export class HudScene extends Phaser.Scene {
     if (this.ctx.hook) this.ctx.hook.pickupCard = this.pickupCard?.shown ?? null;
     this.drawWindsock(s);
 
-    this.timer.setText(formatClock(s.ticksLeft, TICKS_PER_SECOND));
+    this.harvestBars?.update(s.harvest);
+    // v1.8c (D-063): the Harvest's clock is its 30 s (not the intro or the outro).
+    this.timer.setText(formatClock(s.harvest?.clockTicksLeft ?? s.ticksLeft, TICKS_PER_SECOND));
     // setColor re-renders the text texture every call, so only on change.
     const timerColor = s.stampedeActive ? '#FFD25A' : '#F3EAD3';
     if (timerColor !== this.timerColor) {

@@ -272,16 +272,18 @@ export class TitleScene extends Phaser.Scene {
       if (this.ctx.hook) this.ctx.hook.bonusOpen = open.filter((id) => !scopeLocked.includes(id));
       if (this.ctx.hook) this.ctx.hook.bonusNeedsScope = scopeLocked;
       if (this.ctx.hook) this.ctx.hook.verder = verderOpen;
-      // Bottom row, left to right: Skiet-Skuur, Daily Hunt (M7), Season Run, Settings.
-      const gap = 30;
-      const bw = Math.min(380, (width - safe.left - safe.right - 160 - gap * 3) / 4);
+      // Bottom row, left to right: Skiet-Skuur, Daily Hunt (M7), Die Oes (v1.8c, D-063), Season
+      // Run, Settings.
+      const gap = 24;
+      const bw = Math.min(340, (width - safe.left - safe.right - 120 - gap * 4) / 5);
       const by = height - safe.bottom - 170;
-      const x0 = width / 2 - (bw * 4 + gap * 3) / 2;
+      const x0 = width / 2 - (bw * 5 + gap * 4) / 2;
       const slot = (i: number): Rect => ({ x: x0 + i * (bw + gap), y: by, w: bw, h: 96 });
       const shed = slot(0);
       const daily = slot(1);
-      const run = slot(2);
-      const settings = slot(3);
+      const harvest = slot(2);
+      const run = slot(3);
+      const settings = slot(4);
       const resume = this.ctx.run.current !== null;
       drawButton(this, shed, t('title.shed'), 'secondary', 44);
       // M10: capture mode is unranked (slow-mo would inflate a Daily score): no Daily entry.
@@ -317,7 +319,8 @@ export class TitleScene extends Phaser.Scene {
           })
           .setOrigin(0.5, 1)
           .setDepth(badge === null ? 0 : 6);
-        fitText(status, Math.max(bw * 1.6, 300));
+        // v1.8c: five buttons now; the line keeps to its own slot (the Harvest's line is next to it).
+        fitText(status, bw + gap);
         if (badge !== null) {
           const r = drawSpecialBadge(this, status.getBounds());
           if (this.ctx.hook) this.ctx.hook.rects['dailyBadge'] = r;
@@ -367,7 +370,28 @@ export class TitleScene extends Phaser.Scene {
         }
       }
       drawButton(this, settings, t('title.settings'), 'secondary', 44);
-      // Focus order follows the buttons left to right: Shed, Daily, Season Run, Settings.
+      // v1.8c (D-063): Die Oes, with a line over it: what it is until played, then the best.
+      const hBest = this.ctx.save.data.harvest.best;
+      drawButton(this, harvest, t('title.harvest'), hBest === null ? 'selected' : 'secondary', 44);
+      {
+        const line =
+          hBest === null
+            ? t('title.harvest_new')
+            : fill(t('title.harvest_best'), { score: formatScore(hBest) });
+        const status = this.add
+          .text(harvest.x + harvest.w / 2, harvest.y - 14, line, {
+            ...textStyle(24),
+            stroke: '#1B1410',
+            strokeThickness: 5,
+          })
+          .setOrigin(0.5, 1);
+        fitText(status, bw + gap);
+        if (this.ctx.hook) {
+          const b = status.getBounds();
+          this.ctx.hook.rects['harvestStatus'] = { x: b.x, y: b.y, w: b.width, h: b.height };
+        }
+      }
+      // Focus order follows the buttons left to right: Shed, Daily, Harvest, Season Run, Settings.
       items.push(
         {
           id: 'shed',
@@ -395,6 +419,21 @@ export class TitleScene extends Phaser.Scene {
               },
             ] satisfies MenuItem[])
           : []),
+        {
+          id: 'harvest',
+          rect: () => harvest,
+          trigger: 'down',
+          press: (pointerType, pointerId) => {
+            if (this.started) return;
+            this.started = true;
+            this.ctx.audio.unlock();
+            this.data_?.start(
+              pointerId === null ? 'pointer' : inputKindOf(pointerType),
+              pointerId,
+              'harvest',
+            );
+          },
+        },
         {
           id: 'seasonRun',
           rect: () => run,
