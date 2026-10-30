@@ -1253,7 +1253,9 @@ The friends' Android app before any store account (docs/ANDROID-TEST-APP.md). Ca
   **Split groups:** each special's files are a lazy group of their own, so a Halloween hunt never
   downloads Christmas's files and the other way round: Halloween keeps `feesdae` and
   `feesdae-voice-<lang>`; Christmas is `feesdae-christmas` and `feesdae-voice-christmas-<lang>`
-  (`specialAssetGroup`, `specialVoiceGroup`). The view module (one lazy chunk for every special)
+  (`specialAssetGroup`, `specialVoiceGroup`); the Christmas sheet is packed at 1× and stays
+  Standard in HD (no `-hd` twin: an HD Christmas hunt on the Okavango measured 258.5 MB with one,
+  over the 256 MB budget, Tech §9; D-064). The view module (one lazy chunk for every special)
   loads only the hunt's special's files; a Christmas hunt waits behind its veil for its own sheet
   when the index lists it (bounded by the file timeout; else the stand-in draws), so normal play
   never builds a stand-in on the GPU. On the special day the title fetches the group in the

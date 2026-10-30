@@ -884,8 +884,8 @@ A special day dresses the day's map; it never swaps the biome art. Each special'
 are a lazy asset group of their own (loaded when that special's hunt starts, never with the first
 download, never with another special's; D-064): Halloween's `feesdae`, Christmas's
 `feesdae-christmas`. One sheet per special (`feesdae/halloween`, `feesdae/christmas`; layouts and
-origins in `src/game/feesdae/feesdaeAssets.ts` and `christmasAssets.ts`, drawn at 2×, which is
-also what HD shows). Until a sheet arrives the game draws a flat stand-in with the same frames
+origins in `src/game/feesdae/feesdaeAssets.ts` and `christmasAssets.ts`, drawn at 2×; Halloween's
+ships its 2×, Christmas's a 1× pack that HD shows too). Until a sheet arrives the game draws a flat stand-in with the same frames
 (Christmas waits for its listed sheet instead, D-064).
 
 **Halloween — Spookjag (interim art: `npm run art:interim -- --only feesdae`, tools/art/halloween.ts):**
@@ -929,8 +929,8 @@ tail; the owl's soft "hoo-HOOO"; a bat's two high squeaks; a lantern's soft whoo
 five Spookjag lines are voiced like his others (§10.1).
 
 **Christmas — Christmas in the sun (D-064; interim art: `npm run art:interim -- --only christmas`,
-tools/art/christmas.ts; 600 × 710 design px: a 1× Standard pack, ~1.7 MB on the GPU, and its 2×
-master as the HD twin, ~6.8 MB — HD keeps the fine print, creases and foil hairs):**
+tools/art/christmas.ts; 644 × 694 design px, drawn at 2× and shipped as a 1× pack, ~1.7 MB on
+the GPU; it stays Standard in HD, like D-054's specials, so an HD hunt stays ≤ 256 MB):**
 - *Light:* its own preset, `kersfees_son`: a blazing midsummer noon — the sky bleached white-hot
   towards the horizon, the far ridge washed pale in the glare, the veld and near ground baked
   golden. Birds stay untinted. Along the horizon a heat band of fine wavering ripples (it reads in

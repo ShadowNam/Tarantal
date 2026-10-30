@@ -3527,12 +3527,15 @@ secrets, carols on the pennywhistle." New Year is next, as its own job.
   (`feesdagStarted` carries `presents` only on Christmas). Two Christmas goldens (competent; the
   spook bot opening every present).
 - *Groups.* Each special is a lazy group of its own so one never downloads the other's files:
-  Halloween keeps `feesdae` / `feesdae-voice-<lang>`; Christmas is `feesdae-christmas` (+ its HD
-  twin `feesdae-christmas-hd`) / `feesdae-voice-christmas-<lang>`. The Christmas sheet packs at 1×
-  for Standard (~1.7 MB on the GPU) with its 2× master as the HD twin (~6.8 MB); the hunt waits
+  Halloween keeps `feesdae` / `feesdae-voice-<lang>`; Christmas is `feesdae-christmas` /
+  `feesdae-voice-christmas-<lang>`. The Christmas sheet packs at 1× (~1.7 MB on the GPU) and
+  **stays Standard in HD**, like D-054's specials (kuifkop, Kuifkop Koning, ou grys): with a 2× HD
+  twin a Christmas hunt in HD on its heaviest map (the Okavango, 253.9 MB on its own) measured
+  258.5 MB > 256 in CI and locally (Pixel 7 profile), and our Standard | HD close-ups showed no
+  visible gain at game size; the 2× master stays the art source (sidecar `hd: false`). The hunt waits
   (bounded, behind its veil) for its listed sheet, so normal play never builds the code-drawn
   stand-in. The title fetches the group in the background on the day only, for Oupa beside the
-  badge. First download +4.3 KB gz (strings, the special's content and its title/HUD/tally glue).
+  badge. First download +5.7 KB gz (strings, the special's content and its title/HUD/tally glue).
 - *Look.* Its own light (`kersfees_son`: a bleached, white-hot sky towards the horizon, baked
   golden ground); a heat band of fine wavering ripples along the far and Ver horizons plus the
   mirage strips (WorldView; one TileSprite per horizon, sim time; off on the low tier and with
