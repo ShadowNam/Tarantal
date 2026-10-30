@@ -25,6 +25,7 @@ export type NyFrame =
   | 'hat_m'
   | 'hat_s'
   | 'spark'
+  | 'streak'
   | 'star'
   | 'streamer_a'
   | 'streamer_b'
@@ -51,6 +52,8 @@ const SPECS: readonly FrameSpec[] = [
   { name: 'hat_m', w: 50, h: 66, ox: 25, oy: 59, forScale: 0.5 },
   { name: 'hat_s', w: 28, h: 36, ox: 14, oy: 31, forScale: 0.22 },
   { name: 'spark', w: 16, h: 16, ox: 8, oy: 8 },
+  // D-065 second pass: a spark's streak, the bright head at the origin, its tail behind (left).
+  { name: 'streak', w: 40, h: 10, ox: 34, oy: 5 },
   { name: 'star', w: 12, h: 12, ox: 6, oy: 6 },
 ];
 

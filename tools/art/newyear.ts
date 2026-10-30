@@ -245,6 +245,43 @@ function spark(): string {
   return g({}, defs(glow), path(ellipseD(0, 0, 7.5, 7.5), glow.url));
 }
 
+/** A spark's streak (the game tints it): a bright round head at (0, 0) and a tail tapering and
+ *  fading behind it to the left; the game turns it along its ray and stretches it with speed. */
+function streak(): string {
+  const id = uid('sm');
+  const mask = el(
+    'linearGradient',
+    { id, x1: 0, y1: 0, x2: 1, y2: 0 },
+    el('stop', { offset: 0, 'stop-color': '#FFFFFF', 'stop-opacity': 0 }),
+    el('stop', { offset: 0.75, 'stop-color': '#FFFFFF', 'stop-opacity': 0.7 }),
+    el('stop', { offset: 1, 'stop-color': '#FFFFFF', 'stop-opacity': 1 }),
+  );
+  const glow = radial(
+    [
+      [0, '#FFFFFF', 1],
+      [0.45, '#FFFFFF', 1],
+      [1, '#FFFFFF', 0],
+    ],
+    0.5,
+    0.5,
+  );
+  return g(
+    {},
+    defs(glow),
+    el('defs', {}, mask),
+    path(
+      polyD([
+        [-32, -0.6],
+        [0, -2.6],
+        [0, 2.6],
+        [-32, 0.6],
+      ]),
+      `url(#${id})`,
+    ),
+    path(ellipseD(0, 0, 4.4, 4.4), glow.url),
+  );
+}
+
 /** A star: a small soft dot with a faint four-point twinkle. */
 function star(): string {
   const glow = radial(
@@ -352,6 +389,8 @@ function frameArt(name: NyFrame): string {
       return g({ transform: `scale(${OUPA_DRAWN})` }, oupaHead(oupaHat));
     case 'spark':
       return spark();
+    case 'streak':
+      return streak();
     case 'star':
       return star();
     case 'streamer_a':

@@ -9,7 +9,7 @@
 // Part of the lazy feesdae chunk; the art is the "feesdae-newyear" group's sheet (Standard in
 // HD); until it arrives a tiny stand-in (the spark and the star only) keeps the fireworks and
 // stars, and no hats are drawn.
-import type * as Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import type { Feesdag, NewYearLook } from '../../content/schemas';
 import type { SimEvent } from '../../sim/events';
 import type { FeesdagView as FeesdagState, PlaneId } from '../../sim/types';
@@ -46,6 +46,12 @@ const SKY = 'sky';
 
 const ORIGINS = new Map(nyFrames().map((f) => [f.name, f]));
 
+/** Sets an image's origin from the frame table (the streak's head is its origin). */
+function originOf(img: Phaser.GameObjects.Image, frame: 'spark' | 'streak'): void {
+  const f = ORIGINS.get(frame);
+  if (f !== undefined) img.setOrigin(f.ox / f.w, f.oy / f.h);
+}
+
 /** Adds the frame table to a texture (texture px = design px × its master). */
 export function addNyFrames(tex: Phaser.Textures.Texture, master: number): void {
   for (const f of nyFrames()) {
@@ -67,8 +73,8 @@ export function ensureNyTexture(scene: Phaser.Scene, sheet: HTMLImageElement | n
   const have = nyKeyIn(textures);
   if (have !== null) return have;
   const canvas = document.createElement('canvas');
-  canvas.width = 32;
-  canvas.height = 16;
+  canvas.width = 40;
+  canvas.height = 28;
   const g = canvas.getContext('2d');
   if (g !== null) {
     const dot = (cx: number, cy: number, r: number): void => {
@@ -81,11 +87,19 @@ export function ensureNyTexture(scene: Phaser.Scene, sheet: HTMLImageElement | n
     };
     dot(8, 8, 7.5);
     dot(22, 6, 4);
+    // The streak: a fading tail to a bright head (at x 34).
+    const tail = g.createLinearGradient(2, 0, 34, 0);
+    tail.addColorStop(0, 'rgba(255,255,255,0)');
+    tail.addColorStop(1, 'rgba(255,255,255,1)');
+    g.fillStyle = tail;
+    g.fillRect(2, 20, 32, 3);
+    dot(34, 21.5, 4.4);
   }
   const tex = textures.addCanvas(NY_STANDIN, canvas);
   if (tex !== null) {
     tex.add('spark', 0, 0, 0, 16, 16);
     tex.add('star', 0, 16, 0, 12, 12);
+    tex.add('streak', 0, 0, 16, 40, 10);
   }
   return NY_STANDIN;
 }
@@ -234,6 +248,8 @@ export function burstInSlot(
 interface Burst {
   readonly sparks: Phaser.GameObjects.Image[];
   readonly rocket: Phaser.GameObjects.Image;
+  /** The small bright core at the centre as it opens. */
+  readonly core: Phaser.GameObjects.Image;
   plan: BurstPlan | null;
   /** Layer x of its centre (fixed when it starts: it stays put on the sky as the view pans). */
   x: number;
@@ -351,15 +367,30 @@ export class NuwejaarSceneView {
     if (this.fireworksOn && sky !== undefined) {
       const fw = d.look.fireworks;
       for (let b = 0; b < fw.pool; b++) {
+        // Streaks along their rays (glowing: added light), or plain dots that only twinkle with
+        // "reduce flashes".
+        const frame = this.reduceFlashes ? 'spark' : 'streak';
+        const blend = this.reduceFlashes ? Phaser.BlendModes.NORMAL : Phaser.BlendModes.ADD;
         const sparks: Phaser.GameObjects.Image[] = [];
         for (let i = 0; i < fw.sparks; i++) {
-          const img = d.scene.add.image(0, 0, this.key, 'spark').setVisible(false);
+          const img = d.scene.add
+            .image(0, 0, this.key, frame)
+            .setVisible(false)
+            .setBlendMode(blend);
+          originOf(img, frame);
           sky.fixtures.add(img);
           sparks.push(img);
         }
-        const rocket = d.scene.add.image(0, 0, this.key, 'spark').setVisible(false);
+        const rocket = d.scene.add.image(0, 0, this.key, 'streak').setVisible(false);
+        originOf(rocket, 'streak');
+        rocket.setRotation(-Math.PI / 2);
+        const core = d.scene.add
+          .image(0, 0, this.key, 'spark')
+          .setVisible(false)
+          .setBlendMode(blend);
         sky.fixtures.add(rocket);
-        this.bursts.push({ sparks, rocket, plan: null, x: 0, popped: false, shown: false });
+        sky.fixtures.add(core);
+        this.bursts.push({ sparks, rocket, core, plan: null, x: 0, popped: false, shown: false });
       }
     }
     if (d.hooks === true)
@@ -404,8 +435,9 @@ export class NuwejaarSceneView {
     this.key = key;
     for (const s of this.stars) s.img.setTexture(key, 'star').setScale(s.img.scaleX * ratio);
     for (const b of this.bursts) {
-      for (const sp of b.sparks) sp.setTexture(key, 'spark');
-      b.rocket.setTexture(key, 'spark');
+      for (const sp of b.sparks) sp.setTexture(key, sp.frame.name);
+      b.rocket.setTexture(key, 'streak');
+      b.core.setTexture(key, 'spark');
     }
   }
 
@@ -496,20 +528,21 @@ export class NuwejaarSceneView {
       if (b.shown) {
         b.shown = false;
         b.rocket.setVisible(false);
+        b.core.setVisible(false);
         for (const s of b.sparks) s.setVisible(false);
       }
       return;
     }
     b.shown = true;
     const sc = this.sparkScale;
-    // The rocket: a dim spark climbing to the burst's height.
+    // The rocket: a dim short streak climbing to the burst's height.
     if (age < riseTicks) {
       const k = age / Math.max(1, riseTicks);
       if (!b.rocket.visible) b.rocket.setVisible(true).setTint(plan.colour);
       b.rocket
         .setPosition(b.x, plan.y + fw.rise * (1 - k))
-        .setAlpha(fw.alpha * 0.5)
-        .setScale(0.45 * sc);
+        .setAlpha(fw.alpha * 0.55)
+        .setScale(0.5 * sc, 0.6 * sc);
       for (const s of b.sparks) if (s.visible) s.setVisible(false);
       return;
     }
@@ -523,7 +556,8 @@ export class NuwejaarSceneView {
     const t = (age - riseTicks) / durTicks;
     const n = b.sparks.length;
     if (this.reduceFlashes) {
-      // Only a twinkle where the burst hangs: no growth, dim (never brighter than the sky).
+      // Only a twinkle where the burst hangs: no growth, no core, dim (never brighter than the sky).
+      if (b.core.visible) b.core.setVisible(false);
       const a = fw.twinkleAlpha * Math.sin(t * Math.PI);
       for (let i = 0; i < n; i++) {
         const s = b.sparks[i];
@@ -540,20 +574,44 @@ export class NuwejaarSceneView {
       }
       return;
     }
-    // Open fast, drift down a little, fade out.
+    // The core: a small bright puff at the centre as it opens (local: core.px across).
+    const ct = t / fw.core.until;
+    if (ct < 1) {
+      if (!b.core.visible) b.core.setVisible(true).setTint(0xfff4d8);
+      b.core
+        .setPosition(b.x, plan.y)
+        .setScale((fw.core.px / 16) * (0.6 + 0.4 * ct) * sc)
+        .setAlpha(fw.core.alpha * (1 - ct));
+    } else if (b.core.visible) b.core.setVisible(false);
+    // The sparks: each on its own ray at its own speed, fast out then slowing (a streak that
+    // shortens as it slows), drifting down, fading; in the second half they fall faster and
+    // flicker like glitter. Every whiteEvery-th spark is white.
     const out = 1 - (1 - t) * (1 - t) * (1 - t);
-    const r = plan.radius * out;
-    const drop = plan.radius * 0.45 * t * t;
-    const a = fw.alpha * (1 - t) ** 1.5;
-    const size = (0.55 - 0.25 * t) * sc;
+    const speedNow = 3 * (1 - t) * (1 - t);
+    const glitter = t > fw.glitterFrom;
+    const gt = glitter ? (t - fw.glitterFrom) / (1 - fw.glitterFrom) : 0;
+    const flick = Math.floor(tick / 3);
     for (let i = 0; i < n; i++) {
       const s = b.sparks[i];
       if (s === undefined) continue;
-      const ang = (i / n) * Math.PI * 2 + plan.slot * 0.37;
-      if (!s.visible) s.setVisible(true).setTint(plan.colour);
+      const k = 0.55 + 0.45 * hash01(i * 31 + plan.slot, 8);
+      const ang = (i / n) * Math.PI * 2 + plan.slot * 0.37 + (hash01(i, plan.slot) - 0.5) * 0.3;
+      const r = plan.radius * k * out;
+      const drop = plan.radius * (0.3 * t * t + 0.5 * gt * gt) * k;
+      if (!s.visible) {
+        const white = (i + plan.slot) % fw.whiteEvery === 0;
+        s.setVisible(true).setTint(white ? 0xffffff : plan.colour);
+      }
+      // Along its ray while it flies; turning downward as it falls.
+      const dx = Math.cos(ang) * speedNow;
+      const dy = Math.sin(ang) * speedNow + 0.6 * t;
+      const len = Math.min(1, Math.hypot(dx, dy) / 3) * (fw.trail / 34) * k + 0.25;
+      let a = fw.alpha * (1 - t) ** 1.2;
+      if (glitter && hash01(flick + i * 7, plan.slot) < 0.35) a *= 0.25;
       s.setPosition(b.x + Math.cos(ang) * r, plan.y + Math.sin(ang) * r + drop)
-        .setAlpha(a)
-        .setScale(size);
+        .setRotation(Math.atan2(dy, dx))
+        .setScale(len * sc, (1.3 - 0.5 * t) * sc)
+        .setAlpha(a);
     }
   }
 

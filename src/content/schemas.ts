@@ -2405,6 +2405,16 @@ const NEWYEAR_LOOK = obj({
     alpha: fraction,
     twinkleAlpha: fraction,
     colours: z.array(hexColor).min(1),
+    /** Each spark is a short streak along its ray, `trail` design px long at its fastest
+     *  (shrinking as it slows); sparks run at 55–100 % of the burst's speed. */
+    trail: pos,
+    /** A small bright core at the burst's centre for its first `core.until` of the burst
+     *  (`core.px` across, at most `core.alpha`): local, never a flash. */
+    core: obj({ px: pos, alpha: fraction, until: fraction }),
+    /** From this share of the burst on, the sparks fall faster and flicker (glitter). */
+    glitterFrom: fraction,
+    /** Every n-th spark is white (a sparkle in each colour). */
+    whiteEvery: posInt,
   }),
   /** The HUD's big countdown ("10 … 1"): its size (design px, × the large-text setting) and a
    *  short pulse on each new second (sim time). */
