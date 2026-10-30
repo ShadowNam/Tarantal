@@ -738,7 +738,9 @@ Namibian carvers turn into key rings and ornaments (sources: D-056).
   maps; the Kalahari only on about one hunt in three, on its rocky outcrop): 5–10 chacma baboons
   sit on the far ridge, on its skyline: the big male on lookout on the highest seat, 1–3 mothers
   with a baby riding on their back, 1–2 youngsters playing, males grooming, dozing, looking round
-  and walking to another seat. In the sim (own stream `baboons`).
+  and walking to another seat. Mothers take the highest seats and stay there, so a near miss at a
+  far bird below the ridge lands on a male (no cost), not on a mother. In the sim (own stream
+  `baboons`).
 - **Never targets up there.** A hit on a mother (and her baby) costs **15** (once per 2 s); a hit
   on any member, or the Langloop's shot, sends the troop over the ridge (they climb down out of
   sight) and it comes back after 14–22 s.

@@ -3396,7 +3396,10 @@ something naughty that might get them to eat a bullet or two."
   the mid plane). 2 hits bag a raider for 3 × a guineafowl's base on its plane (an event bonus ×
   Frenzy × Stampede), +15 before its raid is done; a mother costs 15 (2 s cooldown); any hit, or the
   Langloop, sends the troop over the ridge for 14–22 s. A finished throw or chase threatens the
-  flocks nearby. Raid spots that would put a raider over a secret's part, a tell animal, a meerkat
+  flocks nearby. Mothers take the troop's highest seats and never walk: the first sweep showed
+  0.2–0.8 accidental mother hits a hunt on the Okavango (its troop sat ~35 px above the far flocks'
+  ground band); the Okavango troop also moved to the highest stretch of its far bank (u 0.575).
+  Raid spots that would put a raider over a secret's part, a tell animal, a meerkat
   colony or an ostrich pair are left out on that map (`src/sim/baboons/spotClear.ts`, shared by the
   sim and the content check; ≥ 2 clear spots on every map).
 - *Sim (Tech §3.12d).* Own stream `baboons`; hit kind `baboon`; events `baboonRaidWarned`,
