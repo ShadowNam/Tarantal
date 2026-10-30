@@ -2290,24 +2290,31 @@ export type HalloweenLook = z.infer<typeof HALLOWEEN_LOOK>;
 /** D-064: an [dx, dy] point relative to a prop's position (design px, the prop's own size). */
 const propPoint = z.tuple([z.number(), z.number()]);
 
+/** D-064: a tree's tinsel — garlands between two points and baubles at points. */
+const tinselParts = {
+  garlands: z
+    .array(obj({ from: propPoint, to: propPoint, colour: z.enum(['silver', 'red']) }))
+    .min(1),
+  baubles: z.array(obj({ at: propPoint, colour: z.enum(['red', 'gold', 'silver']) })),
+};
+
 /** D-064: how Christmas in the sun looks (src/game/feesdae/KersfeesView.ts; the look only). */
 const CHRISTMAS_LOOK = obj({
   /** Share of guineafowl in tiny Santa hats (cosmetic; picked by bird id), the hat's width per
    *  head radius and its tilt back (radians): Halloween's witch-hat anchors and sizes. */
   hatShare: fraction,
   hat: obj({ widthPerHeadR: pos, tilt: z.number().min(-0.6).max(0.6) }),
-  /** Tinsel on the map's big tree (the camelthorn where the map has one, its main tree else): per
-   *  prop, garlands hung between two points and baubles at points, relative to the prop. The
-   *  first listed prop the day's map has gets it. */
+  /** Tinsel on the map's big trees (the camelthorns where the map has them, its main tree
+   *  otherwise): every listed tree the day's map has gets its garlands (hung between two points)
+   *  and baubles. A tree is a prop (points relative to its position) or a tree painted in a
+   *  biome's layer art (`biome`, `layer`, `u` across it and a reference `y`; points relative to
+   *  that). Anchors are checked against the art (tools/art/christmasSpots.test.ts). */
   tinsel: z
     .array(
-      obj({
-        prop: id,
-        garlands: z
-          .array(obj({ from: propPoint, to: propPoint, colour: z.enum(['silver', 'red']) }))
-          .min(1),
-        baubles: z.array(obj({ at: propPoint, colour: z.enum(['red', 'gold', 'silver']) })),
-      }),
+      z.union([
+        obj({ prop: id, ...tinselParts }),
+        obj({ biome: id, layer: id, u: fraction, y: z.number(), ...tinselParts }),
+      ]),
     )
     .min(1),
   /** A small glint that walks the baubles on sim time (no flash: a soft alpha swell, at most

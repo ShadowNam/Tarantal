@@ -124,7 +124,13 @@ const WAIT_FOR_SHEET: readonly string[] = ['christmas'];
 
 /** D-064: the Christmas view's e2e hook (its tinsel). */
 interface KersfeesHook {
-  tinsel(): { prop: string | null; garlands: number; baubles: number; found: number | null };
+  tinsel(): {
+    prop: string | null;
+    trees: string[];
+    garlands: number;
+    baubles: number;
+    found: number | null;
+  };
 }
 
 const END_DELAY_MS = 900;

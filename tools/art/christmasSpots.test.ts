@@ -128,20 +128,75 @@ describe('Christmas presents stand on drawn ground (D-064)', () => {
   });
 });
 
-describe('Christmas tinsel hangs on the tree (D-064)', () => {
-  for (const t of feel.feesdae.looks.christmas.tinsel)
-    it(`${t.prop}: every garland hook and bauble is on (or within 14 px of) the drawn tree`, () => {
-      const a = artOf(propOf(t.prop).asset);
+/**
+ * A tree painted in a biome's layer art: alpha at a point relative to (u × the layer's core width,
+ * y), from the layer's packed tiles (left = −bleed, top = the layer's top).
+ */
+function layerAlpha(biome: string, layerId: string, u: number): (x: number, y: number) => number {
+  const b = content.biomes.find((x) => x.id === biome);
+  const layer = b?.layers.find((l) => l.id === layerId);
+  if (b === undefined || layer === undefined) throw new Error(`no layer ${biome}/${layerId}`);
+  const e = layers.layers[layer.asset];
+  if (e === undefined) throw new Error(`no packed layer ${layer.asset}`);
+  const tiles = e.tiles.map((t) => readPng(join(root, 'public', t.path)));
+  const k = (tiles[0]?.height ?? e.height) / e.height;
+  const cx = u * coreWidth(layer.scrollFactor);
+  return (x, y) => {
+    let px = Math.round((cx + x - e.left) * k);
+    const py = Math.round((y - e.top) * k);
+    for (const t of tiles) {
+      if (px < t.width) {
+        if (px < 0 || py < 0 || py >= t.height) return 0;
+        return t.data[(py * t.width + px) * 4 + 3] ?? 0;
+      }
+      px -= t.width;
+    }
+    return 0;
+  };
+}
+const layers = JSON.parse(
+  readFileSync(join(root, 'public', 'assets', 'asset-index.json'), 'utf8'),
+) as {
+  layers: Record<string, { tiles: { path: string }[]; left: number; top: number; height: number }>;
+};
+
+describe('Christmas tinsel hangs on the trees (D-064)', () => {
+  for (const t of feel.feesdae.looks.christmas.tinsel) {
+    const name = 'prop' in t ? t.prop : `${t.biome} ${t.layer} u ${t.u}`;
+    it(`${name}: every garland hook and bauble is on (or within 14 px of) the drawn tree`, () => {
+      let alpha: (x: number, y: number) => number;
+      if ('prop' in t) {
+        const a = artOf(propOf(t.prop).asset);
+        alpha = (x, y) => alphaAt(a, x, y);
+      } else {
+        const at = layerAlpha(t.biome, t.layer, t.u);
+        alpha = (x, y) => at(x, t.y + y);
+      }
       const near = (x: number, y: number): boolean => {
         for (let dy = -14; dy <= 14; dy += 2)
-          for (let dx = -14; dx <= 14; dx += 2) if (alphaAt(a, x + dx, y + dy) > SOLID) return true;
+          for (let dx = -14; dx <= 14; dx += 2) if (alpha(x + dx, y + dy) > SOLID) return true;
         return false;
       };
       for (const g of t.garlands) {
-        expect(near(...g.from), `${t.prop} garland from ${g.from.join(',')}`).toBe(true);
-        expect(near(...g.to), `${t.prop} garland to ${g.to.join(',')}`).toBe(true);
+        expect(near(...g.from), `${name} garland from ${g.from.join(',')}`).toBe(true);
+        expect(near(...g.to), `${name} garland to ${g.to.join(',')}`).toBe(true);
       }
       for (const b of t.baubles)
-        expect(near(...b.at), `${t.prop} bauble ${b.at.join(',')}`).toBe(true);
+        expect(near(...b.at), `${name} bauble ${b.at.join(',')}`).toBe(true);
     });
+  }
+
+  it('every Daily biome has a decorated tree; the Karoo its two sweet thorns, not only the windpomp', () => {
+    const tinsel = feel.feesdae.looks.christmas.tinsel;
+    for (const biome of loadDailyMeta().biomeRotation) {
+      const b = content.biomes.find((x) => x.id === biome);
+      const props = new Set(b?.props.map((p) => p.id));
+      const trees = tinsel.filter((t) =>
+        'prop' in t ? props.has(t.prop) && t.prop !== 'windpomp' : t.biome === biome,
+      );
+      expect(trees.length, biome).toBeGreaterThan(0);
+    }
+    const windpomp = tinsel.find((t) => 'prop' in t && t.prop === 'windpomp');
+    expect(windpomp?.garlands.length ?? 0).toBeLessThanOrEqual(1);
+  });
 });

@@ -570,7 +570,13 @@ export interface TestHook {
     /** D-064 (Christmas): the tree the tinsel hangs on, its garlands and baubles; the heat
      *  shimmer's strength as drawn (0 = off: low tier, reduced motion); found = what Presents
      *  found! paid (null until then). */
-    tinsel?: { prop: string | null; garlands: number; baubles: number; found: number | null };
+    tinsel?: {
+      prop: string | null;
+      trees: string[];
+      garlands: number;
+      baubles: number;
+      found: number | null;
+    };
     heat?: number;
   } | null;
   /** D-048: the special's group's sheet: delivered ('final') or the code-drawn stand-in. */

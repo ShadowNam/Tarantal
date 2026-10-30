@@ -217,15 +217,20 @@ export class KersfeesSceneView {
   private readonly drawn = new Map<number, DrawnPresent>();
   private readonly garlands: { img: Phaser.GameObjects.Image; frame: XmasFrame }[] = [];
   private readonly baubles: Bauble[] = [];
-  private readonly glint: Phaser.GameObjects.Image | null = null;
+  /** One glint per decorated tree, walking that tree's baubles. */
+  private readonly glints: {
+    img: Phaser.GameObjects.Image;
+    baubles: readonly Bauble[];
+    phase: number;
+  }[] = [];
   private readonly reduceFlashes: boolean;
   private last: FeesdagState | null = null;
   /** e2e hook: what "Presents found!" paid (null until every present is open). */
   foundPoints: number | null = null;
   /** e2e only: presents and tinsel hidden (__TM_XMAS_HIDE__). */
   private hidden = false;
-  /** The tree the tinsel hangs on (null: the map has none of the listed trees). */
-  readonly tinselProp: string | null = null;
+  /** The trees the tinsel hangs on (props by id, layer trees as layer@u). */
+  readonly tinselTrees: string[] = [];
   /** The rifle zoom the world is drawn at (1 = no sight up). */
   viewZoom = 1;
   /** Santa hats for the BirdView (cosmetic: picked by bird id). */
@@ -246,21 +251,41 @@ export class KersfeesSceneView {
         for (const b of this.baubles) b.img.setVisible(!on);
       };
     if (d.decorations.includes('heatHaze')) d.setHeat(look.heat);
-    // Tinsel on the first listed tree the day's map has (a layout may have moved it).
+    // Tinsel on every listed tree the day's map has: a prop (a layout may have moved it), or a
+    // tree painted in this biome's layer art. Each tree gets its own glint.
     if (d.decorations.includes('tinsel'))
       for (const t of look.tinsel) {
-        const prop = d.mapBiome.props.find((p) => p.id === t.prop);
-        const layer = prop === undefined ? undefined : d.parallax.layer(prop.layer);
-        if (prop === undefined || layer === undefined) continue;
-        const px = prop.u * coreWidth(layer.scrollFactor);
+        let at: { x: number; y: number; layer: string; id: string } | null = null;
+        if ('prop' in t) {
+          const prop = d.mapBiome.props.find((p) => p.id === t.prop);
+          const l = prop === undefined ? undefined : d.parallax.layer(prop.layer);
+          if (prop !== undefined && l !== undefined)
+            at = {
+              x: prop.u * coreWidth(l.scrollFactor),
+              y: prop.y,
+              layer: prop.layer,
+              id: t.prop,
+            };
+        } else if (t.biome === d.mapBiome.id) {
+          const l = d.parallax.layer(t.layer);
+          if (l !== undefined)
+            at = {
+              x: t.u * coreWidth(l.scrollFactor),
+              y: t.y,
+              layer: t.layer,
+              id: `${t.layer}@${t.u}`,
+            };
+        }
+        const layer = at === null ? undefined : d.parallax.layer(at.layer);
+        if (at === null || layer === undefined) continue;
         for (const gl of t.garlands) {
           const [x0, y0] = gl.from;
           const [x1, y1] = gl.to;
           const span = Math.hypot(x1 - x0, y1 - y0) / GARLAND_SPAN_PX;
           const frame: XmasFrame = gl.colour === 'red' ? 'garland_red' : 'garland_silver';
           const img = d.scene.add.image(
-            px + (x0 + x1) / 2,
-            prop.y + (y0 + y1) / 2,
+            at.x + (x0 + x1) / 2,
+            at.y + (y0 + y1) / 2,
             this.key,
             frame,
           );
@@ -270,24 +295,26 @@ export class KersfeesSceneView {
           layer.fixtures.add(img);
           this.garlands.push({ img, frame });
         }
+        const mine: Bauble[] = [];
         for (const b of t.baubles) {
           const frame: XmasFrame = `bauble_${b.colour}`;
-          const x = px + b.at[0];
-          const y = prop.y + b.at[1];
+          const x = at.x + b.at[0];
+          const y = at.y + b.at[1];
           const img = d.scene.add.image(x, y, this.key, frame);
           const f = ORIGINS.get(frame);
           if (f !== undefined) img.setOrigin(f.ox / f.w, f.oy / f.h);
           img.setScale(1 / XMAS_MASTER);
           layer.fixtures.add(img);
-          this.baubles.push({ img, x, y: y + 23 });
+          mine.push({ img, x, y: y + 23 });
         }
-        if (!this.reduceFlashes && this.baubles.length > 0) {
-          this.glint = d.scene.add.image(0, 0, this.key, 'glint');
-          this.glint.setScale(look.glint.scale / XMAS_MASTER).setAlpha(0);
-          layer.fixtures.add(this.glint);
+        this.baubles.push(...mine);
+        if (!this.reduceFlashes && mine.length > 0) {
+          const glint = d.scene.add.image(0, 0, this.key, 'glint');
+          glint.setScale(look.glint.scale / XMAS_MASTER).setAlpha(0);
+          layer.fixtures.add(glint);
+          this.glints.push({ img: glint, baubles: mine, phase: this.glints.length * 0.37 });
         }
-        this.tinselProp = t.prop;
-        break;
+        this.tinselTrees.push(at.id);
       }
     const hatsOn = d.decorations.includes('santaHats');
     this.hats = {
@@ -324,7 +351,7 @@ export class KersfeesSceneView {
     if (this.key !== CHRISTMAS_SHEET) return;
     for (const g of this.garlands) g.img.setTexture(this.key, g.frame);
     for (const b of this.baubles) b.img.setTexture(this.key, b.img.frame.name);
-    this.glint?.setTexture(this.key, 'glint');
+    for (const gl of this.glints) gl.img.setTexture(this.key, 'glint');
   }
 
   /** Whether the delivered sheet (not the stand-in) is drawn. */
@@ -365,19 +392,17 @@ export class KersfeesSceneView {
       if (t.dark && d.openedAt === null) d.openedAt = tick;
       if (d.openedAt !== null) this.animateOpen(d, t.x, t.y, s, wrap, tick - d.openedAt);
     }
-    // The glint walks the baubles: a soft swell up and down at each in turn (sim time).
-    if (this.glint !== null) {
-      const per = this.look.glint.periodSeconds * TICKS_PER_SECOND;
-      const n = Math.floor(tick / per);
-      const k = (tick - n * per) / per;
-      const b = this.baubles[n % this.baubles.length];
-      if (b !== undefined) {
-        if (this.glint.x !== b.x - 6 || this.glint.y !== b.y - 6)
-          this.glint.setPosition(b.x - 6, b.y - 6);
-        // Up and down in the first 40 % of the period, then dark: never a flash.
-        const a = k < 0.4 ? this.look.glint.alpha * Math.sin((k / 0.4) * Math.PI) : 0;
-        this.glint.setAlpha(a);
-      }
+    // Each tree's glint walks its baubles: a soft swell up and down at each in turn (sim time).
+    const per = this.look.glint.periodSeconds * TICKS_PER_SECOND;
+    for (const gl of this.glints) {
+      const t = tick + gl.phase * per;
+      const n = Math.floor(t / per);
+      const k = (t - n * per) / per;
+      const b = gl.baubles[n % gl.baubles.length];
+      if (b === undefined) continue;
+      if (gl.img.x !== b.x - 6 || gl.img.y !== b.y - 6) gl.img.setPosition(b.x - 6, b.y - 6);
+      // Up and down in the first 40 % of the period, then dark: never a flash.
+      gl.img.setAlpha(k < 0.4 ? this.look.glint.alpha * Math.sin((k / 0.4) * Math.PI) : 0);
     }
   }
 
@@ -447,12 +472,14 @@ export class KersfeesSceneView {
   /** e2e hook: the tinsel's tree and how many garlands and baubles hang on it. */
   tinsel(): {
     prop: string | null;
+    trees: string[];
     garlands: number;
     baubles: number;
     found: number | null;
   } {
     return {
-      prop: this.tinselProp,
+      prop: this.tinselTrees[0] ?? null,
+      trees: [...this.tinselTrees],
       garlands: this.garlands.length,
       baubles: this.baubles.length,
       found: this.foundPoints,

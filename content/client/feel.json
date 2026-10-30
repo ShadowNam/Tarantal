@@ -1275,7 +1275,7 @@
         "owlScale": 2.2
       },
       "christmas": {
-        "$comment": "D-064 Christmas in the sun: hatShare of the guineafowl wear tiny Santa hats (Halloween's witch-hat anchors and sizes); tinsel garlands and baubles hang on the first listed tree the day's map has, at [dx, dy] px from the prop's position; the glint walks the baubles on sim time (a soft swell, never a flash; off with reduce flashes); heat = the horizon shimmer's strength (off on the low tier and with reduced motion).",
+        "$comment": "D-064 Christmas in the sun: hatShare of the guineafowl wear tiny Santa hats (Halloween's witch-hat anchors and sizes); tinsel garlands and baubles hang on every listed tree the day's map has (the camelthorns, else the main tree; a prop, or a tree painted in a biome's layer art at u/y), at [dx, dy] px from it; the windpomp keeps one small garland; the glint walks the baubles on sim time (a soft swell, never a flash; off with reduce flashes); heat = the horizon shimmer's strength (off on the low tier and with reduced motion).",
         "hatShare": 0.3,
         "hat": { "widthPerHeadR": 2.6, "tilt": 0.22 },
         "tinsel": [
@@ -1289,10 +1289,41 @@
             "baubles": [
               { "at": [-230, -142], "colour": "gold" },
               { "at": [-170, -140], "colour": "red" },
-              { "at": [180, -140], "colour": "silver" },
+              { "at": [188, -145], "colour": "silver" },
               { "at": [240, -152], "colour": "red" },
               { "at": [-60, -12], "colour": "gold" },
               { "at": [40, -14], "colour": "red" }
+            ]
+          },
+          {
+            "prop": "dead_camelthorn",
+            "garlands": [
+              { "from": [-160, -95], "to": [-6, -60], "colour": "silver" },
+              { "from": [20, -60], "to": [180, -90], "colour": "red" }
+            ],
+            "baubles": [
+              { "at": [-120, -80], "colour": "red" },
+              { "at": [-70, -68], "colour": "gold" },
+              { "at": [90, -70], "colour": "silver" },
+              { "at": [150, -60], "colour": "red" }
+            ]
+          },
+          {
+            "prop": "nest_camelthorn",
+            "garlands": [
+              { "from": [-420, -280], "to": [-300, -250], "colour": "silver" },
+              { "from": [-260, -90], "to": [-60, -95], "colour": "red" },
+              { "from": [20, -60], "to": [220, 0], "colour": "silver" },
+              { "from": [260, -270], "to": [420, -280], "colour": "red" }
+            ],
+            "baubles": [
+              { "at": [-220, -75], "colour": "red" },
+              { "at": [-150, -70], "colour": "gold" },
+              { "at": [-80, -80], "colour": "silver" },
+              { "at": [80, -30], "colour": "red" },
+              { "at": [160, -10], "colour": "gold" },
+              { "at": [-360, -255], "colour": "gold" },
+              { "at": [340, -265], "colour": "silver" }
             ]
           },
           {
@@ -1314,7 +1345,7 @@
               { "from": [40, -120], "to": [168, -134], "colour": "silver" }
             ],
             "baubles": [
-              { "at": [-120, -128], "colour": "red" },
+              { "at": [-110, -130], "colour": "red" },
               { "at": [-70, -112], "colour": "gold" },
               { "at": [80, -116], "colour": "silver" },
               { "at": [140, -138], "colour": "red" },
@@ -1337,18 +1368,47 @@
             ]
           },
           {
-            "prop": "windpomp",
+            "biome": "karoo-autumn",
+            "layer": "mid",
+            "u": 0.4,
+            "y": 700,
             "garlands": [
-              { "from": [-40, 150], "to": [40, 150], "colour": "silver" },
-              { "from": [-30, 60], "to": [30, 60], "colour": "red" },
-              { "from": [-21, -20], "to": [21, -20], "colour": "silver" }
+              { "from": [-150, -195], "to": [-40, -180], "colour": "silver" },
+              { "from": [-30, -215], "to": [65, -225], "colour": "red" },
+              { "from": [40, -165], "to": [148, -172], "colour": "silver" }
             ],
             "baubles": [
-              { "at": [-40, 152], "colour": "red" },
-              { "at": [40, 152], "colour": "gold" },
+              { "at": [-120, -170], "colour": "red" },
+              { "at": [-70, -160], "colour": "gold" },
+              { "at": [60, -150], "colour": "silver" },
+              { "at": [120, -160], "colour": "red" },
+              { "at": [0, -185], "colour": "gold" }
+            ]
+          },
+          {
+            "biome": "karoo-autumn",
+            "layer": "mid",
+            "u": 0.9,
+            "y": 700,
+            "garlands": [
+              { "from": [-115, -165], "to": [-5, -152], "colour": "silver" },
+              { "from": [5, -152], "to": [124, -153], "colour": "red" },
+              { "from": [-60, -188], "to": [59, -168], "colour": "silver" }
+            ],
+            "baubles": [
+              { "at": [-90, -140], "colour": "red" },
+              { "at": [-40, -125], "colour": "gold" },
+              { "at": [40, -125], "colour": "silver" },
+              { "at": [95, -140], "colour": "red" },
+              { "at": [0, -115], "colour": "gold" }
+            ]
+          },
+          {
+            "prop": "windpomp",
+            "garlands": [{ "from": [-30, 60], "to": [30, 60], "colour": "red" }],
+            "baubles": [
               { "at": [-30, 62], "colour": "gold" },
-              { "at": [30, 62], "colour": "red" },
-              { "at": [0, -8], "colour": "silver" }
+              { "at": [30, 62], "colour": "silver" }
             ]
           }
         ],
