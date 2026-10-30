@@ -317,6 +317,8 @@ export class NuwejaarSceneView {
   private last: FeesdagState | null = null;
   private lastSlot = -1;
   private washAlpha = -1;
+  /** D-065: each layer's extra blue-hour tint now (dimGround). */
+  private readonly groundTint = new Map<string, number>();
   private starAlpha = -1;
   private hidden = false;
   private readonly starts: number[] = [];
@@ -465,9 +467,11 @@ export class NuwejaarSceneView {
     // Blue hour, in steps of 1 % (set only when it changes).
     const bh = this.look.blueHour;
     const wa = Math.round(bh.alpha * ramp(p, bh.from, bh.to) * 100) / 100;
-    if (this.wash !== null && wa !== this.washAlpha) {
+    if (wa !== this.washAlpha) {
       this.washAlpha = wa;
-      this.wash.setAlpha(wa);
+      this.wash?.setAlpha(wa);
+      // The rest of the scene goes to blue hour with it (its art, props and far animals).
+      this.dimGround(bh.alpha <= 0 ? 0 : wa / bh.alpha);
     }
     // Stars: out over the hunt, each twinkling slowly on its own phase.
     const st = this.look.stars;
@@ -482,6 +486,21 @@ export class NuwejaarSceneView {
       if (s.img.visible !== vis) s.img.setVisible(vis);
     }
     if (this.fireworksOn) this.updateFireworks(state, tick);
+  }
+
+  /** Every listed layer's extra tint at blue-hour progress k (0 … 1); reused map, no garbage. */
+  private dimGround(k: number): void {
+    const g = this.look.blueHour.ground;
+    const c = parseInt(g.color.slice(1), 16);
+    for (const [id, f] of Object.entries(g.layers)) {
+      const m = k * f;
+      const ch = (shift: number): number => {
+        const v = (c >> shift) & 0xff;
+        return Math.round(255 + (v - 255) * m);
+      };
+      this.groundTint.set(id, (ch(16) << 16) | (ch(8) << 8) | ch(0));
+    }
+    this.parallax.dimLayers(this.groundTint);
   }
 
   /** The fireworks: new bursts from the slots passed since the last frame, then each burst. */

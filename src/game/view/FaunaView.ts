@@ -106,6 +106,8 @@ export function drawnBox(img: Phaser.GameObjects.Image): {
 
 export class FaunaView {
   private readonly parts: Part[] = [];
+  /** D-065: the light's tint on the herds (a special day's dusk grades them like the ground). */
+  private tint = 0xffffff;
   private readonly herdViews = new Map<string, Herd>();
   private readonly roots = new Map<string, Phaser.GameObjects.Container>();
   /** The manifest's hdEpoch the parts' frames were cut for (-1: none built yet). */
@@ -158,6 +160,13 @@ export class FaunaView {
     return true;
   }
 
+  /** D-065: tints every part (and the ones built later); only when it changes. */
+  setTint(tint: number): void {
+    if (tint === this.tint) return;
+    this.tint = tint;
+    for (const p of this.parts) p.img.setTint(tint);
+  }
+
   /** Builds every herd whose sheet has arrived (a late sheet may come during the hunt). */
   private build(): void {
     let all = true;
@@ -200,6 +209,7 @@ export class FaunaView {
             .setOrigin(f[4] / f[2], f[5] / f[3])
             .setScale(p.sx * ds, p.sy * ds);
           root.add(img);
+          if (this.tint !== 0xffffff) img.setTint(this.tint);
           this.parts.push({ img, part, animal, sheet: key, frame: name, sx: p.sx, sy: p.sy });
           // The frame's reach from the pivot, either way (mirrored herds).
           const reach = Math.max(f[4], f[2] - f[4]) * a.s;

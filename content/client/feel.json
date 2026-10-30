@@ -800,21 +800,22 @@
       ]
     },
     "nuwejaar_skemer": {
-      "$comment": "D-065 New Year countdown: a warm summer dusk at the end of the year — a rose-gold afterglow low on the horizon under a deepening blue sky, the veld warm and dim. NuwejaarView darkens the sky to blue hour over the hunt (feesdae.looks.newyear.blueHour) and brings the stars out; the fireworks stay small on the far horizon. Birds stay untinted. No flashes.",
+      "$comment": "D-065 New Year countdown: a warm summer dusk at the end of the year, the whole scene graded — the low sun's warm light on the near plane, the mid plane dimmer, the far planes cool and violet in shadow, a rose-gold afterglow low on the horizon under a deepening blue sky. NuwejaarView takes it on to blue hour over the hunt (feesdae.looks.newyear.blueHour: the sky's wash and every plane's extra tint) and brings the stars out; the far animals take their plane's light; the fireworks stay small on the far horizon. Birds stay untinted (readability). No flashes.",
       "tint": {
         "sky": "#B8B4D8",
-        "far_ridge": "#9C8CB0",
-        "ver_veld": "#C8A8A8",
-        "far_veld": "#D0ACA0",
-        "mid": "#D8B8A8",
-        "near": "#E0C4B0",
-        "foreground": "#B89C94"
+        "far_ridge": "#76689A",
+        "ver_veld": "#8A7496",
+        "far_veld": "#987C92",
+        "mid": "#BC9488",
+        "near": "#D6A282",
+        "foreground": "#9A766C"
       },
       "haze": [
         { "layer": "sky", "color": "#2C3A78", "alpha": 0.32, "top": 0, "bottom": 300 },
         { "layer": "sky", "color": "#FFB070", "alpha": 0.3, "top": 420, "bottom": 580 },
-        { "layer": "far_ridge", "color": "#E8A890", "alpha": 0.18 },
-        { "layer": "far_veld", "color": "#3A3460", "alpha": 0.14, "top": 470 }
+        { "layer": "far_ridge", "color": "#E8A890", "alpha": 0.14 },
+        { "layer": "far_veld", "color": "#3A3460", "alpha": 0.2, "top": 470 },
+        { "layer": "mid", "color": "#2E2A58", "alpha": 0.1, "top": 480 }
       ],
       "secretGlow": true
     },
@@ -1311,7 +1312,24 @@
         "$comment": "D-065 New Year countdown: hatShare of the guineafowl wear small striped party hats (the witch and Santa hats' anchors and sizes); the sky deepens to blue hour and the stars come out over the hunt (sim time); small fireworks low over the far horizon — at most maxPerSecond bursts a second (the flash rule's 3), more in the countdown, fewer on the low tier, only a twinkle with reduce flashes; the HUD's countdown size.",
         "hatShare": 0.3,
         "hat": { "widthPerHeadR": 2.6, "tilt": 0.2 },
-        "blueHour": { "color": "#1C2860", "alpha": 0.5, "bottom": 560, "from": 0.1, "to": 0.95 },
+        "blueHour": {
+          "color": "#1C2860",
+          "alpha": 0.5,
+          "bottom": 560,
+          "from": 0.1,
+          "to": 0.95,
+          "ground": {
+            "color": "#4A5AA8",
+            "layers": {
+              "far_ridge": 0.6,
+              "ver_veld": 0.55,
+              "far_veld": 0.5,
+              "mid": 0.4,
+              "near": 0.3,
+              "foreground": 0.35
+            }
+          }
+        },
         "stars": { "count": 34, "y": [40, 360], "alpha": 0.85, "from": 0.25, "to": 0.85, "twinkleSeconds": 2.6 },
         "fireworks": {
           "y": [320, 450],

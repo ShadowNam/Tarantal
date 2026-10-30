@@ -2372,7 +2372,17 @@ const NEWYEAR_LOOK = obj({
   hat: obj({ widthPerHeadR: pos, tilt: z.number().min(-0.6).max(0.6) }),
   /** Dusk turning to blue hour over the hunt: a wash over the sky layer (above `bottom`, design
    *  px) that grows from 0 to `alpha` between the hunt fractions `from` and `to` (sim time). */
-  blueHour: obj({ color: hexColor, alpha: fraction, bottom: pos, from: fraction, to: fraction }),
+  blueHour: obj({
+    color: hexColor,
+    alpha: fraction,
+    bottom: pos,
+    from: fraction,
+    to: fraction,
+    /** The rest of the scene goes to blue hour too: each listed layer's art, props and far
+     *  animals take an extra tint, from white towards `ground.color` by up to `ground.layers[id]`
+     *  (the far planes cooler and darker than the near), on the same ramp as the sky's wash. */
+    ground: obj({ color: hexColor, layers: z.record(id, fraction) }),
+  }),
   /** Stars on the sky layer, coming out from the hunt fraction `from` (full by `to`), between
    *  `y` (design px), a slow twinkle (sim time). */
   stars: obj({

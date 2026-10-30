@@ -16,7 +16,7 @@ import { FAUNA_HERDS } from './faunaHerds';
 import { hazeBelowProps } from './hazeOrder';
 import { FaunaView, type FaunaOptions } from './FaunaView';
 import type { FaunaProbe } from '../GameContext';
-import { lightTint } from './lightTint';
+import { lightTint, multiplyRgb } from './lightTint';
 import {
   CLOUD_DECKS,
   CLOUD_SPRITE_SCALE,
@@ -143,6 +143,8 @@ export class ParallaxView {
   private hdEpoch: number;
   /** D-054: the far animals, one view per layer that has herds. */
   private readonly fauna: FaunaView[] = [];
+  /** D-065: each herd view's layer id (dimLayers tints it with its layer). */
+  private readonly faunaLayer = new Map<FaunaView, string>();
   /** D-051: every prop with an HD texture (test hook: where it is, whether it shows HD). */
   private readonly hdArt: { readonly propId: string; readonly art: StaticArt }[] = [];
 
@@ -270,9 +272,16 @@ export class ParallaxView {
       if (fauna !== null && herds.length > 0) {
         const holder = scene.add.container(0, 0);
         root.add(holder);
-        this.fauna.push(
-          new FaunaView(scene, manifest, herds, coreWidth(layer.scrollFactor), holder, fauna),
+        const fv = new FaunaView(
+          scene,
+          manifest,
+          herds,
+          coreWidth(layer.scrollFactor),
+          holder,
+          fauna,
         );
+        this.fauna.push(fv);
+        this.faunaLayer.set(fv, layer.id);
       }
       const fruit = scene.add.container(0, 0);
       root.add(fruit);
@@ -755,6 +764,23 @@ export class ParallaxView {
         }
       }
     });
+  }
+
+  /**
+   * D-065: an extra tint on top of the map light, per layer id (New Year's dusk deepening to blue
+   * hour): every layer's art and props, and its far animals, take light × extra. Set only when it
+   * changes; the HD refresh keeps it (it copies the tint the art shows).
+   */
+  dimLayers(extra: ReadonlyMap<string, number>): void {
+    this.layers.forEach((l, i) => {
+      const base = this.tints.get(l.id) ?? 0xffffff;
+      const tint = multiplyRgb(base, extra.get(l.id) ?? 0xffffff);
+      for (const a of this.statics[i] ?? []) if (a.img.tintTopLeft !== tint) a.img.setTint(tint);
+    });
+    for (const f of this.fauna) {
+      const id = this.faunaLayer.get(f) ?? '';
+      f.setTint(multiplyRgb(this.tints.get(id) ?? 0xffffff, extra.get(id) ?? 0xffffff));
+    }
   }
 
   /** v1.7c (D-047): the map light's tint on a layer (0xFFFFFF without one). */
