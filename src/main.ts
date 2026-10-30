@@ -1059,6 +1059,10 @@ async function boot(): Promise<void> {
       shareBase,
       unranked,
       feesdagOverride: feesdagOverride(),
+      // e2e only (v1.8b): ?dailySeed= fixes the Daily's seed whatever the content hash.
+      ...(testHooks && params.has('dailySeed')
+        ? { seedOverride: Number(params.get('dailySeed')) >>> 0 }
+        : {}),
     }),
     pendingChallenge,
     platform,

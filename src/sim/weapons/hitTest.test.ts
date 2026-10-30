@@ -351,3 +351,35 @@ describe('1.9.3 (review M17): a target behind a makalani nut takes the pellet', 
     expect(r.propId).toBeNull();
   });
 });
+
+// v1.8b (D-062, round 3): a far-ridge baboon never shields anything in front of it. Pellets
+// resolve front to back: a bird on a nearer plane at the same screen point takes the pellet; the
+// ridge (behind every plane) only takes one that met nothing else, so a mother's "stray pellet"
+// (which costs nothing) never used up a pellet meant for a target.
+describe('baboons on the far ridge (D-062)', () => {
+  const baboon = (x: number, y: number): Map<string, HitExtra[]> =>
+    new Map([
+      [
+        'far_ridge',
+        [{ kind: 'baboon', baboonId: 77, x, y, shape: { type: 'ellipse', rx: 40, ry: 40 } }],
+      ],
+    ]);
+  it('a bird on the far, Ver, mid or near plane in front of a ridge baboon takes the pellet', () => {
+    for (const plane of ['near', 'mid', 'far'] as const) {
+      const r = resolvePellet(
+        0,
+        505,
+        CX,
+        geometry,
+        planes([bird(5, plane, 960, 500)]),
+        baboon(960, 505),
+      );
+      expect(r.birdId, plane).toBe(5);
+      expect(r.baboonId).toBeUndefined();
+    }
+  });
+  it('a pellet that meets nothing in front lands on the ridge baboon', () => {
+    const r = resolvePellet(0, 505, CX, geometry, planes([]), baboon(960, 505));
+    expect(r.baboonId).toBe(77);
+  });
+});

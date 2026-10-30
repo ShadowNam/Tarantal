@@ -213,6 +213,17 @@ describe('DailyFlow', () => {
     expect(flow.streakToday()).toEqual({ streak: 2, freezeReady: true });
   });
 
+  it('e2e ?dailySeed= fixes the seed whatever the content hash; the rest of the day is kept', () => {
+    const { flow } = setup();
+    const plain = flow.todaySetup();
+    const fixed = new DailyFlow({
+      ...(flow as unknown as { deps: ConstructorParameters<typeof DailyFlow>[0] }).deps,
+      seedOverride: 1105699564,
+    }).todaySetup();
+    expect(fixed.seed).toBe(1105699564);
+    expect({ ...fixed, seed: plain.seed }).toEqual(plain);
+  });
+
   it('a challenge to today’s unplayed daily is the official daily; else it is a challenge', () => {
     const { flow } = setup();
     const today = flow.todaySetup();
