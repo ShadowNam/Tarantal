@@ -135,7 +135,7 @@ describe('Christmas in the sun (D-064)', () => {
     const s = sim(c);
     const first = presents(s)[0];
     if (first === undefined) throw new Error('no present');
-    for (let i = 0; i < 6 && first !== undefined; i++) {
+    for (let i = 0; i < 6; i++) {
       reloaded(s);
       settle(s);
       shoot(s, c, first);
