@@ -100,7 +100,9 @@ test('a raid on a fixed seed: the lookout barks, a raider comes down to the bakk
   const touch = isTouchProject(info);
   await boot(page, BASE);
   await startHunt(page, touch);
-  // The build-up first (warn → climb → travel), then the raider at its act, in one wait.
+  // The build-up in the sim first (warn → climb → travel → on). The bakkie is off screen at the
+  // starting camera, and an off-screen raider is not drawn (its hook frame is null), so wait on the
+  // raid's state and the raider's presence, not on a drawn frame.
   const seen = await page.waitForFunction(
     () => {
       const tm = (window as unknown as Hooked).__TM__;
@@ -109,9 +111,7 @@ test('a raid on a fixed seed: the lookout barks, a raider comes down to the bakk
       const p = tm?.baboonRaid?.phase;
       if (p !== undefined && phases[phases.length - 1] !== p) phases.push(p);
       const r = (tm?.baboons ?? []).find((b) => b.role === 'raider');
-      return r?.frame?.startsWith('hat_') === true
-        ? { phases, spot: tm?.baboonRaid?.spotId }
-        : false;
+      return p === 'on' && r !== undefined ? { phases, spot: tm?.baboonRaid?.spotId } : false;
     },
     null,
     { timeout: 300_000, polling: 'raf' },
@@ -122,6 +122,17 @@ test('a raid on a fixed seed: the lookout barks, a raider comes down to the bakk
     'climb',
   ]);
   expect(first.spot).toBe('hat');
+  // Then bring the bakkie on screen and see the raider at its act (the test flag makes the act
+  // long and repeats the raid at the same spot, so a slow pan meets the next one).
+  await panTo(page, async () => (await raiderOf(page))?.x ?? null);
+  await page.waitForFunction(
+    () =>
+      ((window as unknown as Hooked).__TM__?.baboons ?? []).some(
+        (b) => b.role === 'raider' && b.frame?.startsWith('hat_') === true,
+      ),
+    null,
+    { timeout: 180_000 },
+  );
   await panTo(page, async () => (await raiderOf(page))?.x ?? null);
   // Its feet stand on the spot's ground line (frames are placed by their feet, not their middle).
   const r0 = await raiderOf(page);
