@@ -1,0 +1,427 @@
+{
+  "$comment": "v1.8c (D-063) Die Oes: the Harvest's farm field in late summer (GDD §12.2). Only the Harvest mode plays it (no area: not in Classic's picker or the Daily rotation; the weekday layouts and the bonus map exist for the schema and are never played). The fence with the gap stands on the mid plane at y 700; the workers mend it from the gap's right post, so every animal stand point keeps out of their line of fire (tools/art/harvestLineOfFire.ts): through-gap arrivals go left, the right-hand rows fill from the panorama's right end; no far flocks.",
+  "version": 1,
+  "id": "oes",
+  "season": "oes",
+  "nameKey": "biome.oes",
+  "panoramaWidth": 3840,
+  "skyBand": {
+    "top": 80,
+    "bottom": 420
+  },
+  "layers": [
+    {
+      "id": "sky",
+      "scrollFactor": 0.05,
+      "asset": "oes/sky",
+      "lowTierMergeWith": null
+    },
+    {
+      "id": "far_ridge",
+      "scrollFactor": 0.15,
+      "asset": "oes/far_ridge",
+      "lowTierMergeWith": "far_veld"
+    },
+    {
+      "id": "far_veld",
+      "scrollFactor": 0.35,
+      "asset": "oes/far_veld",
+      "plane": "far"
+    },
+    {
+      "id": "mid",
+      "scrollFactor": 0.6,
+      "asset": "oes/mid",
+      "plane": "mid"
+    },
+    {
+      "id": "near",
+      "scrollFactor": 1.0,
+      "asset": "oes/near",
+      "plane": "near"
+    },
+    {
+      "id": "foreground",
+      "scrollFactor": 1.2,
+      "asset": "oes/foreground",
+      "occludes": true
+    }
+  ],
+  "lanes": {
+    "far": {
+      "groundY": [
+        585,
+        610
+      ],
+      "skyY": [
+        120,
+        300
+      ]
+    },
+    "mid": {
+      "groundY": [
+        715,
+        775
+      ],
+      "skyY": [
+        160,
+        360
+      ]
+    },
+    "near": {
+      "popupY": [
+        930,
+        980
+      ]
+    }
+  },
+  "props": [
+    {
+      "id": "farmhouse",
+      "layer": "far_veld",
+      "u": 0.2,
+      "y": 600,
+      "asset": "oes/farmhouse"
+    },
+    {
+      "id": "tractor",
+      "layer": "far_veld",
+      "u": 0.86,
+      "y": 608,
+      "asset": "oes/tractor"
+    },
+    {
+      "id": "sunflowers_a",
+      "layer": "foreground",
+      "u": 0.05,
+      "y": 1000,
+      "asset": "oes/sunflowers_a"
+    },
+    {
+      "id": "sunflowers_b",
+      "layer": "foreground",
+      "u": 0.94,
+      "y": 1000,
+      "asset": "oes/sunflowers_b"
+    }
+  ],
+  "events": [],
+  "omen": {
+    "id": "karoo_wind",
+    "wind": {
+      "strength": [
+        0.4,
+        1.0
+      ],
+      "directionChangeSeconds": [
+        12,
+        20
+      ],
+      "tailwindSpeedMul": 1.4,
+      "headwindSpeedMul": 0.7,
+      "driftPxAtFar": 45
+    },
+    "visual": {
+      "windSock": true,
+      "leaves": true,
+      "dust": true
+    }
+  },
+  "pacing": {
+    "$comment": "Fractions of the whole hunt (the intro included). Flocks only on the mid plane (the far plane lines up with the workers); the rush ramps up to the end.",
+    "keyframes": [
+      {
+        "t": 0,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 4,
+        "popupsPerMin": 2
+      },
+      {
+        "t": 0.4,
+        "flocks": {
+          "mid": 2
+        },
+        "flyoversPerMin": 8,
+        "popupsPerMin": 4
+      },
+      {
+        "t": 1,
+        "flocks": {
+          "mid": 3
+        },
+        "flyoversPerMin": 12,
+        "popupsPerMin": 6
+      }
+    ],
+    "stampede": {
+      "flyoversPerMin": 10,
+      "popupsPerMin": 10,
+      "flockState": "run"
+    },
+    "maxBirdsOnScreen": 60,
+    "maxFlocks": 4
+  },
+  "spawnTable": [
+    {
+      "creature": "tarentaal",
+      "weight": 100
+    },
+    {
+      "creature": "tarentaal_lavendel",
+      "weight": 2
+    },
+    {
+      "creature": "tarentaal_wit",
+      "weight": 1
+    }
+  ],
+  "feedingSpots": [
+    {
+      "plane": "mid",
+      "u": [
+        0.1,
+        0.34
+      ]
+    },
+    {
+      "plane": "mid",
+      "u": [
+        0.74,
+        0.92
+      ]
+    }
+  ],
+  "music": {
+    "calm": "oes_calm",
+    "build": "oes_build",
+    "stampede": "oes_stampede"
+  },
+  "ambience": "oes_field_bed",
+  "harvest": {
+    "gap": {
+      "layer": "mid",
+      "plane": "mid",
+      "u": 0.5,
+      "halfWidthPx": 170,
+      "y": 700
+    },
+    "workers": [
+      {
+        "dx": 230,
+        "y": 702,
+        "from": 1
+      },
+      {
+        "dx": 340,
+        "y": 700,
+        "from": 1
+      },
+      {
+        "dx": 450,
+        "y": 703,
+        "from": 1
+      }
+    ],
+    "digSpots": [
+      {
+        "plane": "mid",
+        "layer": "mid",
+        "u": 0.14,
+        "y": 750
+      },
+      {
+        "plane": "mid",
+        "layer": "mid",
+        "u": 0.24,
+        "y": 765
+      },
+      {
+        "plane": "mid",
+        "layer": "mid",
+        "u": 0.33,
+        "y": 745
+      },
+      {
+        "plane": "mid",
+        "layer": "mid",
+        "u": 0.8,
+        "y": 760
+      },
+      {
+        "plane": "mid",
+        "layer": "mid",
+        "u": 0.9,
+        "y": 748
+      },
+      {
+        "plane": "near",
+        "layer": "near",
+        "u": 0.12,
+        "y": 1015
+      },
+      {
+        "plane": "near",
+        "layer": "near",
+        "u": 0.28,
+        "y": 1025
+      },
+      {
+        "plane": "near",
+        "layer": "near",
+        "u": 0.72,
+        "y": 1020
+      },
+      {
+        "plane": "near",
+        "layer": "near",
+        "u": 0.88,
+        "y": 1012
+      }
+    ],
+    "flockSpots": [
+      {
+        "plane": "mid",
+        "u": 0.22
+      },
+      {
+        "plane": "mid",
+        "u": 0.84
+      }
+    ]
+  },
+  "baboons": {
+    "$comment": "The troop on the koppie behind the farm; raiders come down for the mielies at the field's ends, early and often (the 30-s rush).",
+    "troops": [
+      {
+        "id": "troop",
+        "layer": "far_ridge",
+        "plane": "far",
+        "u": 0.2,
+        "seats": [
+          {
+            "dx": -150,
+            "y": 560
+          },
+          {
+            "dx": -118,
+            "y": 548
+          },
+          {
+            "dx": -88,
+            "y": 530
+          },
+          {
+            "dx": -60,
+            "y": 520
+          },
+          {
+            "dx": -32,
+            "y": 516
+          },
+          {
+            "dx": -6,
+            "y": 516
+          },
+          {
+            "dx": 20,
+            "y": 518
+          },
+          {
+            "dx": 46,
+            "y": 524
+          },
+          {
+            "dx": 72,
+            "y": 536
+          },
+          {
+            "dx": 98,
+            "y": 550
+          }
+        ],
+        "lookout": 5
+      }
+    ],
+    "spots": [
+      {
+        "id": "mielie_left",
+        "action": "mielie",
+        "layer": "mid",
+        "u": 0.28,
+        "ox": 0,
+        "y": 752,
+        "from": -1
+      },
+      {
+        "id": "mielie_right",
+        "action": "mielie",
+        "layer": "mid",
+        "u": 0.86,
+        "ox": 0,
+        "y": 755,
+        "from": 1
+      }
+    ],
+    "raidsMul": 4,
+    "firstAfterSeconds": [
+      4,
+      7
+    ]
+  },
+  "layouts": [
+    {
+      "id": "mon",
+      "light": "dawn_mist",
+      "weather": "calm",
+      "cameraStartU": 0.5
+    },
+    {
+      "id": "tue",
+      "light": "midday",
+      "weather": "calm",
+      "cameraStartU": 0.5
+    },
+    {
+      "id": "wed",
+      "light": "overcast",
+      "weather": "calm",
+      "cameraStartU": 0.5
+    },
+    {
+      "id": "thu",
+      "light": "golden",
+      "weather": "calm",
+      "cameraStartU": 0.5
+    },
+    {
+      "id": "fri",
+      "light": "midday",
+      "weather": "calm",
+      "cameraStartU": 0.5
+    },
+    {
+      "id": "sat",
+      "light": "dusk",
+      "weather": "calm",
+      "cameraStartU": 0.5
+    },
+    {
+      "id": "sun",
+      "light": "bright_calm",
+      "weather": "calm",
+      "cameraStartU": 0.5
+    }
+  ],
+  "bonusMaps": [
+    {
+      "$comment": "Never played (the Harvest plays the plain map); the schema needs one.",
+      "id": "verder",
+      "nameKey": "map.verder",
+      "light": "verder_haze",
+      "weather": "calm",
+      "pointsMul": 1
+    }
+  ]
+}

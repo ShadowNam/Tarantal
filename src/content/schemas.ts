@@ -31,7 +31,8 @@ const version = z.literal(1);
 /** v1.3 (D-036): `ver` is the distant band behind the far plane (rifles only). */
 export const PlaneIdSchema = z.enum(['near', 'mid', 'far', 'ver']);
 /** v1.3x (D-037): `range` is the admin-only Skietbaan (training ground), never a hunt. */
-export const ModeIdSchema = z.enum(['classic', 'daily', 'seasonHunt', 'ftue', 'range']);
+/** v1.8c (D-063): `harvest` is Die Oes, the 30-s farm-field mode on its own map. */
+export const ModeIdSchema = z.enum(['classic', 'daily', 'seasonHunt', 'ftue', 'range', 'harvest']);
 export const BagBehaviourSchema = z.enum(['forage', 'alert', 'run', 'flying']);
 
 /** World-event ids (Tech §3.6). Each gets a handler in director/events.ts. */
@@ -679,11 +680,46 @@ export const RaidSpotSchema = obj({
 });
 export type RaidSpot = z.infer<typeof RaidSpotSchema>;
 
+/**
+ * v1.8c (D-063, GDD §12.2): the Harvest map's geometry. The fence with the gap stands on one
+ * layer (its ground line `y`); animals come in through the gap and spread into the field rows;
+ * the workers stand beside the gap (dx from the gap's centre) and never in the line of fire.
+ * Layer px (the layer is drawn 1:1).
+ */
+export const HarvestMapSchema = obj({
+  gap: obj({
+    layer: id,
+    plane: z.enum(['mid', 'far']),
+    u: fraction,
+    /** Half the opening's width (layer px). */
+    halfWidthPx: pos,
+    /** The fence's ground line (layer px). */
+    y: z.number(),
+  }),
+  /** Where the workers stand while they mend the fence (dx from the gap's centre, the feet's y);
+   *  `from`: the side they run in from. */
+  workers: z
+    .array(obj({ dx: z.number(), y: z.number(), from: z.union([z.literal(1), z.literal(-1)]) }))
+    .min(2)
+    .max(3),
+  /** The warthogs' dig spots in the rows per plane (u along the layer, y = feet). A near spot's
+   *  warthog trots in from the nearer panorama end; a mid one comes through the gap. */
+  digSpots: z
+    .array(obj({ plane: z.enum(['near', 'mid']), layer: id, u: fraction, y: z.number() }))
+    .min(2),
+  /** Feeding spots in the field for the flocks that come in through the gap (u along the plane). */
+  flockSpots: z.array(obj({ plane: z.enum(['mid', 'far']), u: fraction })).min(1),
+});
+export type HarvestMap = z.infer<typeof HarvestMapSchema>;
+
 export const BaboonMapSchema = obj({
   troops: z.array(TroopSchema).min(1).max(2),
   spots: z.array(RaidSpotSchema).min(1),
   /** Multiplies baboons.raids.perMinute on this map (absent = 1). */
   raidsMul: pos.optional(),
+  /** v1.8c (D-063): when the first raid comes (seconds; absent = baboons.raids.firstAfterSeconds).
+   *  The Harvest's 30-s rush needs its raiders early. */
+  firstAfterSeconds: range(nonNeg).optional(),
 });
 export type BaboonMap = z.infer<typeof BaboonMapSchema>;
 
@@ -1593,6 +1629,8 @@ export const BiomeSchema = obj({
   ostriches: z.array(OstrichFamilySchema).max(2).optional(),
   /** v1.8b (D-062): baboon troops and raid spots (layouts may replace them; absent = none). */
   baboons: BaboonMapSchema.optional(),
+  /** v1.8c (D-063): the Harvest map's gap, workers and dig spots (only the Harvest's biome). */
+  harvest: HarvestMapSchema.optional(),
   /** v1.8 (D-050): a fence's ground line per plane (design px), for the layouts' fences. */
   fenceY: somePlanes(z.number()).optional(),
   /** 1.9.3 (D-056): the ground line makalani palms stand on, per plane (design px). */
@@ -1709,6 +1747,78 @@ const rangeSchema = modeSetupSchema.omit({ huntSeconds: true }).extend({
   }),
 });
 
+/**
+ * v1.8c (D-063, GDD §12.2) Die Oes: the Harvest's rules. Sizes are design px at plane scale 1
+ * (the view draws to them; tuningRatio converts speeds per plane); times in seconds; rates per
+ * minute; crop in percent.
+ */
+const harvestBox = obj({ body: ellipseBox, head: ellipseBox });
+const harvestSchema = modeSetupSchema.extend({
+  /** The intro before the 30-s clock (the warthog family barges through the fence). A tap skips. */
+  intro: obj({
+    seconds: pos,
+    /** When the fence breaks (fraction of the intro). */
+    breakAt: fraction,
+    /** Piglets in the family that barges in. */
+    piglets: nonNegInt,
+  }),
+  /** After the clock: the gap closes, the animals still in run off (no shooting). */
+  outroSeconds: pos,
+  /** Warthog arrivals per minute over the 30 s (fractions of the rush, like pacing). */
+  rush: obj({
+    keyframes: z
+      .array(obj({ t: fraction, warthogsPerMin: nonNeg }))
+      .min(2)
+      .refine((k) => k.every((x, i) => i === 0 || x.t > k[i - 1]!.t), 'keyframes in t order'),
+    /** At most this many warthogs (adults) in the field at once. */
+    maxWarthogs: posInt,
+    /** Share of the warthogs that come in on the near plane (round the fence's end). */
+    nearShare: fraction,
+  }),
+  warthogs: obj({
+    /** An adult's height (feet to the top of the back/head, plane scale 1). */
+    heightPx: pos,
+    hitboxes: obj({ trot: harvestBox, dig: harvestBox }),
+    trotPxPerSec: pos,
+    runPxPerSec: pos,
+    digSeconds: range(pos),
+    hitsToBag: posInt,
+    /** × a guineafowl's base on its plane (an event bonus × Frenzy). */
+    pointsMul: pos,
+    tumbleSeconds: pos,
+    /** Chance an arriving adult is a sow with piglets. */
+    sowChance: fraction,
+    piglets: range(nonNegInt),
+    pigletScale: z.number().gt(0).max(1),
+    /** Distance a piglet keeps behind the one before it (plane scale 1). */
+    pigletGapPx: pos,
+    /** A piglet costs this only when a shot was aimed at it (never a target). */
+    pigletPenalty: posInt,
+    /** Where an arrival enters, off the edge of the view (plane scale 1 px beyond the gap). */
+    entryPx: pos,
+  }),
+  crop: obj({
+    /** Drain per second per eating animal: a foraging guineafowl in the field, a digging
+     *  warthog, a raider at its mielies. */
+    drainPerSecond: obj({ guineafowl: nonNeg, warthog: nonNeg, baboon: nonNeg }),
+    /** The HUD warns (bar flashes, a sound) below this (percent). */
+    warnBelow: z.number().min(0).max(100),
+    /** The crop bonus at the end: this × crop saved (percent). */
+    bonusPerPercent: nonNeg,
+  }),
+  workers: obj({
+    /** A worker's height (feet to the hat's top, plane scale 1). */
+    heightPx: pos,
+    hitboxes: obj({ work: harvestBox, duck: harvestBox }),
+    runPxPerSec: pos,
+    /** A shot aimed at a worker costs this (once per cooldown per worker). */
+    penalty: posInt,
+    cooldownSeconds: pos,
+    duckSeconds: pos,
+  }),
+});
+export type HarvestSetup = z.infer<typeof harvestSchema>;
+
 export const ModesSchema = obj({
   version,
   /** Classic, Daily and FTUE setup. Season Run hunts take their length from run.json. */
@@ -1717,6 +1827,7 @@ export const ModesSchema = obj({
     daily: modeSetupSchema,
     ftue: modeSetupSchema.extend({ tutorial: tutorialSchema }),
     range: rangeSchema,
+    harvest: harvestSchema,
   }),
 });
 export type RangeSetup = z.infer<typeof rangeSchema>;

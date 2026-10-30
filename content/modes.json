@@ -213,6 +213,71 @@
           ]
         }
       }
+    },
+    "harvest": {
+      "$comment": "v1.8c (D-063) Die Oes: 30 s on the farm field (biome oes). The intro (the warthog family barges through the fence) runs before the clock; a tap skips it. Warthogs: 2 hits bag one (3 x a guineafowl's base on its plane, an event bonus x Frenzy); piglets and the farm workers are never targets and cost points only from a shot aimed at them. The crop meter drains per eating animal per second; the end adds bonusPerPercent x crop saved. Sizes are design px at plane scale 1; times in seconds.",
+      "huntSeconds": 30,
+      "weapon": "dubbelloop",
+      "biome": "oes",
+      "omen": false,
+      "intro": { "seconds": 3, "breakAt": 0.3, "piglets": 3 },
+      "outroSeconds": 1.5,
+      "rush": {
+        "keyframes": [
+          { "t": 0, "warthogsPerMin": 6 },
+          { "t": 0.5, "warthogsPerMin": 12 },
+          { "t": 1, "warthogsPerMin": 20 }
+        ],
+        "maxWarthogs": 6,
+        "nearShare": 0.3
+      },
+      "warthogs": {
+        "heightPx": 280,
+        "hitboxes": {
+          "trot": {
+            "body": { "rx": 220, "ry": 105, "ox": -10, "oy": -150 },
+            "head": { "rx": 80, "ry": 72, "ox": 220, "oy": -170 }
+          },
+          "dig": {
+            "body": { "rx": 215, "ry": 100, "ox": -20, "oy": -130 },
+            "head": { "rx": 80, "ry": 70, "ox": 200, "oy": -70 }
+          }
+        },
+        "trotPxPerSec": 520,
+        "runPxPerSec": 1100,
+        "digSeconds": [6, 12],
+        "hitsToBag": 2,
+        "pointsMul": 3,
+        "tumbleSeconds": 0.9,
+        "sowChance": 0.35,
+        "piglets": [2, 3],
+        "pigletScale": 0.45,
+        "pigletGapPx": 240,
+        "pigletPenalty": 15,
+        "entryPx": 700
+      },
+      "crop": {
+        "drainPerSecond": { "guineafowl": 0.06, "warthog": 0.5, "baboon": 0.8 },
+        "warnBelow": 40,
+        "bonusPerPercent": 5
+      },
+      "workers": {
+        "heightPx": 600,
+        "hitboxes": {
+          "work": {
+            "body": { "rx": 85, "ry": 210, "ox": 0, "oy": -230 },
+            "head": { "rx": 55, "ry": 60, "ox": 0, "oy": -500 }
+          },
+          "duck": {
+            "body": { "rx": 110, "ry": 140, "ox": 0, "oy": -150 },
+            "head": { "rx": 55, "ry": 55, "ox": 30, "oy": -300 }
+          }
+        },
+        "runPxPerSec": 700,
+        "penalty": 100,
+        "cooldownSeconds": 2,
+        "duckSeconds": 1
+      }
     }
   }
 }

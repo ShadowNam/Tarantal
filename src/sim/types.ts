@@ -13,7 +13,7 @@ export type PlaneId = 'near' | 'mid' | 'far' | 'ver';
 export const PLANES: readonly PlaneId[] = ['near', 'mid', 'far', 'ver'];
 
 /** v1.3x (D-037): `range` is the admin-only Skietbaan (training ground): endless, unscored. */
-export type ModeId = 'classic' | 'daily' | 'seasonHunt' | 'ftue' | 'range';
+export type ModeId = 'classic' | 'daily' | 'seasonHunt' | 'ftue' | 'range' | 'harvest';
 
 /** Skietbaan targets: paper targets, a standing bird, a fly-over, a small flock. */
 /** v1.8 (D-050): `cans` — Blikkies on a short fence (the sim's tin cans, one plane). */
