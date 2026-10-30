@@ -389,14 +389,34 @@ test('Karoo: the troop, the hat raid, the raider close up, the tumble (Standard)
   let tumbled = false;
   for (let shot = 0; shot < 40 && !tumbled; shot++) {
     await reloadIfEmpty(page, touch);
-    const r = (await baboonsOf(page)).find((b) => b.role === 'raider' && b.visible);
+    // Aim on a held tick (this box may run at a few fps: a raider hit once runs off between a
+    // frame and the next): freeze the sim, read the raider where the shot will meet it, queue the
+    // shot (commands wait while held), then let the sim run on for the shot.
+    const at = await page.evaluate(() => {
+      const t = (window.__TM__?.tick ?? 0) + 1;
+      (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(t);
+      return t;
+    });
+    await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, at, { timeout: 120_000 });
+    await page.waitForTimeout(300);
+    const r = (await baboonsOf(page)).find((b) => b.role === 'raider');
     if (r === undefined) throw new Error('the raider left before it was bagged');
+    const w = (await hook(page)).designWidth;
+    if (!r.visible || r.x < 120 || r.x > w - 120) {
+      // Running off toward an edge: let the sim run and pan after it, then aim again.
+      await release(page);
+      await panToX(page, touch, () => raiderX(page));
+      continue;
+    }
     const box =
       r.frame?.startsWith('hat_') === true
         ? birds.baboons.hitboxes.sit
         : birds.baboons.hitboxes.walk;
     await fireAt(page, touch, { x: r.x, y: r.y + box.body.oy * k });
-    const t0 = (await hook(page)).tick;
+    // Release for the shot (bounded: held again 25 ticks on); the tumble holds at once.
+    await page.evaluate((t) => {
+      (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(t + 25);
+    }, at);
     tumbled =
       (await (
         await page.waitForFunction(
@@ -411,8 +431,8 @@ test('Karoo: the troop, the hat raid, the raider close up, the tumble (Standard)
             }
             return (tm?.tick ?? 0) >= until ? 'miss' : false;
           },
-          t0 + 25,
-          { timeout: 120_000, polling: 'raf' },
+          at + 25,
+          { timeout: 300_000, polling: 'raf' },
         )
       ).jsonValue()) === true;
   }
