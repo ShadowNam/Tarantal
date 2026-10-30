@@ -648,6 +648,14 @@ export type SimEvent =
       readonly y: number;
       readonly presentsLeft: number;
     }
+  /** D-065 (New Year): the countdown began — every award × `mult` until the hunt ends at
+   *  `endTick` (bonus time can still move the end). */
+  | {
+      readonly type: 'countdownStarted';
+      readonly tick: number;
+      readonly endTick: number;
+      readonly mult: number;
+    }
   /** D-064: the day's last present opened — "Presents found!", paid once (an event bonus). */
   | { readonly type: 'presentsFound'; readonly tick: number; readonly points: number }
   /** v1.8 (D-050): a tin can was shot off its post (chain 0) or hit again in the air (chain n ≥ 1,

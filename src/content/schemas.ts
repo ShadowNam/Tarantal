@@ -1851,9 +1851,14 @@ export type Modes = z.infer<typeof ModesSchema>;
 // date rule is an input of the mode (the game reads the clock, never the sim); the twist's
 // numbers are here, so they are in the contentHash like every other rule.
 
-/** Fixed UTC month/day for now; other kinds (ranges, moving feasts) join the union later. */
+const monthDay = {
+  month: z.number().int().min(1).max(12),
+  day: z.number().int().min(1).max(31),
+};
+/** A fixed UTC month/day, or (D-065) a list of them (New Year: 31 Dec and 1 Jan). */
 const feesdagDateSchema = z.discriminatedUnion('type', [
-  obj({ type: z.literal('fixed'), month: z.number().int().min(1).max(12), day: z.number().int().min(1).max(31) }),
+  obj({ type: z.literal('fixed'), ...monthDay }),
+  obj({ type: z.literal('days'), days: z.array(obj(monthDay)).min(1) }),
 ]);
 
 /** A flyer of the Spookjag (bats, owls), in design px at plane scale 1 (scaled by its plane). */
@@ -1935,6 +1940,19 @@ const kersfeesSchema = obj({
   }),
 });
 
+/**
+ * D-065 New Year's twist rule, the countdown: in the hunt's last `lastSeconds` every award (bags
+ * and event bonuses, never a penalty) is multiplied by `mult` ("Countdown ×2"), a system
+ * multiplier after the Stampede's (they stack: GDD §5.3).
+ */
+const nuwejaarSchema = obj({
+  rule: z.literal('nuwejaar'),
+  countdown: obj({
+    lastSeconds: pos,
+    mult: z.number().min(1),
+  }),
+});
+
 /** Bark lines are ASCII `bark.*` keys: the key is also the voice file name (see barkKey). */
 const feesdagBark = z.string().regex(/^bark\.[a-z][a-z0-9_]*$/, 'bark lines are ASCII bark.* keys');
 
@@ -1948,8 +1966,9 @@ export const FeesdagSchema = obj({
   map: z.union([z.literal('daily'), obj({ biome: id, layout: WeekdayIdSchema })]),
   /** A light preset of client/feel.json lights (the look only). */
   light: id,
-  /** The day's one twist rule: Halloween's Spookjag, or Christmas's hidden presents (D-064). */
-  twist: z.discriminatedUnion('rule', [spookjagSchema, kersfeesSchema]),
+  /** The day's one twist rule: Halloween's Spookjag, Christmas's hidden presents (D-064) or New
+   *  Year's countdown (D-065). */
+  twist: z.discriminatedUnion('rule', [spookjagSchema, kersfeesSchema, nuwejaarSchema]),
   /** Look pieces the game draws (src/game/feesdae). */
   decorations: z.array(
     z.enum([
@@ -1962,6 +1981,10 @@ export const FeesdagSchema = obj({
       'tinsel',
       'santaHats',
       'heatHaze',
+      // D-065 (New Year): stars at blue hour, fireworks on the far horizon, party hats.
+      'stars',
+      'fireworks',
+      'partyHats',
     ]),
   ),
   /** Oupa's lines by moment (i18n keys of bark lines). Start and end on every special; the rest
@@ -1975,16 +1998,23 @@ export const FeesdagSchema = obj({
     present: feesdagBark.optional(),
     presentsFound: feesdagBark.optional(),
     dry: feesdagBark.optional(),
+    /** D-065: the countdown started, and a big shot during it. */
+    countdown: feesdagBark.optional(),
+    countdownShot: feesdagBark.optional(),
     end: feesdagBark,
   }),
   /** The sting at the start (a sound of the special's own lazy group, src/game/feesdae). */
   sting: z.string().regex(/^sfx\/[a-z0-9_]+$/),
   /** The share card's frame (src/game/feesdae: its emoji and the tally's frame art). */
   shareFrame: id,
+  /** D-065: the share card's year is that of the play day + this many days (New Year: 1, so 31
+   *  Dec 2026 and 1 Jan 2027 both say "New Year 2027"). Default 0. */
+  shareYearDays: nonNegInt.optional(),
 });
 export type Feesdag = z.infer<typeof FeesdagSchema>;
 export type SpookjagTwist = z.infer<typeof spookjagSchema>;
 export type KersfeesTwist = z.infer<typeof kersfeesSchema>;
+export type NuwejaarTwist = z.infer<typeof nuwejaarSchema>;
 
 export const FeesdaeSchema = obj({
   version,
@@ -2083,6 +2113,9 @@ export const BARK_TRIGGERS = [
   'feesdagPresent',
   'presentsFound',
   'feesdagDry',
+  // D-065 (New Year): the countdown started, a big shot during it.
+  'feesdagCountdown',
+  'countdownShot',
 ] as const;
 export type BarkTrigger = (typeof BARK_TRIGGERS)[number];
 /** D-048: triggers whose lines come from feesdae.json (their feel.json lines are empty). */
@@ -2095,6 +2128,8 @@ const SPECIAL_DAY_TRIGGERS: readonly string[] = [
   'feesdagPresent',
   'presentsFound',
   'feesdagDry',
+  'feesdagCountdown',
+  'countdownShot',
 ];
 
 // ASCII only: the key is also the voice file name (audio/voice/<key>.wav), and a non-ASCII name
@@ -2328,6 +2363,54 @@ const CHRISTMAS_LOOK = obj({
   confettiSeconds: pos,
 });
 export type ChristmasLook = z.infer<typeof CHRISTMAS_LOOK>;
+
+/** D-065: how the New Year countdown looks (src/game/feesdae/NuwejaarView.ts; the look only). */
+const NEWYEAR_LOOK = obj({
+  /** Share of guineafowl in small striped party hats (cosmetic; picked by bird id), the hat's
+   *  width per head radius and its tilt back: the witch and Santa hats' anchors and sizes. */
+  hatShare: fraction,
+  hat: obj({ widthPerHeadR: pos, tilt: z.number().min(-0.6).max(0.6) }),
+  /** Dusk turning to blue hour over the hunt: a wash over the sky layer (above `bottom`, design
+   *  px) that grows from 0 to `alpha` between the hunt fractions `from` and `to` (sim time). */
+  blueHour: obj({ color: hexColor, alpha: fraction, bottom: pos, from: fraction, to: fraction }),
+  /** Stars on the sky layer, coming out from the hunt fraction `from` (full by `to`), between
+   *  `y` (design px), a slow twinkle (sim time). */
+  stars: obj({
+    count: nonNegInt,
+    y: range(nonNeg),
+    alpha: fraction,
+    from: fraction,
+    to: fraction,
+    twinkleSeconds: pos,
+  }),
+  /**
+   * Small fireworks low over the far horizon (decoration, never targets): a burst may start in
+   * each 1/maxPerSecond s slot (so never more than maxPerSecond a second), with chance perSecond
+   * ÷ maxPerSecond (countdownPerSecond in the countdown), × lowTierScale on the low tier; at
+   * most `pool` at a time (sprites made once). Each is `sparks` small sparks out to `radius`
+   * (design px on the sky layer) over `seconds`, at most `alpha`. Reduce flashes: no bursts,
+   * the sparks only twinkle where they hang, at most `twinkleAlpha` (never brighter than the sky).
+   */
+  fireworks: obj({
+    y: range(nonNeg),
+    maxPerSecond: z.number().positive().max(3),
+    perSecond: pos,
+    countdownPerSecond: pos,
+    lowTierScale: fraction,
+    pool: posInt.max(8),
+    sparks: posInt.max(24),
+    radius: range(pos),
+    seconds: pos,
+    rise: nonNeg,
+    alpha: fraction,
+    twinkleAlpha: fraction,
+    colours: z.array(hexColor).min(1),
+  }),
+  /** The HUD's big countdown ("10 … 1"): its size (design px, × the large-text setting) and a
+   *  short pulse on each new second (sim time). */
+  countdown: obj({ fontPx: pos, pulse: z.number().min(0).max(0.5), pulseSeconds: pos }),
+});
+export type NewYearLook = z.infer<typeof NEWYEAR_LOOK>;
 
 export const FeelSchema = obj({
   version,
@@ -2604,6 +2687,9 @@ export const FeelSchema = obj({
     missStreak: posInt,
     /** v1.8 (D-050): a tin can juggled this many times in a row: Oupa's canChain line. */
     canChain: posInt,
+    /** D-065 (New Year): one bag worth at least this many points in the countdown is a big shot
+     *  (so is a two-in-one or a whole flock): Oupa's countdownShot line. */
+    countdownShotAward: posInt,
     /** Seconds without a shot (idle), and seconds left on the clock (lastSeconds). */
     idleSeconds: pos,
     lastSeconds: pos,
@@ -2715,6 +2801,8 @@ export const FeelSchema = obj({
       halloween: HALLOWEEN_LOOK,
       /** D-064 Christmas in the sun. */
       christmas: CHRISTMAS_LOOK,
+      /** D-065 the New Year countdown. */
+      newyear: NEWYEAR_LOOK,
     }),
   }),
   /** v1.8 (D-050): how the tin cans look and sound (src/game/view/cans; the look only). */

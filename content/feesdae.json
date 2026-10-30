@@ -261,6 +261,42 @@
       },
       "sting": "sfx/xmas_sting",
       "shareFrame": "christmas"
+    },
+    {
+      "id": "newyear",
+      "$comment": "D-065 New Year countdown (31 Dec and 1 Jan UTC): a dusk-to-blue-hour Daily with small fireworks on the far horizon. In the hunt's last countdown.lastSeconds every award (bags and event bonuses, never a penalty) is × countdown.mult, a system multiplier after the Stampede's: they stack, so the last 10 s are ×4 (docs/balance/newyear-countdown.md). The share card says the year that starts (shareYearDays 1).",
+      "nameKey": "feesdag.newyear.name",
+      "badgeKey": "feesdag.newyear.badge",
+      "date": {
+        "type": "days",
+        "days": [
+          { "month": 12, "day": 31 },
+          { "month": 1, "day": 1 }
+        ]
+      },
+      "map": "daily",
+      "light": "nuwejaar_skemer",
+      "twist": {
+        "rule": "nuwejaar",
+        "countdown": {
+          "lastSeconds": 10,
+          "mult": 2
+        }
+      },
+      "decorations": [
+        "stars",
+        "fireworks",
+        "partyHats"
+      ],
+      "barks": {
+        "start": "bark.ny_start",
+        "countdown": "bark.ny_countdown",
+        "countdownShot": "bark.ny_bigshot",
+        "end": "bark.ny_end"
+      },
+      "sting": "sfx/ny_sting",
+      "shareFrame": "newyear",
+      "shareYearDays": 1
     }
   ]
 }

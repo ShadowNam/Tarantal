@@ -36,6 +36,9 @@ const SPECIAL_LINE: Partial<Record<BarkTrigger, keyof SpecialBarks>> = {
   feesdagPresent: 'present',
   presentsFound: 'presentsFound',
   feesdagDry: 'dry',
+  // D-065 (New Year): the countdown started (said as the ten-second call), a big shot in it.
+  feesdagCountdown: 'countdown',
+  countdownShot: 'countdownShot',
 };
 
 /** What the HUD knows about this hunt frame besides the events. */
@@ -69,6 +72,8 @@ export class BarkDirector {
   private lastShotTick = 0;
   private idleSaid = false;
   private lastSecondsSaid = false;
+  /** D-065: New Year's countdown is running (its countdownStarted was seen). */
+  private countdownOn = false;
   private quotaSaid = false;
   private quotaPending = false;
   /** Event triggers that hold until said (a boss or the Stampede arrives during the gap). */
@@ -98,6 +103,7 @@ export class BarkDirector {
     this.lastShotTick = tick;
     this.idleSaid = false;
     this.lastSecondsSaid = false;
+    this.countdownOn = false;
     this.quotaSaid = false;
     this.quotaPending = false;
     this.pending = new Set();
@@ -151,6 +157,15 @@ export class BarkDirector {
         case 'bonusAwarded':
           if (e.bonus === 'wholeFlock') cands.push('wholeFlock');
           else if (e.bonus === 'twoFlies') cands.push('twoFlies');
+          // D-065: a two-in-one or a whole flock in New Year's countdown is a big shot.
+          if (this.countdownOn && (e.bonus === 'wholeFlock' || e.bonus === 'twoFlies'))
+            cands.push('countdownShot');
+          break;
+        case 'scoreAwarded':
+          if (this.countdownOn && e.award >= t.countdownShotAward) cands.push('countdownShot');
+          break;
+        case 'countdownStarted':
+          this.countdownOn = true;
           break;
         case 'emptyClick':
           cands.push('emptyClick');
@@ -236,7 +251,10 @@ export class BarkDirector {
       this.lastSecondsSaid = true;
       const latest = (t.lastSeconds - t.lastSecondsLateSeconds) * f.ticksPerSecond;
       if (f.ticksLeft >= latest) {
-        const call = this.force('lastSeconds', f.nowMs);
+        // D-065: on New Year the ten-second call is the countdown's own line.
+        const which =
+          this.specialLine('feesdagCountdown') !== undefined ? 'feesdagCountdown' : 'lastSeconds';
+        const call = this.force(which, f.nowMs);
         if (call !== null) return call;
       }
     }
@@ -283,7 +301,8 @@ export class BarkDirector {
 
   /** 1.9.2 (D-055): says a trigger's next line now, whatever the gap, and claims the gap. */
   private force(trigger: BarkTrigger, nowMs: number): Bark | null {
-    const lines = this.tuning.triggers[trigger].lines;
+    const special = this.specialLine(trigger);
+    const lines = special !== undefined ? [special] : this.tuning.triggers[trigger].lines;
     const i = this.nextLine.get(trigger) ?? 0;
     const line = lines[i % lines.length];
     if (line === undefined) return null;
@@ -330,9 +349,18 @@ export function allBarkLines(t: BarkTuning, specials: readonly SpecialBarks[] = 
 
 /** D-048/D-064: every line of one special day (the moments its twist rule has). */
 export function specialLinesOf(s: SpecialBarks): string[] {
-  return [s.start, s.bat, s.owl, s.lanternsOut, s.present, s.presentsFound, s.dry, s.end].filter(
-    (l): l is string => l !== undefined,
-  );
+  return [
+    s.start,
+    s.bat,
+    s.owl,
+    s.lanternsOut,
+    s.present,
+    s.presentsFound,
+    s.dry,
+    s.countdown,
+    s.countdownShot,
+    s.end,
+  ].filter((l): l is string => l !== undefined);
 }
 
 /** Hunt-start bark: the first hunt of a UTC day (the save remembers the last hunt's day). */

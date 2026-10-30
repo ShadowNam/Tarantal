@@ -786,6 +786,16 @@ export function createSim(config: SimConfig): Sim {
           rng: rng.stream('feesdag'),
         });
   const spookTally = { bats: 0, owls: 0 };
+  // D-065: New Year's countdown — the hunt's last lastSeconds multiply every award (bonus time
+  // moves it later, like the Stampede). No draws: it needs no stream.
+  const countdownCfg =
+    setup.feesdag !== null && setup.feesdag.twist.rule === 'nuwejaar' && !ranged
+      ? setup.feesdag.twist.countdown
+      : null;
+  let countdownAtTick: number | null =
+    countdownCfg === null
+      ? null
+      : Math.max(0, durationTicks - secondsToTicks(countdownCfg.lastSeconds));
   // v1.8 (D-050): the day's fence and its tin cans (Classic and Daily maps; never the Skietbaan's
   // hunt map, which sets its own up, the Season Run or the FTUE: they play no layout).
   // v1.8 (D-050): the Skietbaan's Blikkies target — a short fence in the screen centre at the
@@ -1134,6 +1144,9 @@ export function createSim(config: SimConfig): Sim {
   };
   const stampedeActive = (): boolean => stampedeAtTick !== null && tick >= stampedeAtTick;
   const stampedeMul = (): number => (stampedeActive() ? scoring.stampede.mul : 1);
+  const countdownActive = (): boolean => countdownAtTick !== null && tick >= countdownAtTick;
+  const countdownMul = (): number =>
+    countdownCfg !== null && countdownActive() ? countdownCfg.mult : 1;
   const airMul = (sign: number): number => windSpeedMul(wind, sign);
 
   emit({ type: 'huntStarted', tick: 0, durationTicks, stampedeAtTick });
@@ -2232,6 +2245,7 @@ export function createSim(config: SimConfig): Sim {
             weaponScoreMul: shot.scoreMul[bird.plane] ?? shot.scoreMul.all ?? 1,
             frenzyMul: fMul,
             stampedeMul: stampedeMul(),
+            countdownMul: countdownMul(),
             ...(groundZero ? { ruleMul: 0 } : {}),
           },
           bag?.modifiers ?? [],
@@ -2675,6 +2689,7 @@ export function createSim(config: SimConfig): Sim {
     const award = scoreEventBonus(base, {
       frenzyMul: canBonus ? 1 : frenzyMul(streak, scoring.frenzyTiers),
       stampedeMul: stampedeMul(),
+      countdownMul: countdownMul(),
       multipliers: scoring.eventBonusMultipliers,
       ...(charmMul === 1 ? {} : { bonusMul: charmMul }),
     });
@@ -3019,6 +3034,7 @@ export function createSim(config: SimConfig): Sim {
   function addTime(ticks: number): void {
     durationTicks += ticks;
     if (stampedeAtTick !== null && tick < stampedeAtTick) stampedeAtTick += ticks;
+    if (countdownAtTick !== null && tick < countdownAtTick) countdownAtTick += ticks;
     emit({ type: 'timeAdded', tick, ticks, durationTicks, stampedeAtTick });
   }
 
@@ -3386,6 +3402,8 @@ export function createSim(config: SimConfig): Sim {
       // GDD §8: mass run/flush across the panorama.
       for (const f of flocks) stampede(f);
     }
+    if (countdownCfg !== null && tick === countdownAtTick)
+      emit({ type: 'countdownStarted', tick, endTick: durationTicks, mult: countdownCfg.mult });
 
     while (
       scheduleCursor < schedule.length &&
@@ -3720,6 +3738,15 @@ export function createSim(config: SimConfig): Sim {
                 ...(spook.twist.rule === 'kersfees'
                   ? { presentsClosed: presentsClosed(spook), presentsTotal: spook.presentsTotal }
                   : {}),
+                ...(countdownCfg === null || countdownAtTick === null
+                  ? {}
+                  : {
+                      countdown: {
+                        atTick: countdownAtTick,
+                        active: countdownActive(),
+                        mult: countdownCfg.mult,
+                      },
+                    }),
               },
             }),
       };

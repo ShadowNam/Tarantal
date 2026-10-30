@@ -481,6 +481,16 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       omen: false,
     },
   },
+  // D-065: the New Year countdown, 31 Dec 2026 (a Thursday: the Okavango's Thursday map under
+  // the special's light). A competent hunt: its last 10 s pay × 2 on top of the Stampede.
+  {
+    name: 'daily-2026-12-31-newyear-competent-pointer',
+    seed: 1231,
+    bot: 'competent',
+    mode: 'daily',
+    inputKind: 'pointer',
+    modeConfig: { id: 'daily', biome: 'okavango-spring', layout: 'thu', feesdag: 'newyear' },
+  },
   // 1.9.3 (D-056): makalani nuts (a bot that shoots every nut in view: crack-offs, air hits,
   // pops, landings) and the Karoo's far fence (a bot that shoots every can, the far ones too).
   {

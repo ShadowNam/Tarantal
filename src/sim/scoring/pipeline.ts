@@ -5,8 +5,11 @@
 //   mult   = 1 + behaviourAdd
 //   for each modifier in order (charms in slot order, effects in listed order):
 //       addMult → mult += x        mulMult → mult ×= x
-//   mult  ×= weaponScoreMul × frenzyMul × stampedeMul      (system multipliers, always last)
+//   mult  ×= weaponScoreMul × frenzyMul × stampedeMul × countdownMul
+//                                          (system multipliers, always last; then a Boss Rule's)
 //   award  = round(points × mult)
+// D-065: countdownMul is New Year's "Countdown ×2" (1 outside its last 10 s); it stacks with
+// the Stampede's, so the last 10 s of a New Year Daily are ×4.
 
 export interface BagContext {
   /** Plane base points, or the creature's baseOverride. */
@@ -17,6 +20,8 @@ export interface BagContext {
   readonly frenzyMul: number;
   /** 1 outside the Stampede. */
   readonly stampedeMul: number;
+  /** D-065: New Year's countdown (1 outside it, and on every other day). */
+  readonly countdownMul?: number;
   /** A Boss Rule's multiplier, after everything (Ou Grys: ground shots ×0). Default 1. */
   readonly ruleMul?: number;
 }
@@ -38,6 +43,7 @@ export type BreakdownKind =
   | 'weapon'
   | 'frenzy'
   | 'stampede'
+  | 'countdown'
   | 'bossRule';
 
 export interface BreakdownStep {
@@ -92,6 +98,11 @@ export function scoreBag(ctx: BagContext, modifiers: readonly Modifier[]): BagSc
   if (ctx.frenzyMul !== 1) push('frenzy', 'frenzy', ctx.frenzyMul);
   mult *= ctx.stampedeMul;
   if (ctx.stampedeMul !== 1) push('stampede', 'stampede', ctx.stampedeMul);
+  const countdownMul = ctx.countdownMul ?? 1;
+  if (countdownMul !== 1) {
+    mult *= countdownMul;
+    push('countdown', 'countdown', countdownMul);
+  }
   const ruleMul = ctx.ruleMul ?? 1;
   if (ruleMul !== 1) {
     mult *= ruleMul;
@@ -110,6 +121,8 @@ export interface EventBonusContext {
   readonly multipliers: readonly EventBonusMultiplier[];
   /** A charm's bonusMul for this bonus (M6); 1 when none. */
   readonly bonusMul?: number;
+  /** D-065: New Year's countdown multiplies every award, event bonuses too (1 outside it). */
+  readonly countdownMul?: number;
 }
 
 /**
@@ -120,5 +133,6 @@ export function scoreEventBonus(amount: number, ctx: EventBonusContext): number 
   let mult = ctx.bonusMul ?? 1;
   if (ctx.multipliers.includes('frenzy')) mult *= ctx.frenzyMul;
   if (ctx.multipliers.includes('stampede')) mult *= ctx.stampedeMul;
+  mult *= ctx.countdownMul ?? 1;
   return Math.round(amount * mult);
 }

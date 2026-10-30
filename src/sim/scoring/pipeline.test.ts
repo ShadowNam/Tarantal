@@ -222,6 +222,49 @@ describe('scoring pipeline golden table (GDD §5.3)', () => {
     expect(last?.points).toBe(12);
     expect(last?.mult).toBe(8);
   });
+
+  it("D-065: New Year's countdown multiplies after the Stampede (they stack) and before a Boss Rule", () => {
+    const r = scoreBag(
+      {
+        base: 10,
+        behaviourAdd: 0,
+        weaponScoreMul: 1,
+        frenzyMul: 1,
+        stampedeMul: 2,
+        countdownMul: 2,
+      },
+      [],
+    );
+    expect(r.breakdown.map((s) => s.kind)).toEqual(['base', 'behaviour', 'stampede', 'countdown']);
+    expect(r.award).toBe(40);
+    const zero = scoreBag(
+      {
+        base: 10,
+        behaviourAdd: 0,
+        weaponScoreMul: 1,
+        frenzyMul: 1,
+        stampedeMul: 1,
+        countdownMul: 2,
+        ruleMul: 0,
+      },
+      [],
+    );
+    expect(zero.breakdown.map((s) => s.kind).slice(-2)).toEqual(['countdown', 'bossRule']);
+    expect(zero.award).toBe(0);
+    // countdownMul 1 (every other day) leaves no step.
+    const plain = scoreBag(
+      {
+        base: 10,
+        behaviourAdd: 0,
+        weaponScoreMul: 1,
+        frenzyMul: 1,
+        stampedeMul: 1,
+        countdownMul: 1,
+      },
+      [],
+    );
+    expect(plain.breakdown.map((s) => s.kind)).toEqual(['base', 'behaviour']);
+  });
 });
 
 describe('event bonuses', () => {
@@ -237,6 +280,15 @@ describe('event bonuses', () => {
     expect(scoreEventBonus(50, { frenzyMul: 2, stampedeMul: 2, multipliers })).toBe(200);
     expect(scoreEventBonus(50, { frenzyMul: 1, stampedeMul: 1, multipliers })).toBe(50);
     expect(scoreEventBonus(150, { frenzyMul: 1.5, stampedeMul: 1, multipliers })).toBe(225);
+  });
+
+  it("D-065: New Year's countdown doubles every event bonus, on top of Frenzy × Stampede", () => {
+    expect(
+      scoreEventBonus(25, { frenzyMul: 1, stampedeMul: 2, multipliers, countdownMul: 2 }),
+    ).toBe(100);
+    expect(
+      scoreEventBonus(25, { frenzyMul: 1, stampedeMul: 1, multipliers, countdownMul: 1 }),
+    ).toBe(25);
   });
 
   it('apply a charm bonusMul on top', () => {

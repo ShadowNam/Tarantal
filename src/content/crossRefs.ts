@@ -522,21 +522,33 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   checkUnique('feesdae.json', 'special', feesdae.specials.map((f) => f.id), err);
   const dates = new Set<string>();
   for (const f of feesdae.specials) {
-    const d = f.date;
-    const key = `${d.month}-${d.day}`;
-    if (dates.has(key)) err('feesdae.json', `two specials on ${key}`);
-    dates.add(key);
-    // A fixed date must exist in a leap year at least (29 Feb is allowed).
-    if (d.day > ([31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][d.month - 1] ?? 31))
-      err('feesdae.json', `special "${f.id}": ${key} is not a date`);
+    // Every day a special covers (D-065: a list of days): no two specials share one.
+    const days = f.date.type === 'fixed' ? [f.date] : f.date.days;
+    for (const d of days) {
+      const key = `${d.month}-${d.day}`;
+      if (dates.has(key)) err('feesdae.json', `two specials on ${key}`);
+      dates.add(key);
+      // A date must exist in a leap year at least (29 Feb is allowed).
+      if (d.day > ([31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][d.month - 1] ?? 31))
+        err('feesdae.json', `special "${f.id}": ${key} is not a date`);
+    }
     if (f.map !== 'daily' && !loadedBiomes.has(f.map.biome))
       err('feesdae.json', `special "${f.id}" plays unknown biome "${f.map.biome}"`);
     const b = f.barks;
     for (const k of [f.nameKey, f.badgeKey, b.start, b.bat, b.owl, b.lanternsOut, b.end])
       if (k !== undefined) i18n('feesdae.json', k);
-    for (const k of [b.present, b.presentsFound, b.dry]) if (k !== undefined) i18n('feesdae.json', k);
+    for (const k of [b.present, b.presentsFound, b.dry, b.countdown, b.countdownShot])
+      if (k !== undefined) i18n('feesdae.json', k);
     const propIds = new Set(biomes.flatMap((x) => x.props.map((p) => p.id)));
     const tw = f.twist;
+    // D-065: New Year's countdown — inside the shortest Daily hunt, its moments' lines.
+    if (tw.rule === 'nuwejaar') {
+      if (tw.countdown.lastSeconds >= modes.modes.daily.huntSeconds)
+        err('feesdae.json', `special "${f.id}": the countdown is longer than the Daily hunt`);
+      if (b.countdown === undefined)
+        err('feesdae.json', `special "${f.id}": the nuwejaar rule needs barks.countdown`);
+      continue;
+    }
     // D-064: Christmas's presents — each spot at a known prop, enough spots, its moments' lines.
     if (tw.rule === 'kersfees') {
       for (const s of tw.presents.spots)
