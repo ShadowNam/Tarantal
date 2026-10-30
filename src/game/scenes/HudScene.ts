@@ -105,6 +105,8 @@ export class HudScene extends Phaser.Scene {
   private timer!: Phaser.GameObjects.Text;
   /** v1.8c (D-063): the Harvest's crop meter and fence bar (null outside the Harvest). */
   private harvestBars: HarvestBars | null = null;
+  /** The Oupa line in this frame's banner (one at a time). */
+  private oupaText: string | null = null;
   private frenzyLabel!: Phaser.GameObjects.Text;
   private frenzyBack!: RoundRect;
   private frenzyFill!: RoundRect;
@@ -920,6 +922,7 @@ export class HudScene extends Phaser.Scene {
       else if (e.type === 'gadgetDenied') this.shakeGadget();
     }
     if (banner.length > 0) this.showBanner(banner.join(' · '));
+    this.oupaText = null;
     this.drawGadget(s);
     this.drawZoom(s);
     this.drawChips(s);
@@ -1490,6 +1493,11 @@ export class HudScene extends Phaser.Scene {
   /** v1.8b (D-062): an Oupa line from the guide tables: its caption and his voice. */
   private oupa(key: string, banner: string[]): void {
     const text = this.lazy(key);
+    // v1.8c review: one of Oupa's lines at a time — a later one in the same frame (several ticks
+    // run in one frame after a hold or a slow frame) replaces the earlier, never joins it.
+    const prev = this.oupaText === null ? -1 : banner.lastIndexOf(this.oupaText);
+    if (prev >= 0) banner.splice(prev, 1);
+    this.oupaText = text === '' ? null : text;
     if (text !== '') banner.push(text);
     this.ctx.audio.bark(key);
     this.ctx.hook?.namibLog.push(`bark:${key}`);
@@ -1580,12 +1588,15 @@ export class HudScene extends Phaser.Scene {
     // v1.7b (D-046): under the pickup card while it is up.
     const card = this.pickupCard?.shown ?? null;
     const lay = this.layoutNow;
-    if (lay !== null)
-      this.banner.setY(
-        card === null
+    // v1.8c review: in the Harvest, under its crop and fence bars.
+    const top =
+      lay === null
+        ? 0
+        : this.ctx.huntBiome.harvest === undefined
           ? lay.safe.y + 180
-          : Math.max(lay.safe.y + 180, card.rect.y + card.rect.h + 56),
-      );
+          : harvestBarsRects(lay).repair.y + harvestBarsRects(lay).repair.h + 56;
+    if (lay !== null)
+      this.banner.setY(card === null ? top : Math.max(top, card.rect.y + card.rect.h + 56));
     // Long banners (crate + hint, bonus time + bark) shrink to fit between the HUD corners.
     const l = this.layoutNow;
     const room =
