@@ -10,7 +10,7 @@ import type { TreeLifeHook } from './view/tree/TreeLifeView';
 import type { TellHook } from './view/tell/TellView';
 import type { BaboonHook } from './view/baboon/BaboonView';
 import type { HarvestHook } from './view/harvest/HarvestView';
-import type { BaboonsView, HarvestView } from '../sim/types';
+import type { BaboonsView, HarvestView, PlaneId } from '../sim/types';
 import type { NamibLifeHook } from './view/namib/NamibLifeView';
 import type { LoadStatus, SaveStore } from '../meta/save';
 import type { StorageStatus } from '../meta/storage';
@@ -191,6 +191,9 @@ export interface TestHook {
    *  it belongs to, its reach (px from the aim point) and whether it shows. */
   ammo: string[];
   crosshair: { weapon: string; extent: number; visible: boolean; x: number; y: number };
+  /** D-064 (screenshot specs): the gun's on-screen rect, design px (it runs off the bottom edge,
+   *  so it is not one of the HUD `rects`); null outside a hunt. */
+  gunRect: { x: number; y: number; w: number; h: number } | null;
   /** v1.3: the rifle zoom view: zoom, raise 0..1, the reticle on screen (design px), the sight. */
   zoom: {
     z: number;
@@ -516,6 +519,9 @@ export interface TestHook {
     bystanderPenalty: number;
   } | null;
   harvestMs: number;
+  /** D-064 (perf): ms the special day's view took (its update; the heat shimmer is counted in
+   *  sceneryMs with the mirage), summed over the frames sceneryFrames counts. */
+  feesdagMs: number;
   /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
    *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
   reloadFx: { chipIcons: (string | null)[]; bolts: number; oupaHand: boolean; autoReloads: number };
@@ -542,6 +548,9 @@ export interface TestHook {
   huntSeed: number | null;
   /** M7: the daily hunt running or just ended (null = not a daily). */
   daily: { key: string; number: number; seed: number; official: boolean } | null;
+  /** D-064: Oupa on the title on Christmas: drawn, or left out for lack of room (null: not yet,
+   *  or no Christmas). */
+  titleOupa: 'drawn' | 'nospace' | null;
   /** D-048: the title's special-day badge (null on an ordinary day). */
   feesdag: { id: string; badge: string } | null;
   /** D-048: the Spookjag's things on screen (design px) during a special day's hunt. */
@@ -549,12 +558,36 @@ export interface TestHook {
     id: string;
     lanternsLit: number;
     lanternsTotal: number;
-    things: { id: number; kind: string; x: number; y: number; dark: boolean }[];
+    things: {
+      id: number;
+      kind: string;
+      x: number;
+      y: number;
+      dark: boolean;
+      /** D-064: a present's drawn frame (present_<wrap>_<shut|open>). */
+      frame?: string | null;
+    }[];
     final: boolean;
-    /** Witch hats drawn now (screen design px). */
-    hats: { x: number; y: number }[];
+    /** Witch hats (D-064: Santa hats) drawn now (screen design px), with the wearer's plane. */
+    hats: { x: number; y: number; plane: PlaneId }[];
+    /** D-064 (Christmas): presents still shut and the day's total. */
+    presentsClosed?: number;
+    presentsTotal?: number;
+    /** D-064 (Christmas): the tree the tinsel hangs on, its garlands and baubles; the heat
+     *  shimmer's strength as drawn (0 = off: low tier, reduced motion); found = what Presents
+     *  found! paid (null until then). */
+    tinsel?: {
+      prop: string | null;
+      trees: string[];
+      garlands: number;
+      baubles: number;
+      found: number | null;
+      sheet: 'standard' | 'standin';
+      crowns: { id: string; x: number; y: number; w: number; h: number }[];
+    };
+    heat?: number;
   } | null;
-  /** D-048: the feesdae group's sheet: delivered ('final') or the code-drawn stand-in. */
+  /** D-048: the special's group's sheet: delivered ('final') or the code-drawn stand-in. */
   feesdaeArt: 'final' | 'standin' | null;
   /** M7: challenge of the hunt running or just ended, and the card / tally lines shown. */
   challenge: { seed: number; mode: string; score: number; contentChanged: boolean } | null;

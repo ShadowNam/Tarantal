@@ -32,6 +32,10 @@ const SPECIAL_LINE: Partial<Record<BarkTrigger, keyof SpecialBarks>> = {
   feesdagOwl: 'owl',
   lanternsOut: 'lanternsOut',
   feesdagEnd: 'end',
+  // D-064 (Christmas): a present opened, all found, a near-miss streak or a long dry spell.
+  feesdagPresent: 'present',
+  presentsFound: 'presentsFound',
+  feesdagDry: 'dry',
 };
 
 /** What the HUD knows about this hunt frame besides the events. */
@@ -101,6 +105,12 @@ export class BarkDirector {
     this.autoSaid = false;
   }
 
+  /** D-064: the special day's line for a special-day trigger (undefined: none today). */
+  private specialLine(trigger: BarkTrigger): string | undefined {
+    const own = SPECIAL_LINE[trigger];
+    return own === undefined || this.special === null ? undefined : this.special[own];
+  }
+
   /** D-048: the special day's lines of this hunt (the tally's end line), or null. */
   get specialLines(): SpecialBarks | null {
     return this.special;
@@ -121,6 +131,8 @@ export class BarkDirector {
           if (++this.missRun >= t.missStreak) {
             this.missRun = 0;
             cands.push('missStreak');
+            // D-064: a special with a dry-spell line says it instead (it outranks missStreak).
+            if (this.special?.dry !== undefined) cands.push('feesdagDry');
           }
           break;
         case 'targetBagged':
@@ -194,6 +206,13 @@ export class BarkDirector {
         case 'lanternsOut':
           this.pending.add('lanternsOut');
           break;
+        // D-064: Christmas's presents. The last one says Presents found! instead (held until said).
+        case 'presentOpened':
+          if (e.presentsLeft > 0) cands.push('feesdagPresent');
+          break;
+        case 'presentsFound':
+          this.pending.add('presentsFound');
+          break;
         case 'feesdagStarted':
           if (this.special !== null) this.pending.add('feesdagStart');
           break;
@@ -204,8 +223,10 @@ export class BarkDirector {
     if (f.quotaReached === true && !this.quotaSaid) this.quotaPending = true;
     if (this.quotaPending) cands.push('quotaMet');
     cands.push(...this.pending);
-    if (!this.idleSaid && f.tick - this.lastShotTick >= t.idleSeconds * f.ticksPerSecond)
+    if (!this.idleSaid && f.tick - this.lastShotTick >= t.idleSeconds * f.ticksPerSecond) {
       cands.push('idle');
+      if (this.special?.dry !== undefined) cands.push('feesdagDry');
+    }
     // 1.9.2 (D-055): the ten-second call goes out on time or not at all (no gap, no queue).
     if (
       !this.lastSecondsSaid &&
@@ -221,7 +242,7 @@ export class BarkDirector {
     }
 
     const bark = this.pick(cands, f.nowMs);
-    if (bark?.trigger === 'idle') this.idleSaid = true;
+    if (bark?.trigger === 'idle' || bark?.trigger === 'feesdagDry') this.idleSaid = true;
     if (bark?.trigger === 'quotaMet') {
       this.quotaSaid = true;
       this.quotaPending = false;
@@ -277,8 +298,8 @@ export class BarkDirector {
     const ready = cands.filter(
       (c) =>
         nowMs - (this.lastByTrigger.get(c) ?? -Infinity) >= this.tuning.triggers[c].cooldownMs &&
-        // A special-day trigger speaks only in that day's hunt.
-        (SPECIAL_LINE[c] === undefined || this.special !== null),
+        // A special-day trigger speaks only in that day's hunt, and only if it has that line.
+        (SPECIAL_LINE[c] === undefined || this.specialLine(c) !== undefined),
     );
     let best: BarkTrigger | null = null;
     for (const c of ready)
@@ -286,12 +307,9 @@ export class BarkDirector {
         best = c;
     if (best === null) return null;
     const own = SPECIAL_LINE[best];
+    const special = this.specialLine(best);
     const lines =
-      own === undefined
-        ? this.tuning.triggers[best].lines
-        : this.special === null
-          ? []
-          : [this.special[own]];
+      own === undefined ? this.tuning.triggers[best].lines : special === undefined ? [] : [special];
     const i = this.nextLine.get(best) ?? 0;
     const line = lines[i % lines.length];
     if (line === undefined) return null;
@@ -306,9 +324,15 @@ export class BarkDirector {
 export function allBarkLines(t: BarkTuning, specials: readonly SpecialBarks[] = []): string[] {
   const out = new Set<string>();
   for (const cfg of Object.values(t.triggers)) for (const l of cfg.lines) out.add(l);
-  for (const s of specials)
-    for (const l of [s.start, s.bat, s.owl, s.lanternsOut, s.end]) out.add(l);
+  for (const s of specials) for (const l of specialLinesOf(s)) out.add(l);
   return [...out].sort();
+}
+
+/** D-048/D-064: every line of one special day (the moments its twist rule has). */
+export function specialLinesOf(s: SpecialBarks): string[] {
+  return [s.start, s.bat, s.owl, s.lanternsOut, s.present, s.presentsFound, s.dry, s.end].filter(
+    (l): l is string => l !== undefined,
+  );
 }
 
 /** Hunt-start bark: the first hunt of a UTC day (the save remembers the last hunt's day). */

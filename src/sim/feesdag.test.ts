@@ -23,7 +23,7 @@ function sim(c: Content, mode: ModeConfig = CALM, seed = 11): Sim {
 
 const twist = (c: Content) => {
   const f = c.feesdae.specials.find((s) => s.id === 'halloween');
-  if (f === undefined) throw new Error('no halloween in feesdae.json');
+  if (f?.twist.rule !== 'spookjag') throw new Error('no halloween in feesdae.json');
   return f.twist;
 };
 

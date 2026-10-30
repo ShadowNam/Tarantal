@@ -7,7 +7,7 @@ import type { LivePrefs } from '../prefs';
 import type { Biome, ContentBundle, Feel } from '../../content/schemas';
 import type { PlaneId, SimState } from '../../sim/types';
 import { TICKS_PER_SECOND } from '../../sim/clock';
-import { coreWidth } from '../../sim/world';
+import { coreWidth, LAYER_BLEED_PX as LAYER_BLEED } from '../../sim/world';
 import { TEX } from '../assets/AssetManifest';
 import { powerupIcon, powerupIconEpoch } from '../ui/powerupIcons';
 import type { ParallaxView } from './ParallaxView';
@@ -164,7 +164,7 @@ export class WorldView {
       this.drawStorm(s, width, height);
     if (s.stampedeActive || this.stampedeTint !== null)
       this.drawStampede(s.stampedeActive, width, height);
-    if (s.mirage || this.mirageStrips !== null) this.drawMirage(s);
+    if (s.mirage || this.heatOn() || this.mirageStrips !== null) this.drawMirage(s);
     this.drawRings(s);
     this.drawHelper(s, width, height);
     this.blowWind(s, width, height);
@@ -303,6 +303,19 @@ export class WorldView {
    */
   /** v1.4 B (e2e perf): ms the mirage took to draw this frame. */
   mirageMs = 0;
+  /**
+   * D-064: a special day's heat shimmer (Christmas in the sun), 0 … 1: the same mirage strips
+   * along the horizon at this strength on any map. Off on the low tier and with reduced motion.
+   */
+  heat = 0;
+
+  /** D-064: the heat band along the horizon (a wavering ripple that reads in a still frame). */
+  private heatBands: { tile: Phaser.GameObjects.TileSprite; base: number }[] | null = null;
+
+  /** D-064: whether the special's heat shimmer shows on this device. */
+  heatOn(): boolean {
+    return this.heat > 0 && this.prefs.tier !== 'low' && !this.reducedMotion;
+  }
 
   private drawMirage(s: SimState): void {
     const t0 = performance.now();
@@ -340,12 +353,71 @@ export class WorldView {
     }
     const still = this.prefs.reduceFlashes || this.reducedMotion;
     const t = s.tick / TICKS_PER_SECOND;
+    if (this.heatOn()) this.drawHeatBands(t);
+    // D-064: the special's heat shows the strips at its strength (the omen's mirage wins).
+    const strength = s.mirage ? 1 : this.heatOn() ? this.heat : 0;
     for (const m of this.mirageStrips) {
-      m.img.setVisible(s.mirage);
-      if (!s.mirage) continue;
+      const on = strength > 0;
+      if (m.img.visible !== on) m.img.setVisible(on);
+      if (!on) continue;
       const look = mirageLook(m, t, still);
-      m.img.setAlpha(look.alpha);
+      m.img.setAlpha(look.alpha * strength);
       m.img.setScale(m.sx * look.scaleX, m.img.scaleY);
+    }
+  }
+
+  /**
+   * D-064: the heat band — a strip of fine wavy ripples (pale light and a hint of the ground's
+   * warmth) lying along the far and Ver horizons, so the heat reads even in a still frame. One
+   * TileSprite per horizon, its texture drawn once; it drifts and breathes on sim time (a held frame
+   * holds it). Only while heatOn() (never on the low tier or with reduced motion).
+   */
+  private drawHeatBands(t: number): void {
+    if (this.heatBands === null) {
+      this.heatBands = [];
+      const key = 'feesdae/heatband';
+      const textures = this.scene.textures;
+      if (!textures.exists(key)) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 48;
+        const g = canvas.getContext('2d');
+        if (g !== null) {
+          // Thin wavy lines, brighter in the middle rows, fading out at the top and bottom.
+          for (let row = 4; row < 44; row += 3) {
+            const fade = Math.sin((row / 48) * Math.PI);
+            g.strokeStyle = `rgba(255,250,236,${(0.55 * fade).toFixed(3)})`;
+            g.lineWidth = 1.4;
+            g.beginPath();
+            for (let x = 0; x <= 256; x += 4) {
+              const y = row + Math.sin((x / 256) * Math.PI * 2 * 4 + row * 0.9) * 1.6;
+              if (x === 0) g.moveTo(x, y);
+              else g.lineTo(x, y);
+            }
+            g.stroke();
+          }
+        }
+        textures.addCanvas(key, canvas);
+      }
+      for (const layerId of ['ver_veld', 'far_veld']) {
+        const layer = this.parallax.layer(layerId);
+        const lane = this.biome.lanes[layerId === 'ver_veld' ? 'ver' : 'far'];
+        const ground = lane !== undefined && 'groundY' in lane ? lane.groundY : undefined;
+        if (layer === undefined || ground === undefined || !textures.exists(key)) continue;
+        const w = coreWidth(layer.scrollFactor);
+        const h = layerId === 'ver_veld' ? 28 : 44;
+        const tile = this.scene.add
+          .tileSprite(-LAYER_BLEED, ground[0] - h * 0.75, w + LAYER_BLEED * 2, h, key)
+          .setOrigin(0, 0);
+        layer.fixtures.add(tile);
+        this.heatBands.push({ tile, base: layerId === 'ver_veld' ? 0.5 : 0.75 });
+      }
+    }
+    for (const b of this.heatBands) {
+      // A slow sideways drift and a gentle breathing of the band's strength (sim time).
+      b.tile.tilePositionX = t * 9;
+      b.tile.tilePositionY = Math.sin(t * 1.7) * 2;
+      b.tile.setAlpha(this.heat * b.base * (0.8 + 0.2 * Math.sin(t * 0.9)));
     }
   }
 

@@ -880,11 +880,13 @@ by screen x (±0.7 max); separate volume sliders (music / effects / voice).
 
 ## 11. Special days (Feesdae, D-048)
 
-A special day dresses the day's map; it never swaps the biome art. Everything is in one lazy
-asset group, `feesdae` (loaded when a special day's hunt starts, never with the first download):
-one sheet per special (`feesdae/halloween`, layout and origins in
-`src/game/feesdae/feesdaeAssets.ts`, drawn at 2×) and its sounds. Until the sheet arrives the
-game draws a flat stand-in with the same frames.
+A special day dresses the day's map; it never swaps the biome art. Each special's art and sounds
+are a lazy asset group of their own (loaded when that special's hunt starts, never with the first
+download, never with another special's; D-064): Halloween's `feesdae`, Christmas's
+`feesdae-christmas`. One sheet per special (`feesdae/halloween`, `feesdae/christmas`; layouts and
+origins in `src/game/feesdae/feesdaeAssets.ts` and `christmasAssets.ts`, drawn at 2×; Halloween's
+ships its 2×, Christmas's a 1× pack that HD shows too). Until a sheet arrives the game draws a flat stand-in with the same frames
+(Christmas waits for its listed sheet instead, D-064).
 
 **Halloween — Spookjag (interim art: `npm run art:interim -- --only feesdae`, tools/art/halloween.ts):**
 - *Light:* its own preset, `spookjag` (feel.json lights): a spooky dusk, not a warm sunset — a deep
@@ -925,3 +927,48 @@ A minor that sags a semitone over a low drone, a kalimba figure dropping through
 tail; the owl's soft "hoo-HOOO"; a bat's two high squeaks; a lantern's soft whoomph. Captions:
 "[a spooky organ sting]", "[an owl hoots]", "[a bat squeaks]", "[a lantern puffs out]". Oupa's
 five Spookjag lines are voiced like his others (§10.1).
+
+**Christmas — Christmas in the sun (D-064; interim art: `npm run art:interim -- --only christmas`,
+tools/art/christmas.ts; 644 × 694 design px, drawn at 2× and shipped as a 1× pack, ~1.7 MB on
+the GPU; it stays Standard in HD, like D-054's specials, so an HD hunt stays ≤ 256 MB):**
+- *Light:* its own preset, `kersfees_son`: a blazing midsummer noon — the sky bleached white-hot
+  towards the horizon, the far ridge washed pale in the glare, the veld and near ground baked
+  golden. Birds stay untinted. Along the horizon a heat band of fine wavering ripples (it reads in
+  a still frame) with the Namibië mirage's soft strips, at `looks.christmas.heat` (sim time; off
+  on the low tier and with reduced motion).
+- *Presents:* a box seen a little from the right and above (the front lit, the side in shade,
+  fold creases), three wraps — Christmas red printed with gold stars and a gold ribbon, bottle
+  green with white polka dots and a red ribbon, sky blue with silver stripes and a silver ribbon —
+  paper grain, a glossy ribbon (dark rims, a bright streak) and a full bow (shaded loops, inner
+  shadows, a knot with a highlight), a soft contact shadow. Tucked in behind a prop (drawn under it, so the trunk,
+  rock, tank or bakkie covers 10–50 % of the box and never its middle), feet on the line the
+  prop's art stands on (unit-tested against the art). Opened: the lid knocked back and tilted
+  behind the box, the bow flown, tissue paper and a toy guineafowl peeping out of the dark inside;
+  as it opens the lid hops off (0.7 s) and a puff of paper confetti rises (0.9 s), on sim time;
+  no flash.
+- *Tinsel:* a silver and a red garland — a twisted foil strand with a bright spiral, a dense
+  fringe of fine hairs and sparkles — hung between two hooks in the crown of every listed tree the
+  map has (the camelthorns first; the windpomp one small garland), and red, gold and silver baubles
+  with a ridged cap, a window reflection and a rim light (anchors per tree in
+  `feel.json looks.christmas.tinsel`, checked against the tree's art). A small soft four-point glint
+  walks the baubles, up and down over ~1 s of a 3.2 s turn (never a flash; off with "reduce
+  flashes").
+- *Santa hats:* a red cone flopping back to a white pompom, a white fur brim, on about 30 % of
+  the guineafowl, on the witch hats' head anchors and sizes (three drawings).
+- *Oupa:* an old Karoo farmer, cheerful and respectful — sun-browned face, a full white beard and
+  moustache, bushy white brows and smiling eyes, a khaki short-sleeved shirt with flap pockets,
+  rolled sleeves and folds, a belt, khaki shorts with creases, shaded arms and legs (knees, calves,
+  hands with fingers), socks rolled down over laced brown vellies, and a Santa hat; waving beside the title's
+  badge, his head on the tally slate's corner and on his bark bubble (drawn at half size: he is
+  shown small).
+- *Tally and share card:* a green and red edge round the slate, tinsel along the top, a present
+  on the right edge and Oupa's head in his Santa hat on the left edge (both kept on screen and
+  clear of the buttons); the title "Christmas
+  in the sun 2026". The share text is framed ✨🎁 … 🎅☀️.
+
+**Sounds (interim, `npm run audio:interim -- --only sfx`):** the sting, kwela on a pennywhistle —
+the chorus of "Jingle Bells" (1857, public domain) in D, swung, with the whistle's slides, over a
+chopped guitar and a bass; on the tally the opening of "Silent Night" (1818, public domain) on the
+whistle; a present opening: wrapping paper crackling and a little bell. Captions: "[a pennywhistle
+plays a carol]", "[paper rustles, a little bell rings]". Oupa's five Christmas lines are voiced
+like his others (§10.1; nl text speaks Afrikaans).

@@ -192,6 +192,75 @@
       },
       "sting": "sfx/spook_sting",
       "shareFrame": "halloween"
+    },
+    {
+      "id": "christmas",
+      "$comment": "D-064 Christmas in the sun (25 Dec): a hot midsummer Daily. Wrapped presents are hidden as secrets at the day's props (under the big tree, behind a rock, at the windpomp or the bakkie), partly covered but never wholly; shoot each one open, and finding them all pays Presents found! once. Spots: dx px from the prop's centre, dy = the present's foot below the prop's position, on the line the prop's art stands on (tools/art/christmasSpots.test.ts reads the art).",
+      "nameKey": "feesdag.christmas.name",
+      "badgeKey": "feesdag.christmas.badge",
+      "date": {
+        "type": "fixed",
+        "month": 12,
+        "day": 25
+      },
+      "map": "daily",
+      "light": "kersfees_son",
+      "twist": {
+        "rule": "kersfees",
+        "presents": {
+          "count": [
+            3,
+            5
+          ],
+          "spots": [
+            { "prop": "windpomp", "dx": -56, "dy": 314 },
+            { "prop": "windpomp", "dx": 72, "dy": 314 },
+            { "prop": "reservoir", "dx": -190, "dy": 56 },
+            { "prop": "reservoir", "dx": 174, "dy": 62 },
+            { "prop": "bakkie", "dx": -186, "dy": 96 },
+            { "prop": "bakkie", "dx": 206, "dy": 87 },
+            { "prop": "weaver_camelthorn", "dx": -46, "dy": 260 },
+            { "prop": "weaver_camelthorn", "dx": 50, "dy": 263 },
+            { "prop": "windpomp_sign", "dx": -56, "dy": 128 },
+            { "prop": "windpomp_sign", "dx": 162, "dy": 128 },
+            { "prop": "dead_camelthorn", "dx": -96, "dy": 238 },
+            { "prop": "baobab", "dx": -128, "dy": 261 },
+            { "prop": "baobab", "dx": 128, "dy": 261 },
+            { "prop": "boulder_a", "dx": -106, "dy": 77 },
+            { "prop": "boulder_b", "dx": 98, "dy": 72 },
+            { "prop": "boulder_crack", "dx": -116, "dy": 76 },
+            { "prop": "dassie_koppie", "dx": -224, "dy": 79 },
+            { "prop": "sausage_tree", "dx": -54, "dy": 261 },
+            { "prop": "sausage_tree", "dx": 54, "dy": 261 },
+            { "prop": "mokoro_pole", "dx": -54, "dy": 133 },
+            { "prop": "reeds_b", "dx": -140, "dy": 139 },
+            { "prop": "reeds_c", "dx": 152, "dy": 144 },
+            { "prop": "camelthorn_old", "dx": -28, "dy": 1 },
+            { "prop": "camelthorn_old", "dx": 26, "dy": 1 },
+            { "prop": "quiver_tree", "dx": 30, "dy": 4 },
+            { "prop": "quiver_egg", "dx": 30, "dy": 4 },
+            { "prop": "camelthorn_mature", "dx": -26, "dy": 1 }
+          ],
+          "lift": 50,
+          "rx": 62,
+          "ry": 52,
+          "allFoundBonus": 25
+        }
+      },
+      "decorations": [
+        "tinsel",
+        "santaHats",
+        "heatHaze"
+      ],
+      "barks": {
+        "start": "bark.xmas_start",
+        "present": "bark.xmas_present",
+        "presentsFound": "bark.xmas_all",
+        "dry": "bark.xmas_dry",
+        "end": "bark.xmas_end"
+      },
+      "sting": "sfx/xmas_sting",
+      "shareFrame": "christmas"
     }
   ]
 }

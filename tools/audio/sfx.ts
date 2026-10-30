@@ -10,6 +10,7 @@ import {
   fadeEnds,
   glide,
   highpass,
+  mtof,
   lowpass,
   mix,
   noise,
@@ -709,7 +710,161 @@ const SFX: Readonly<Record<string, () => Buf>> = {
     mix(out, shape(osc('sine', glide(220, 140, 0.1), 0.15, SR), SR, ad(0.002, 0.04)), 0, SR, 0.5);
     return fadeEnds(normalise(out, 0.6), SR);
   },
+  // --- D-064: Christmas in the sun (group "feesdae-christmas", lazy) ------------------------
+  xmas_sting: () =>
+    // Kwela on a pennywhistle: the chorus of "Jingle Bells" (Pierpont, 1857; public domain) in D,
+    // swung, with the whistle's slides, over a chopped guitar and a walking bass.
+    kwela(
+      [
+        [66, 0.5],
+        [66, 0.5],
+        [66, 1],
+        [66, 0.5],
+        [66, 0.5],
+        [66, 1],
+        [66, 0.5],
+        [69, 0.5],
+        [62, 0.75],
+        [64, 0.25],
+        [66, 2],
+      ],
+      [50, 50, 55, 57],
+      0.22,
+    ),
+  xmas_tally: () =>
+    // The opening of "Silent Night" (Gruber, 1818; public domain) on the pennywhistle, gently.
+    kwela(
+      [
+        [69, 1.5],
+        [71, 0.5],
+        [69, 1],
+        [66, 2.5],
+      ],
+      [50, 50],
+      0.3,
+      false,
+    ),
+  present_open: () => {
+    // A present opening: wrapping paper crackling as the lid pops, and a little bell.
+    const r = rng(1225);
+    const out = buf(0.9, SR);
+    for (let k = 0; k < 9; k++) {
+      const at = 0.01 + r() * 0.22;
+      const len = 0.02 + r() * 0.04;
+      mix(
+        out,
+        shape(bandpass(noise(len, SR, r), SR, 2200 + r() * 3200, 1.4), SR, ad(0.002, len / 3)),
+        at,
+        SR,
+        0.5 + r() * 0.5,
+      );
+    }
+    mix(
+      out,
+      bar(2093, 0.7, SR, [
+        [1, 1, 0.28],
+        [2.76, 0.35, 0.12],
+        [5.4, 0.12, 0.05],
+      ]),
+      0.12,
+      SR,
+      0.55,
+    );
+    mix(
+      out,
+      bar(2637, 0.6, SR, [
+        [1, 1, 0.22],
+        [2.76, 0.3, 0.1],
+      ]),
+      0.22,
+      SR,
+      0.35,
+    );
+    return fadeEnds(normalise(withReverb(out, SR, 0.2, 0.8, 0.7), 0.6), SR, 0.002, 0.08);
+  },
 };
+
+/**
+ * D-064: a short kwela tune — a pennywhistle (a breathy tin whistle: a sine with a little second
+ * harmonic and air, a slide up into each note) swung over a guitar chopping the off-beats and a
+ * bass on the beats. `notes`: [MIDI, beats]; `bass`: MIDI roots, one per bar of four beats.
+ */
+function kwela(
+  notes: readonly (readonly [number, number])[],
+  bass: readonly number[],
+  beat: number,
+  chop = true,
+): Buf {
+  const r = rng(1857);
+  const beats = notes.reduce((a, [, b]) => a + b, 0);
+  const len = beats * beat + 0.9;
+  const out = buf(len, SR);
+  let t = 0;
+  for (const [m, b] of notes) {
+    // Swing: an on-beat eighth is long, the off-beat one short.
+    const on = Math.abs(t * 2 - Math.round(t * 2)) < 1e-6 && Math.round(t * 2) % 2 === 0;
+    const dur = b === 0.5 ? (on ? 0.62 : 0.38) * 2 * 0.5 : b;
+    const f = mtof(m);
+    const sec = Math.max(0.1, dur * beat * 0.96);
+    const pitch = (x: number): number =>
+      f * (x < 0.035 ? 0.94 + (0.06 * x) / 0.035 : 1 + 0.006 * Math.sin(x * 34));
+    const tone = buf(sec, SR);
+    mix(tone, osc('sine', pitch, sec, SR), 0, SR, 1);
+    mix(
+      tone,
+      osc('sine', (x) => pitch(x) * 2, sec, SR),
+      0,
+      SR,
+      0.16,
+    );
+    mix(tone, bandpass(noise(sec, SR, r), SR, f * 2, 3), 0, SR, 0.07);
+    shape(
+      tone,
+      SR,
+      (x) => Math.min(1, x / 0.012) * (x > sec - 0.03 ? Math.max(0, (sec - x) / 0.03) : 1),
+    );
+    const start = (on ? t : t + (0.62 - 0.5) * 0.5) * beat;
+    mix(out, tone, Math.max(0, start), SR, 0.55);
+    t += b;
+  }
+  // The backing: bass on the beats, the guitar chopping the off-beats (a major triad).
+  bass.forEach((root, bar) => {
+    for (let k = 0; k < 4; k++) {
+      const at = (bar * 4 + k) * beat;
+      if (at > beats * beat) break;
+      const f = mtof(root - 12 + (k % 2 === 0 ? 0 : 7));
+      mix(
+        out,
+        shape(
+          osc('tri', () => f, beat * 0.9, SR),
+          SR,
+          ad(0.005, beat * 0.35),
+        ),
+        at,
+        SR,
+        0.32,
+      );
+      if (chop)
+        for (const iv of [0, 4, 7])
+          mix(
+            out,
+            shape(
+              lowpass(
+                osc('saw', () => mtof(root + 12 + iv), 0.09, SR),
+                SR,
+                2400,
+              ),
+              SR,
+              ad(0.003, 0.03),
+            ),
+            at + beat * 0.5,
+            SR,
+            0.06,
+          );
+    }
+  });
+  return fadeEnds(normalise(withReverb(out, SR, 0.22, 1, 0.7), 0.85), SR, 0.004, 0.25);
+}
 
 /** A quick marimba arpeggio (stingers). */
 function marimbaRun(notes: readonly number[], step: number, len: number): Buf {

@@ -3,6 +3,21 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.11.1] — Feesdae: Christmas in the sun (25 Dec) (30 Oct 2026)
+
+Decision record D-064. The product owner picked it on 27 Oct from the Feesdae list: "Christmas,
+25 Dec: 'Christmas in the sun': heat haze, tinsel on the camelthorn, Oupa in a Santa hat and
+shorts, presents hidden as secrets, carols on the pennywhistle." The second special on the Feesdae
+system (D-048), after Halloween's Spookjag.
+
+- **Christmas in the sun / Kersfees in die son** on 25 Dec (UTC): the Daily becomes the special for
+  everyone — the day's map under a bright, hot midsummer light, the same seed and first-attempt
+  rules; the title's Daily shows its badge.
+- **Presents hidden as secrets** (the twist, in the sim): 3–5 wrapped presents tucked in behind the
+  day's props (under the big tree, behind a rock, at the windpomp or the bakkie), partly covered
+  but never wholly. Shoot one and it opens (the lid and bow pop off, a puff of paper confetti); find
+  them all for **Presents found! +25**, once.
+
 ## [1.11.0] — Die Oes (The Harvest): a new 30-second mode on a farm field (30 Oct 2026)
 
 Decision record D-063. The product owner (25 Oct): "A very good level we could do, and call it the

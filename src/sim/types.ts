@@ -635,15 +635,16 @@ export interface NutsView {
   readonly bestChain: number;
 }
 
-/** D-048: a Spookjag bat, owl or pumpkin lantern (plane coordinates, like a bird). */
+/** D-048: a Spookjag bat, owl or pumpkin lantern; D-064: a Christmas present (plane coordinates,
+ *  like a bird; a present's y is its centre, its foot `lift` below). */
 export interface SpookThingView {
   readonly id: number;
-  readonly kind: 'bat' | 'owl' | 'lantern';
+  readonly kind: 'bat' | 'owl' | 'lantern' | 'present';
   readonly plane: PlaneId;
   readonly x: number;
   readonly y: number;
   readonly facing: 1 | -1;
-  /** Lanterns: shot out. */
+  /** Lanterns: shot out. Presents: opened. */
   readonly dark: boolean;
   /** Lanterns: on a prop's top ('bare'), a fence post or a rock (render only). */
   readonly base: 'bare' | 'rock' | 'post';
@@ -655,6 +656,9 @@ export interface FeesdagView {
   readonly things: readonly SpookThingView[];
   readonly lanternsLit: number;
   readonly lanternsTotal: number;
+  /** D-064 (Christmas): presents still shut, of the day's total (absent on Halloween). */
+  readonly presentsClosed?: number;
+  readonly presentsTotal?: number;
 }
 
 /** A paper target or (24 Oct update) a steel plate: a circle on its plane (plane px; r already
@@ -737,6 +741,9 @@ export interface HuntResult {
     readonly owls: number;
     readonly lanterns: number;
     readonly lanternsTotal: number;
+    /** D-064 (Christmas): presents opened, of the day's total (absent on Halloween). */
+    readonly presents?: number;
+    readonly presentsTotal?: number;
   };
   readonly biome: string;
   /** v1.2: the map played (null = the plain biome: Season Run, FTUE, old replays). */

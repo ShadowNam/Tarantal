@@ -36,7 +36,10 @@ export function captionFor(e: SimEvent): I18nKey | null {
       return 'caption.can_whistle';
     // D-048: the Spookjag's sting, the owl's hoot (gliding in, or shot), a bat, a lantern.
     case 'feesdagStarted':
-      return 'caption.spook_sting';
+      // D-064: each special's own sting (Christmas: the pennywhistle carol).
+      return e.feesdag === 'christmas' ? 'caption.xmas_sting' : 'caption.spook_sting';
+    case 'presentOpened':
+      return 'caption.present_open';
     case 'spookFlew':
       return e.thing === 'owl' ? 'caption.owl_hoot' : null;
     case 'spookHit':

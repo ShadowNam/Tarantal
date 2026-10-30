@@ -204,6 +204,14 @@ card. Oupa's Spookjag lines keep his Afrikaans exclamations ("Spookjag, my kind!
 | `feesdag.lanterns_out` | Lanterns uit! | Lanterns out! | Laternen aus! | Lantaarns uit! | every lantern shot dark |
 | `feesdag.bat` | Vlermuis! | Bat! | Fledermaus! | Vleermuis! | a bat's +15 pop |
 | `feesdag.owl` | Uil! Beskermd | Owl! Protected | Eule! Geschützt | Uil! Beschermd | the owl's −10 pop |
+| `feesdag.christmas.name` | Kersfees in die son | Christmas in the sun | Weihnachten in der Sonne | Kerst in de zon | D-064: translated (a description, not a name like Spookjag) |
+| `feesdag.christmas.badge` | Kersfees in die son! | Christmas in the sun! | Weihnachten in der Sonne! | Kerst in de zon! | the title's badge |
+| `feesdag.presents_left` | Presente {n}/{total} | Presents {n}/{total} | Geschenke {n}/{total} | Cadeautjes {n}/{total} | a present opened; also the tally's line |
+| `feesdag.presents_found` | Presente gevind! | Presents found! | Geschenke gefunden! | Cadeautjes gevonden! | every present opened (+25) |
+
+Christmas's name is translated in each language ("Christmas in the sun 2026" on the share card);
+Oupa's Christmas lines keep his Afrikaans ("Geseënde Kersfees, my kind!", "Lekker Kersfees!") in
+every language, like his Spookjag lines.
 
 ### Ranks
 

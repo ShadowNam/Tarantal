@@ -22,6 +22,7 @@ import type { AssetKind, AssetStatus } from '../../src/game/assets/AssetManifest
 import type { Catalog } from './catalog';
 import { MEERKAT_SHEET, MEERKAT_SOUNDS } from '../../src/game/assets/desertAssets';
 import { HALLOWEEN_SHEET, SPOOK_SOUNDS } from '../../src/game/feesdae/feesdaeAssets';
+import { CHRISTMAS_SHEET, XMAS_SOUNDS } from '../../src/game/feesdae/christmasAssets';
 
 export interface AuditRow {
   readonly key: string;
@@ -86,6 +87,8 @@ function usages(
   if (key === MEERKAT_SHEET) needles.push(/\bMEERKAT_SHEET\b/);
   // D-048: the special days' sheet by its constant, a sound when played by name.
   if (key === HALLOWEEN_SHEET) needles.push(/\bHALLOWEEN_SHEET\b/);
+  // D-064: Christmas's sheet by its constant, a sound when played by name.
+  if (key === CHRISTMAS_SHEET) needles.push(/\bCHRISTMAS_SHEET\b/);
   // v1.8 (D-050): the tin cans' sheet by its constant (CanView, the placeholder).
   if (key === CAN_SHEET) needles.push(/\bCAN_SHEET\b/);
   // 1.9.3 (D-056): the makalani nut sheet by its constant, and the palm textures
@@ -107,6 +110,12 @@ function usages(
   if (key === HARVEST_SHEET) needles.push(/\bHARVEST_SHEET\b/);
   const palm = /^okavango\/makalani_(trunk|crown)_(near|mid)$/.exec(key);
   if (palm !== null) needles.push(palm[1] === 'trunk' ? /\bpalmTrunkKey\(/ : /\bpalmCrownKey\(/);
+  const xmasSound = Object.entries(XMAS_SOUNDS).find(([, k]) => k === key)?.[0];
+  if (xmasSound !== undefined) {
+    needles.push(new RegExp(`playXmasSound\\([^)]*'${xmasSound}'`));
+    // The tally's carol phrase is played by its constant (TallyScene, outside the lazy chunk).
+    needles.push(new RegExp(`XMAS_SOUNDS\\.${xmasSound}\\b`));
+  }
   const spookSound = Object.entries(SPOOK_SOUNDS).find(([, k]) => k === key)?.[0];
   if (spookSound !== undefined) needles.push(new RegExp(`playSpookSound\\([^)]*'${spookSound}'`));
   const meerkatSound = Object.entries(MEERKAT_SOUNDS).find(([, k]) => k === key)?.[0];
@@ -145,7 +154,9 @@ function usages(
       needles.push(new RegExp(`"barkKey":\\s*"${line}"`));
       needles.push(new RegExp(`"lines":\\s*\\[[^\\]]*"${line}"`));
       // D-048: a special day's own lines (feesdae.json barks).
-      needles.push(new RegExp(`"(start|bat|owl|lanternsOut|end)":\\s*"${line}"`));
+      needles.push(
+        new RegExp(`"(start|bat|owl|lanternsOut|present|presentsFound|dry|end)":\\s*"${line}"`),
+      );
       // v1.8b (D-062): Oupa's baboon lines (guide tables), voiced by HudScene's oupa(key).
       if (line.startsWith('guide\\.baboon\\.')) needles.push(/\bthis\.oupa\(/);
       // v1.8c (D-063): Oupa's Harvest lines, the same way.

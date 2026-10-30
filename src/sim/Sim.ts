@@ -43,11 +43,13 @@ import {
 } from './nuts/makalani';
 import {
   lanternsLit,
+  presentsClosed,
   removeThings,
   spookShape,
   startSpookjag,
   stepSpookjag,
   type Spookjag,
+  type SpookThing,
 } from './feesdag/spookjag';
 import { createCharmEngine, type FiredEffect, type TriggerContext } from './charms/interpreter';
 import { CHARM_SCRIPTS } from './charms/registry';
@@ -1153,6 +1155,7 @@ export function createSim(config: SimConfig): Sim {
       tick: 0,
       feesdag: setup.feesdag.id,
       lanterns: spook.lanternsTotal,
+      ...(spook.twist.rule === 'kersfees' ? { presents: spook.presentsTotal } : {}),
     });
 
   function directorContext(): DirectorContext {
@@ -2388,18 +2391,25 @@ export function createSim(config: SimConfig): Sim {
     const gone: number[] = [];
     for (const id of ids) {
       const t = spook.things.find((x) => x.id === id);
-      if (t === undefined || (t.kind === 'lantern' && t.dark)) continue;
+      if (t === undefined || ((t.kind === 'lantern' || t.kind === 'present') && t.dark)) continue;
+      if (t.kind === 'present') {
+        shotPresent(shotId, t);
+        continue;
+      }
+      // Bats, owls and lanterns are the Spookjag's (Christmas puts up only presents).
+      const tw = spook.twist;
+      if (tw.rule !== 'spookjag') continue;
       let points = 0;
       if (t.kind === 'lantern') t.dark = true;
       else {
         gone.push(t.id);
         if (t.kind === 'bat') {
           spookTally.bats++;
-          points = awardBonus('bat', spook.twist.bats.points);
+          points = awardBonus('bat', tw.bats.points);
         } else {
           // The hadeda's path (penaltyApplied, charms' penalty trigger), with the owl's id.
           spookTally.owls++;
-          points = pass.penaltyOverride.get(OWL) ?? spook.twist.owls.points;
+          points = pass.penaltyOverride.get(OWL) ?? tw.owls.points;
           score += points;
           stats.penalties++;
           emit({ type: 'penaltyApplied', tick, birdId: t.id, creature: OWL, points });
@@ -2422,11 +2432,36 @@ export function createSim(config: SimConfig): Sim {
       if (t.kind === 'lantern' && lit === 0 && !spook.allOutPaid) {
         spook.allOutPaid = true;
         // Like a secret's points: an event bonus through the pipeline.
-        const paid = awardBonus('lanternsOut', spook.twist.lanterns.allOutBonus);
+        const paid = awardBonus('lanternsOut', tw.lanterns.allOutBonus);
         emit({ type: 'lanternsOut', tick, points: paid });
       }
     }
     if (gone.length > 0) removeThings(spook, gone);
+  }
+
+  /**
+   * D-064 (Christmas): a present shot open stays open (no points of its own); the day's last one
+   * pays Presents found!, once — an event bonus through the pipeline, like Lanterns out!.
+   */
+  function shotPresent(shotId: number, t: SpookThing): void {
+    if (spook === null || spook.twist.rule !== 'kersfees') return;
+    t.dark = true;
+    const left = presentsClosed(spook);
+    emit({
+      type: 'presentOpened',
+      tick,
+      shotId,
+      id: t.id,
+      plane: t.plane,
+      x: t.x,
+      y: t.y,
+      presentsLeft: left,
+    });
+    if (left === 0 && !spook.allOutPaid) {
+      spook.allOutPaid = true;
+      const paid = awardBonus('presentsFound', spook.twist.presents.allFoundBonus);
+      emit({ type: 'presentsFound', tick, points: paid });
+    }
   }
 
   /**
@@ -3454,7 +3489,7 @@ export function createSim(config: SimConfig): Sim {
         tick,
       );
       for (const f of r.spawned)
-        if (f.kind !== 'lantern')
+        if (f.kind === 'bat' || f.kind === 'owl')
           emit({ type: 'spookFlew', tick, thing: f.kind, id: f.id, plane: f.plane });
     }
 
@@ -3682,6 +3717,9 @@ export function createSim(config: SimConfig): Sim {
                 })),
                 lanternsLit: lanternsLit(spook),
                 lanternsTotal: spook.lanternsTotal,
+                ...(spook.twist.rule === 'kersfees'
+                  ? { presentsClosed: presentsClosed(spook), presentsTotal: spook.presentsTotal }
+                  : {}),
               },
             }),
       };
@@ -3758,6 +3796,12 @@ export function createSim(config: SimConfig): Sim {
                 owls: spookTally.owls,
                 lanterns: spook.lanternsTotal - lanternsLit(spook),
                 lanternsTotal: spook.lanternsTotal,
+                ...(spook.twist.rule === 'kersfees'
+                  ? {
+                      presents: spook.presentsTotal - presentsClosed(spook),
+                      presentsTotal: spook.presentsTotal,
+                    }
+                  : {}),
               },
             }),
       };

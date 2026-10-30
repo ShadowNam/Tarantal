@@ -1910,6 +1910,31 @@ const spookjagSchema = obj({
   }),
 });
 
+/**
+ * Christmas's twist rule, "Christmas in the sun" (D-064): wrapped presents hidden as secrets,
+ * tucked in behind the day's props (under the big tree, behind a rock, at the windpomp or the
+ * bakkie): partly covered, never wholly. Each opens when shot; finding them all pays once.
+ */
+const kersfeesSchema = obj({
+  rule: z.literal('kersfees'),
+  presents: obj({
+    count: range(posInt),
+    /**
+     * Where a present may stand: at a prop of the day's map, `dx` px from its centre, its foot
+     * `dy` px below the prop's position (on the line the prop's art stands on: a unit test reads
+     * the art). Design px; spots whose prop the map lacks are skipped.
+     */
+    spots: z.array(obj({ prop: id, dx: z.number(), dy: z.number() })).min(1),
+    /** The present's centre above its foot and its hit ellipse (px at plane scale 1; the
+     *  sheet's frames, src/game/feesdae/christmasAssets.ts). */
+    lift: nonNeg,
+    rx: pos,
+    ry: pos,
+    /** Paid once, when the day's last present is opened ("Presents found!"). */
+    allFoundBonus: posInt,
+  }),
+});
+
 /** Bark lines are ASCII `bark.*` keys: the key is also the voice file name (see barkKey). */
 const feesdagBark = z.string().regex(/^bark\.[a-z][a-z0-9_]*$/, 'bark lines are ASCII bark.* keys');
 
@@ -1923,23 +1948,43 @@ export const FeesdagSchema = obj({
   map: z.union([z.literal('daily'), obj({ biome: id, layout: WeekdayIdSchema })]),
   /** A light preset of client/feel.json lights (the look only). */
   light: id,
-  twist: spookjagSchema,
+  /** The day's one twist rule: Halloween's Spookjag, or Christmas's hidden presents (D-064). */
+  twist: z.discriminatedUnion('rule', [spookjagSchema, kersfeesSchema]),
   /** Look pieces the game draws (src/game/feesdae). */
-  decorations: z.array(z.enum(['moon', 'lanterns', 'bats', 'cobwebs', 'witchHats'])),
-  /** Oupa's lines by moment (i18n keys of bark lines). */
+  decorations: z.array(
+    z.enum([
+      'moon',
+      'lanterns',
+      'bats',
+      'cobwebs',
+      'witchHats',
+      // D-064 (Christmas in the sun): tinsel on the big tree, Santa hats, the heat shimmer.
+      'tinsel',
+      'santaHats',
+      'heatHaze',
+    ]),
+  ),
+  /** Oupa's lines by moment (i18n keys of bark lines). Start and end on every special; the rest
+   *  belong to a twist rule (crossRefs checks that a special has its rule's moments). */
   barks: obj({
     start: feesdagBark,
-    bat: feesdagBark,
-    owl: feesdagBark,
-    lanternsOut: feesdagBark,
+    bat: feesdagBark.optional(),
+    owl: feesdagBark.optional(),
+    lanternsOut: feesdagBark.optional(),
+    /** D-064: a present opened, all of them found, a near-miss or a long dry spell. */
+    present: feesdagBark.optional(),
+    presentsFound: feesdagBark.optional(),
+    dry: feesdagBark.optional(),
     end: feesdagBark,
   }),
-  /** The sting at the start (a sound of the feesdae group, src/game/feesdae/feesdaeAssets.ts). */
+  /** The sting at the start (a sound of the special's own lazy group, src/game/feesdae). */
   sting: z.string().regex(/^sfx\/[a-z0-9_]+$/),
   /** The share card's frame (src/game/feesdae: its emoji and the tally's frame art). */
   shareFrame: id,
 });
 export type Feesdag = z.infer<typeof FeesdagSchema>;
+export type SpookjagTwist = z.infer<typeof spookjagSchema>;
+export type KersfeesTwist = z.infer<typeof kersfeesSchema>;
 
 export const FeesdaeSchema = obj({
   version,
@@ -2034,6 +2079,10 @@ export const BARK_TRIGGERS = [
   'feesdagOwl',
   'lanternsOut',
   'feesdagEnd',
+  // D-064 (Christmas in the sun): a present opened, all found, a dry spell.
+  'feesdagPresent',
+  'presentsFound',
+  'feesdagDry',
 ] as const;
 export type BarkTrigger = (typeof BARK_TRIGGERS)[number];
 /** D-048: triggers whose lines come from feesdae.json (their feel.json lines are empty). */
@@ -2043,6 +2092,9 @@ const SPECIAL_DAY_TRIGGERS: readonly string[] = [
   'feesdagOwl',
   'lanternsOut',
   'feesdagEnd',
+  'feesdagPresent',
+  'presentsFound',
+  'feesdagDry',
 ];
 
 // ASCII only: the key is also the voice file name (audio/voice/<key>.wav), and a non-ASCII name
@@ -2208,6 +2260,74 @@ export const LightSchema = obj({
   secretGlow: z.boolean().optional(),
 });
 export type Light = z.infer<typeof LightSchema>;
+
+/** D-048: how Halloween's Spookjag looks (src/game/feesdae; the look only, never a rule). */
+const HALLOWEEN_LOOK = obj({
+      /** The low moon on the sky layer: across it (u), its centre (design px) and size. */
+      moon: obj({ u: fraction, y: z.number(), scale: pos }),
+      /** Little bats flitting round the moon (sky decoration, not targets). */
+      skyBats: obj({ count: nonNegInt, radius: range(pos), periodMs: range(pos) }),
+      /** Share of guineafowl in witch hats (cosmetic; picked by bird id), the hat's width per
+       *  head radius and its tilt back (radians). */
+      hatShare: fraction,
+      hat: obj({ widthPerHeadR: pos, tilt: z.number().min(-0.6).max(0.6) }),
+      /** A lit lantern's warm glow: its alpha and a slow flicker (no flashes). */
+      glow: obj({ alpha: fraction, flicker: z.number().min(0).max(0.5), flickerMs: pos, scale: pos }),
+      /** A soft vignette over the view: its colour, alpha at the corners and the clear centre
+       *  (a fraction of the half-diagonal). Steady: never a flash. */
+      vignette: obj({ color: hexColor, alpha: fraction, inner: fraction }),
+      /** The owl's drawing is shown this much larger than the sheet's frame (feesdae.json owls
+       *  rx/ry match it), and the flight frames per second of the bats and owls. */
+      owlScale: pos,
+      /** Flight frames per second of the bats and owls. */
+      batFps: pos,
+      owlFps: pos,
+      /** Cobwebs on props: the prop, the corner (fractions of its texture), mirrored, size. */
+      cobwebs: z.array(obj({ prop: id, at: z.tuple([fraction, fraction]), flip: z.boolean(), scale: pos })),
+      });
+export type HalloweenLook = z.infer<typeof HALLOWEEN_LOOK>;
+
+/** D-064: an [dx, dy] point relative to a prop's position (design px, the prop's own size). */
+const propPoint = z.tuple([z.number(), z.number()]);
+
+/** D-064: a tree's tinsel — garlands between two points and baubles at points. */
+const tinselParts = {
+  garlands: z
+    .array(obj({ from: propPoint, to: propPoint, colour: z.enum(['silver', 'red']) }))
+    .min(1),
+  baubles: z.array(obj({ at: propPoint, colour: z.enum(['red', 'gold', 'silver']) })),
+};
+
+/** D-064: how Christmas in the sun looks (src/game/feesdae/KersfeesView.ts; the look only). */
+const CHRISTMAS_LOOK = obj({
+  /** Share of guineafowl in tiny Santa hats (cosmetic; picked by bird id), the hat's width per
+   *  head radius and its tilt back (radians): Halloween's witch-hat anchors and sizes. */
+  hatShare: fraction,
+  hat: obj({ widthPerHeadR: pos, tilt: z.number().min(-0.6).max(0.6) }),
+  /** Tinsel on the map's big trees (the camelthorns where the map has them, its main tree
+   *  otherwise): every listed tree the day's map has gets its garlands (hung between two points)
+   *  and baubles. A tree is a prop (points relative to its position) or a tree painted in a
+   *  biome's layer art (`biome`, `layer`, `u` across it and a reference `y`; points relative to
+   *  that). Anchors are checked against the art (tools/art/christmasSpots.test.ts). */
+  tinsel: z
+    .array(
+      z.union([
+        obj({ prop: id, ...tinselParts }),
+        obj({ biome: id, layer: id, u: fraction, y: z.number(), ...tinselParts }),
+      ]),
+    )
+    .min(1),
+  /** A small glint that walks the baubles on sim time (no flash: a soft alpha swell, at most
+   *  `alpha`; still and off with "reduce flashes"). */
+  glint: obj({ periodSeconds: pos, alpha: fraction, scale: pos }),
+  /** The heat shimmer along the horizon (the Namibië mirage strips): their strength 0 … 1. */
+  heat: fraction,
+  /** A present opening: the lid's hop (px at plane scale 1, seconds) and the confetti puff. */
+  lidHopPx: pos,
+  lidSeconds: pos,
+  confettiSeconds: pos,
+});
+export type ChristmasLook = z.infer<typeof CHRISTMAS_LOOK>;
 
 export const FeelSchema = obj({
   version,
@@ -2590,32 +2710,12 @@ export const FeelSchema = obj({
   }),
   /** D-048: how a special day looks (src/game/feesdae; the look only, never a rule). */
   feesdae: obj({
-    looks: z.record(
-      z.string(),
-      obj({
-      /** The low moon on the sky layer: across it (u), its centre (design px) and size. */
-      moon: obj({ u: fraction, y: z.number(), scale: pos }),
-      /** Little bats flitting round the moon (sky decoration, not targets). */
-      skyBats: obj({ count: nonNegInt, radius: range(pos), periodMs: range(pos) }),
-      /** Share of guineafowl in witch hats (cosmetic; picked by bird id), the hat's width per
-       *  head radius and its tilt back (radians). */
-      hatShare: fraction,
-      hat: obj({ widthPerHeadR: pos, tilt: z.number().min(-0.6).max(0.6) }),
-      /** A lit lantern's warm glow: its alpha and a slow flicker (no flashes). */
-      glow: obj({ alpha: fraction, flicker: z.number().min(0).max(0.5), flickerMs: pos, scale: pos }),
-      /** A soft vignette over the view: its colour, alpha at the corners and the clear centre
-       *  (a fraction of the half-diagonal). Steady: never a flash. */
-      vignette: obj({ color: hexColor, alpha: fraction, inner: fraction }),
-      /** The owl's drawing is shown this much larger than the sheet's frame (feesdae.json owls
-       *  rx/ry match it), and the flight frames per second of the bats and owls. */
-      owlScale: pos,
-      /** Flight frames per second of the bats and owls. */
-      batFps: pos,
-      owlFps: pos,
-      /** Cobwebs on props: the prop, the corner (fractions of its texture), mirrored, size. */
-      cobwebs: z.array(obj({ prop: id, at: z.tuple([fraction, fraction]), flip: z.boolean(), scale: pos })),
-      }),
-    ),
+    looks: obj({
+      /** D-048 Halloween's Spookjag. */
+      halloween: HALLOWEEN_LOOK,
+      /** D-064 Christmas in the sun. */
+      christmas: CHRISTMAS_LOOK,
+    }),
   }),
   /** v1.8 (D-050): how the tin cans look and sound (src/game/view/cans; the look only). */
   cans: obj({

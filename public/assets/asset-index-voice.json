@@ -1027,6 +1027,96 @@
       "lufs": -18.5,
       "peakDb": -1
     },
+    "voice/af/bark.xmas_all": {
+      "group": "feesdae-voice-christmas-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-af/audio/voice/af-bark_xmas_all.a7dbd4634bac.ogg",
+        "bytes": 28968,
+        "hash": "a7dbd4634bac"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-af/audio/voice/af-bark_xmas_all.305db1be7047.mp3",
+        "bytes": 35678,
+        "hash": "305db1be7047"
+      },
+      "loop": false,
+      "lufs": -17.3,
+      "peakDb": -1
+    },
+    "voice/af/bark.xmas_dry": {
+      "group": "feesdae-voice-christmas-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-af/audio/voice/af-bark_xmas_dry.9ed7f0a5e7e1.ogg",
+        "bytes": 25880,
+        "hash": "9ed7f0a5e7e1"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-af/audio/voice/af-bark_xmas_dry.b471c346856c.mp3",
+        "bytes": 32686,
+        "hash": "b471c346856c"
+      },
+      "loop": false,
+      "lufs": -17.7,
+      "peakDb": -1
+    },
+    "voice/af/bark.xmas_end": {
+      "group": "feesdae-voice-christmas-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-af/audio/voice/af-bark_xmas_end.09fca042b973.ogg",
+        "bytes": 23834,
+        "hash": "09fca042b973"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-af/audio/voice/af-bark_xmas_end.75e10fc64684.mp3",
+        "bytes": 30057,
+        "hash": "75e10fc64684"
+      },
+      "loop": false,
+      "lufs": -17.7,
+      "peakDb": -1
+    },
+    "voice/af/bark.xmas_present": {
+      "group": "feesdae-voice-christmas-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-af/audio/voice/af-bark_xmas_present.c6e8b105b3cb.ogg",
+        "bytes": 20541,
+        "hash": "c6e8b105b3cb"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-af/audio/voice/af-bark_xmas_present.9e1d8f3b872c.mp3",
+        "bytes": 23788,
+        "hash": "9e1d8f3b872c"
+      },
+      "loop": false,
+      "lufs": -17.2,
+      "peakDb": -1
+    },
+    "voice/af/bark.xmas_start": {
+      "group": "feesdae-voice-christmas-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-af/audio/voice/af-bark_xmas_start.4503f03f2169.ogg",
+        "bytes": 28498,
+        "hash": "4503f03f2169"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-af/audio/voice/af-bark_xmas_start.750e51572ab9.mp3",
+        "bytes": 35623,
+        "hash": "750e51572ab9"
+      },
+      "loop": false,
+      "lufs": -18.4,
+      "peakDb": -1
+    },
     "voice/af/guide.baboon.bagged": {
       "group": "voice-af",
       "origin": "interim",
@@ -2341,6 +2431,96 @@
       "lufs": -16,
       "peakDb": -6.5
     },
+    "voice/de/bark.xmas_all": {
+      "group": "feesdae-voice-christmas-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-de/audio/voice/de-bark_xmas_all.eda0f3b21e89.ogg",
+        "bytes": 31874,
+        "hash": "eda0f3b21e89"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-de/audio/voice/de-bark_xmas_all.6ddecd74a005.mp3",
+        "bytes": 35962,
+        "hash": "6ddecd74a005"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -3.5
+    },
+    "voice/de/bark.xmas_dry": {
+      "group": "feesdae-voice-christmas-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-de/audio/voice/de-bark_xmas_dry.39952a7765cf.ogg",
+        "bytes": 29188,
+        "hash": "39952a7765cf"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-de/audio/voice/de-bark_xmas_dry.01bae682465d.mp3",
+        "bytes": 32348,
+        "hash": "01bae682465d"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -5.6
+    },
+    "voice/de/bark.xmas_end": {
+      "group": "feesdae-voice-christmas-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-de/audio/voice/de-bark_xmas_end.46111ba99d1b.ogg",
+        "bytes": 30332,
+        "hash": "46111ba99d1b"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-de/audio/voice/de-bark_xmas_end.87c7ecfbe6dd.mp3",
+        "bytes": 33830,
+        "hash": "87c7ecfbe6dd"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -5.9
+    },
+    "voice/de/bark.xmas_present": {
+      "group": "feesdae-voice-christmas-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-de/audio/voice/de-bark_xmas_present.2e63e95ab763.ogg",
+        "bytes": 25086,
+        "hash": "2e63e95ab763"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-de/audio/voice/de-bark_xmas_present.1b3119e17364.mp3",
+        "bytes": 27512,
+        "hash": "1b3119e17364"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.9
+    },
+    "voice/de/bark.xmas_start": {
+      "group": "feesdae-voice-christmas-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-de/audio/voice/de-bark_xmas_start.c00fc346a7dc.ogg",
+        "bytes": 30988,
+        "hash": "c00fc346a7dc"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-de/audio/voice/de-bark_xmas_start.0f6585619cf6.mp3",
+        "bytes": 34896,
+        "hash": "0f6585619cf6"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.2
+    },
     "voice/de/guide.baboon.bagged": {
       "group": "voice-de",
       "origin": "interim",
@@ -3653,6 +3833,96 @@
       },
       "loop": false,
       "lufs": -16,
+      "peakDb": -1
+    },
+    "voice/en/bark.xmas_all": {
+      "group": "feesdae-voice-christmas-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_all.26cbed4b8f23.ogg",
+        "bytes": 23301,
+        "hash": "26cbed4b8f23"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_all.566a6744f7eb.mp3",
+        "bytes": 28573,
+        "hash": "566a6744f7eb"
+      },
+      "loop": false,
+      "lufs": -18.3,
+      "peakDb": -1
+    },
+    "voice/en/bark.xmas_dry": {
+      "group": "feesdae-voice-christmas-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_dry.da3306fb5ed8.ogg",
+        "bytes": 21531,
+        "hash": "da3306fb5ed8"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_dry.4fd484905d76.mp3",
+        "bytes": 25787,
+        "hash": "4fd484905d76"
+      },
+      "loop": false,
+      "lufs": -18.3,
+      "peakDb": -1
+    },
+    "voice/en/bark.xmas_end": {
+      "group": "feesdae-voice-christmas-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_end.14e63b92fa9b.ogg",
+        "bytes": 22695,
+        "hash": "14e63b92fa9b"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_end.26906bc6d327.mp3",
+        "bytes": 28316,
+        "hash": "26906bc6d327"
+      },
+      "loop": false,
+      "lufs": -18.8,
+      "peakDb": -1
+    },
+    "voice/en/bark.xmas_present": {
+      "group": "feesdae-voice-christmas-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_present.c613fcf7b082.ogg",
+        "bytes": 15525,
+        "hash": "c613fcf7b082"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_present.86d9cf602445.mp3",
+        "bytes": 17723,
+        "hash": "86d9cf602445"
+      },
+      "loop": false,
+      "lufs": -17.6,
+      "peakDb": -1
+    },
+    "voice/en/bark.xmas_start": {
+      "group": "feesdae-voice-christmas-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_start.d8d204f0c509.ogg",
+        "bytes": 25768,
+        "hash": "d8d204f0c509"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_start.3ecb6454319b.mp3",
+        "bytes": 33421,
+        "hash": "3ecb6454319b"
+      },
+      "loop": false,
+      "lufs": -17.9,
       "peakDb": -1
     },
     "voice/en/guide.baboon.bagged": {

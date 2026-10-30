@@ -29,6 +29,8 @@ export type BonusId =
   | 'secretChain'
   | 'bat'
   | 'lanternsOut'
+  // D-064: Christmas in the sun — every present of the day found.
+  | 'presentsFound'
   // v1.8 (D-050): tin cans — knocked off, an air hit, gone out of the top ("Weg!").
   | 'canKnock'
   | 'canAir'
@@ -607,6 +609,8 @@ export type SimEvent =
       readonly tick: number;
       readonly feesdag: string;
       readonly lanterns: number;
+      /** D-064: the presents hidden today (Christmas only; absent on Halloween). */
+      readonly presents?: number;
     }
   /** D-048 (Spookjag): a bat or an owl came into the sky at a plane edge (sound cue). */
   | {
@@ -633,6 +637,19 @@ export type SimEvent =
     }
   /** D-048: the day's last lantern went dark — "Lanterns out!", paid once. */
   | { readonly type: 'lanternsOut'; readonly tick: number; readonly points: number }
+  /** D-064 (Christmas): a present was shot open (it stays open); `presentsLeft` are still shut. */
+  | {
+      readonly type: 'presentOpened';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly id: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly presentsLeft: number;
+    }
+  /** D-064: the day's last present opened — "Presents found!", paid once (an event bonus). */
+  | { readonly type: 'presentsFound'; readonly tick: number; readonly points: number }
   /** v1.8 (D-050): a tin can was shot off its post (chain 0) or hit again in the air (chain n ≥ 1,
    *  a canJuggled). `side` −1 … 1 is where the pellets struck across it (it flies the other way);
    *  `marks` the dents, in the can's own upright frame (px from its centre, on its plane);
@@ -876,6 +893,8 @@ export type SimEventType = SimEvent['type'];
 
 /** D-048: what the Spookjag (Halloween) puts up to shoot. */
 export type SpookThingKind = 'bat' | 'owl' | 'lantern';
+/** D-064: what a special day puts up to shoot (Christmas's presents too). */
+export type FeesdagThingKind = SpookThingKind | 'present';
 
 /**
  * Running hash of an event stream (two FNV-1a lanes → 16 hex chars). Events are plain objects

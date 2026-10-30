@@ -20,7 +20,13 @@ import { findLayout } from '../../sim/maps';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, type MenuItem } from '../ui/menu';
 import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
-import { drawSpecialBadge, SPECIAL_STATUS_STYLE } from '../ui/specialBadge';
+import {
+  badgeOupaRect,
+  drawBadgeOupa,
+  drawSpecialBadge,
+  specialStatusStyle,
+} from '../ui/specialBadge';
+import { CHRISTMAS_SHEET } from '../feesdae/christmasKeys';
 
 export interface TitleData {
   /** Starts the hunt; pointerId is the pressing pointer (null from the keyboard). */
@@ -315,15 +321,18 @@ export class TitleScene extends Phaser.Scene {
             ...textStyle(26),
             stroke: '#1B1410',
             strokeThickness: 5,
-            ...(badge === null ? {} : SPECIAL_STATUS_STYLE),
+            ...(badge === null || special === null ? {} : specialStatusStyle(special.id)),
           })
           .setOrigin(0.5, 1)
           .setDepth(badge === null ? 0 : 6);
         // v1.8c: five buttons now; the line keeps to its own slot (the Harvest's line is next to it).
         fitText(status, bw + gap);
         if (badge !== null) {
-          const r = drawSpecialBadge(this, status.getBounds());
+          const r = drawSpecialBadge(this, status.getBounds(), special?.id);
           if (this.ctx.hook) this.ctx.hook.rects['dailyBadge'] = r;
+          // D-064: on Christmas, Oupa in his Santa hat waves beside the badge once Christmas's
+          // lazy group is in (fetched in the background on the day only; never blocks the title).
+          if (special?.id === 'christmas') this.badgeOupa(r);
         }
         if (this.ctx.hook) {
           const b = status.getBounds();
@@ -489,6 +498,84 @@ export class TitleScene extends Phaser.Scene {
   }
 
   /** The line above the Daily button: new today, the streak (and its freeze), or played. */
+  /**
+   * D-064: Oupa beside the Christmas badge. Christmas's lazy group (and the feesdae view chunk)
+   * load in the background on the day only; he appears when the sheet is in, if the title is
+   * still up. Never blocks the title or a hunt.
+   */
+  private badgeOupa(badge: Rect): void {
+    const show = (): void => {
+      if (!this.sys.isActive()) return;
+      const at = this.oupaSpot(badge);
+      if (this.ctx.hook) this.ctx.hook.titleOupa = at === null ? 'nospace' : 'drawn';
+      if (at === null) return;
+      const r = drawBadgeOupa(this, at.x, at.y, at.s);
+      if (r !== null && this.ctx.hook) this.ctx.hook.rects['dailyOupa'] = r;
+    };
+    if (this.textures.exists(CHRISTMAS_SHEET)) {
+      show();
+      return;
+    }
+    void import('../feesdae/FeesdagView')
+      .then(async (m) => {
+        const img = await m.loadFeesdaeAssets(this.ctx.audio, 'christmas');
+        if (img === null || !this.sys.isActive()) return;
+        m.ensureXmasTexture(this, img);
+        show();
+      })
+      .catch(() => undefined);
+  }
+
+  /**
+   * D-064: where Oupa stands on the title, computed from what is on screen now (every aspect
+   * ratio): every menu item (the buttons, the area pill), every line of text (status lines, the
+   * hint, the best line), the small pictures and the badge. Tries beside the badge (left, then
+   * right), then standing on top of it, each at three sizes; the first spot clear of all of them
+   * and inside the safe area wins. Null: no room on this screen (he is left out).
+   */
+  private oupaSpot(badge: Rect): { x: number; y: number; s: number } | null {
+    const { width, height } = designSize();
+    const safe = this.ctx.safeArea();
+    const occupied: Rect[] = [badge, ...(this.menu?.itemRects() ?? [])];
+    const big = width * height * 0.25;
+    for (const child of this.children.list) {
+      if (!(child instanceof Phaser.GameObjects.Text || child instanceof Phaser.GameObjects.Image))
+        continue;
+      if (!child.visible) continue;
+      const b = child.getBounds();
+      if (b.width * b.height >= big || b.width === 0) continue;
+      occupied.push({ x: b.x, y: b.y, w: b.width, h: b.height });
+    }
+    const gap = 6;
+    const foot = badge.y + badge.h;
+    for (const s of [0.36, 0.3, 0.24, 0.19]) {
+      const probe = badgeOupaRect(0, 0, s);
+      const dxFeet = -probe.x; // feet from the rect's left edge
+      const candidates = [
+        // Left of the badge, his right edge clear of it.
+        { x: badge.x - gap - probe.w + dxFeet, y: foot },
+        // Right of the badge.
+        { x: badge.x + badge.w + gap + dxFeet, y: foot },
+        // Standing on top of the badge, at its left end and at its right end.
+        { x: badge.x + dxFeet, y: badge.y - 2 },
+        { x: badge.x + badge.w - probe.w + dxFeet, y: badge.y - 2 },
+      ];
+      for (const c of candidates) {
+        const r = badgeOupaRect(c.x, c.y, s);
+        const inside =
+          r.x >= safe.left + 8 &&
+          r.y >= safe.top + 8 &&
+          r.x + r.w <= width - safe.right - 8 &&
+          r.y + r.h <= height - safe.bottom - 8;
+        const clear = occupied.every(
+          (o) => r.x >= o.x + o.w || o.x >= r.x + r.w || r.y >= o.y + o.h || o.y >= r.y + r.h,
+        );
+        if (inside && clear) return { ...c, s };
+      }
+    }
+    return null;
+  }
+
   private dailyStatus(played: boolean): string {
     // D-028: a test link on a public build only ever plays practice.
     if (this.ctx.daily.unranked) return t('title.daily_unranked');

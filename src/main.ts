@@ -14,6 +14,7 @@ import {
   isPlaneScalePreset,
   withDoppies,
   withEarlySpook,
+  withNearPresents,
   withNoBirds,
   withMakalaniPreview,
   withBaboonRaid,
@@ -427,6 +428,9 @@ const hook: TestHook = {
   baboons: null,
   baboonRaid: null,
   baboonMs: 0,
+  feesdagMs: 0,
+  gunRect: null,
+  titleOupa: null,
   harvestActors: null,
   harvestFlyovers: [],
   harvest: null,
@@ -492,7 +496,11 @@ const noPalms = testHooks && params.get('palms') === '0' ? withNoPalms(noBirds) 
 // e2e/dev only (review M14): ?makalaniPreview=juggle|pop — easy air hits, or every hit pops.
 const nutPreview = testHooks ? params.get('makalaniPreview') : null;
 const withNuts = nutPreview === null ? noPalms : withMakalaniPreview(noPalms, nutPreview);
-const devSpook = testHooks && params.get('spook') === 'early' ? withEarlySpook(withNuts) : withNuts;
+const earlySpook =
+  testHooks && params.get('spook') === 'early' ? withEarlySpook(withNuts) : withNuts;
+// e2e/dev only (D-064): ?presents=near — Christmas's two presents either side of the tinsel tree.
+const devSpook =
+  testHooks && params.get('presents') === 'near' ? withNearPresents(earlySpook) : earlySpook;
 // e2e/dev only (v1.8b, D-062): ?baboonRaid=<action>|any — a raid of that kind within seconds.
 const raidPreview = testHooks ? params.get('baboonRaid') : null;
 const withRaid = raidPreview === null ? devSpook : withBaboonRaid(devSpook, raidPreview);

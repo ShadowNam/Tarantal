@@ -457,6 +457,30 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       omen: false,
     },
   },
+  // D-064: Christmas in the sun, 25 Dec 2026 (a Friday: the Karoo's Friday map under the
+  // special's light). A competent hunt, and the spook bot opening every present (Presents found!).
+  {
+    name: 'daily-2026-12-25-christmas-competent-pointer',
+    seed: 1225,
+    bot: 'competent',
+    mode: 'daily',
+    inputKind: 'pointer',
+    modeConfig: { id: 'daily', biome: 'karoo-autumn', layout: 'fri', feesdag: 'christmas' },
+  },
+  {
+    name: 'daily-2026-12-25-christmas-presents-pointer',
+    seed: 1225,
+    bot: 'spook',
+    mode: 'daily',
+    inputKind: 'pointer',
+    modeConfig: {
+      id: 'daily',
+      biome: 'karoo-autumn',
+      layout: 'fri',
+      feesdag: 'christmas',
+      omen: false,
+    },
+  },
   // 1.9.3 (D-056): makalani nuts (a bot that shoots every nut in view: crack-offs, air hits,
   // pops, landings) and the Karoo's far fence (a bot that shoots every can, the far ones too).
   {

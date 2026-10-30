@@ -405,6 +405,12 @@ export class WeaponView {
     }
   }
 
+  /** e2e: the gun's on-screen rect (design px), for screenshot specs that keep it off a crop. */
+  gunRect(): { x: number; y: number; w: number; h: number } {
+    const b = this.gun.getBounds();
+    return { x: b.x, y: b.y, w: b.width, h: b.height };
+  }
+
   private barrelTip(): { x: number; y: number } {
     const r = this.gun.rotation;
     const e = this.rig?.entry;
