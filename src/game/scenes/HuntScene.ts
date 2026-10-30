@@ -72,6 +72,7 @@ import { layoutForDay } from '../../meta/maps';
 import { applyBonusResult, bonusKeys, bonusOpenFor, bonusSlug } from '../../meta/bonusMaps';
 import { formatScore } from '../ui/format';
 import type { HudScene } from './HudScene';
+import { nameSceneWhenHudReady } from './hudReadyScene';
 import type { PauseData } from './PauseScene';
 import { viewFor, type RunData, type RunView } from './RunScene';
 import type { TallyData } from './TallyScene';
@@ -1753,12 +1754,11 @@ export class HuntScene extends Phaser.Scene {
 
     const hook = this.ctx.hook;
     if (hook) {
-      // 'hunt' once the HUD is up: launch() creates it on the next step, and its pause button
-      // exists only then (a heavy first frame, such as the HD baboon sheet's upload, left a test
-      // tapping a pause button not yet there).
-      hud.events.once(Phaser.Scenes.Events.CREATE, () => {
-        if (this.sys.isActive()) hook.scene = 'hunt';
-      });
+      // The scene's name once the HUD is up (its pause button exists only then): 'range' on the
+      // Skietbaan, 'hunt' otherwise.
+      nameSceneWhenHudReady(hook, hud.events, range === null ? 'hunt' : 'range', () =>
+        this.sys.isActive(),
+      );
       hook.mode = this.modeId;
       hook.huntSeed = seed;
       hook.daily =
