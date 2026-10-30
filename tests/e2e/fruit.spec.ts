@@ -16,7 +16,7 @@ import {
   waitTicks,
 } from './helpers';
 
-const QUERY = 'biome=okavango-spring&seed=42&huntSeconds=90&birds=0';
+const QUERY = 'biome=okavango-spring&seed=42&huntSeconds=90&birds=0&baboons=0';
 let pointer = 940;
 
 /** Pans until a sausage hangs within 200 px of the screen's centre, then waits for the camera

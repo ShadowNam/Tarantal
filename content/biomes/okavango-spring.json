@@ -558,15 +558,15 @@
   "palmY": { "near": 1000, "mid": 776 },
   "waterY": { "near": 1030, "mid": 790 },
   "baboons": {
-    "$comment": "v1.8b (D-062): the troop on the highest stretch of the far bank (seats on the skyline: tools/art/ridgeLine.ts). Raids: the sausage tree, a mielie cob, fruit thrown at a flock, a chase.",
+    "$comment": "v1.8b (D-062): the troop on the far bank east of the sausage tree, clear of its fruit's line of fire (review round 2) (seats on the skyline: tools/art/ridgeLine.ts). Raids: the sausage tree, a mielie cob, fruit thrown at a flock, a chase.",
     "troops": [
       {
         "id": "troop",
         "layer": "far_ridge",
         "plane": "far",
-        "u": 0.575,
-        "seats": [{"dx":-176,"y":516},{"dx":-136,"y":545},{"dx":-98,"y":513},{"dx":-62,"y":519},{"dx":-26,"y":529},{"dx":10,"y":540},{"dx":46,"y":546},{"dx":84,"y":547},{"dx":122,"y":547},{"dx":162,"y":541}],
-        "lookout": 2
+        "u": 0.8417,
+        "seats": [{"dx":-176,"y":540},{"dx":-136,"y":526},{"dx":-98,"y":542},{"dx":-62,"y":537},{"dx":-26,"y":546},{"dx":10,"y":552},{"dx":46,"y":547},{"dx":84,"y":539},{"dx":122,"y":532},{"dx":162,"y":552}],
+        "lookout": 1
       }
     ],
     "spots": [

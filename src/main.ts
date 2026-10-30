@@ -17,6 +17,7 @@ import {
   withNoBirds,
   withMakalaniPreview,
   withBaboonRaid,
+  withNoBaboons,
   withNoPalms,
   withPlaneScales,
   withQuotaMul,
@@ -488,7 +489,9 @@ const withNuts = nutPreview === null ? noPalms : withMakalaniPreview(noPalms, nu
 const devSpook = testHooks && params.get('spook') === 'early' ? withEarlySpook(withNuts) : withNuts;
 // e2e/dev only (v1.8b, D-062): ?baboonRaid=<action>|any — a raid of that kind within seconds.
 const raidPreview = testHooks ? params.get('baboonRaid') : null;
-const devBundle = raidPreview === null ? devSpook : withBaboonRaid(devSpook, raidPreview);
+const withRaid = raidPreview === null ? devSpook : withBaboonRaid(devSpook, raidPreview);
+// e2e only (v1.8b, D-062): ?baboons=0 — no baboon troops (specs that don't test them).
+const devBundle = testHooks && params.get('baboons') === '0' ? withNoBaboons(withRaid) : withRaid;
 // D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
 let adminSave: AdminSave | null = adminOn ? loadAdminSave() : null;
 const adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];

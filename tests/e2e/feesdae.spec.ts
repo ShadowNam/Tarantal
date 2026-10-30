@@ -37,7 +37,7 @@ const SPOOK_LINES = [B.start, B.bat, B.owl, B.lanternsOut, B.end];
 // day. Without a fixed day the owl test passed on 28 Oct and timed out on 29 Oct (another map,
 // so the owls flew elsewhere). 2026-10-28 is the day the 1.9.5 full CI passed on. `layout=none`
 // keeps what boot() adds when no day is given (it only touches Classic hunts).
-const DAY = 'today=2026-10-28&layout=none';
+const DAY = 'today=2026-10-28&layout=none&baboons=0';
 const QUERY = `feesdag=halloween&seed=42&omen=0&huntSeconds=40&palms=0&${DAY}`;
 
 type R = { x: number; y: number; w: number; h: number };

@@ -20,7 +20,7 @@ test('spook → run → flush by shooting, then the Vuvuzela', async ({ page }, 
   test.setTimeout(240_000);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
-  await boot(page, 'seed=42&huntSeconds=60');
+  await boot(page, 'seed=42&huntSeconds=60&baboons=0');
   await startHunt(page, touch);
 
   // Three shots into the flock that forages in view at the start, 15 ticks apart (the

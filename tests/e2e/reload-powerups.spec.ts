@@ -212,7 +212,7 @@ test('Blitslaai: its chip, a reload in about a third of the time, glints on the 
   test.setTimeout(300_000);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
-  await boot(page, 'seed=7&huntSeconds=90&crate=blitslaai');
+  await boot(page, 'seed=7&huntSeconds=90&crate=blitslaai&baboons=0');
   await startHunt(page, touch);
   await pickUp(page, touch, 'blitslaai');
   // The chip shows its icon while the power-up runs (12 s of sim time, so check it straight away).
@@ -241,7 +241,7 @@ test('Oupa Laai: its chip and hand; an empty belt reloads by itself and Oupa say
   test.setTimeout(300_000);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
-  await boot(page, 'seed=7&huntSeconds=90&crate=oupa_laai');
+  await boot(page, 'seed=7&huntSeconds=90&crate=oupa_laai&baboons=0');
   await startHunt(page, touch);
   await pickUp(page, touch, 'oupa_laai');
   // Empty the belt at once (no reload gesture anywhere in this test); the chip, the hand and the

@@ -113,7 +113,7 @@ test('secrets: fence bell → Meerkat Spotter, spare wheel, potjie +5 s; wind so
   test.setTimeout(300_000);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
-  await boot(page, 'seed=42&huntSeconds=60&omen=1');
+  await boot(page, 'seed=42&huntSeconds=60&omen=1&baboons=0');
   await startHunt(page, touch);
   expect((await hook(page)).wind).not.toBeNull();
 
@@ -163,7 +163,7 @@ test('crate weapon: shoot the crate, then hold to fire the Mielie-Masjien', asyn
   test.setTimeout(300_000);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
-  await boot(page, 'seed=7&huntSeconds=60&crate=mielie_masjien');
+  await boot(page, 'seed=7&huntSeconds=60&crate=mielie_masjien&baboons=0');
   await startHunt(page, touch);
   await page.waitForFunction(() => (window.__TM__?.crateSpots.length ?? 0) > 0, null, {
     timeout: 120_000,
@@ -226,7 +226,7 @@ test('the Generaal appears at the bakkie (with his pot) in a Classic hunt', asyn
   test.setTimeout(300_000);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
-  await boot(page, 'seed=42&huntSeconds=30');
+  await boot(page, 'seed=42&huntSeconds=30&baboons=0');
   await startHunt(page, touch);
   await page.waitForFunction(
     () => window.__TM__?.specialBirds.some((b) => b.creature === 'generaal') === true,

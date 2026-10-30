@@ -11,7 +11,7 @@ import { decodePng } from '../../tools/assets/image';
 import { fireAt, reloadIfEmpty } from './feesdaeHelpers';
 import { boot, hook, isLandscape, isTouchProject, startHunt, waitTicks } from './helpers';
 
-const BASE = 'biome=bushveld-winter&seed=42&huntSeconds=300&birds=0&graphics=standard';
+const BASE = 'biome=bushveld-winter&seed=42&huntSeconds=300&birds=0&graphics=standard&baboons=0';
 
 interface Tell {
   readonly species: string;

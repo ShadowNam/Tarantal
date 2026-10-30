@@ -68,7 +68,7 @@ test('a tap at a far bird’s centre bags it (D-049: smaller far birds stay shoo
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
   await windbuksSave(page);
-  await boot(page, 'biome=namibie&layout=mon&seed=42&huntSeconds=60');
+  await boot(page, 'biome=namibie&layout=mon&seed=42&huntSeconds=60&baboons=0');
   await startHunt(page, touch);
   expect((await hook(page)).weapon).toBe('windbuks');
   await page.waitForFunction(

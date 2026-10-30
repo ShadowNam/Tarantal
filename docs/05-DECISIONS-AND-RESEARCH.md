@@ -3398,7 +3398,16 @@ something naughty that might get them to eat a bullet or two."
   Langloop, sends the troop over the ridge for 14–22 s. A finished throw or chase threatens the
   flocks nearby. Mothers take the troop's highest seats and never walk: the first sweep showed
   0.2–0.8 accidental mother hits a hunt on the Okavango (its troop sat ~35 px above the far flocks'
-  ground band); the Okavango troop also moved to the highest stretch of its far bank (u 0.575).
+  ground band).
+- *Line of fire (review round 2).* A pellet aimed at a fruit (view-only: the Okavango's sausages)
+  or a little off a secret's part or tell flies on to the far ridge; with the troop behind, a mother
+  cost 15 (fruit.spec on the Okavango). Every map now keeps the seats mothers can take out of the
+  line of fire of every fruit, paying secret part and tell on the near and mid planes over the whole
+  camera sweep (the ridge scrolls slower, so x lines up somewhere; y must not overlap):
+  `tools/art/troopLineOfFire.ts` and its test. The troops moved to clear stretches (Karoo u 0.425,
+  Okavango 0.8417, Namibië 0.425; Bushveld unchanged), and the Kalahari has no troop on Friday (its
+  dead camelthorn's branch lines up with every stretch of the ridge). The "don't shoot it" weaver
+  nests are no targets. e2e specs that shoot at other things or count the score use `?baboons=0`.
   Raid spots that would put a raider over a secret's part, a tell animal, a meerkat
   colony or an ostrich pair are left out on that map (`src/sim/baboons/spotClear.ts`, shared by the
   sim and the content check; ≥ 2 clear spots on every map).

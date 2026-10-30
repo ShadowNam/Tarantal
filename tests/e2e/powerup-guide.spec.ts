@@ -128,7 +128,7 @@ test('the Gun Shed explains all nine power-ups and crate guns, with icons', asyn
 }, info) => {
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
-  await boot(page, 'seed=42');
+  await boot(page, 'seed=42&baboons=0');
   await page.waitForFunction(() => window.__TM__?.rects['shed'] !== undefined, null, {
     timeout: 60_000,
   });
@@ -213,7 +213,7 @@ test('a crate pickup: its card says what it does, and its chip counts down', asy
 }, info) => {
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
-  await boot(page, 'seed=7&huntSeconds=90&crate=boeretroos');
+  await boot(page, 'seed=7&huntSeconds=90&crate=boeretroos&baboons=0');
   await startHunt(page, touch);
   // The crate shows the item it holds.
   const spot = await page.waitForFunction(
@@ -288,7 +288,7 @@ test("Oupa's comments Off: no bark is shown or voiced in a hunt", async ({ page 
   const errors = collectErrors(page);
   await seed(page, { oupa: 'off' });
   // A fresh day (his greeting) and a first pickup (his word on it): both would bark when On.
-  await boot(page, 'seed=7&huntSeconds=40&crate=boeretroos');
+  await boot(page, 'seed=7&huntSeconds=40&crate=boeretroos&baboons=0');
   await voiceReady(page);
   await startHunt(page, touch);
   await pickUp(page, touch, 'boeretroos');
@@ -328,7 +328,7 @@ test("Oupa's comments Text only: his bubble shows, no voice line plays", async (
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
   await seed(page, { oupa: 'text', voiceVolume: 1, masterVolume: 1 });
-  await boot(page, 'seed=7&huntSeconds=40&crate=boeretroos');
+  await boot(page, 'seed=7&huntSeconds=40&crate=boeretroos&baboons=0');
   // The pack is in before the hunt: with Oupa On the greeting below is voiced (the next test).
   await voiceReady(page);
   await startHunt(page, touch);
@@ -368,7 +368,7 @@ test("Oupa's comments Text only: his bubble shows, no voice line plays", async (
 test("Oupa's comments On (the control): the same greeting is voiced", async ({ page }, info) => {
   const touch = isTouchProject(info);
   await seed(page, { oupa: 'on', voiceVolume: 1, masterVolume: 1 });
-  await boot(page, 'seed=7&huntSeconds=40&crate=boeretroos');
+  await boot(page, 'seed=7&huntSeconds=40&crate=boeretroos&baboons=0');
   await voiceReady(page);
   await startHunt(page, touch);
   await page.waitForFunction(
@@ -382,7 +382,7 @@ test("Settings: Oupa's comments cycle On → Text only → Off and are saved", a
   page,
 }, info) => {
   const touch = isTouchProject(info);
-  await boot(page, 'seed=42');
+  await boot(page, 'seed=42&baboons=0');
   await page.waitForFunction(() => window.__TM__?.rects['settings'] !== undefined, null, {
     timeout: 60_000,
   });

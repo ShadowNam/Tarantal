@@ -442,56 +442,15 @@
     }
   ],
   "baboons": {
-    "$comment": "v1.8b (D-062): the troop on the rocky ridge behind the pan (seats on the skyline: tools/art/ridgeLine.ts). Raids: camelthorn pods, fruit thrown at a flock, a chase, a moon.",
+    "$comment": "v1.8b (D-062): the troop on the rocky ridge behind the pan, clear of the camelthorns' line of fire (review round 2) (seats on the skyline: tools/art/ridgeLine.ts). Raids: camelthorn pods, fruit thrown at a flock, a chase, a moon.",
     "troops": [
       {
         "id": "troop",
         "layer": "far_ridge",
         "plane": "far",
-        "u": 0.475,
-        "seats": [
-          {
-            "dx": -176,
-            "y": 476
-          },
-          {
-            "dx": -136,
-            "y": 476
-          },
-          {
-            "dx": -98,
-            "y": 463
-          },
-          {
-            "dx": -62,
-            "y": 452
-          },
-          {
-            "dx": -26,
-            "y": 449
-          },
-          {
-            "dx": 10,
-            "y": 474
-          },
-          {
-            "dx": 46,
-            "y": 480
-          },
-          {
-            "dx": 84,
-            "y": 470
-          },
-          {
-            "dx": 122,
-            "y": 470
-          },
-          {
-            "dx": 162,
-            "y": 452
-          }
-        ],
-        "lookout": 4
+        "u": 0.425,
+        "seats": [{"dx":-176,"y":519},{"dx":-136,"y":510},{"dx":-98,"y":498},{"dx":-62,"y":479},{"dx":-26,"y":478},{"dx":10,"y":467},{"dx":46,"y":455},{"dx":84,"y":446},{"dx":122,"y":468},{"dx":162,"y":482}],
+        "lookout": 7
       }
     ],
     "spots": [

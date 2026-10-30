@@ -739,8 +739,9 @@ Namibian carvers turn into key rings and ornaments (sources: D-056).
   sit on the far ridge, on its skyline: the big male on lookout on the highest seat, 1–3 mothers
   with a baby riding on their back, 1–2 youngsters playing, males grooming, dozing, looking round
   and walking to another seat. Mothers take the highest seats and stay there, so a near miss at a
-  far bird below the ridge lands on a male (no cost), not on a mother. In the sim (own stream
-  `baboons`).
+  far bird below the ridge lands on a male (no cost), not on a mother; and the mothers' seats are
+  never in the line of fire of a fruit, a secret or a tell in front (a shot at the sausages never
+  costs 15). In the sim (own stream `baboons`).
 - **Never targets up there.** A hit on a mother (and her baby) costs **15** (once per 2 s); a hit
   on any member, or the Langloop's shot, sends the troop over the ridge (they climb down out of
   sight) and it comes back after 14–22 s.

@@ -17,8 +17,8 @@ import {
 } from './helpers';
 import { reloadIfEmpty } from './feesdaeHelpers';
 
-const QUERY = 'biome=namibie&layout=tue&seed=42&huntSeconds=90&graphics=standard';
-const DAWN = 'biome=namibie&layout=mon&seed=42&huntSeconds=90&graphics=standard';
+const QUERY = 'biome=namibie&layout=tue&seed=42&huntSeconds=90&graphics=standard&baboons=0';
+const DAWN = 'biome=namibie&layout=mon&seed=42&huntSeconds=90&graphics=standard&baboons=0';
 
 /** The pair's middle on screen (mean of its birds' feet), or null before the chunk is in. */
 async function pairX(page: Page): Promise<number | null> {

@@ -14,7 +14,7 @@ test('potjie: HD art lands, the lid rattles, shot it flies off (+5 s, bark, lid 
   test.setTimeout(600_000);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
-  await boot(page, 'seed=42&huntSeconds=180');
+  await boot(page, 'seed=42&huntSeconds=180&baboons=0');
   await startHunt(page, touch);
   await waitHd(page);
   await panLeft(page, touch);

@@ -254,3 +254,24 @@ export function withBaboonRaid(b: ContentBundle, action: string): ContentBundle 
     }),
   };
 }
+
+/**
+ * v1.8b (D-062, review round 2) ?baboons=0 (e2e only): no baboon troop on any map, for the specs
+ * that shoot at other things or count the score or Oupa's lines (a stray pellet on a ridge mother
+ * would cost 15; a raid adds barks and pops).
+ */
+export function withNoBaboons(b: ContentBundle): ContentBundle {
+  const strip = <T extends { baboons?: unknown }>(x: T): T => {
+    const out = { ...x };
+    delete out.baboons;
+    return out;
+  };
+  return {
+    ...b,
+    biomes: b.biomes.map((x) => ({
+      ...strip(x),
+      layouts: x.layouts.map(strip),
+      bonusMaps: x.bonusMaps.map(strip),
+    })),
+  };
+}
