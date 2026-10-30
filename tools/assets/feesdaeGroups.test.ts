@@ -12,6 +12,13 @@ import {
   XMAS_SOUNDS,
 } from '../../src/game/feesdae/christmasAssets';
 import { FEESDAE_GROUP, HALLOWEEN_SHEET, SPOOK_SOUNDS } from '../../src/game/feesdae/feesdaeAssets';
+import {
+  NEWYEAR_GROUP,
+  NEWYEAR_SHEET,
+  NY_SHEET_H,
+  NY_SHEET_W,
+  NY_SOUNDS,
+} from '../../src/game/feesdae/newyearAssets';
 import { specialAssetGroup } from '../../src/game/feesdae/feesdaeGroups';
 import { VOICE_LANGUAGES } from '../../src/i18n/i18n';
 import { loadContent } from '../testContent';
@@ -27,6 +34,10 @@ describe('the special days split their lazy groups (D-064)', () => {
     expect(specialAssetGroup('christmas')).toBe(CHRISTMAS_GROUP);
     expect(specialVoiceGroup('en', 'halloween')).toBe('feesdae-voice-en');
     expect(specialVoiceGroup('af', 'christmas')).toBe('feesdae-voice-christmas-af');
+    // D-065: New Year's own.
+    expect(specialAssetGroup('newyear')).toBe(NEWYEAR_GROUP);
+    expect(NEWYEAR_GROUP).toBe('feesdae-newyear');
+    expect(specialVoiceGroup('de', 'newyear')).toBe('feesdae-voice-newyear-de');
   });
 
   it('the catalog puts every key in its own special’s group', async () => {
@@ -36,6 +47,8 @@ describe('the special days split their lazy groups (D-064)', () => {
     for (const k of Object.values(SPOOK_SOUNDS)) expect(group(k)).toBe(FEESDAE_GROUP);
     expect(group(CHRISTMAS_SHEET)).toBe(CHRISTMAS_GROUP);
     for (const k of Object.values(XMAS_SOUNDS)) expect(group(k)).toBe(CHRISTMAS_GROUP);
+    expect(group(NEWYEAR_SHEET)).toBe(NEWYEAR_GROUP);
+    for (const k of Object.values(NY_SOUNDS)) expect(group(k)).toBe(NEWYEAR_GROUP);
     for (const f of content.feesdae.specials)
       for (const line of specialLinesOf(f.barks))
         for (const lang of VOICE_LANGUAGES)
@@ -57,5 +70,14 @@ describe('the special days split their lazy groups (D-064)', () => {
     expect(index.images[HALLOWEEN_SHEET]?.group).toBe(FEESDAE_GROUP);
     for (const k of Object.values(XMAS_SOUNDS)) expect(index.audio[k]?.group).toBe(CHRISTMAS_GROUP);
     for (const g of index.initialGroups) expect(g.startsWith('feesdae')).toBe(false);
+    // D-065: New Year's sheet is the 1× Standard pack in HD too (≈ 0.57 MB on the GPU), its
+    // sounds in its own group, no -hd twin.
+    const ny = index.images[NEWYEAR_SHEET];
+    expect(ny?.group).toBe(NEWYEAR_GROUP);
+    expect(ny?.hd).toBeUndefined();
+    expect([ny?.width, ny?.height]).toEqual([NY_SHEET_W, NY_SHEET_H]);
+    expect(NY_SHEET_W * NY_SHEET_H * 4).toBeLessThan(0.6 * 1024 * 1024);
+    expect([...groups].filter((g) => g.startsWith('feesdae-newyear-hd'))).toEqual([]);
+    for (const k of Object.values(NY_SOUNDS)) expect(index.audio[k]?.group).toBe(NEWYEAR_GROUP);
   });
 });

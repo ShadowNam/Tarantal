@@ -8,6 +8,7 @@
 // sighting ever). A separate scene so camera shake never moves it. Fed each frame by HuntScene
 // with the latest snapshot and that frame's events.
 import { xmasKeyIn } from '../feesdae/christmasKeys';
+import { NY_SOUNDS, nyKeyIn, nySheetIn } from '../feesdae/newyearKeys';
 import { redDotIds, redDotUp } from '../view/redDot';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
@@ -124,6 +125,13 @@ export class HudScene extends Phaser.Scene {
   private drawTotal = 1;
   private reload!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
+  /** D-065 (New Year): the big countdown "10 … 1" and the "×2" tag beside the score. */
+  private countdown!: Phaser.GameObjects.Text;
+  private countdownTag!: Phaser.GameObjects.Text;
+  private countdownN = 0;
+  private countdownScale = -1;
+  /** The last second the tick sounded for (a relayout redraws without ticking again). */
+  private countdownTicked = 0;
   private pops: Pop[] = [];
   /** The sim tick the HUD last drew (pops are born and age on it). */
   private popTick = 0;
@@ -270,6 +278,11 @@ export class HudScene extends Phaser.Scene {
         : null;
     this.reload = text(56, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.banner = text(84, '#FFD25A').setOrigin(0.5).setVisible(false);
+    // D-065: New Year's countdown (its size: feel.json feesdae.looks.newyear; text size scales it).
+    this.countdown = text(this.ctx.feel.feesdae.looks.newyear.countdown.fontPx, '#FFE48A')
+      .setOrigin(0.5, 0)
+      .setVisible(false);
+    this.countdownTag = text(44, '#FFD25A').setOrigin(1, 0.5).setVisible(false);
     this.gadgetPanel = new BakedDrawing(this, 'hud.gadget');
     this.zoomPanel = new BakedDrawing(this, 'hud.zoom');
     this.zoomText = text(40, '#F3EAD3', false).setOrigin(0.5).setVisible(false);
@@ -628,6 +641,8 @@ export class HudScene extends Phaser.Scene {
       this.ctx.prefs.leftHanded,
     );
     this.layoutNow = l;
+    // D-065: the countdown re-places itself on the next frame.
+    this.countdownN = -1;
     this.placeStamp();
     this.season?.relayout(l, width, height);
     const hook = this.ctx.hook;
@@ -713,6 +728,63 @@ export class HudScene extends Phaser.Scene {
    * row and the belt (mirrored when left-handed): never over the belt, the reload hint, the
    * gadget or the items, on desktop and on phones.
    */
+  /**
+   * D-065 (New Year): in the countdown, a big "10 … 1" at the top centre — below the pause button
+   * and the Season Run's charm row, so it covers no HUD element — with a short pulse on each new
+   * second (sim time), the "×2" tag left of the score, and a tick on the last 3 s. The banner
+   * moves below it while it shows. Hidden on every other hunt and at 0.
+   */
+  private drawCountdown(s: SimState, l: HudLayout): void {
+    const cd = s.feesdag?.countdown;
+    const tps = TICKS_PER_SECOND;
+    const n = cd?.active === true && s.ticksLeft > 0 ? Math.ceil(s.ticksLeft / tps) : 0;
+    const hook = this.ctx.hook;
+    if (n !== this.countdownN) {
+      this.countdownN = n;
+      const on = n > 0;
+      this.countdown.setVisible(on);
+      this.countdownTag.setVisible(on);
+      if (on) {
+        this.countdown.setText(fill(t('feesdag.countdown_n'), { n }));
+        this.countdownTag.setText(fill(t('feesdag.countdown_mul'), { mult: cd?.mult ?? 2 }));
+        if (n <= 3 && n !== this.countdownTicked) {
+          this.countdownTicked = n;
+          this.ctx.audio.playExtra(NY_SOUNDS.tick, 0, () => 0);
+        }
+      } else this.countdownTicked = 0;
+      const top = l.charms.y + l.charms.h + 12;
+      this.countdown.setPosition(l.safe.x + l.safe.w / 2, top);
+      this.countdownTag.setPosition(l.score.x - 18, l.score.y + l.score.h / 2);
+      this.banner.setY(on ? top + this.countdown.height + 60 : l.safe.y + 180);
+      if (hook) {
+        if (on) {
+          // Its rect at the pulse's largest, so the checks hold through every frame.
+          this.countdown.setScale(1 + this.ctx.feel.feesdae.looks.newyear.countdown.pulse);
+          this.countdownScale = -1;
+          const b = this.countdown.getBounds();
+          const g = this.countdownTag.getBounds();
+          hook.rects['countdown'] = { x: b.x, y: b.y, w: b.width, h: b.height };
+          hook.rects['countdownTag'] = { x: g.x, y: g.y, w: g.width, h: g.height };
+        } else {
+          delete hook.rects['countdown'];
+          delete hook.rects['countdownTag'];
+        }
+        hook.countdown = on ? { n, tag: this.countdownTag.text } : null;
+      }
+    }
+    if (n === 0) return;
+    // The pulse: a little larger as each second starts, back by pulseSeconds (sim time). The
+    // text grows from its top centre, so it never moves up into the rects above it.
+    const look = this.ctx.feel.feesdae.looks.newyear.countdown;
+    const into = tps - (s.ticksLeft % tps === 0 ? tps : s.ticksLeft % tps);
+    const k = Math.max(0, 1 - into / (look.pulseSeconds * tps));
+    const scale = Math.round((1 + look.pulse * k) * 100) / 100;
+    if (scale !== this.countdownScale) {
+      this.countdownScale = scale;
+      this.countdown.setScale(scale);
+    }
+  }
+
   private placeStamp(): void {
     const l = this.layoutNow;
     if (this.buildStamp === null || l === null) return;
@@ -802,6 +874,12 @@ export class HudScene extends Phaser.Scene {
         // sheet or its stand-in already).
         if (e.feesdag === 'christmas') {
           const key = xmasKeyIn(this.textures);
+          if (key !== null) this.bubble?.setPortrait({ key, frame: 'oupa_head' });
+        }
+        // D-065: on New Year his face in his party hat (the delivered sheet only: the stand-in
+        // has just the fireworks' spark).
+        if (e.feesdag === 'newyear' && nySheetIn(this.textures)) {
+          const key = nyKeyIn(this.textures);
           if (key !== null) this.bubble?.setPortrait({ key, frame: 'oupa_head' });
         }
       } else if (e.type === 'lanternsOut') {
@@ -967,6 +1045,7 @@ export class HudScene extends Phaser.Scene {
       this.timer.setColor(timerColor);
     }
     this.score.setText(formatScore(s.score));
+    this.drawCountdown(s, l);
 
     // Frenzy meter: progress toward the next tier; punch-scale on tier up.
     const tiers = this.ctx.content.scoring.frenzyTiers;

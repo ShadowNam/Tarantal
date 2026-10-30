@@ -431,6 +431,7 @@ const hook: TestHook = {
   feesdagMs: 0,
   gunRect: null,
   titleOupa: null,
+  countdown: null,
   harvestActors: null,
   harvestFlyovers: [],
   harvest: null,

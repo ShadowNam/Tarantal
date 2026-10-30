@@ -549,6 +549,8 @@ export interface TestHook {
   huntSeed: number | null;
   /** M7: the daily hunt running or just ended (null = not a daily). */
   daily: { key: string; number: number; seed: number; official: boolean } | null;
+  /** D-065 (New Year): the HUD's countdown digit and its "×2" tag while they show (null else). */
+  countdown: { n: number; tag: string } | null;
   /** D-064: Oupa on the title on Christmas: drawn, or left out for lack of room (null: not yet,
    *  or no Christmas). */
   titleOupa: 'drawn' | 'nospace' | null;
