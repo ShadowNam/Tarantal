@@ -612,5 +612,8 @@
   "tally.harvest_crop_bonus": "Crop bonus",
   "tally.harvest_bystanders": "Workers & piglets",
   "tally.harvest_best": "Your best: {score}",
-  "tally.harvest_new_best": "New Harvest best!"
+  "tally.harvest_new_best": "New Harvest best!",
+  "tally.harvest_best_row": "Your best",
+  "share.harvest": "The Harvest",
+  "share.harvest_crop": "crop saved {pct} %"
 }

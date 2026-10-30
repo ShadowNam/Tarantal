@@ -612,5 +612,8 @@
   "tally.harvest_crop_bonus": "Ernte-Bonus",
   "tally.harvest_bystanders": "Arbeiter & Ferkel",
   "tally.harvest_best": "Dein Rekord: {score}",
-  "tally.harvest_new_best": "Neuer Ernte-Rekord!"
+  "tally.harvest_new_best": "Neuer Ernte-Rekord!",
+  "tally.harvest_best_row": "Dein Rekord",
+  "share.harvest": "Die Ernte",
+  "share.harvest_crop": "Ernte gerettet {pct} %"
 }

@@ -27,6 +27,7 @@ import { layoutForDay } from '../../meta/maps';
 import { bonusSlug } from '../../meta/bonusMaps';
 import type { SaveStore } from '../../meta/save';
 import {
+  buildHarvestShare,
   buildShareText,
   groupThousands,
   type ShareMessage,
@@ -114,6 +115,33 @@ export class DailyFlow {
       feesdag: this.todaysSpecial(),
     });
     return d.seedOverride === undefined ? setup : { ...setup, seed: d.seedOverride };
+  }
+
+  /** v1.8c (D-063): the Harvest's tally extras — just its share card (unranked: no share). */
+  harvestExtras(result: HuntResult, crop: number, grid: string): TallyExtras {
+    let share: ShareMessage | null = null;
+    if (!this.deps.unranked)
+      try {
+        share = buildHarvestShare(
+          {
+            score: result.score,
+            crop,
+            grid,
+            url: this.deps.platform.shareUrl(this.deps.shareBase()),
+          },
+          translator(getLanguage()),
+        );
+      } catch {
+        share = null;
+      }
+    return {
+      tag: null,
+      compare: null,
+      news: [],
+      share,
+      shareInfo: share === null ? null : { mode: 'harvest', official: false },
+      special: null,
+    };
   }
 
   /** D-048: the special day today's Daily plays (Halloween on 31 Oct UTC), or null. */

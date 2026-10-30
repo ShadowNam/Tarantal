@@ -2636,9 +2636,15 @@ export class HuntScene extends Phaser.Scene {
     const finished =
       plan === null ? null : this.ctx.daily.finish(plan, result, this.shareLog?.grid() ?? '');
     const extras =
-      finished === null || verder === null
-        ? finished
-        : { ...finished, news: [verder, ...finished.news] };
+      this.modeId === 'harvest'
+        ? this.ctx.daily.harvestExtras(
+            result,
+            runner.state.harvest?.crop ?? 0,
+            this.shareLog?.grid() ?? '',
+          )
+        : finished === null || verder === null
+          ? finished
+          : { ...finished, news: [verder, ...finished.news] };
     // v1.8c (D-063): the Harvest's own tally lines and its local best.
     const harvest =
       this.modeId === 'harvest' ? this.harvestTally(runner.state.harvest, result) : null;

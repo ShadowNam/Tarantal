@@ -133,6 +133,29 @@ export function buildShareText(input: ShareInput, tr: Translator): ShareMessage 
   };
 }
 
+/** v1.8c (D-063): the Harvest's share card — its name, the score, the crop saved, the bag grid
+ *  and a link to the game (no challenge link: the Harvest has none). */
+export function buildHarvestShare(
+  input: {
+    readonly score: number;
+    readonly crop: number;
+    readonly grid: string;
+    readonly url: string;
+  },
+  tr: Translator,
+): ShareMessage {
+  const line = [
+    `🐦 ${tr.text('app.title')}`,
+    `🌽 ${tr.text('share.harvest')}`,
+    groupThousands(input.score),
+    fill(tr.text('share.harvest_crop'), { pct: String(Math.max(0, Math.floor(input.crop))) }),
+    input.grid,
+  ]
+    .filter((p) => p !== '')
+    .join(' · ');
+  return { text: line, url: input.url };
+}
+
 /** "Monday" or "Monday · Verder" (v1.2: the share card names the map); '' = the plain biome. */
 function mapLabel(input: ShareInput, tr: Translator): string {
   const layout = input.layout ?? null;

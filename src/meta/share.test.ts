@@ -4,6 +4,7 @@ import { loadContent, loadDailyMeta } from '../../tools/testContent';
 import { createSim } from '../sim/Sim';
 import type { SimEvent } from '../sim/events';
 import {
+  buildHarvestShare,
   buildShareText,
   createShareLogger,
   groupThousands,
@@ -163,5 +164,21 @@ describe('share grid', () => {
     }
     expect(log.grid().match(/\p{Extended_Pictographic}|⬛/gu)?.length).toBe(meta.grid.segments);
     expect(hits).toBe(sim.result().hitShots);
+  });
+});
+
+describe('the Harvest share card (v1.8c, D-063)', () => {
+  it('names the mode, the score and the crop saved, with a plain link', () => {
+    const m = buildHarvestShare(
+      { score: 1724, crop: 68.8, grid: '🎯🎯', url: 'https://example.test/' },
+      translator('en'),
+    );
+    expect(m.text).toContain('The Harvest');
+    expect(m.text).toContain(groupThousands(1724));
+    expect(m.text).toContain('crop saved 68 %');
+    expect(m.url).toBe('https://example.test/');
+    expect(
+      buildHarvestShare({ score: 5, crop: 40, grid: '', url: '' }, translator('af')).text,
+    ).toContain('Die Oes');
   });
 });

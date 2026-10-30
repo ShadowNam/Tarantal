@@ -612,5 +612,8 @@
   "tally.harvest_crop_bonus": "Oogstbonus",
   "tally.harvest_bystanders": "Arbeiders & biggetjes",
   "tally.harvest_best": "Je beste: {score}",
-  "tally.harvest_new_best": "Nieuwe beste oogst!"
+  "tally.harvest_new_best": "Nieuwe beste oogst!",
+  "tally.harvest_best_row": "Je beste",
+  "share.harvest": "De Oogst",
+  "share.harvest_crop": "oogst gered {pct} %"
 }

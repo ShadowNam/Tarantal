@@ -612,5 +612,8 @@
   "tally.harvest_crop_bonus": "Oes-bonus",
   "tally.harvest_bystanders": "Werkers & varkies",
   "tally.harvest_best": "Jou beste: {score}",
-  "tally.harvest_new_best": "Nuwe beste oes!"
+  "tally.harvest_new_best": "Nuwe beste oes!",
+  "tally.harvest_best_row": "Jou beste",
+  "share.harvest": "Die Oes",
+  "share.harvest_crop": "oes gered {pct} %"
 }
