@@ -268,6 +268,43 @@ describe('baboon troops (D-062)', () => {
     }
   });
 
+  it("the Windbuks at a seated mother's body centre on the real Karoo costs the penalty", () => {
+    const c = loadContent() as Content;
+    const s = createSim({
+      seed: 42,
+      content: c,
+      mode: {
+        id: 'classic',
+        biome: 'karoo-autumn',
+        layout: 'mon',
+        weapon: 'windbuks',
+        huntSeconds: 300,
+      },
+      inputKind: 'pointer',
+    });
+    steps(s, 30);
+    const t = s.snapshot().baboons?.troops[0];
+    const mother = t?.members.find((m) => m.role === 'mother');
+    if (t === undefined || mother === undefined) throw new Error('no mother');
+    panTo(s, mother.x, 0.15);
+    const st = s.snapshot();
+    const m = st.baboons?.troops[0]?.members.find((x) => x.id === mother.id);
+    if (m === undefined) throw new Error('no mother');
+    const k = c.scoring.planes.far.scale * c.birds.baboons.motherScale;
+    const before = st.score;
+    s.step([
+      {
+        t: 'fire',
+        dx: planeToDx(st.cameraX, 0.15, m.x),
+        sy: m.y + c.birds.baboons.hitboxes.sit.body.oy * k,
+      },
+    ]);
+    const ev = steps(s, 10, [...s.drainEvents()]);
+    const hit = ofType(ev, 'baboonHit')[0];
+    expect(hit?.role).toBe('mother');
+    expect(s.snapshot().score).toBe(before - c.birds.baboons.hit.penalty);
+  });
+
   it('mothers and youngsters never raid; raiders are always males', () => {
     const c = quiet();
     c.birds.baboons.raids.pairChance = 1;
