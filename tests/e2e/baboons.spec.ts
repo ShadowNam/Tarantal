@@ -193,20 +193,44 @@ test('a hit on a mother costs points; the troop runs over the ridge', async ({ p
   test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
   test.setTimeout(900_000);
   const touch = isTouchProject(info);
+  // The Windbuks: one pellet, no spread. Mothers sit on the troop's highest seats, next to the
+  // lookout's: the Dubbelloop's spread would strike a neighbour and send the troop away first.
+  await page.addInitScript(() => {
+    if (localStorage.getItem('tm.e2e.save.v1') !== null) return;
+    localStorage.setItem(
+      'tm.e2e.save.v1',
+      JSON.stringify({
+        v: 1,
+        ftue: { done: true, skipped: false, step: '' },
+        loadout: { weapon: 'windbuks' },
+        unlocks: { weapons: ['windbuks'] },
+      }),
+    );
+  });
   // No raid flag: the troop sits on its ridge (the first raid is 12 s off at the earliest).
   await boot(page, BASE.replace('&baboonRaid=hat', ''));
   await startHunt(page, touch);
+  expect((await hook(page)).weapon).toBe('windbuks');
+  // The troop is in the hook (drawn or culled off screen): pan to a mother, then see her drawn.
+  await page.waitForFunction(
+    () => ((window as unknown as Hooked).__TM__?.baboons ?? []).some((b) => b.role === 'mother'),
+    null,
+    { timeout: 300_000 },
+  );
+  await panTo(
+    page,
+    async () => (await baboonsOf(page)).find((b) => b.role === 'mother')?.x ?? null,
+  );
   await page.waitForFunction(
     () =>
       ((window as unknown as Hooked).__TM__?.baboons ?? []).some(
         (b) => b.role === 'mother' && b.visible,
       ),
     null,
-    { timeout: 300_000 },
+    { timeout: 120_000 },
   );
   const motherOf = async (): Promise<Baboon | undefined> =>
     (await baboonsOf(page)).find((b) => b.role === 'mother' && b.visible);
-  await panTo(page, async () => (await motherOf())?.x ?? null);
   const scale = scoring.planes.far.scale * birds.baboons.motherScale;
   const body = birds.baboons.hitboxes.sit.body;
   let hit = false;
