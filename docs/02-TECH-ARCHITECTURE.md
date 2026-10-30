@@ -1244,6 +1244,21 @@ The friends' Android app before any store account (docs/ANDROID-TEST-APP.md). Ca
   that hits only Spookjag things leaves the Frenzy streak alone, like a secret part. The look
   (light, moon, decorations, hats) is the game's: the special's light replaces the layout's, and
   `src/game/feesdae/FeesdagView.ts` is a lazy chunk with a lazy asset group (`feesdae`).
+  D-064: the twist is a discriminated union on `rule` (`spookjag` | `kersfees`). Christmas's
+  (`kersfees`) puts up only presents — Spookjag things of kind `present` (`dark` = opened), placed
+  at start from `presents.spots` (a prop of the day's map, `dx` from its centre, `dy` = the foot
+  below the prop's position; the layouts' moved props carry them) on the same `feesdag` stream —
+  with the events `presentOpened` and `presentsFound` (paid once, an event bonus); Halloween's
+  draws, events and hashes are unchanged (`feesdagStarted` carries `presents` only on Christmas).
+  **Split groups:** each special's files are a lazy group of their own, so a Halloween hunt never
+  downloads Christmas's files and the other way round: Halloween keeps `feesdae` and
+  `feesdae-voice-<lang>`; Christmas is `feesdae-christmas` and `feesdae-voice-christmas-<lang>`
+  (`specialAssetGroup`, `specialVoiceGroup`). The view module (one lazy chunk for every special)
+  loads only the hunt's special's files; a Christmas hunt waits behind its veil for its own sheet
+  when the index lists it (bounded by the file timeout; else the stand-in draws), so normal play
+  never builds a stand-in on the GPU. On the special day the title fetches the group in the
+  background for Oupa beside the badge (it never blocks the title). The heat shimmer reuses the
+  mirage strips (`WorldView.heat`, no new texture; off on the low tier and with reduced motion).
 
 ## 13. Leaderboards (v1.x)
 Small serverless API (e.g. Cloudflare Workers + D1, or Supabase). Client submits

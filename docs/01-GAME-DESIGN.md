@@ -1144,7 +1144,8 @@ note "verskrikker", not the Dutch "verschrikker" used in the earlier draft.)
   Season Run and challenge links to other modes are unchanged; a challenge to a special Daily
   carries the special. The title's Daily button shows the special's name and a badge. Specials are
   content (`content/feesdae.json`: a date rule — a fixed UTC month/day for now — map, light, twist
-  numbers, decoration ids, bark keys, sting, share frame); only Halloween is chosen so far.
+  numbers, decoration ids, bark keys, sting, share frame); Halloween and Christmas are chosen so
+  far (New Year is next, D-064). No two specials share a date (content check).
   - **Halloween, 31 Oct — "Spookjag":** a dark, cool dusk hunt (its own grade, not the warm
     sunset of the dusk maps) under a big low moon, bats flitting round it,
     pumpkin lanterns glowing on rocks and fence posts (small warm local light, a slow flicker,
@@ -1156,6 +1157,22 @@ note "verskrikker", not the Dutch "verschrikker" used in the earlier draft.)
     Quota, omens and crates are as on any Daily. Oupa: "Spookjag, my kind! Shoot the bats, leave
     the owls." The share card is framed 🎃🦇 … 🦇🌕 and titled "Spookjag 2026"; the tally slate has
     the moon, bats and a pumpkin round it.
+  - **Christmas, 25 Dec — "Christmas in the sun" / "Kersfees in die son" (D-064):** a bright, hot
+    midsummer hunt (its own light, `kersfees_son`) with a heat shimmer along the horizon (off on
+    the low tier and with reduced motion), silver and red tinsel and baubles on the map's big tree
+    (the camelthorn where the map has one, its main tree — or the Karoo's windpomp — otherwise)
+    with a small glint walking the baubles (never a flash), some guineafowl in tiny Santa hats.
+    Twist: **presents hidden as secrets** — 3–5 wrapped presents tucked in behind the day's props
+    (under the big tree, behind a rock, at the windpomp or the bakkie), partly covered but always
+    fair to find (their middle shows); spots per map from content, chosen from the day's seed.
+    Shoot one and it opens (the lid and bow pop off, a puff of paper confetti; no flash) and stays
+    open; find them all for **"Presents found!"** (+25, once, an event bonus, §5.3). Quota, omens
+    and crates are as on any Daily. Oupa wears a Santa hat with his khaki shirt, shorts and vellies
+    (beside the title's badge, on the tally slate and on his bark bubble): "Geseënde Kersfees, my
+    kind! Daar's presente weggesteek." A kwela pennywhistle plays "Jingle Bells" at the start and a
+    phrase of "Silent Night" on the tally (public-domain melodies). The share card is framed
+    ✨🎁 … 🎅☀️ and titled "Christmas in the sun 2026"; the tally slate has tinsel, a present and
+    Oupa's head in his Santa hat round it.
 - **Weekly seeded Season Run** (v1.x) with a leaderboard once replay validation exists.
 - **Bird Book completion**, **Notaboek challenges**, **rank titles**, **per-biome bests**.
 
