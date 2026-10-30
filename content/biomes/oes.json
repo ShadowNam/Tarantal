@@ -189,6 +189,14 @@
     {
       "creature": "tarentaal_wit",
       "weight": 1
+    },
+    {
+      "creature": "fisant",
+      "weight": 25
+    },
+    {
+      "creature": "tortelduif",
+      "weight": 25
     }
   ],
   "feedingSpots": [

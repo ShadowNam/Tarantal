@@ -523,6 +523,78 @@
         "popupHelper"
       ],
       "grants": "meerkat_spotter"
+    },
+    {
+      "$comment": "v1.8c (D-063): Swainson's spurfowl (a francolin) whirring over the Harvest field; fly-overs only, the Harvest's map only.",
+      "id": "fisant",
+      "kind": "target",
+      "planes": [
+        "mid",
+        "far"
+      ],
+      "behaviours": [
+        "flyover"
+      ],
+      "biomes": [
+        "oes"
+      ],
+      "pelletsToBag": 1,
+      "speeds": {
+        "walk": 30,
+        "run": 150,
+        "fly": 470,
+        "glide": 340
+      },
+      "hitbox": {
+        "body": {
+          "rx": 95,
+          "ry": 68,
+          "ox": 0,
+          "oy": 6
+        },
+        "head": {
+          "r": 30,
+          "ox": 104,
+          "oy": -50
+        }
+      },
+      "spawnWeight": 25
+    },
+    {
+      "$comment": "v1.8c (D-063): the Cape turtle dove, fast and small, over the Harvest field; fly-overs only, the Harvest's map only.",
+      "id": "tortelduif",
+      "kind": "target",
+      "planes": [
+        "mid",
+        "far"
+      ],
+      "behaviours": [
+        "flyover"
+      ],
+      "biomes": [
+        "oes"
+      ],
+      "pelletsToBag": 1,
+      "speeds": {
+        "walk": 30,
+        "run": 120,
+        "fly": 560,
+        "glide": 420
+      },
+      "hitbox": {
+        "body": {
+          "rx": 78,
+          "ry": 48,
+          "ox": 0,
+          "oy": 4
+        },
+        "head": {
+          "r": 24,
+          "ox": 84,
+          "oy": -34
+        }
+      },
+      "spawnWeight": 25
     }
   ],
   "meerkats": {

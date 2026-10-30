@@ -7511,6 +7511,140 @@
     }
   },
   "birds": {
+    "fisant": {
+      "far": {
+        "group": "oes",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/oes/birds/fisant-far@1x-0.a8a9e9f9b1df.png",
+                "bytes": 6007,
+                "hash": "a8a9e9f9b1df"
+              },
+              "data": {
+                "path": "assets/oes/birds/fisant-far@1x-0.21486bf49852.json",
+                "bytes": 2422,
+                "hash": "21486bf49852"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "planeScale": 0.15,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/02",
+              "flap/01"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "glide": {
+            "frames": [
+              "glide/00",
+              "glide/00"
+            ],
+            "fps": 6,
+            "loop": true
+          },
+          "hit_poof": {
+            "frames": [
+              "hit_poof/00",
+              "hit_poof/01",
+              "hit_poof/02",
+              "hit_poof/03",
+              "hit_poof/04",
+              "hit_poof/05"
+            ],
+            "fps": 24,
+            "loop": false
+          }
+        }
+      },
+      "mid": {
+        "group": "oes",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/oes/birds/fisant-mid@1x-0.03e2fc52118b.png",
+                "bytes": 32061,
+                "hash": "03e2fc52118b"
+              },
+              "data": {
+                "path": "assets/oes/birds/fisant-mid@1x-0.c92bc915a00f.json",
+                "bytes": 2509,
+                "hash": "c92bc915a00f"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "planeScale": 0.42,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/02",
+              "flap/01"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "glide": {
+            "frames": [
+              "glide/00",
+              "glide/00"
+            ],
+            "fps": 6,
+            "loop": true
+          },
+          "hit_poof": {
+            "frames": [
+              "hit_poof/00",
+              "hit_poof/01",
+              "hit_poof/02",
+              "hit_poof/03",
+              "hit_poof/04",
+              "hit_poof/05"
+            ],
+            "fps": 24,
+            "loop": false
+          }
+        }
+      }
+    },
     "generaal": {
       "mid": {
         "group": "late",
@@ -8945,6 +9079,140 @@
               "takeoff/05"
             ],
             "fps": 20,
+            "loop": false
+          }
+        }
+      }
+    },
+    "tortelduif": {
+      "far": {
+        "group": "oes",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/oes/birds/tortelduif-far@1x-0.b92c3723dc6d.png",
+                "bytes": 5246,
+                "hash": "b92c3723dc6d"
+              },
+              "data": {
+                "path": "assets/oes/birds/tortelduif-far@1x-0.d5a6df64bf78.json",
+                "bytes": 2420,
+                "hash": "d5a6df64bf78"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "planeScale": 0.15,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/02",
+              "flap/01"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "glide": {
+            "frames": [
+              "glide/00",
+              "glide/00"
+            ],
+            "fps": 6,
+            "loop": true
+          },
+          "hit_poof": {
+            "frames": [
+              "hit_poof/00",
+              "hit_poof/01",
+              "hit_poof/02",
+              "hit_poof/03",
+              "hit_poof/04",
+              "hit_poof/05"
+            ],
+            "fps": 24,
+            "loop": false
+          }
+        }
+      },
+      "mid": {
+        "group": "oes",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/oes/birds/tortelduif-mid@1x-0.6170d43dcfec.png",
+                "bytes": 23564,
+                "hash": "6170d43dcfec"
+              },
+              "data": {
+                "path": "assets/oes/birds/tortelduif-mid@1x-0.36c549ab8484.json",
+                "bytes": 2517,
+                "hash": "36c549ab8484"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "planeScale": 0.42,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/02",
+              "flap/01"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "glide": {
+            "frames": [
+              "glide/00",
+              "glide/00"
+            ],
+            "fps": 6,
+            "loop": true
+          },
+          "hit_poof": {
+            "frames": [
+              "hit_poof/00",
+              "hit_poof/01",
+              "hit_poof/02",
+              "hit_poof/03",
+              "hit_poof/04",
+              "hit_poof/05"
+            ],
+            "fps": 24,
             "loop": false
           }
         }

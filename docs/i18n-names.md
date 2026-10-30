@@ -98,6 +98,8 @@ rather than translating word for word. The tables show the text each language fi
 | `creature.hadeda` | Hadeda | Hadeda | Hadeda-Ibis | Hadada-ibis | the real English name; onomatopoeic |
 | `creature.sproeier` | Oom Faan se sproeivliegtuig | Uncle Faan's crop sprayer | Onkel Faans Sprühflieger | Ome Faans sproeivliegtuig | oom = uncle (the neighbour); Faan is a name |
 | `creature.visarend` | Visarend | Fish eagle | Schreiseeadler | Schreeuwarend |  |
+| `creature.fisant` | Fisant | Francolin | Frankolin | Frankolijn | v1.8c (D-063): Swainson's spurfowl; Afrikaans calls it a pheasant |
+| `creature.tortelduif` | Tortelduif | Turtle dove | Kapturteltaube | Tortelduif | v1.8c (D-063): the Cape turtle dove |
 | `creature.meerkat` | Meerkat | Meerkat | Erdmännchen | Stokstaartje |  |
 | `creature.lugballon` | Lugballon | Hot-air balloon | Heißluftballon | Heteluchtballon | v1.7d: Namibië's drifting non-target; the toggle says "Lugballon" |
 

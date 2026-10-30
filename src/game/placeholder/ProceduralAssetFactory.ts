@@ -85,6 +85,22 @@ const PALETTES: Readonly<Record<string, BirdPalette>> = {
     face: '#2F7DE1',
     faceHi: '#6FB3FF',
   },
+  // v1.8c (D-063): the Harvest's fly-overs, until their art is in (a brown francolin with its red
+  // face, a grey-brown dove).
+  fisant: {
+    plumage: '#7A5A3A',
+    shadow: '#5A4028',
+    dots: '#3A2A1C',
+    face: '#D2402E',
+    faceHi: '#E86A58',
+  },
+  tortelduif: {
+    plumage: '#A99A8C',
+    shadow: '#7E7064',
+    dots: '#C9BDB0',
+    face: '#7E7064',
+    faceHi: '#A99A8C',
+  },
   // Ou Grys (art bible §3.2): faded grey plumage; the eye patch is drawn on top.
   ou_grys: {
     plumage: '#6F7378',

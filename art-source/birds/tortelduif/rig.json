@@ -1,0 +1,9 @@
+{
+  "origin": "interim",
+  "x2": false,
+  "encode": "png8",
+  "planeClips": {
+    "far": ["flap", "glide", "hit_poof", "forage_walk"],
+    "mid": ["flap", "glide", "hit_poof", "forage_walk"]
+  }
+}

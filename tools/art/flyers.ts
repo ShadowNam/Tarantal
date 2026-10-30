@@ -30,6 +30,15 @@ export const FLYERS: Readonly<Record<string, Partial<Record<PlaneId, readonly Bi
     far: ['flap', 'hit_poof', 'forage_walk'],
     mid: ['flap', 'hit_poof', 'forage_walk'],
   },
+  // v1.8c (D-063): the Harvest's fly-over targets (its map only: the catalog puts them in `oes`).
+  fisant: {
+    far: ['flap', 'glide', 'hit_poof', 'forage_walk'],
+    mid: ['flap', 'glide', 'hit_poof', 'forage_walk'],
+  },
+  tortelduif: {
+    far: ['flap', 'glide', 'hit_poof', 'forage_walk'],
+    mid: ['flap', 'glide', 'hit_poof', 'forage_walk'],
+  },
 };
 
 export const FLYER_FRAMES: Readonly<Partial<Record<BirdClip, number>>> = {
@@ -927,7 +936,228 @@ function stormvoel(o: Draw, clip: BirdClip, k: number): string {
   return g({ opacity: r2(k >= 4 ? 1 - (k - 3) * 0.3 : 1) }, ...parts);
 }
 
+// --- fisant (Swainson's spurfowl) and tortelduif (Cape turtle dove), v1.8c (D-063) ------------
+
+const FISANT = {
+  body: '#7A5A3A',
+  dark: '#5A4028',
+  light: '#A8865E',
+  speck: '#3A2A1C',
+  face: '#D2402E',
+  bill: '#3A2E26',
+  leg: '#4A3A30',
+};
+const DOVE = {
+  body: '#A99A8C',
+  dark: '#7E7064',
+  light: '#C9BDB0',
+  wing: '#8C7E72',
+  tip: '#4A423C',
+  collar: '#1E1A18',
+  bill: '#2E2824',
+};
+const ROUND_WING: readonly (readonly [number, number])[] = [
+  [34, 0],
+  [44, 0.42],
+  [28, 0.8],
+  [4, 1],
+  [-16, 0.94],
+  [-36, 0.84],
+  [-50, 0.6],
+  [-44, 0.24],
+  [-30, 0],
+];
+const POINTED_WING: readonly (readonly [number, number])[] = [
+  [30, 0],
+  [40, 0.36],
+  [24, 0.72],
+  [-6, 1],
+  [-30, 0.86],
+  [-46, 0.56],
+  [-40, 0.2],
+  [-24, 0],
+];
+
+/** A bagged fly-over: the bird tumbling, shrinking, feathers puffing out (frames 0–5). */
+function poof(o: Draw, k: number, bird: (a: number) => string, colours: readonly string[]): string {
+  const f = k / 5;
+  const rnd = prng(57);
+  const parts: string[] = [];
+  if (k < 4)
+    parts.push(
+      g({ transform: `rotate(${r2(70 * f)}) scale(${r2(1 - f * 0.5)})` }, bird(-0.2 + f * 0.4)),
+    );
+  for (let i = 0; i < 8; i++) {
+    const t = (i / 8) * Math.PI * 2 + rnd() * 0.5;
+    const r = 30 + f * 120;
+    parts.push(
+      fill(
+        smoothD(
+          place(
+            [
+              [0, -14],
+              [6, 0],
+              [0, 14],
+              [-6, 0],
+            ],
+            Math.cos(t) * r * 1.2,
+            Math.sin(t) * r * 0.8,
+            t * 57,
+          ),
+          true,
+          0.8,
+        ),
+        colours[i % colours.length] ?? '#888888',
+        o,
+        o.w * 0.6,
+      ),
+    );
+  }
+  return g({ opacity: r2(k >= 3 ? 1 - (k - 2) * 0.25 : 1) }, ...parts);
+}
+
+function fisantBird(o: Draw, a: number): string {
+  const P = FISANT;
+  const body = smoothD(
+    [
+      [-96, 4],
+      [-60, -40],
+      [30, -52],
+      [96, -26],
+      [104, 10],
+      [60, 44],
+      [-40, 52],
+      [-92, 30],
+    ],
+    true,
+    0.8,
+  );
+  const id = nextId();
+  const rnd = prng(23);
+  const specks: string[] = [];
+  if (!o.far)
+    for (let i = 0; i < 26; i++)
+      specks.push(
+        flat(ellipseD(-80 + rnd() * 170, -40 + rnd() * 84, 4 + rnd() * 3, 2.5), P.speck, {
+          opacity: 0.55,
+        }),
+      );
+  return g(
+    {},
+    fill(wingD(ROUND_WING, 18, -18, 130, a), P.dark, o),
+    // A short, rounded tail.
+    fill(
+      polyD([
+        [-90, -6],
+        [-140, -18],
+        [-146, 18],
+        [-90, 24],
+      ]),
+      P.dark,
+      o,
+    ),
+    // Legs tucked, trailing.
+    line('M-50 40L-104 52', { ink: o.ink, w: o.w * 1.3 }),
+    el('clipPath', { id }, el('path', { d: body })),
+    fill(body, P.body, o),
+    g(
+      { 'clip-path': `url(#${id})` },
+      flat(ellipseD(0, 30, 120, 26), P.light, { opacity: 0.55 }),
+      ...specks,
+    ),
+    // Head with the red bare face and throat, a stout bill.
+    fill(ellipseD(112, -34, 30, 26), P.body, o),
+    fill(ellipseD(124, -24, 16, 18), P.face, o, o.w * 0.7),
+    fill('M138 -40Q160 -38 162 -28Q152 -22 138 -26Z', P.bill, o, o.w * 0.7),
+    flat(ellipseD(118, -40, 4.5, 4.5), '#2A1E16'),
+    flat(ellipseD(117, -41.5, 1.2, 1.2), '#FFFFFF'),
+    fill(wingD(ROUND_WING, 0, -22, 140, a), a >= 0 ? P.body : P.light, o),
+  );
+}
+
+function fisant(o: Draw, clip: BirdClip, k: number): string {
+  if (clip === 'hit_poof')
+    return poof(o, k, (a) => fisantBird(o, a), [FISANT.light, FISANT.body, FISANT.dark]);
+  return fisantBird(o, clip === 'glide' ? 0.12 - k * 0.06 : beat(k));
+}
+
+function duifBird(o: Draw, a: number): string {
+  const P = DOVE;
+  const body = smoothD(
+    [
+      [-80, 0],
+      [-40, -34],
+      [36, -40],
+      [84, -18],
+      [86, 10],
+      [40, 34],
+      [-40, 34],
+    ],
+    true,
+    0.8,
+  );
+  const id = nextId();
+  return g(
+    {},
+    fill(wingD(POINTED_WING, 14, -14, 132, a), P.dark, o),
+    // The long tail with its pale tip.
+    fill(
+      polyD([
+        [-76, -10],
+        [-150, -16],
+        [-152, 14],
+        [-76, 16],
+      ]),
+      P.wing,
+      o,
+    ),
+    flat(
+      polyD([
+        [-136, -15],
+        [-152, -16],
+        [-152, 14],
+        [-136, 14],
+      ]),
+      P.light,
+    ),
+    el('clipPath', { id }, el('path', { d: body })),
+    fill(body, P.body, o),
+    g({ 'clip-path': `url(#${id})` }, flat(ellipseD(10, 22, 90, 18), P.light, { opacity: 0.6 })),
+    // Small round head, the black half-collar on the nape, a slim bill.
+    fill(ellipseD(92, -26, 22, 20), P.body, o),
+    flat('M74 -18Q80 -6 90 -10L88 -16Q82 -14 78 -22Z', P.collar),
+    fill('M110 -30Q124 -28 126 -24Q118 -20 110 -22Z', P.bill, o, o.w * 0.6),
+    flat(ellipseD(98, -30, 3.6, 3.6), '#1A1412'),
+    fill(wingD(POINTED_WING, -2, -18, 140, a), a >= 0 ? P.wing : P.light, o),
+    o.far
+      ? ''
+      : flat(
+          wingD(
+            [
+              [-6, 0.75],
+              [-30, 0.86],
+              [-46, 0.56],
+              [-22, 0.6],
+            ],
+            -2,
+            -18,
+            140,
+            a,
+          ),
+          P.tip,
+        ),
+  );
+}
+
+function tortelduif(o: Draw, clip: BirdClip, k: number): string {
+  if (clip === 'hit_poof')
+    return poof(o, k, (a) => duifBird(o, a), [DOVE.light, DOVE.body, DOVE.wing]);
+  return duifBird(o, clip === 'glide' ? 0.1 - k * 0.05 : beat(k));
+}
+
 const DRAW: Readonly<Record<string, (o: Draw, clip: BirdClip, k: number) => string>> = {
+  fisant,
+  tortelduif,
   hadeda,
   sproeier,
   kwevoel,
