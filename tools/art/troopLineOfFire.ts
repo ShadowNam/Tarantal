@@ -100,10 +100,11 @@ function targetsOf(
       const sh = part.shape;
       const hw = sh.type === 'rect' ? sh.w / 2 : sh.rx;
       const hh = sh.type === 'rect' ? sh.h / 2 : sh.ry;
-      const ring = sec.type === 'multiHit' && sec.rotor !== undefined;
+      const rotor = sec.type === 'multiHit' ? sec.rotor : undefined;
+      const ring = rotor !== undefined;
       const r = ring ? Math.hypot(sh.ox, sh.oy) + Math.max(hw, hh) : 0;
-      const cx = ring && sec.type === 'multiHit' ? (sec.rotor?.ox ?? 0) : sh.ox;
-      const cy = ring && sec.type === 'multiHit' ? (sec.rotor?.oy ?? 0) : sh.oy;
+      const cx = rotor?.ox ?? sh.ox;
+      const cy = rotor?.oy ?? sh.oy;
       out.push({
         what: `secret "${p.id}" part "${part.id}"`,
         scroll: l.scrollFactor,
