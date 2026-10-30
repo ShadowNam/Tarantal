@@ -11,6 +11,7 @@ import type { TellHook } from './view/tell/TellView';
 import type { BaboonHook } from './view/baboon/BaboonView';
 import type { HarvestHook } from './view/harvest/HarvestView';
 import type { BaboonsView, HarvestView, PlaneId } from '../sim/types';
+import type { NewYearHook } from './feesdae/NuwejaarView';
 import type { NamibLifeHook } from './view/namib/NamibLifeView';
 import type { LoadStatus, SaveStore } from '../meta/save';
 import type { StorageStatus } from '../meta/storage';
@@ -586,6 +587,9 @@ export interface TestHook {
       crowns: { id: string; x: number; y: number; w: number; h: number }[];
     };
     heat?: number;
+    /** D-065 (New Year): the blue hour's wash, the stars and the fireworks drawn now (screen
+     *  design px), every burst's start tick this hunt (the ≤ 3 a second rule), the countdown. */
+    newYear?: NewYearHook;
   } | null;
   /** D-048: the special's group's sheet: delivered ('final') or the code-drawn stand-in. */
   feesdaeArt: 'final' | 'standin' | null;

@@ -11,6 +11,7 @@ import * as Phaser from 'phaser';
 import type { Feesdag } from '../../content/schemas';
 import { feesdagById } from '../../meta/feesdae';
 import type { SpecialDayView } from '../feesdae/FeesdagView';
+import type { NewYearHook } from '../feesdae/NuwejaarView';
 import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
 import { artSummary } from '../assets/artSummary';
@@ -120,7 +121,7 @@ const feesdaeSheets = new Map<string, HTMLImageElement>();
 /** D-064: specials whose sheet a hunt has waited for once (a failed load isn't waited on again). */
 const feesdaeSheetTried = new Set<string>();
 /** D-064: the specials whose hunt waits (bounded) for their own listed sheet before it starts. */
-const WAIT_FOR_SHEET: readonly string[] = ['christmas'];
+const WAIT_FOR_SHEET: readonly string[] = ['christmas', 'newyear'];
 
 /** D-064: the Christmas view's e2e hook (its tinsel). */
 interface KersfeesHook {
@@ -517,6 +518,25 @@ export class HuntScene extends Phaser.Scene {
         setHeat: (h) => {
           world.heat = h;
         },
+        hooks: this.ctx.hook !== null,
+      });
+      this.birds.hats = this.spookView.hats;
+    } else if (special?.id === 'newyear' && feesdaeModule !== null) {
+      // D-065: the New Year countdown (blue hour, stars, fireworks on the horizon, party hats).
+      this.spookView = new feesdaeModule.NuwejaarSceneView({
+        scene: this,
+        parallax: this.parallax,
+        look: this.ctx.feel.feesdae.looks.newyear,
+        special,
+        planeScale: planeScales,
+        decorations: special.decorations,
+        sheet: feesdaeSheets.get(special.id) ?? null,
+        reduceFlashes: this.ctx.prefs.reduceFlashes,
+        lowTier: this.ctx.prefs.tier === 'low',
+        // e2e/screenshot builds only: `?fireworks=max` puts a burst in every slot (≤ 3 a second).
+        maxFireworks:
+          this.ctx.hook !== null &&
+          new URLSearchParams(window.location.search).get('fireworks') === 'max',
         hooks: this.ctx.hook !== null,
       });
       this.birds.hats = this.spookView.hats;
@@ -2270,6 +2290,10 @@ export class HuntScene extends Phaser.Scene {
                       : {}),
                     heat: this.world.heatOn() ? this.world.heat : 0,
                   }),
+              // D-065 (New Year): the blue hour, stars and fireworks as drawn now.
+              ...('newYear' in this.spookView && typeof this.spookView.newYear === 'function'
+                ? { newYear: (this.spookView as { newYear(): NewYearHook }).newYear() }
+                : {}),
             };
       hook.fruit =
         this.fruit === null

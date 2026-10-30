@@ -32,9 +32,11 @@ import { drawStandin } from './standin';
 import anchorsJson from './hatAnchors.json';
 import { loadVoiceIndex } from '../assets/voiceIndex';
 import { CHRISTMAS_SHEET, XMAS_SOUNDS } from './christmasAssets';
+import { NEWYEAR_SHEET, NY_SOUNDS } from './newyearAssets';
 
 export { KersfeesSceneView } from './KersfeesView';
 export { ensureXmasTexture } from './KersfeesView';
+export { NuwejaarSceneView, ensureNyTexture } from './NuwejaarView';
 
 /** D-064: what HuntScene drives on a special day, whichever special it is. */
 export interface SpecialDayView {
@@ -177,6 +179,7 @@ export function playSpookSound(audio: AudioDirector, id: SpookSound, pan: number
 const SPECIAL_FILES: Readonly<Record<string, { sounds: readonly string[]; sheet: string }>> = {
   halloween: { sounds: Object.values(SPOOK_SOUNDS), sheet: HALLOWEEN_SHEET },
   christmas: { sounds: Object.values(XMAS_SOUNDS), sheet: CHRISTMAS_SHEET },
+  newyear: { sounds: Object.values(NY_SOUNDS), sheet: NEWYEAR_SHEET },
 };
 /** Per special: its sounds and sheet loading (kept for the page once they worked). */
 const sounds = new Map<string, Promise<void>>();
