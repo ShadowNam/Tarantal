@@ -191,6 +191,9 @@ export interface TestHook {
    *  it belongs to, its reach (px from the aim point) and whether it shows. */
   ammo: string[];
   crosshair: { weapon: string; extent: number; visible: boolean; x: number; y: number };
+  /** D-064 (screenshot specs): the gun's on-screen rect, design px (it runs off the bottom edge,
+   *  so it is not one of the HUD `rects`); null outside a hunt. */
+  gunRect: { x: number; y: number; w: number; h: number } | null;
   /** v1.3: the rifle zoom view: zoom, raise 0..1, the reticle on screen (design px), the sight. */
   zoom: {
     z: number;

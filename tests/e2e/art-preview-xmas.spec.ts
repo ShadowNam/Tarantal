@@ -329,7 +329,7 @@ test('a present shut, just opened and opened; the tally and the share card', asy
     if (p === null) throw new Error('the present is gone');
     const box = presentBox(p);
     const h = await page.evaluate(() => ({
-      gun: window.__TM__?.rects['gun'] ?? null,
+      gun: window.__TM__?.gunRect ?? null,
       c: window.__TM__?.crosshair ?? null,
     }));
     if (h.gun !== null) expect(overlaps(box, h.gun), 'the barrel over the present').toBe(false);

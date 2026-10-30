@@ -429,6 +429,7 @@ const hook: TestHook = {
   baboonRaid: null,
   baboonMs: 0,
   feesdagMs: 0,
+  gunRect: null,
   harvestActors: null,
   harvestFlyovers: [],
   harvest: null,

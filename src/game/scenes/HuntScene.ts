@@ -2088,8 +2088,9 @@ export class HuntScene extends Phaser.Scene {
         x: Math.round(c.root.x),
         y: Math.round(c.root.y),
       };
-      // D-064 (screenshot spec): the gun's rect, so a close-up can keep the barrel off it.
-      this.ctx.hook.rects['gun'] = this.weapon.gunRect();
+      // D-064 (screenshot spec): the gun's rect, so a close-up can keep the barrel off it. Not in
+      // `rects` (HUD-only: hud.spec checks each against the safe area; the gun runs off the edge).
+      this.ctx.hook.gunRect = this.weapon.gunRect();
       // v1.3: the rifle zoom view (the reticle is where a release fires, on screen).
       const z = this.zoomView;
       this.ctx.hook.zoom = {
