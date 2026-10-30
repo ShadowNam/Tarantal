@@ -218,8 +218,10 @@ const troopX = async (page: Page, area: Area): Promise<number> => {
   return area.u * (1920 + 3200 * 0.15) - (h.cameraX - 960) * 0.15;
 };
 
+/** The raider's screen x from the hook (its snapshot place: listed even while it is off screen
+ *  and not drawn). */
 const raiderX = async (page: Page): Promise<number | null> =>
-  (await baboonsOf(page)).find((b) => b.role === 'raider' && b.visible)?.x ?? null;
+  (await baboonsOf(page)).find((b) => b.role === 'raider')?.x ?? null;
 
 /** Holds the sim `ahead` ticks from now (bounded by ticks), then lets the frame settle. */
 async function holdIn(page: Page, touch: boolean, ahead: number): Promise<void> {
@@ -279,6 +281,26 @@ async function raiderBox(page: Page): Promise<{ x: number; y: number; w: number;
 }
 
 /** Waits (bounded by sim ticks) until the raider is at its mischief (an action frame). */
+/** Waits (bounded by sim ticks) until a raid is on with its raider in the hook: an off-screen raider
+ *  isn't drawn (its frame is null), so this reads the sim's raid state, not a frame. */
+async function untilRaider(page: Page): Promise<void> {
+  const start = (await hook(page)).tick;
+  await page.waitForFunction(
+    (until) => {
+      const tm = (
+        window as unknown as Hooked & { __TM__?: { baboonRaid?: { phase: string } | null } }
+      ).__TM__;
+      const r = (tm?.baboons ?? []).find((b) => b.role === 'raider');
+      if (tm?.baboonRaid?.phase === 'on' && r !== undefined) return true;
+      if ((tm?.tick ?? 0) > until) throw new Error(`no raid by tick ${until}`);
+      return false;
+    },
+    start + 60 * 60,
+    { timeout: 900_000 },
+  );
+}
+
+/** With the raider on screen: waits (bounded) until it is drawn at its mischief. */
 async function untilAct(page: Page, action: string): Promise<void> {
   const prefix = action === 'chase' ? 'run_' : `${action}_`;
   const start = (await hook(page)).tick;
@@ -310,6 +332,8 @@ async function troopAndRaid(
   const troop = cut(g, await troopBox(page));
   save(`troop-${area.short}${tag}-3x`, info, scaled(troop, 3));
   await release(page);
+  await untilRaider(page);
+  await panToX(page, touch, () => raiderX(page));
   await untilAct(page, area.action);
   await panToX(page, touch, () => raiderX(page));
   if (area.action === 'throw') {
