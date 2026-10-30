@@ -538,6 +538,33 @@ veld on the low tier (its art would slide away from the troop's hit shapes): tro
 parallax layers on the low tier instead of 5 (the sim is the same on every tier; the low-tier and
 Pixel 7 perf jobs passed with it); `tests/e2e/quality.spec.ts` checks both cases.
 
+### 3.12e The Harvest mode (1.11.0, D-063)
+`ModeId` `harvest` (`modes.json → harvest`: 30 s, the Classic loadout's gun, biome `oes`; appended
+to the replay log's mode list, index 4). `src/sim/harvest/system.ts` lives in the lazy systems chunk
+(`LazySystems.harvest`) and talks to the hunt through `HarvestHost` (tick, emit, `awardBonus`, base
+points, penalty, `addScore` for the crop bonus, the eating birds and raiders, scatter the flocks).
+Own stream `harvest`. The hunt's length is intro + `huntSeconds` + outro: the intro runs first on
+sim time; the first fire command in it is the skip (`fireGate` → 'skip': the shot is not fired and
+the hunt gets shorter by what was left of the intro, so a replay is exact); the outro blocks fire.
+Warthogs, piglets and workers are hit extras of kind `harvest` (`PelletResult.harvestId`, a thing
+for the Frenzy like a raider): body and head ellipses × plane scale (warthogs with the plane's
+`minHitRadiusPx` floor). A shot's harvest hits come with its aim point mapped onto the actor's
+layer, and whether the shot hit a target (bird damage or a raider): a worker or piglet costs points
+only when aimed at and no target was hit. The crop meter drains per tick from what eats
+(`cropDrainPerTick`); the fence closes at the rush's end (`harvestFenceClosed`, the crop bonus).
+Events `harvestIntroEnded`, `harvestFenceBroken`, `warthogEntered`, `warthogHit`, `warthogBagged`,
+`warthogLeft`, `harvestBystanderHit`, `cropWarning`, `harvestFenceClosed`; bonus `warthog`; the
+snapshot's `harvest` (phase, crop, repair, the 30-s clock, actors). The spawn director keeps flocks
+off the stretch from the gap to the workers. The baboons are the v1.8b system unchanged (the map's
+`baboons.firstAfterSeconds` brings the first raid early; `BaboonSystem.acting()` counts the eaters).
+The view (`src/game/view/harvest/HarvestView.ts`, lazy) draws from the snapshot on sim time: one
+sprite per actor plus the gap's panel and the sign, properties set on change only, off-screen
+sprites hidden, its own `harvestMs` timer; the HUD's `HarvestBars` (crop and repair) redraw on a
+whole-percent change. The sheet `oes/harvest` is in the map's own lazy group `oes` (+ `oes-hd`):
+the Harvest waits only for its area, like any area; Classic and a resumed Season Run load as before.
+Test flags (test builds only): `?harvestDuck=<s>` (a struck worker stays down), `?harvestRush=1`
+(the peak rate from the start); `?huntSeconds` shortens the rush.
+
 ### 3.13 Juggle bodies: tin cans and makalani nuts (v1.8, D-050; 1.9.3, D-056)
 
 - **One physics:** `src/sim/juggle/body.ts` is the only flight code for things that are knocked,

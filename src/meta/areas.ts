@@ -115,15 +115,16 @@ export function areaCards(
 /**
  * The playable biomes this save may pick by hand (the bird book): every season biome, and an area
  * pack only once it is unlocked. The Daily, challenge links and the admin page (and its
- * Skietbaan) keep every playable biome (D-039).
+ * Skietbaan) keep every playable biome (D-039). v1.8c (D-063): never the Harvest's own field.
  */
 export function unlockedBiomes(
-  content: Pick<ContentBundle, 'biomes'>,
+  content: Pick<ContentBundle, 'biomes' | 'modes'>,
   save: AreaSave,
   playable: readonly string[],
   notaboek?: Pick<Notaboek, 'challenges'>,
 ): string[] {
   return playable.filter((id) => {
+    if (id === content.modes.modes.harvest.biome) return false;
     const b = content.biomes.find((x) => x.id === id);
     return b !== undefined && isAreaUnlocked(b, save, notaboek);
   });

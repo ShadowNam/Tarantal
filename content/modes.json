@@ -213,6 +213,73 @@
           ]
         }
       }
+    },
+    "harvest": {
+      "$comment": "v1.8c (D-063) Die Oes: 30 s on the farm field (biome oes). The intro (the warthog family barges through the fence) runs before the clock; a tap skips it. Warthogs: 2 hits bag one (3 x a guineafowl's base on its plane, an event bonus x Frenzy); piglets and the farm workers are never targets and cost points only from a shot aimed at them. The crop meter drains per eating animal per second; the end adds bonusPerPercent x crop saved. Sizes are design px at plane scale 1; times in seconds.",
+      "huntSeconds": 30,
+      "weapon": "dubbelloop",
+      "biome": "oes",
+      "omen": false,
+      "intro": { "seconds": 3, "breakAt": 0.3, "piglets": 3 },
+      "outroSeconds": 1.5,
+      "rush": {
+        "keyframes": [
+          { "t": 0, "warthogsPerMin": 10, "gapFlocksPerMin": 4 },
+          { "t": 0.5, "warthogsPerMin": 18, "gapFlocksPerMin": 8 },
+          { "t": 1, "warthogsPerMin": 30, "gapFlocksPerMin": 12 }
+        ],
+        "maxWarthogs": 8,
+        "gapFlockSize": [4, 7],
+        "maxGapFlocks": 6,
+        "nearShare": 0.3
+      },
+      "warthogs": {
+        "heightPx": 175,
+        "hitboxes": {
+          "trot": {
+            "body": { "rx": 105, "ry": 47, "ox": -18, "oy": -107 },
+            "head": { "rx": 44, "ry": 35, "ox": 105, "oy": -93 }
+          },
+          "dig": {
+            "body": { "rx": 102, "ry": 47, "ox": -18, "oy": -89 },
+            "head": { "rx": 39, "ry": 42, "ox": 93, "oy": -44 }
+          }
+        },
+        "trotPxPerSec": 520,
+        "runPxPerSec": 1100,
+        "digSeconds": [6, 12],
+        "hitsToBag": 2,
+        "pointsMul": 3,
+        "tumbleSeconds": 0.9,
+        "sowChance": 0.35,
+        "piglets": [2, 3],
+        "pigletScale": 0.45,
+        "pigletGapPx": 240,
+        "pigletPenalty": 15,
+        "entryPx": 700
+      },
+      "crop": {
+        "drainPerSecond": { "guineafowl": 0.14, "warthog": 0.9, "baboon": 1.2 },
+        "warnBelow": 40,
+        "bonusPerPercent": 5
+      },
+      "workers": {
+        "heightPx": 270,
+        "hitboxes": {
+          "work": {
+            "body": { "rx": 32, "ry": 113, "ox": 5, "oy": -113 },
+            "head": { "rx": 22, "ry": 24, "ox": 8, "oy": -243 }
+          },
+          "duck": {
+            "body": { "rx": 46, "ry": 73, "ox": 14, "oy": -73 },
+            "head": { "rx": 24, "ry": 24, "ox": 38, "oy": -162 }
+          }
+        },
+        "runPxPerSec": 700,
+        "penalty": 100,
+        "cooldownSeconds": 2,
+        "duckSeconds": 1
+      }
     }
   }
 }

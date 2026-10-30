@@ -845,6 +845,8 @@ bonus map open today. Each keeps its own best and counts for rank titles.
    this exact hunt." Recipient plays the identical hunt. Friend-to-friend virality without a server.
 5. **Ewige Droogte (Endless)** — v1.x: after the Season Run finale, continue with escalating quotas
    for leaderboard bragging.
+6. **Die Oes (The Harvest)** (1.11.0, D-063) — 30 s on a farm field: animals pour through a broken
+   fence into the crops while the farm workers mend it. Its own button on the title (§12.2).
 
 ### 12.1 Skietbaan (training ground) — playtest tool, admin page only (v1.3x, D-037)
 Not a player mode: a button on the playtest admin page (`?admin=1`, web builds). It answers "how
@@ -898,6 +900,54 @@ does this gun really shoot at that distance?" without the pressure of a hunt.
   sight. Its report adds knock-offs per shot, air-hit accuracy (air hits of the shots fired while
   a can was in the air) and the longest chain.
 - **Unranked:** no unlocks, Notaboek, bests, Daily, rank or Bird Book; the save is never written.
+
+### 12.2 Die Oes (The Harvest) — a 30-second mode (1.11.0, D-063)
+The product owner (25 Oct): "A big plantation of crops, and all the birds and everything, the
+warthogs and the baboons, everything flocks to it and tries to eat as much as possible. You've got
+30 seconds to shoot as many animals for points as possible to keep them out while the fence gets
+repaired." Numbers: `content/modes.json → harvest`; the map: `content/biomes/oes.json`.
+- **Where:** its own button on the title (Die Oes / The Harvest), after the first hunt (Oupa se
+  Les counts), with one line over it: what it is until played, then the best. Not in the Daily,
+  the Season Run, challenge links or Classic's area picker; the admin page lists it.
+- **The map (`oes`):** a farm's field in late summer: rows of ripe mielies and sunflowers on the
+  mid plane with the fence along the back and a gap in it, a pumpkin patch on the near plane, the
+  farmhouse, a tractor and a bluegum windbreak on the far veld, a koppie behind with a baboon troop.
+- **Intro (3 s, on sim time, before the clock):** a warthog family (a sow and three piglets)
+  barges through the fence — the posts tip, the wire snaps, the "Oes" sign swings — while the
+  workers run to the gap. Oupa: "Hulle is deur die draad!". A tap skips it (no shot is fired).
+- **The rush (30 s):** guineafowl flocks pour in through the gap at a run and forage in the rows
+  (the usual flock rules; `rush.gapFlocksPerMin`, a few more start on the feeding spots near the
+  gap), fly-overs (guineafowl, francolins and turtle doves) cross the field, warthogs trot in (through the gap on the mid plane, round the fence's end on
+  the near plane; tails up) and dig, baboon raiders (§11.3d) come down for the mielies, early and
+  often. Rates ramp up over the 30 s (`rush.keyframes`, the biome's pacing); the dig, feeding
+  and raid spots sit in the gap's half of the field, where the camera starts, so the peak is busy
+  on screen (the screenshot spec asserts ≥ 2 flocks, 3 warthogs and a raider).
+- **Warthogs:** 2 hits bag one (each shot that hits is one hit; the first sends it running back
+  out), bagged like a guineafowl (the tumble and puff, no blood): 3 × a guineafowl's base on its
+  plane, an event bonus × Frenzy. A sow may bring 2–3 **piglets**: they trail her, never come in
+  alone, and are never targets.
+- **The crop meter:** starts at 100 %; every animal eating in the field drains it per second
+  (`crop.drainPerSecond`: a foraging guineafowl, a digging warthog, a raider at the mielies).
+  Bagging or driving one off stops its drain. HUD: a big bar at the top ("Crop saved 87 %"), amber
+  under 70 %, red with a gold rim and Oupa's "The crop!" under the warning line (40 %); never a
+  flash.
+- **The farm workers (3):** about 1.6× the fence posts' height (a person by a 1.2 m fence), mend
+  the gap from its right post; a "Fence repairs…" bar fills with the
+  clock, the gap's panel goes up in stages. They are never targets: a worker costs **100** (once per
+  2 s each) only when the shot was **aimed at them** — the fire command's aim point inside their
+  body or head, and the shot hit no target (a bird, a warthog, a raider) — the baboon mothers'
+  rule (§11.3d). A stray pellet or stone that strikes one makes them duck and Oupa grumble, free.
+  Piglets the same (15). They stand out of the line of fire: no target the Harvest puts up (dig
+  spots and the ways in and out, raid spots, feeding spots, pop-ups, fly-over lanes) lines up with a
+  worker anywhere in the camera sweep (`tools/art/harvestLineOfFire.ts`), and no flock starts on the
+  stretch from the gap to the workers.
+- **The end:** at 30 s the fence is whole, the gap closes, the animals still in run off (1.5 s, no
+  shooting); the **crop bonus** (5 × whole percent saved) is added; then the **Harvest tally**:
+  birds, warthogs and baboons bagged, crop saved, crop bonus, best Frenzy, accuracy, workers and
+  piglets, and the local best ("New Harvest best!"). [Again] plays the Harvest again.
+- **Not in it:** supply crates and charms (a 30-s rush keeps the field clear; the fence area stays
+  free of falling crates); the Stampede (the rush is its own climax); the omen.
+- **Balance (docs/balance/v1.8c-harvest.md):** a competent player saves ~70 % of the crop.
 
 ## 13. Season Run (roguelite) in detail
 

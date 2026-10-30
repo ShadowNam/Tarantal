@@ -3458,6 +3458,61 @@ something naughty that might get them to eat a bullet or two."
   (supervisor's decision, 30 Oct). quality.spec checks the merge on a map without a troop and the
   unmerged ridge on a troop map.
 
+**D-063 1.11.0 Die Oes (The Harvest): a new 30-second mode on a farm field (30 Oct 2026):** the
+product owner (25 Oct, ~20:20): "A very good level we could do, and call it the harvest. A big
+plantation of crops, and all the birds and everything, the warthogs and the baboons, everything
+flocks to it and tries to eat as much as possible. You've got 30 seconds to shoot as many animals
+for points as possible to keep them out while the fence gets repaired." Decided with them: its own
+mode on the title (next to Classic, the Season Run and the Daily), and hit warthogs and baboons go
+down and are bagged like the guineafowl (no blood, D-035).
+- *Rules (GDD §12.2, Tech §3.12e).* A 3-s intro on sim time before the clock (a tap skips it, no
+  shot), 30 s of rush, a 1.5-s outro; warthogs (2 hits bag one, 3 × a guineafowl's base), piglets
+  that trail a sow and are never targets, v1.8b's raiders reused as they are (sim, sheet and view),
+  guineafowl flocks and fly-overs; the crop meter drains per eating animal per second; at 30 s the
+  fence closes and the crop saved pays 5 per whole percent. Its own tally and a local best
+  (`save.harvest`, a new section: no migration).
+- *The workers' rule (the supervisor's recommended option, 30 Oct).* A worker costs the big penalty
+  (100, a 2-s cooldown each) only when the shot was **aimed at them**: the fire command's aim point
+  (a rifle's before the sway) inside their body or head ellipse on their layer, and the shot hit no
+  target (a bird, a warthog, a raider) — a player who aimed at a bird in front of a worker and hit
+  it aimed at the bird. A stray pellet or stone that strikes a worker makes them duck and Oupa
+  grumble, free. Piglets the same (15). And they are kept out of the line of fire: no target the
+  Harvest puts up can line up with a worker anywhere in the camera sweep
+  (`tools/art/harvestLineOfFire.ts` and its test), the workers mend the gap from its right post
+  (through-gap arrivals go left; the right-hand rows fill from the panorama's end), no flock starts
+  on that stretch, and piglets never walk back the way they came.
+- *Its own map, no area.* `content/biomes/oes.json` has no `area`, so it is not in Classic's picker,
+  the Daily rotation, challenge links or the Skietbaan; the content check accepts a biome a mode
+  names. It keeps seven plain layouts and a bonus map for the schema (never played).
+- *No crates, charms or Stampede.* A 30-s rush keeps the field and the fence clear (a falling crate
+  would land among the workers); the rush is its own climax. The plan's one crate was dropped.
+- *Unlock:* after the first hunt (Oupa se Les counts), when the title's bottom row appears — a new
+  player meets the rush only after learning to shoot. The bottom row now has five buttons.
+- *Lazy.* The map's art, the Harvest sheet (`oes/harvest` in group `oes`, + `oes-hd`), the sim
+  system (the lazy systems chunk) and the view (its own chunk) stay out of the first download; the
+  first download carries the title button, its strings and the mode's content. Sounds are synths in
+  the view's chunk; Oupa's six lines are in the lazy guide tables (en/af/de voiced with the interim
+  TTS, nl text).
+- *Balance (docs/balance/v1.8c-harvest.md).* Crop drain tuned so a competent bot saves ~70 %;
+  accidental worker hits (shots aimed at a worker that cost points) 0 a run for the plinker and
+  competent bots on every gun. The human bots shoot warthogs and raiders in the Harvest
+  (`harvestHunter` in tools/bots.ts; outside the Harvest they are unchanged).
+- *Replays.* `harvest` appended to the replay modes (index 4); two Harvest golden replays; every
+  other replay's event hash unchanged (the content hash moved).
+- *Review round 1 (the supervisor, 30 Oct, after the first screenshots).* The workers were ~3× the
+  fence: they are now 1.6× its posts on the mid plane (`harvestSheet.test.ts` checks 1.3–1.8),
+  and the warthogs, piglets and workers are redrawn semi-realistic at the D-035 bar (posed
+  skeletons, shading, texture; HD now adds detail). The rush was thin on screen: flocks now pour in
+  through the gap at a run (`rush.gapFlocksPerMin`, starting past the gap's post away from the
+  workers), the dig, feeding and raid spots moved into the gap's half of the field, the peak rates
+  went up (warthogs 30/min, max 8), and the crop drain was re-tuned (competent ~69 %). The flocks'
+  spread in the line-of-fire check now uses the plane's tuning ratio (it used the drawing scale),
+  so the workers moved to dx 200/290/380 and the right-hand feeding spot further out. The sky is
+  true colour (no banding), the mid plane is full of rows, the farmhouse moved so the troop never
+  lines up on its roof (`tools/art/troopBackdrop.ts`). The HUD bars sit under the pause button;
+  one Oupa line at a time; the tally is Again / Share / Menu with a Best row. And a page-set test
+  hold now replaces the URL's `?holdAt` (it could never be lifted before).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

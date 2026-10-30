@@ -56,6 +56,7 @@ import { captionItem, updateCaptions, type CaptionLine } from '../audio/captions
 import { FAMILIEFOTO_SECRET } from '../../sim/meerkats/colony';
 import { BLIKKIESDANS_SECRET } from '../../sim/cans/cans';
 import { MAKALANI_SECRET } from '../../sim/nuts/makalani';
+import { HarvestBars, harvestBarsRects } from '../ui/HarvestBars';
 
 export interface HudControls {
   readonly pause: () => void;
@@ -102,6 +103,10 @@ export class HudScene extends Phaser.Scene {
   /** M9: HUD panels are cached shapes (no per-frame tessellation, see ui/shapes.ts). */
   private panels: RoundRect[] = [];
   private timer!: Phaser.GameObjects.Text;
+  /** v1.8c (D-063): the Harvest's crop meter and fence bar (null outside the Harvest). */
+  private harvestBars: HarvestBars | null = null;
+  /** The Oupa line in this frame's banner (one at a time). */
+  private oupaText: string | null = null;
   private frenzyLabel!: Phaser.GameObjects.Text;
   private frenzyBack!: RoundRect;
   private frenzyFill!: RoundRect;
@@ -256,6 +261,10 @@ export class HudScene extends Phaser.Scene {
     this.drawBack.hide();
     this.drawFill.hide();
     this.drawTotal = 1;
+    this.harvestBars =
+      this.ctx.content.modes.modes.harvest.crop.warnBelow >= 0
+        ? new HarvestBars(this, this.ctx.content.modes.modes.harvest.crop.warnBelow)
+        : null;
     this.reload = text(56, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.banner = text(84, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.gadgetPanel = new BakedDrawing(this, 'hud.gadget');
@@ -636,6 +645,10 @@ export class HudScene extends Phaser.Scene {
         zoomIn: l.zoomIn,
         ...Object.fromEntries(l.items.map((r, i) => [`item${i}`, r])),
         ...(this.controls?.skip != null ? { skip: l.skip } : {}),
+        // v1.8c (D-063): the Harvest's crop and fence bars.
+        ...(this.ctx.huntBiome.harvest === undefined
+          ? {}
+          : { harvestCrop: harvestBarsRects(l).crop, harvestRepair: harvestBarsRects(l).repair }),
       };
     }
     const [timerRim, timerWood, scoreRim, scoreEnamel, belt] = this.panels;
@@ -648,6 +661,7 @@ export class HudScene extends Phaser.Scene {
     // Belt: chalk slate.
     belt?.place(l.belt.x, l.belt.y, l.belt.w, l.belt.h);
     this.timer.setPosition(l.timer.x + l.timer.w / 2, l.timer.y + l.timer.h / 2);
+    this.harvestBars?.layout(harvestBarsRects(l));
     this.frenzyLabel.setPosition(l.frenzy.x, l.frenzy.y + l.frenzy.h / 2);
     this.score.setPosition(l.score.x + l.score.w - 24, l.score.y + l.score.h / 2);
     this.reload.setPosition(
@@ -791,6 +805,21 @@ export class HudScene extends Phaser.Scene {
       } else if (e.type === 'baboonHit' && e.points < 0) {
         this.pushPop(formatAward(e.points), '#FF6B5A');
         this.oupa('guide.baboon.mother', banner);
+      } else if (e.type === 'harvestFenceBroken') {
+        // v1.8c (D-063): the Harvest — "Hulle is deur die draad!"
+        this.oupa('guide.harvest.intro', banner);
+      } else if (e.type === 'harvestBystanderHit') {
+        // A shot aimed at a worker or a piglet costs points and gets a telling-off; a stray
+        // pellet only makes a worker duck (and Oupa grumble).
+        if (e.points < 0) {
+          this.pushPop(formatAward(e.points), '#FF6B5A');
+          this.oupa(e.who === 'worker' ? 'guide.harvest.worker' : 'guide.harvest.piglet', banner);
+        } else if (e.who === 'worker') this.oupa('guide.harvest.duck', banner);
+      } else if (e.type === 'cropWarning') {
+        this.oupa('guide.harvest.crop_low', banner);
+      } else if (e.type === 'harvestFenceClosed') {
+        if (e.bonus > 0) this.pushPop(formatAward(e.bonus), '#FFD25A');
+        this.oupa('guide.harvest.fixed', banner);
       } else if (e.type === 'ostrichHit') {
         // v1.7d (D-059): a shot ostrich or nest — points off (none inside the cooldown) and its
         // hiss: "Leave my eggs alone!"
@@ -893,6 +922,7 @@ export class HudScene extends Phaser.Scene {
       else if (e.type === 'gadgetDenied') this.shakeGadget();
     }
     if (banner.length > 0) this.showBanner(banner.join(' · '));
+    this.oupaText = null;
     this.drawGadget(s);
     this.drawZoom(s);
     this.drawChips(s);
@@ -906,7 +936,9 @@ export class HudScene extends Phaser.Scene {
     if (this.ctx.hook) this.ctx.hook.pickupCard = this.pickupCard?.shown ?? null;
     this.drawWindsock(s);
 
-    this.timer.setText(formatClock(s.ticksLeft, TICKS_PER_SECOND));
+    this.harvestBars?.update(s.harvest);
+    // v1.8c (D-063): the Harvest's clock is its 30 s (not the intro or the outro).
+    this.timer.setText(formatClock(s.harvest?.clockTicksLeft ?? s.ticksLeft, TICKS_PER_SECOND));
     // setColor re-renders the text texture every call, so only on change.
     const timerColor = s.stampedeActive ? '#FFD25A' : '#F3EAD3';
     if (timerColor !== this.timerColor) {
@@ -1461,6 +1493,11 @@ export class HudScene extends Phaser.Scene {
   /** v1.8b (D-062): an Oupa line from the guide tables: its caption and his voice. */
   private oupa(key: string, banner: string[]): void {
     const text = this.lazy(key);
+    // v1.8c review: one of Oupa's lines at a time — a later one in the same frame (several ticks
+    // run in one frame after a hold or a slow frame) replaces the earlier, never joins it.
+    const prev = this.oupaText === null ? -1 : banner.lastIndexOf(this.oupaText);
+    if (prev >= 0) banner.splice(prev, 1);
+    this.oupaText = text === '' ? null : text;
     if (text !== '') banner.push(text);
     this.ctx.audio.bark(key);
     this.ctx.hook?.namibLog.push(`bark:${key}`);
@@ -1551,12 +1588,15 @@ export class HudScene extends Phaser.Scene {
     // v1.7b (D-046): under the pickup card while it is up.
     const card = this.pickupCard?.shown ?? null;
     const lay = this.layoutNow;
-    if (lay !== null)
-      this.banner.setY(
-        card === null
+    // v1.8c review: in the Harvest, under its crop and fence bars.
+    const top =
+      lay === null
+        ? 0
+        : this.ctx.huntBiome.harvest === undefined
           ? lay.safe.y + 180
-          : Math.max(lay.safe.y + 180, card.rect.y + card.rect.h + 56),
-      );
+          : harvestBarsRects(lay).repair.y + harvestBarsRects(lay).repair.h + 56;
+    if (lay !== null)
+      this.banner.setY(card === null ? top : Math.max(top, card.rect.y + card.rect.h + 56));
     // Long banners (crate + hint, bonus time + bark) shrink to fit between the HUD corners.
     const l = this.layoutNow;
     const room =

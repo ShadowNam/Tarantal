@@ -7,6 +7,7 @@
 // are kept here: no hunt state.
 import type { Biome } from '../content/schemas';
 import type { BaboonSystemFactory } from './baboons/system';
+import type { HarvestSystemFactory } from './harvest/system';
 import type { OstrichSystemFactory } from './ostriches/system';
 import type { TellSystemFactory } from './tells/system';
 
@@ -14,6 +15,8 @@ export interface LazySystems {
   readonly baboons: BaboonSystemFactory;
   readonly ostriches: OstrichSystemFactory;
   readonly tells: TellSystemFactory;
+  /** v1.8c (D-063): the Harvest's warthogs, workers and crop meter. */
+  readonly harvest: HarvestSystemFactory;
 }
 
 let registered: LazySystems | null = null;
@@ -30,6 +33,7 @@ export function registeredLazySystems(): LazySystems | null {
 export function needsLazySystems(biome: Biome): boolean {
   return (
     biome.baboons !== undefined ||
+    biome.harvest !== undefined ||
     biome.ostriches !== undefined ||
     biome.props.some((p) => p.secret?.tell !== undefined) ||
     biome.layouts.some((l) => l.baboons !== undefined || l.ostriches !== undefined) ||

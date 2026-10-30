@@ -1207,6 +1207,114 @@
       "lufs": -16,
       "peakDb": -2.3
     },
+    "voice/af/guide.harvest.crop_low": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_harvest_crop_low.f5583df8fa70.ogg",
+        "bytes": 15472,
+        "hash": "f5583df8fa70"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_harvest_crop_low.563932baa2c9.mp3",
+        "bytes": 18087,
+        "hash": "563932baa2c9"
+      },
+      "loop": false,
+      "lufs": -18,
+      "peakDb": -1
+    },
+    "voice/af/guide.harvest.duck": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_harvest_duck.647a66da196d.ogg",
+        "bytes": 15374,
+        "hash": "647a66da196d"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_harvest_duck.ae16b157bdc4.mp3",
+        "bytes": 17723,
+        "hash": "ae16b157bdc4"
+      },
+      "loop": false,
+      "lufs": -16.5,
+      "peakDb": -1
+    },
+    "voice/af/guide.harvest.fixed": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_harvest_fixed.fd8656ea3e29.ogg",
+        "bytes": 16766,
+        "hash": "fd8656ea3e29"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_harvest_fixed.a297b0fc41ef.mp3",
+        "bytes": 18811,
+        "hash": "a297b0fc41ef"
+      },
+      "loop": false,
+      "lufs": -18.7,
+      "peakDb": -1
+    },
+    "voice/af/guide.harvest.intro": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_harvest_intro.83f2c6ec1633.ogg",
+        "bytes": 13444,
+        "hash": "83f2c6ec1633"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_harvest_intro.211afcc4a5f9.mp3",
+        "bytes": 14572,
+        "hash": "211afcc4a5f9"
+      },
+      "loop": false,
+      "lufs": -17.3,
+      "peakDb": -1
+    },
+    "voice/af/guide.harvest.piglet": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_harvest_piglet.f544a7df5e25.ogg",
+        "bytes": 13152,
+        "hash": "f544a7df5e25"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_harvest_piglet.8487f061a269.mp3",
+        "bytes": 14340,
+        "hash": "8487f061a269"
+      },
+      "loop": false,
+      "lufs": -17.2,
+      "peakDb": -1
+    },
+    "voice/af/guide.harvest.worker": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_harvest_worker.c312adb6917e.ogg",
+        "bytes": 16888,
+        "hash": "c312adb6917e"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_harvest_worker.4089f479ae8b.mp3",
+        "bytes": 19104,
+        "hash": "4089f479ae8b"
+      },
+      "loop": false,
+      "lufs": -16.2,
+      "peakDb": -1
+    },
     "voice/de/bark.ag_nee": {
       "group": "voice-de",
       "origin": "interim",
@@ -2413,6 +2521,114 @@
       "lufs": -16,
       "peakDb": -7.4
     },
+    "voice/de/guide.harvest.crop_low": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_harvest_crop_low.2e559df01238.ogg",
+        "bytes": 21225,
+        "hash": "2e559df01238"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_harvest_crop_low.2a266acc964f.mp3",
+        "bytes": 22468,
+        "hash": "2a266acc964f"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -5.6
+    },
+    "voice/de/guide.harvest.duck": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_harvest_duck.f6c128f48ec7.ogg",
+        "bytes": 20852,
+        "hash": "f6c128f48ec7"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_harvest_duck.bcd16b19af7b.mp3",
+        "bytes": 22156,
+        "hash": "bcd16b19af7b"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.8
+    },
+    "voice/de/guide.harvest.fixed": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_harvest_fixed.10ea0a33cf6c.ogg",
+        "bytes": 21867,
+        "hash": "10ea0a33cf6c"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_harvest_fixed.0af61bed9673.mp3",
+        "bytes": 23508,
+        "hash": "0af61bed9673"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.7
+    },
+    "voice/de/guide.harvest.intro": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_harvest_intro.d351f56f961c.ogg",
+        "bytes": 24965,
+        "hash": "d351f56f961c"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_harvest_intro.f5870d20c3f7.mp3",
+        "bytes": 27278,
+        "hash": "f5870d20c3f7"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -1.6
+    },
+    "voice/de/guide.harvest.piglet": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_harvest_piglet.7628bc640fa7.ogg",
+        "bytes": 17776,
+        "hash": "7628bc640fa7"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_harvest_piglet.8d53cde66535.mp3",
+        "bytes": 18438,
+        "hash": "8d53cde66535"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -7.2
+    },
+    "voice/de/guide.harvest.worker": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_harvest_worker.9793b44bb338.ogg",
+        "bytes": 21331,
+        "hash": "9793b44bb338"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_harvest_worker.d0dae026363c.mp3",
+        "bytes": 22546,
+        "hash": "d0dae026363c"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6
+    },
     "voice/en/bark.ag_nee": {
       "group": "voice-en",
       "origin": "interim",
@@ -3618,6 +3834,114 @@
       "loop": false,
       "lufs": -16,
       "peakDb": -2.6
+    },
+    "voice/en/guide.harvest.crop_low": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_harvest_crop_low.121310c7b648.ogg",
+        "bytes": 15100,
+        "hash": "121310c7b648"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_harvest_crop_low.555b6343b402.mp3",
+        "bytes": 17363,
+        "hash": "555b6343b402"
+      },
+      "loop": false,
+      "lufs": -16.7,
+      "peakDb": -1
+    },
+    "voice/en/guide.harvest.duck": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_harvest_duck.69a043239641.ogg",
+        "bytes": 15324,
+        "hash": "69a043239641"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_harvest_duck.7a6aea893d97.mp3",
+        "bytes": 18116,
+        "hash": "7a6aea893d97"
+      },
+      "loop": false,
+      "lufs": -17.7,
+      "peakDb": -1
+    },
+    "voice/en/guide.harvest.fixed": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_harvest_fixed.27b58017d204.ogg",
+        "bytes": 17884,
+        "hash": "27b58017d204"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_harvest_fixed.5f873dbef504.mp3",
+        "bytes": 20925,
+        "hash": "5f873dbef504"
+      },
+      "loop": false,
+      "lufs": -19.6,
+      "peakDb": -1
+    },
+    "voice/en/guide.harvest.intro": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_harvest_intro.020650cd1fe9.ogg",
+        "bytes": 20930,
+        "hash": "020650cd1fe9"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_harvest_intro.d80667cee2c6.mp3",
+        "bytes": 24955,
+        "hash": "d80667cee2c6"
+      },
+      "loop": false,
+      "lufs": -17.3,
+      "peakDb": -1
+    },
+    "voice/en/guide.harvest.piglet": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_harvest_piglet.ecb447d07c88.ogg",
+        "bytes": 12568,
+        "hash": "ecb447d07c88"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_harvest_piglet.6c967690c433.mp3",
+        "bytes": 13899,
+        "hash": "6c967690c433"
+      },
+      "loop": false,
+      "lufs": -16.7,
+      "peakDb": -1
+    },
+    "voice/en/guide.harvest.worker": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_harvest_worker.5b3edb02b6ed.ogg",
+        "bytes": 12868,
+        "hash": "5b3edb02b6ed"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_harvest_worker.893fb203f9b3.mp3",
+        "bytes": 14184,
+        "hash": "893fb203f9b3"
+      },
+      "loop": false,
+      "lufs": -17.3,
+      "peakDb": -1
     }
   }
 }

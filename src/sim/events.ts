@@ -40,7 +40,9 @@ export type BonusId =
   | 'nutWeg'
   // v1.8b (D-062): a raiding baboon bagged, and bagged before its raid was done.
   | 'baboon'
-  | 'raidStopped';
+  | 'raidStopped'
+  // v1.8c (D-063): a warthog bagged in the Harvest.
+  | 'warthog';
 
 export type SimEvent =
   | {
@@ -116,6 +118,8 @@ export type SimEvent =
       readonly tellId?: number;
       /** v1.8b (D-062): a baboon (a raider or a troop member). */
       readonly baboonId?: number;
+      /** v1.8c (D-063): a Harvest warthog, piglet or worker. */
+      readonly harvestId?: number;
     }
   /** v1.3x (D-037) Skietbaan only: a shot's aim point on the range's plane (plane px; a rifle's
    *  before the sway), the point its group is measured from. */
@@ -774,6 +778,70 @@ export type SimEvent =
       readonly plane: PlaneId;
       readonly x: number;
       readonly y: number;
+    }
+  /** v1.8c (D-063): the Harvest's intro is over (skipped: a tap ended it early); the clock runs. */
+  | {
+      readonly type: 'harvestIntroEnded';
+      readonly tick: number;
+      readonly skipped: boolean;
+      /** The tick the rush (and the fence repair) ends. */
+      readonly rushEndTick: number;
+    }
+  /** v1.8c (D-063): the fence breaks in the intro (posts tip, the wire snaps). */
+  | { readonly type: 'harvestFenceBroken'; readonly tick: number }
+  /** v1.8c (D-063): a warthog trots in (through the gap on the mid plane, round the end near). */
+  | {
+      readonly type: 'warthogEntered';
+      readonly tick: number;
+      readonly warthogId: number;
+      readonly plane: PlaneId;
+      readonly piglets: number;
+    }
+  /** v1.8c (D-063): a shot hit a warthog; hitsLeft 0 = bagged (warthogBagged follows). */
+  | {
+      readonly type: 'warthogHit';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly warthogId: number;
+      readonly hitsLeft: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+    }
+  | {
+      readonly type: 'warthogBagged';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly warthogId: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly points: number;
+    }
+  /** v1.8c (D-063): a warthog ran out of the field (driven off). */
+  | { readonly type: 'warthogLeft'; readonly tick: number; readonly warthogId: number }
+  /** v1.8c (D-063): a shot struck a piglet or a farm worker (never targets). points < 0 only when
+   *  the shot was aimed at them (cooldown permitting); otherwise they duck / run, free. */
+  | {
+      readonly type: 'harvestBystanderHit';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly who: 'worker' | 'piglet';
+      readonly id: number;
+      readonly aimed: boolean;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly points: number;
+    }
+  /** v1.8c (D-063): the crop meter fell below the warning line (once a hunt). */
+  | { readonly type: 'cropWarning'; readonly tick: number; readonly crop: number }
+  /** v1.8c (D-063): the fence is mended: the gap closes, the animals run off; the crop bonus. */
+  | {
+      readonly type: 'harvestFenceClosed';
+      readonly tick: number;
+      readonly crop: number;
+      readonly bonus: number;
     };
 
 /** 1.9.3 (D-056): what nutKnocked and nutJuggled carry. */

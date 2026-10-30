@@ -54,5 +54,11 @@
   "guide.baboon.stopped": "Caught in the act!",
   "guide.baboon.mother": "Not the mother with her baby, man!",
   "guide.baboon.rule": "Raiders: {n} hits bag one. Never the mothers!",
-  "guide.baboon.book": "Bobbejaan · chacma baboon"
+  "guide.baboon.book": "Bobbejaan · chacma baboon",
+  "guide.harvest.intro": "Hulle is deur die draad! They're through the fence!",
+  "guide.harvest.worker": "Hey! Don't shoot the workers!",
+  "guide.harvest.duck": "Careful, man! They're working there!",
+  "guide.harvest.piglet": "Leave the piglets alone!",
+  "guide.harvest.crop_low": "The crop! They're eating everything!",
+  "guide.harvest.fixed": "Fence is fixed! Well done, everyone!"
 }

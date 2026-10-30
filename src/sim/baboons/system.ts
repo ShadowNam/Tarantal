@@ -58,6 +58,10 @@ export interface BaboonSystem {
   ): void;
   step(): void;
   view(): BaboonsView;
+  /** v1.8c (D-063): raiders busy at their spot now (in the Harvest they eat the crop). */
+  acting(): number;
+  /** v1.8c (D-063): the id is a raider down at its spot (a target), not a ridge member. */
+  isRaider(id: number): boolean;
 }
 
 export type BaboonSystemFactory = (
@@ -350,5 +354,15 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
     };
   }
 
-  return { extras, plane, shot, step, view };
+  function acting(): number {
+    const raid = state.raid;
+    if (raid === null) return 0;
+    let n = 0;
+    for (const r of raid.raiders) if (!r.done && r.phase === 'act') n++;
+    return n;
+  }
+
+  const isRaider = (id: number): boolean => findRaider(state, id) !== null;
+
+  return { extras, plane, shot, step, view, acting, isRaider };
 };

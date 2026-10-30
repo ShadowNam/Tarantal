@@ -8,6 +8,7 @@
 // allocations, sprites off screen hidden, and its own timer (baboonMs) for the perf test. The
 // sheet loads with the late group: until the delivered file is under the key nothing is drawn
 // (review R11 of v1.7e) and the view looks for it every 30 frames.
+import { setFootOrigin } from '../footOrigin';
 import type * as Phaser from 'phaser';
 import type { BaboonTuning } from '../../../content/schemas';
 import type { SimEvent } from '../../../sim/events';
@@ -240,11 +241,9 @@ export class BaboonView {
     };
   }
 
-  /** Phaser flips round the frame's centre: a mirrored frame keeps its feet by mirroring the
-   *  origin too. */
+  /** The origin at the frame's feet; a custom-pivot frame is mirrored round it (footOrigin.ts). */
   private origin(s: Slot): void {
-    const f = s.img.frame;
-    s.img.setOrigin(s.flip ? 1 - f.pivotX : f.pivotX, f.pivotY);
+    setFootOrigin(s.img, s.flip);
   }
 
   /** Puts a slot at (x, y) on its layer with `frame` (null: hidden); returns whether shown. */

@@ -4,6 +4,7 @@ import { BUSHVELD_PLAN } from './bushveld';
 import { KALAHARI_PLAN } from './kalahari';
 import { KAROO_PLAN } from './karoo';
 import { NAMIBIE_PLAN } from './namibie';
+import { OES_PLAN } from './oes';
 import { OKAVANGO_PLAN } from './okavango';
 
 export const BIOME_PLANS: readonly BiomeArtPlan[] = [
@@ -12,4 +13,5 @@ export const BIOME_PLANS: readonly BiomeArtPlan[] = [
   KALAHARI_PLAN,
   OKAVANGO_PLAN,
   NAMIBIE_PLAN,
+  OES_PLAN,
 ];

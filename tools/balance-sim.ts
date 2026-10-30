@@ -3,12 +3,12 @@
 // Hunts run in parallel worker processes (one per core) so 500 seeds × 3 bots stays short.
 //
 // Usage: npx tsx tools/balance-sim.ts [--seeds 500] [--bots random,plinker,competent]
-//          [--input pointer|touch] [--mode classic|daily] [--omen on|off] [--workers N]
+//          [--input pointer|touch] [--mode classic|daily|harvest] [--omen on|off] [--workers N]
 //          [--biome <id>]  (M8: any biome; default the mode's)
 //          [--layout mon..sun] [--bonus verder|nogVerder|dieVerste]  (v1.2/v1.3 maps)
 //          [--feesdag halloween]  (D-048 special day; with --mode daily)
 //          [--weapon <id>] [--sight iron|peep|scope_small]  (v1.3: e.g. the Twee-Twee)
-//          [--out tmp/x.json] [--json]
+//          [--from 1] (first seed)  [--out tmp/x.json] [--json]
 //        npm run balance -- --run …   Season Runs per charm policy (see tools/season-sim.ts)
 // --omen overrides the mode's omen (modes.json: Classic off, Daily on).
 import { fork } from 'node:child_process';
@@ -72,6 +72,14 @@ export interface HuntRow {
   readonly nutKnocks: number;
   readonly nutAirHits: number;
   readonly nutPops: number;
+  /** v1.8c (D-063), the Harvest only: crop saved (%), warthogs and raiders bagged, the crop bonus,
+   *  and shots aimed (by accident: no bot aims at them) at a worker or a piglet that cost points. */
+  readonly crop?: number;
+  readonly warthogs?: number;
+  readonly raiders?: number;
+  readonly cropBonus?: number;
+  readonly workerHits?: number;
+  readonly pigletHits?: number;
 }
 
 export interface BotSummary {
@@ -116,11 +124,20 @@ export function playRows(job: Job): HuntRow[] {
       inputKind: job.input,
     });
     const bot = createBot(job.bot, seed, content, job.input);
+    let workerHits = 0;
+    let pigletHits = 0;
+    let raiders = 0;
     while (!sim.isOver()) {
       sim.step(bot.next(sim.snapshot()));
-      sim.drainEvents();
+      for (const e of sim.drainEvents()) {
+        if (e.type === 'harvestBystanderHit' && e.points < 0) {
+          if (e.who === 'worker') workerHits++;
+          else pigletHits++;
+        } else if (e.type === 'baboonBagged') raiders++;
+      }
     }
     const r = sim.result();
+    const hv = sim.snapshot().harvest;
     return {
       bot: job.bot,
       seed,
@@ -145,8 +162,33 @@ export function playRows(job: Job): HuntRow[] {
       nutKnocks: r.nuts?.knocks ?? 0,
       nutAirHits: r.nuts?.airHits ?? 0,
       nutPops: r.nuts?.pops ?? 0,
+      ...(hv === null
+        ? {}
+        : {
+            crop: hv.crop,
+            warthogs: hv.warthogsBagged,
+            raiders,
+            cropBonus: hv.cropBonus,
+            workerHits,
+            pigletHits,
+          }),
     };
   });
+}
+
+/** v1.8c (D-063): the Harvest's own columns per bot (means per hunt). */
+export function harvestTable(bots: readonly BotKind[], rows: readonly HuntRow[]): string {
+  const head =
+    '| bot | hunts | score mean | crop saved mean | crop p25 | crop p75 | crop bonus | warthogs | raiders | birds | worker hits (aimed) | piglet hits |';
+  const sep = '|' + '---|'.repeat(12);
+  const lines = bots.map((b) => {
+    const rs = rows.filter((r) => r.bot === b);
+    const n = Math.max(1, rs.length);
+    const mean = (f: (r: HuntRow) => number): number => rs.reduce((t, r) => t + f(r), 0) / n;
+    const crops = rs.map((r) => r.crop ?? 0).sort((a, c) => a - c);
+    return `| ${b} | ${rs.length} | ${mean((r) => r.score).toFixed(0)} | ${mean((r) => r.crop ?? 0).toFixed(1)} % | ${quantile(crops, 0.25).toFixed(1)} % | ${quantile(crops, 0.75).toFixed(1)} % | ${mean((r) => r.cropBonus ?? 0).toFixed(0)} | ${mean((r) => r.warthogs ?? 0).toFixed(2)} | ${mean((r) => r.raiders ?? 0).toFixed(2)} | ${mean((r) => r.bagged).toFixed(1)} | ${mean((r) => r.workerHits ?? 0).toFixed(3)} | ${mean((r) => r.pigletHits ?? 0).toFixed(3)} |`;
+  });
+  return [head, sep, ...lines].join('\n');
 }
 
 function quantile(sorted: readonly number[], q: number): number {
@@ -269,7 +311,10 @@ async function main(): Promise<void> {
       return found;
     });
   const input: InputKind = arg('input', 'pointer') === 'touch' ? 'touch' : 'pointer';
-  const mode: ModeId = arg('mode', 'classic') === 'daily' ? 'daily' : 'classic';
+  const modeArg = arg('mode', 'classic');
+  // v1.8c (D-063): --mode harvest (Die Oes, its own map; the Harvest table, no M3 gates).
+  const mode: ModeId =
+    modeArg === 'daily' ? 'daily' : modeArg === 'harvest' ? 'harvest' : 'classic';
   const omenArg = arg('omen', '');
   const omen = omenArg === 'on' ? true : omenArg === 'off' ? false : undefined;
   const biomeArg = arg('biome', '');
@@ -285,7 +330,9 @@ async function main(): Promise<void> {
   );
   const started = performance.now();
 
-  const all = Array.from({ length: seeds }, (_, i) => i + 1);
+  // v1.8c: --from N runs seeds N … N + seeds − 1 (100-seed chunks on a small box).
+  const from = Math.max(1, Number(arg('from', '1')));
+  const all = Array.from({ length: seeds }, (_, i) => i + from);
   const jobs: Job[] = [];
   for (const bot of bots) {
     const chunk = Math.ceil(seeds / workers);
@@ -324,7 +371,7 @@ async function main(): Promise<void> {
       results.filter((r) => r.bot === b),
     ),
   );
-  const gates = m3Gates(new Map(summaries.map((s) => [s.bot, s])));
+  const gates = mode === 'harvest' ? [] : m3Gates(new Map(summaries.map((s) => [s.bot, s])));
   const seconds = (performance.now() - started) / 1000;
   const report = { seeds, mode, biome, omen, input, bots, overrides, summaries, gates, seconds };
 
@@ -342,6 +389,7 @@ async function main(): Promise<void> {
   );
   if (overrides.length > 0) console.log(`overrides: ${overrides.join('  ')}`);
   console.log(formatTable(summaries));
+  if (mode === 'harvest') console.log(harvestTable(bots, results));
   for (const g of gates) console.log(`${g.pass ? 'PASS' : 'FAIL'}  ${g.name}: ${g.detail}`);
   if (gates.some((g) => !g.pass)) process.exitCode = 1;
 }

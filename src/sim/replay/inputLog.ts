@@ -99,7 +99,8 @@ const OPS: readonly Command['t'][] = [
 /** Commands a v1–v4 log can hold (the v5 rifle commands come after them). */
 const V4_OPS = 9;
 // Append only: the index is the encoded value.
-const MODES: readonly ModeId[] = ['classic', 'daily', 'seasonHunt', 'ftue'];
+// v1.8c (D-063): 'harvest' appended (index 4).
+const MODES: readonly ModeId[] = ['classic', 'daily', 'seasonHunt', 'ftue', 'harvest'];
 const INPUT_KINDS: readonly InputKind[] = ['pointer', 'touch'];
 const AIM_ASSIST: readonly AimAssistLevel[] = ['standard', 'low', 'off'];
 const SEASON_KINDS: readonly SeasonHuntKind[] = ['plain', 'omen', 'boss'];

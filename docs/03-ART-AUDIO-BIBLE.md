@@ -680,6 +680,29 @@ lookout's two-note "wa-hoo" bark, a hit raider's screech, each raid's own sound 
 a crunch of fruit or mielie, the throw's whoosh, the moon's rude raspberry, the chase's yelps), and
 the thump of a bagged one.
 
+### 5.4 Die Oes: the farm field, warthogs and the farm workers (1.11.0, D-063)
+Interim at the D-035 bar (review round 1: the sheet's figures are semi-realistic, drawn from
+posed skeletons like the baboons, no ink, layered shading and texture, so HD adds detail). **The field** (`oes`): a warm late-summer sky, a
+koppie behind (the troop's seats on its skyline), the farmhouse (white walls, a corrugated roof, a
+stoep), a generic tractor (no brand) and bluegums on the far veld; rows of ripe tasselled mielies
+and sunflower patches on the mid plane with the fence along the back and the gap (the game draws
+the gap's panel: whole, broken with two tipped posts and curled wire, three repair stages, whole
+again); the pumpkin patch on the near plane; sunflower clumps in the foreground. **One sheet**
+(`oes/harvest`, the map's lazy group, a 2× master; frames face right, origin at the feet, boxes
+fitted by `tools/art/harvestBoxes.ts`): the warthog (grey-brown, a sparse dark mane, tusks and
+warts and two curved upper tusks, a bristle mane; trot ×4 with the tail straight up like an
+aerial, dig ×2 kneeling on the front knees with the snout in the soil, run ×2, the tumble and lying
+still — no blood), piglets (lighter, faint stripes; trot ×2, run), three farm
+workers — respectful, cheerful, simple overalls and boots, varied people (a woman with a headscarf
+under a wide hat, an older man with a grey beard and a cap, a young man in a bucket hat): run ×2,
+work ×2 (hammering a post, twisting wire with pliers, holding a post), duck (hands over the head,
+a comic flinch); about 1.6× the fence posts' height on the mid plane — the gap's five panels and the "OES" sign. Checks: every stand point on drawn
+ground (`tools/art/harvestGround.test.ts`), frames clear of their box edges
+(`tools/art/harvestArt.test.ts`). **Sounds** (synths in the lazy view until recordings are
+delivered under `sfx/harvest_*`): the wire snapping, a warthog's grunt, a piglet's squeal, the thump
+of a bagged one, the workers' hammering, the crop warning's two soft beeps and a four-note harvest
+jingle when the fence is whole. Oupa's Harvest lines (`guide.harvest.*`): en/af/de voiced, nl text.
+
 ## 6. HUD and UI
 
 **Materials:** weathered wood signs (`#8B5A2B`), cream enamel with blue rim (`#F3EAD3` / `#2D5DA8`),

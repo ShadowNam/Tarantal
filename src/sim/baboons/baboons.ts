@@ -302,7 +302,7 @@ export function createBaboons(
     spots: placeSpots(biome, map, planeScale, clear),
     rate: T.raids.perMinute * (map.raidsMul ?? 1),
     raid: null,
-    nextRaidIn: ticks(ctx.rng, T.raids.firstAfterSeconds),
+    nextRaidIn: ticks(ctx.rng, map.firstAfterSeconds ?? T.raids.firstAfterSeconds),
     returning: [],
     raids: 0,
   };

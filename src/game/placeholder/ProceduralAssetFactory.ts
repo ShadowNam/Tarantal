@@ -30,6 +30,7 @@ import { sheetHerds } from '../view/faunaHerds';
 import { FRUIT_SHEET, fruitSheetKey } from '../view/fruit/fruitTypes';
 import { TELL_SHEET, TELL_SHEET_H, TELL_SHEET_W } from '../view/tell/tellKeys';
 import { BABOON_SHEET, BABOON_SHEET_H, BABOON_SHEET_W } from '../view/baboon/baboonKeys';
+import { HARVEST_SHEET, HARVEST_SHEET_H, HARVEST_SHEET_W } from '../view/harvest/harvestKeys';
 import { hasColonies } from '../../sim/meerkats/colony';
 import { MEERKAT_SOUNDS } from '../assets/desertAssets';
 import { HD_PARTS, hdKeyOf, POTJIE_LID, POTJIE_LID_SIZE } from '../assets/hdProps';
@@ -83,6 +84,22 @@ const PALETTES: Readonly<Record<string, BirdPalette>> = {
     dots: '#F4F1E8',
     face: '#2F7DE1',
     faceHi: '#6FB3FF',
+  },
+  // v1.8c (D-063): the Harvest's fly-overs, until their art is in (a brown francolin with its red
+  // face, a grey-brown dove).
+  fisant: {
+    plumage: '#7A5A3A',
+    shadow: '#5A4028',
+    dots: '#3A2A1C',
+    face: '#D2402E',
+    faceHi: '#E86A58',
+  },
+  tortelduif: {
+    plumage: '#A99A8C',
+    shadow: '#7E7064',
+    dots: '#C9BDB0',
+    face: '#7E7064',
+    faceHi: '#A99A8C',
   },
   // Ou Grys (art bible §3.2): faded grey plumage; the eye patch is drawn on top.
   ou_grys: {
@@ -1449,6 +1466,8 @@ const LAZY_ART: Readonly<Record<string, () => Promise<BiomeArt>>> = {
   'okavango-spring': () => import('./biomes/okavango').then((m) => m.OKAVANGO_ART),
   'kalahari-summer': () => import('./biomes/kalahari').then((m) => m.KALAHARI_ART),
   namibie: () => import('./biomes/namibie').then((m) => m.NAMIBIE_ART),
+  // v1.8c (D-063): the Harvest's field (the chunk name starts with the biome id: oes-<hash>.js).
+  oes: () => import('./biomes/oes').then((m) => m.OES_ART),
 };
 const loadedArt = new Map<string, BiomeArt>([['karoo-autumn', KAROO_ART]]);
 const loadingArt = new Map<string, Promise<boolean>>();
@@ -1579,6 +1598,22 @@ export function createPlaceholderManifest(
       // Nothing: drawn art only.
     },
   });
+  // v1.8c (D-063): the Harvest's sheet (warthogs, piglets, workers, the fence gap), only on the
+  // Harvest's map, so it lands in that map's own lazy group (drawn art only: HarvestView waits for
+  // the delivered file).
+  if (biome.harvest !== undefined)
+    m.addTexture({
+      key: HARVEST_SHEET,
+      width: HARVEST_SHEET_W,
+      height: HARVEST_SHEET_H,
+      originX: 0,
+      originY: 0,
+      // HarvestView cuts its frames by the file under the key (the 2× art) and sets the scale.
+      viewScaled: true,
+      draw() {
+        // Nothing: drawn art only.
+      },
+    });
   // v1.7e (D-061): the secrets' tell animals' sheet (late group; drawn art only: the placeholder
   // is empty, so without delivered art the secrets show no tell while the hunt plays the same).
   m.addTexture({

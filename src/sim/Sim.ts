@@ -53,6 +53,7 @@ import { createCharmEngine, type FiredEffect, type TriggerContext } from './char
 import { CHARM_SCRIPTS } from './charms/registry';
 import { clampCameraX, planeCentreX, planeToDx, quantiseHalf, tapToPlane } from './camera';
 import { tuningRatio } from './planes';
+import type { HarvestSystem } from './harvest/system';
 import { sanitiseCommand } from './commands';
 import { msToTicks, secondsToTicks } from './clock';
 import { createDirector, type DirectorContext } from './director/SpawnDirector';
@@ -953,6 +954,75 @@ export function createSim(config: SimConfig): Sim {
       },
     );
   }
+  // v1.8c (D-063): the Harvest (its own stream `harvest`; lazy chunk like the baboons). The hunt
+  // gets its intro before the clock and its outro after it.
+  let harvest: HarvestSystem | null = null;
+  if (mode.id === 'harvest') {
+    if (biome.harvest === undefined)
+      throw new Error('the Harvest needs a map with harvest geometry');
+    harvest = needLazy('the Harvest').harvest(
+      biome,
+      content,
+      geometry.planeScale,
+      {
+        near: scoring.planes.near.minHitRadiusPx,
+        mid: scoring.planes.mid.minHitRadiusPx,
+        far: scoring.planes.far.minHitRadiusPx,
+        ver: scoring.planes.ver.minHitRadiusPx,
+      },
+      setup.huntSeconds,
+      rng.stream('harvest'),
+      {
+        tick: () => tick,
+        emit: (e) => {
+          emit(e);
+        },
+        awardBonus: (bonus, base) => awardBonus(bonus, base),
+        basePoints: (plane) => mapPoints(scoring.planes[plane].base, plane),
+        penalty: (points) => {
+          score += points;
+          stats.penalties++;
+        },
+        addScore: (points) => {
+          score += points;
+        },
+        eatingBirds: () => {
+          let n = 0;
+          for (const f of flocks)
+            if (f.state === 'forage' || f.state === 'alert') n += f.members.length;
+          return n;
+        },
+        eatingRaiders: () => baboons?.acting() ?? 0,
+        flocksOn: (plane) => {
+          let n = 0;
+          for (const f of flocks) if (f.plane === plane && f.members.length > 0) n++;
+          return n;
+        },
+        gapFlock: (plane, x, size, dir) => {
+          if (flocks.filter((f) => f.members.length > 0).length >= biome.pacing.maxFlocks)
+            return false;
+          const f = director.spawnFlockAt(
+            { ...directorContext(), flocks, nextFlockId: () => nextFlockId++ },
+            plane,
+            x,
+            size,
+            rng.stream('harvest'),
+          );
+          if (f === null) return false;
+          addFlocks([f]);
+          // In through the gap at a run, away from a "threat" behind them (the fence's far side).
+          emitTransition(f, forceState(f, 'run', x - dir * 60, 'event', fParams, flockRng));
+          return true;
+        },
+        scatterFlocks: () => {
+          for (const f of flocks)
+            if (f.members.length > 0 && f.state !== 'flush')
+              emitTransition(f, forceState(f, 'flush', centroid(f).x, 'event', fParams, flockRng));
+        },
+      },
+    );
+    if (harvest !== null) durationTicks += harvest.introTicks + harvest.outroTicks;
+  }
   /** v1.7d (D-059): each balloon's penalty cooldown (the tick it ends). */
   const drifterCooldown = new Map<number, number>();
   const mkCalmTicks = secondsToTicks(mk.calmSeconds);
@@ -1575,6 +1645,7 @@ export function createSim(config: SimConfig): Sim {
     // v1.8b (D-062): the troops on their ridges, then the raiders: after the secret parts and the
     // tells, so where a raider walks past one the secret (or tell) takes the pellet (review).
     baboons?.extras(add);
+    harvest?.extras(add);
     return out;
   }
 
@@ -1686,17 +1757,19 @@ export function createSim(config: SimConfig): Sim {
         ? plane === 'far' || plane === 'ver'
         : r.meerkatId !== undefined || r.ostrichId !== undefined || r.tellId !== undefined
           ? false
-          : r.baboonId !== undefined
-            ? baboons?.plane(r.baboonId) === 'far' || baboons?.plane(r.baboonId) === 'ver'
-            : r.canId !== undefined
-              ? thingPlane(r.canId) === 'far' || thingPlane(r.canId) === 'ver'
-              : r.spookId !== undefined
-                ? spook?.things.find((t) => t.id === r.spookId)?.plane === 'far'
-                : r.crateId !== null
-                  ? crateCfg.plane === 'far'
-                  : r.propId !== null
-                    ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
-                    : true;
+          : r.harvestId !== undefined
+            ? false
+            : r.baboonId !== undefined
+              ? baboons?.plane(r.baboonId) === 'far' || baboons?.plane(r.baboonId) === 'ver'
+              : r.canId !== undefined
+                ? thingPlane(r.canId) === 'far' || thingPlane(r.canId) === 'ver'
+                : r.spookId !== undefined
+                  ? spook?.things.find((t) => t.id === r.spookId)?.plane === 'far'
+                  : r.crateId !== null
+                    ? crateCfg.plane === 'far'
+                    : r.propId !== null
+                      ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
+                      : true;
     const ldx = landedFar ? pdx + drift : pdx;
     emit({
       type: 'pelletImpact',
@@ -1715,6 +1788,7 @@ export function createSim(config: SimConfig): Sim {
       ...(r.canId === undefined ? {} : { canId: r.canId }),
       ...(r.tellId === undefined ? {} : { tellId: r.tellId }),
       ...(r.baboonId === undefined ? {} : { baboonId: r.baboonId }),
+      ...(r.harvestId === undefined ? {} : { harvestId: r.harvestId }),
       ...(cx === null ? {} : { cx }),
     });
     return { dx: ldx, sy: psy, r };
@@ -1765,6 +1839,15 @@ export function createSim(config: SimConfig): Sim {
     /** Rifles through the sight: the aim point before the sway (the Skietbaan's aim point). */
     aimAt: { readonly dx: number; readonly sy: number } = { dx, sy },
   ): boolean {
+    // v1.8c (D-063): the Harvest's intro takes a tap as "skip" (no shot); its outro takes none.
+    if (harvest !== null) {
+      const g = harvest.fireGate();
+      if (g.gate === 'skip') {
+        durationTicks -= g.shortenBy;
+        return false;
+      }
+      if (g.gate === 'block') return false;
+    }
     const usingCrate = crateWeapon !== null;
     // A rifle shot that didn't come through a raised sight (a plain fire command, a second
     // finger's tap, auto-fire) is a hip shot: no shortcut past the sway (review of v1.3).
@@ -1881,6 +1964,7 @@ export function createSim(config: SimConfig): Sim {
           r.ostrichId !== undefined ||
           r.tellId !== undefined ||
           r.baboonId !== undefined ||
+          r.harvestId !== undefined ||
           r.canId !== undefined ||
           f.next >= bands.length;
         if (!stopped) continue;
@@ -1940,6 +2024,7 @@ export function createSim(config: SimConfig): Sim {
     const spookHits: number[] = [];
     const tellHits: number[] = [];
     const baboonHits: number[] = [];
+    const harvestHits: number[] = [];
     /** v1.8: pellets per tin can, their summed offsets and the dents (in landing order). */
     const canHits = new Map<
       number,
@@ -1985,6 +2070,8 @@ export function createSim(config: SimConfig): Sim {
       if (r.spookId !== undefined && !spookHits.includes(r.spookId)) spookHits.push(r.spookId);
       if (r.tellId !== undefined && !tellHits.includes(r.tellId)) tellHits.push(r.tellId);
       if (r.baboonId !== undefined && !baboonHits.includes(r.baboonId)) baboonHits.push(r.baboonId);
+      if (r.harvestId !== undefined && !harvestHits.includes(r.harvestId))
+        harvestHits.push(r.harvestId);
       if (r.canId !== undefined) {
         const h = canHits.get(r.canId) ?? { n: 0, dx: 0, dy: 0, at: [] };
         h.n++;
@@ -2068,6 +2155,7 @@ export function createSim(config: SimConfig): Sim {
       spookHits.length > 0 ||
       tellHits.length > 0 ||
       baboonHits.length > 0 ||
+      harvestHits.length > 0 ||
       canHits.size > 0;
 
     const targets = bagged.filter((x) => x.bird.creature.kind !== 'nonTarget');
@@ -2247,6 +2335,14 @@ export function createSim(config: SimConfig): Sim {
     if (baboonHits.length > 0 || (shot.alertsAllFlocks && radius > 0))
       baboons?.shot(shotId, baboonHits, shot.alertsAllFlocks && radius > 0, (layerId) =>
         tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
+      );
+    if (harvestHits.length > 0)
+      harvest?.shot(
+        shotId,
+        harvestHits,
+        damage.outcomes.length > 0 || baboonHits.some((id) => baboons?.isRaider(id) === true),
+        (layerId) =>
+          tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
       );
     const near = shotThreats(flocks, impacts, shotCx, radius, planeGeo, baggedFlockIds);
     threaten(near, radius > 0 ? 'shot' : 'silentBag');
@@ -3323,6 +3419,7 @@ export function createSim(config: SimConfig): Sim {
     }
     tells?.step();
     baboons?.step();
+    harvest?.step();
 
     if (ranged) rangeStep();
     else {
@@ -3506,6 +3603,7 @@ export function createSim(config: SimConfig): Sim {
         ostriches: ostriches?.view() ?? [],
         tells: tells?.view() ?? [],
         baboons: baboons?.view() ?? null,
+        harvest: harvest?.view() ?? null,
         powerups: powerups.map(powerupView),
         wind: windView(wind),
         dustDevils: dustDevils.map(dustDevilView),

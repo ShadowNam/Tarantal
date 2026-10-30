@@ -23,7 +23,24 @@ import { drawButton, fitText, Menu } from '../ui/menu';
 import { FONT } from '../view/Fx';
 import { fontPx, outline } from '../ui/textLook';
 
+/** v1.8c (D-063): what the Harvest's tally shows instead of the plane rows. */
+export interface HarvestTally {
+  readonly birds: number;
+  readonly warthogs: number;
+  readonly baboons: number;
+  /** Crop saved, whole percent. */
+  readonly crop: number;
+  readonly cropBonus: number;
+  /** Points lost to aimed shots at workers and piglets (positive). */
+  readonly bystanderPenalty: number;
+  /** The local best after this hunt (null: unranked and never played). */
+  readonly best: number | null;
+  readonly newBest: boolean;
+}
+
 export interface TallyData {
+  /** v1.8c (D-063): the Harvest's lines (absent for every other mode). */
+  readonly harvest?: HarvestTally;
   readonly result: HuntResult;
   /** Called when the player presses [Again], with the pointer type that pressed it. */
   readonly again: (pointerType: string) => void;
@@ -161,7 +178,7 @@ export class TallyScene extends Phaser.Scene {
       .text(
         px + panelW / 2,
         py + 64,
-        special?.title ?? t('tally.title'),
+        special?.title ?? t(data.harvest === undefined ? 'tally.title' : 'tally.harvest_title'),
         chalk(64, special == null ? '#FFD25A' : '#FFB347', false),
       )
       .setOrigin(0.5);
@@ -211,19 +228,36 @@ export class TallyScene extends Phaser.Scene {
       this.ctx.audio.setTallyCounting(false);
     });
 
-    const rows: [I18nKey, string][] = [
-      ['tally.accuracy', `${formatPercent(r.accuracy)}  (${r.hitShots}/${r.shots})`],
-      ['tally.bagged_near', String(r.baggedByPlane.near)],
-      ['tally.bagged_mid', String(r.baggedByPlane.mid)],
-      ['tally.bagged_far', String(r.baggedByPlane.far)],
-      ['tally.wing_shots', String(r.wingShots)],
-      ['tally.flushes', String(r.flushes)],
-      ['tally.whole_flocks', r.wholeFlocks > 0 ? `★ ${r.wholeFlocks}` : '0'],
-      ['tally.best_streak', String(r.bestStreak)],
-      ['tally.secrets', r.secrets > 0 ? `★ ${r.secrets}` : '0'],
-      ['tally.crates', String(r.crates)],
-      ['tally.penalties', String(r.penalties)],
-    ];
+    const hv = data.harvest;
+    const rows: [I18nKey, string][] =
+      hv !== undefined
+        ? [
+            ['tally.harvest_birds', String(hv.birds)],
+            ['tally.harvest_warthogs', String(hv.warthogs)],
+            ['tally.harvest_baboons', String(hv.baboons)],
+            ['tally.harvest_crop', `${String(hv.crop)} %`],
+            ['tally.harvest_crop_bonus', `+${formatScore(hv.cropBonus)}`],
+            ['tally.best_streak', String(r.bestStreak)],
+            ['tally.accuracy', `${formatPercent(r.accuracy)}  (${r.hitShots}/${r.shots})`],
+            [
+              'tally.harvest_bystanders',
+              hv.bystanderPenalty > 0 ? `-${formatScore(hv.bystanderPenalty)}` : '0',
+            ],
+            ['tally.harvest_best_row', hv.best === null ? '—' : formatScore(hv.best)],
+          ]
+        : [
+            ['tally.accuracy', `${formatPercent(r.accuracy)}  (${r.hitShots}/${r.shots})`],
+            ['tally.bagged_near', String(r.baggedByPlane.near)],
+            ['tally.bagged_mid', String(r.baggedByPlane.mid)],
+            ['tally.bagged_far', String(r.baggedByPlane.far)],
+            ['tally.wing_shots', String(r.wingShots)],
+            ['tally.flushes', String(r.flushes)],
+            ['tally.whole_flocks', r.wholeFlocks > 0 ? `★ ${r.wholeFlocks}` : '0'],
+            ['tally.best_streak', String(r.bestStreak)],
+            ['tally.secrets', r.secrets > 0 ? `★ ${r.secrets}` : '0'],
+            ['tally.crates', String(r.crates)],
+            ['tally.penalties', String(r.penalties)],
+          ];
     // D-048: the Spookjag's bats, owls and lanterns.
     if (special != null && isI18nKey(special.nameKey)) rows.push([special.nameKey, special.line]);
     // v1.7b (D-046): the power-ups used, as icons and names (a row of their own).
@@ -234,9 +268,14 @@ export class TallyScene extends Phaser.Scene {
     const rowFont = Math.min(36, Math.floor(rowH * 0.78));
     rows.forEach(([key, value], i) => {
       const y = py + 240 + i * rowH;
+      // v1.8c review: points lost to workers or piglets show in red; every label in the row colour.
+      const color =
+        key === 'tally.harvest_bystanders' && (hv?.bystanderPenalty ?? 0) > 0
+          ? '#FF6B5A'
+          : '#F3EAD3';
       const label = this.add.text(px + 80, y, t(key), chalk(rowFont, '#F3EAD3', false)).setAlpha(0);
       const val = this.add
-        .text(px + panelW - 80, y, value, chalk(rowFont, '#F3EAD3', false))
+        .text(px + panelW - 80, y, value, chalk(rowFont, color, false))
         .setOrigin(1, 0)
         .setAlpha(0);
       const extra =
@@ -255,7 +294,9 @@ export class TallyScene extends Phaser.Scene {
 
     // Rank stamp thud.
     const rankKey = `rank.${r.rank}`;
-    const rankText = isI18nKey(rankKey) ? t(rankKey) : r.rank;
+    // v1.8c review: the Harvest's stamp says a new best when there is one.
+    const rankText =
+      hv?.newBest === true ? t('tally.harvest_new_best') : isI18nKey(rankKey) ? t(rankKey) : r.rank;
     const stamp = this.add
       .text(px + panelW / 2, py + panelH - 222, rankText, {
         ...chalk(56, '#C8302A', false),
@@ -278,6 +319,18 @@ export class TallyScene extends Phaser.Scene {
       },
     });
 
+    // v1.8c review: the hook says when everything is in (rows, stamp, news), for screenshots.
+    if (this.ctx.hook) {
+      this.ctx.hook.tallyDone = false;
+      const doneMs = Math.max(
+        pace.rowDelayMs + rows.length * pace.rowStaggerMs + pace.rowFadeMs,
+        pace.countUpMs + pace.stampMs,
+        pace.countUpMs + pace.newsDelayMs + 200,
+      );
+      this.time.delayedCall(doneMs + 100, () => {
+        if (this.ctx.hook) this.ctx.hook.tallyDone = true;
+      });
+    }
     // What changed in the save: one line, the most exciting news first.
     const news = this.news(data);
     if (news !== null) {
@@ -301,17 +354,22 @@ export class TallyScene extends Phaser.Scene {
     const menuR: Rect = { x: px + panelW - 30 - season.w, y: by + 12, w: season.w, h: 76 };
     drawButton(this, again, t('tally.again'), 'primary', 52);
     const toAdmin = data.admin;
-    drawButton(
-      this,
-      season,
-      t(toAdmin === undefined ? 'tally.season_run' : 'admin.back'),
-      'secondary',
-      30,
-    );
+    // v1.8c review: the Harvest's tally is Again / Share / Menu (Share in the left slot).
+    const harvestShare = hv !== undefined && toAdmin === undefined;
+    if (!harvestShare)
+      drawButton(
+        this,
+        season,
+        t(toAdmin === undefined ? 'tally.season_run' : 'admin.back'),
+        'secondary',
+        30,
+      );
     drawButton(this, menuR, t('tally.menu'), 'secondary', 32);
 
     // M7 [Share]: top-right of the slate (≥ 64 px), Classic and the official daily only.
-    const shareR: Rect = { x: px + panelW - 30 - 240, y: py + 20, w: 240, h: 84 };
+    const shareR: Rect = harvestShare
+      ? season
+      : { x: px + panelW - 30 - 240, y: py + 20, w: 240, h: 84 };
     const shareMsg = extras?.share != null ? extras : null;
     let toast: Phaser.GameObjects.Text | null = null;
     if (shareMsg !== null) drawButton(this, shareR, t('tally.share'), 'secondary', 40);
@@ -375,16 +433,20 @@ export class TallyScene extends Phaser.Scene {
             data.again(pointerType === 'keyboard' ? 'mouse' : pointerType);
           },
         },
-        {
-          id: toAdmin === undefined ? 'seasonRun' : 'admin',
-          rect: () => season,
-          press: () => {
-            if (pressed) return;
-            pressed = true;
-            if (toAdmin !== undefined) toAdmin();
-            else data.seasonRun();
-          },
-        },
+        ...(harvestShare
+          ? []
+          : [
+              {
+                id: toAdmin === undefined ? 'seasonRun' : 'admin',
+                rect: () => season,
+                press: () => {
+                  if (pressed) return;
+                  pressed = true;
+                  if (toAdmin !== undefined) toAdmin();
+                  else data.seasonRun();
+                },
+              },
+            ]),
         {
           id: 'menu',
           rect: () => menuR,
@@ -403,7 +465,7 @@ export class TallyScene extends Phaser.Scene {
       this.ctx.hook.rects = {
         ...frameRects,
         again,
-        ...(toAdmin === undefined ? { seasonRun: season } : { admin: season }),
+        ...(harvestShare ? {} : toAdmin === undefined ? { seasonRun: season } : { admin: season }),
         menu: menuR,
         ...(shareMsg === null ? {} : { share: shareR }),
       };
@@ -425,8 +487,21 @@ export class TallyScene extends Phaser.Scene {
       ...(data.extras?.compare != null ? [data.extras.compare] : []),
       ...(data.extras?.news ?? []),
     ];
+    // v1.8c (D-063): the Harvest's best first.
+    const hv = data.harvest;
+    if (hv !== undefined)
+      parts.unshift(
+        hv.newBest
+          ? t('tally.harvest_new_best')
+          : hv.best === null
+            ? ''
+            : fill(t('tally.harvest_best'), { score: formatScore(hv.best) }),
+      );
     const o = data.outcome;
-    if (o === null) return parts.length === 0 ? null : parts.slice(0, 2).join('  ·  ');
+    if (o === null) {
+      const some = parts.filter((p) => p !== '');
+      return some.length === 0 ? null : some.slice(0, 2).join('  ·  ');
+    }
     for (const w of o.unlockedWeapons)
       parts.push(fill(t('tally.unlocked'), { weapon: tOr(`weapon.${w}`, w) }));
     if (o.newBest !== null && o.newBest.previous !== null) parts.push(t('tally.new_best'));
@@ -450,6 +525,7 @@ export class TallyScene extends Phaser.Scene {
         fill(t('tally.notaboek_done'), { goal: fill(tOr(`notaboek.${id}`, id), { n: c.target }) }),
       );
     }
-    return parts.length === 0 ? null : parts.slice(0, 2).join('  ·  ');
+    const some = parts.filter((p) => p !== '');
+    return some.length === 0 ? null : some.slice(0, 2).join('  ·  ');
   }
 }

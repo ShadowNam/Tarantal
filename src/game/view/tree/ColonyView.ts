@@ -5,6 +5,7 @@
 // were), scatters them; they trickle back. Rendering only: no sim state, no score. Sprites sit in
 // the nest layer's prop-fruit container (above the tree, under the layer's haze and its birds,
 // so they never stand in front of a shot at a bird) and take the map light's tint.
+import { setFootOrigin } from '../footOrigin';
 import type * as Phaser from 'phaser';
 import type { Biome, Feel } from '../../../content/schemas';
 import type { SimEvent } from '../../../sim/events';
@@ -238,8 +239,8 @@ export class ColonyView {
       for (const p of poses) {
         const img = this.sprite(used++, layer.propFruit);
         img.setFrame(p.frame);
-        // Phaser flips round the texture's centre: mirror the origin with it.
-        if (p.flip) img.setOrigin(1 - img.frame.pivotX, img.frame.pivotY);
+        // The origin at the frame's anchor, flipped or not (a custom pivot: footOrigin.ts).
+        setFootOrigin(img, p.flip);
         img
           .setScale(((p.frame.startsWith('falcon') ? t.falconMul : 1) * c.k) / this.tk)
           .setPosition(c.x + p.x, c.y + p.y)

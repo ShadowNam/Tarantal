@@ -651,6 +651,56 @@
       "height": 524,
       "scale": 0.5
     },
+    "oes/farmhouse": {
+      "file": {
+        "path": "assets/oes-hd/img/oes_farmhouse.d29ce8476212.png",
+        "bytes": 6167,
+        "hash": "d29ce8476212"
+      },
+      "width": 760,
+      "height": 500,
+      "scale": 0.5
+    },
+    "oes/harvest": {
+      "file": {
+        "path": "assets/oes-hd/img/oes_harvest.38295a0b9c9d.png",
+        "bytes": 335126,
+        "hash": "38295a0b9c9d"
+      },
+      "width": 3072,
+      "height": 1836,
+      "scale": 0.5
+    },
+    "oes/sunflowers_a": {
+      "file": {
+        "path": "assets/oes-hd/img/oes_sunflowers_a.3292185cb115.png",
+        "bytes": 38424,
+        "hash": "3292185cb115"
+      },
+      "width": 760,
+      "height": 940,
+      "scale": 0.5
+    },
+    "oes/sunflowers_b": {
+      "file": {
+        "path": "assets/oes-hd/img/oes_sunflowers_b.e9e80adf25be.png",
+        "bytes": 33384,
+        "hash": "e9e80adf25be"
+      },
+      "width": 760,
+      "height": 940,
+      "scale": 0.5
+    },
+    "oes/tractor": {
+      "file": {
+        "path": "assets/oes-hd/img/oes_tractor.6fb587f7a430.png",
+        "bytes": 5818,
+        "hash": "6fb587f7a430"
+      },
+      "width": 420,
+      "height": 368,
+      "scale": 0.5
+    },
     "okavango/hippo": {
       "file": {
         "path": "assets/okavango-spring-hd/img/okavango_hippo.275363067980.png",
@@ -1395,6 +1445,114 @@
       "tileWidth": 1024,
       "scale": 0.5
     },
+    "oes/foreground": {
+      "tiles": [
+        {
+          "path": "assets/oes-hd/layers/foreground-0.6f53bcbeb8f0.png",
+          "bytes": 220,
+          "hash": "6f53bcbeb8f0"
+        },
+        {
+          "path": "assets/oes-hd/layers/foreground-1.a50f8e4a93e3.png",
+          "bytes": 17609,
+          "hash": "a50f8e4a93e3"
+        },
+        {
+          "path": "assets/oes-hd/layers/foreground-2.23fa5b2bb9fb.png",
+          "bytes": 42955,
+          "hash": "23fa5b2bb9fb"
+        },
+        {
+          "path": "assets/oes-hd/layers/foreground-3.9c9639de1af5.png",
+          "bytes": 21902,
+          "hash": "9c9639de1af5"
+        },
+        {
+          "path": "assets/oes-hd/layers/foreground-4.e8695f0a06df.png",
+          "bytes": 30859,
+          "hash": "e8695f0a06df"
+        },
+        {
+          "path": "assets/oes-hd/layers/foreground-5.6f53bcbeb8f0.png",
+          "bytes": 220,
+          "hash": "6f53bcbeb8f0"
+        },
+        {
+          "path": "assets/oes-hd/layers/foreground-6.3b4a18c9cc0d.png",
+          "bytes": 142,
+          "hash": "3b4a18c9cc0d"
+        }
+      ],
+      "tileWidth": 1024,
+      "scale": 0.5
+    },
+    "oes/mid": {
+      "tiles": [
+        {
+          "path": "assets/oes-hd/layers/mid-0.ece9cbc3e78f.png",
+          "bytes": 241180,
+          "hash": "ece9cbc3e78f"
+        },
+        {
+          "path": "assets/oes-hd/layers/mid-1.9df396008c31.png",
+          "bytes": 240901,
+          "hash": "9df396008c31"
+        },
+        {
+          "path": "assets/oes-hd/layers/mid-2.f3502fb4db9e.png",
+          "bytes": 121033,
+          "hash": "f3502fb4db9e"
+        },
+        {
+          "path": "assets/oes-hd/layers/mid-3.0d9dfaf4c2c7.png",
+          "bytes": 239100,
+          "hash": "0d9dfaf4c2c7"
+        },
+        {
+          "path": "assets/oes-hd/layers/mid-4.d1352b3515ec.png",
+          "bytes": 75898,
+          "hash": "d1352b3515ec"
+        }
+      ],
+      "tileWidth": 1024,
+      "scale": 0.5
+    },
+    "oes/near": {
+      "tiles": [
+        {
+          "path": "assets/oes-hd/layers/near-0.80b373f40ea1.png",
+          "bytes": 30490,
+          "hash": "80b373f40ea1"
+        },
+        {
+          "path": "assets/oes-hd/layers/near-1.139472020345.png",
+          "bytes": 28681,
+          "hash": "139472020345"
+        },
+        {
+          "path": "assets/oes-hd/layers/near-2.16fcc814f41f.png",
+          "bytes": 31961,
+          "hash": "16fcc814f41f"
+        },
+        {
+          "path": "assets/oes-hd/layers/near-3.2845057581b9.png",
+          "bytes": 30957,
+          "hash": "2845057581b9"
+        },
+        {
+          "path": "assets/oes-hd/layers/near-4.96d7b58c2301.png",
+          "bytes": 27519,
+          "hash": "96d7b58c2301"
+        },
+        {
+          "path": "assets/oes-hd/layers/near-5.2a49f7a3256f.png",
+          "bytes": 17397,
+          "hash": "2a49f7a3256f"
+        }
+      ],
+      "tileWidth": 1024,
+      "scale": 0.5
+    },
     "okavango/foreground": {
       "tiles": [
         {
@@ -1505,6 +1663,40 @@
     }
   },
   "birds": {
+    "fisant": {
+      "far": {
+        "pages": [
+          {
+            "image": {
+              "path": "assets/oes-hd/birds/fisant-far@2x-0.1dd47caf7c08.png",
+              "bytes": 15984,
+              "hash": "1dd47caf7c08"
+            },
+            "data": {
+              "path": "assets/oes-hd/birds/fisant-far@2x-0.c06c10e47b76.json",
+              "bytes": 2444,
+              "hash": "c06c10e47b76"
+            }
+          }
+        ]
+      },
+      "mid": {
+        "pages": [
+          {
+            "image": {
+              "path": "assets/oes-hd/birds/fisant-mid@2x-0.7d410c1f55a7.png",
+              "bytes": 105556,
+              "hash": "7d410c1f55a7"
+            },
+            "data": {
+              "path": "assets/oes-hd/birds/fisant-mid@2x-0.5825fef7a952.json",
+              "bytes": 2522,
+              "hash": "5825fef7a952"
+            }
+          }
+        ]
+      }
+    },
     "hadeda": {
       "far": {
         "pages": [
@@ -1588,6 +1780,40 @@
               "path": "assets/common-hd/birds/tarentaal-mid@2x-0.646227163c3b.json",
               "bytes": 10923,
               "hash": "646227163c3b"
+            }
+          }
+        ]
+      }
+    },
+    "tortelduif": {
+      "far": {
+        "pages": [
+          {
+            "image": {
+              "path": "assets/oes-hd/birds/tortelduif-far@2x-0.75895adf832f.png",
+              "bytes": 13649,
+              "hash": "75895adf832f"
+            },
+            "data": {
+              "path": "assets/oes-hd/birds/tortelduif-far@2x-0.e13517fbfacd.json",
+              "bytes": 2455,
+              "hash": "e13517fbfacd"
+            }
+          }
+        ]
+      },
+      "mid": {
+        "pages": [
+          {
+            "image": {
+              "path": "assets/oes-hd/birds/tortelduif-mid@2x-0.ab93045c96db.png",
+              "bytes": 80149,
+              "hash": "ab93045c96db"
+            },
+            "data": {
+              "path": "assets/oes-hd/birds/tortelduif-mid@2x-0.905a10c408d9.json",
+              "bytes": 2522,
+              "hash": "905a10c408d9"
             }
           }
         ]

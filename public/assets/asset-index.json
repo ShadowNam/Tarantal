@@ -2819,6 +2819,19 @@
       "originX": 0,
       "originY": 0
     },
+    "fruit/oes": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/fruit_oes.a963dc49cb1a.png",
+        "bytes": 152,
+        "hash": "a963dc49cb1a"
+      },
+      "width": 512,
+      "height": 512,
+      "originX": 0,
+      "originY": 0
+    },
     "fruit/okavango-spring": {
       "group": "okavango-spring",
       "origin": "interim",
@@ -3403,6 +3416,71 @@
       "height": 570,
       "originX": 0,
       "originY": 0
+    },
+    "oes/farmhouse": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/oes_farmhouse.ddbd941e49b4.png",
+        "bytes": 2842,
+        "hash": "ddbd941e49b4"
+      },
+      "width": 380,
+      "height": 250,
+      "originX": 0.5,
+      "originY": 0.84
+    },
+    "oes/harvest": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/oes_harvest.a5f35ecd8329.png",
+        "bytes": 145879,
+        "hash": "a5f35ecd8329"
+      },
+      "width": 1536,
+      "height": 918,
+      "originX": 0,
+      "originY": 0
+    },
+    "oes/sunflowers_a": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/oes_sunflowers_a.77c2e4a93db8.png",
+        "bytes": 22030,
+        "hash": "77c2e4a93db8"
+      },
+      "width": 380,
+      "height": 470,
+      "originX": 0.5,
+      "originY": 0.7872340425531915
+    },
+    "oes/sunflowers_b": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/oes_sunflowers_b.8040cf69f225.png",
+        "bytes": 19431,
+        "hash": "8040cf69f225"
+      },
+      "width": 380,
+      "height": 470,
+      "originX": 0.5,
+      "originY": 0.7872340425531915
+    },
+    "oes/tractor": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/oes_tractor.79d0ac8df98a.png",
+        "bytes": 2995,
+        "hash": "79d0ac8df98a"
+      },
+      "width": 210,
+      "height": 184,
+      "originX": 0.5,
+      "originY": 0.782608695652174
     },
     "okavango/hippo": {
       "group": "okavango-spring",
@@ -6368,6 +6446,517 @@
         ]
       }
     },
+    "oes/far_ridge": {
+      "group": "oes",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/oes/layers/far_ridge-0.39e3a2ee4034.png",
+          "bytes": 22521,
+          "hash": "39e3a2ee4034"
+        },
+        {
+          "path": "assets/oes/layers/far_ridge-1.082640078252.png",
+          "bytes": 7966,
+          "hash": "082640078252"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 420,
+      "height": 250,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            154,
+            202
+          ],
+          [
+            181,
+            192
+          ],
+          [
+            137,
+            242
+          ],
+          [
+            107,
+            177
+          ],
+          [
+            164,
+            171
+          ],
+          [
+            143,
+            202
+          ],
+          [
+            168,
+            202
+          ],
+          [
+            181,
+            202
+          ],
+          [
+            159,
+            202
+          ],
+          [
+            154,
+            187
+          ],
+          [
+            140,
+            202
+          ],
+          [
+            160,
+            202
+          ]
+        ]
+      }
+    },
+    "oes/far_veld": {
+      "group": "oes",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/oes/layers/far_veld-0.6c9df4a42752.png",
+          "bytes": 9895,
+          "hash": "6c9df4a42752"
+        },
+        {
+          "path": "assets/oes/layers/far_veld-1.39219d4c102a.png",
+          "bytes": 12758,
+          "hash": "39219d4c102a"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 440,
+      "height": 300,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            157,
+            300
+          ],
+          [
+            153,
+            300
+          ],
+          [
+            154,
+            300
+          ],
+          [
+            155,
+            300
+          ],
+          [
+            153,
+            300
+          ],
+          [
+            155,
+            300
+          ],
+          [
+            154,
+            300
+          ],
+          [
+            156,
+            300
+          ],
+          [
+            151,
+            300
+          ],
+          [
+            153,
+            300
+          ],
+          [
+            153,
+            300
+          ],
+          [
+            159,
+            300
+          ],
+          [
+            153,
+            300
+          ],
+          [
+            157,
+            300
+          ],
+          [
+            155,
+            300
+          ]
+        ]
+      }
+    },
+    "oes/foreground": {
+      "group": "oes",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/oes/layers/foreground-0.e3ffc338f170.png",
+          "bytes": 8004,
+          "hash": "e3ffc338f170"
+        },
+        {
+          "path": "assets/oes/layers/foreground-1.6c59bdd5377b.png",
+          "bytes": 28043,
+          "hash": "6c59bdd5377b"
+        },
+        {
+          "path": "assets/oes/layers/foreground-2.81c58ac38e47.png",
+          "bytes": 13777,
+          "hash": "81c58ac38e47"
+        },
+        {
+          "path": "assets/oes/layers/foreground-3.67c0d9056c65.png",
+          "bytes": 126,
+          "hash": "67c0d9056c65"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 880,
+      "height": 200,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    },
+    "oes/mid": {
+      "group": "oes",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/oes/layers/mid-0.f3e223187179.png",
+          "bytes": 202026,
+          "hash": "f3e223187179"
+        },
+        {
+          "path": "assets/oes/layers/mid-1.d493e85144b2.png",
+          "bytes": 153825,
+          "hash": "d493e85144b2"
+        },
+        {
+          "path": "assets/oes/layers/mid-2.91fdc07b834a.png",
+          "bytes": 33083,
+          "hash": "91fdc07b834a"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 540,
+      "height": 380,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            312,
+            380
+          ],
+          [
+            314,
+            380
+          ],
+          [
+            304,
+            380
+          ],
+          [
+            325,
+            380
+          ],
+          [
+            313,
+            380
+          ],
+          [
+            316,
+            380
+          ],
+          [
+            267,
+            380
+          ],
+          [
+            298,
+            380
+          ],
+          [
+            269,
+            380
+          ],
+          [
+            302,
+            380
+          ],
+          [
+            312,
+            380
+          ],
+          [
+            311,
+            380
+          ],
+          [
+            305,
+            380
+          ],
+          [
+            315,
+            380
+          ],
+          [
+            311,
+            380
+          ],
+          [
+            309,
+            380
+          ],
+          [
+            301,
+            380
+          ],
+          [
+            295,
+            380
+          ]
+        ]
+      }
+    },
+    "oes/near": {
+      "group": "oes",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/oes/layers/near-0.b78cd6349561.png",
+          "bytes": 25232,
+          "hash": "b78cd6349561"
+        },
+        {
+          "path": "assets/oes/layers/near-1.bf5838914436.png",
+          "bytes": 26819,
+          "hash": "bf5838914436"
+        },
+        {
+          "path": "assets/oes/layers/near-2.fea164ab38bf.png",
+          "bytes": 19075,
+          "hash": "fea164ab38bf"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 820,
+      "height": 260,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            53,
+            260
+          ],
+          [
+            55,
+            260
+          ],
+          [
+            52,
+            260
+          ],
+          [
+            56,
+            260
+          ],
+          [
+            56,
+            260
+          ],
+          [
+            49,
+            260
+          ],
+          [
+            52,
+            260
+          ],
+          [
+            51,
+            260
+          ],
+          [
+            49,
+            260
+          ],
+          [
+            50,
+            260
+          ],
+          [
+            53,
+            260
+          ],
+          [
+            50,
+            260
+          ],
+          [
+            53,
+            260
+          ],
+          [
+            55,
+            260
+          ],
+          [
+            55,
+            260
+          ],
+          [
+            53,
+            260
+          ],
+          [
+            50,
+            260
+          ],
+          [
+            53,
+            260
+          ],
+          [
+            54,
+            260
+          ],
+          [
+            54,
+            260
+          ],
+          [
+            56,
+            260
+          ],
+          [
+            47,
+            260
+          ],
+          [
+            50,
+            260
+          ]
+        ]
+      }
+    },
+    "oes/sky": {
+      "group": "oes",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/oes/layers/sky-0.00458f44c07c.png",
+          "bytes": 10778,
+          "hash": "00458f44c07c"
+        },
+        {
+          "path": "assets/oes/layers/sky-1.246fb79d577e.png",
+          "bytes": 4802,
+          "hash": "246fb79d577e"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 0,
+      "height": 1080,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ]
+        ]
+      }
+    },
     "okavango/far_ridge": {
       "group": "okavango-spring",
       "origin": "interim",
@@ -6922,6 +7511,140 @@
     }
   },
   "birds": {
+    "fisant": {
+      "far": {
+        "group": "oes",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/oes/birds/fisant-far@1x-0.3e841a9305b5.png",
+                "bytes": 6078,
+                "hash": "3e841a9305b5"
+              },
+              "data": {
+                "path": "assets/oes/birds/fisant-far@1x-0.580a3ed59587.json",
+                "bytes": 2422,
+                "hash": "580a3ed59587"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "planeScale": 0.15,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/02",
+              "flap/01"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "glide": {
+            "frames": [
+              "glide/00",
+              "glide/00"
+            ],
+            "fps": 6,
+            "loop": true
+          },
+          "hit_poof": {
+            "frames": [
+              "hit_poof/00",
+              "hit_poof/01",
+              "hit_poof/02",
+              "hit_poof/03",
+              "hit_poof/04",
+              "hit_poof/05"
+            ],
+            "fps": 24,
+            "loop": false
+          }
+        }
+      },
+      "mid": {
+        "group": "oes",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/oes/birds/fisant-mid@1x-0.652dca7f63cc.png",
+                "bytes": 32424,
+                "hash": "652dca7f63cc"
+              },
+              "data": {
+                "path": "assets/oes/birds/fisant-mid@1x-0.08bd75adb33a.json",
+                "bytes": 2509,
+                "hash": "08bd75adb33a"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "planeScale": 0.42,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/02",
+              "flap/01"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "glide": {
+            "frames": [
+              "glide/00",
+              "glide/00"
+            ],
+            "fps": 6,
+            "loop": true
+          },
+          "hit_poof": {
+            "frames": [
+              "hit_poof/00",
+              "hit_poof/01",
+              "hit_poof/02",
+              "hit_poof/03",
+              "hit_poof/04",
+              "hit_poof/05"
+            ],
+            "fps": 24,
+            "loop": false
+          }
+        }
+      }
+    },
     "generaal": {
       "mid": {
         "group": "late",
@@ -8356,6 +9079,140 @@
               "takeoff/05"
             ],
             "fps": 20,
+            "loop": false
+          }
+        }
+      }
+    },
+    "tortelduif": {
+      "far": {
+        "group": "oes",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/oes/birds/tortelduif-far@1x-0.890ff12e5554.png",
+                "bytes": 5245,
+                "hash": "890ff12e5554"
+              },
+              "data": {
+                "path": "assets/oes/birds/tortelduif-far@1x-0.d034907e7860.json",
+                "bytes": 2420,
+                "hash": "d034907e7860"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "planeScale": 0.15,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/02",
+              "flap/01"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "glide": {
+            "frames": [
+              "glide/00",
+              "glide/00"
+            ],
+            "fps": 6,
+            "loop": true
+          },
+          "hit_poof": {
+            "frames": [
+              "hit_poof/00",
+              "hit_poof/01",
+              "hit_poof/02",
+              "hit_poof/03",
+              "hit_poof/04",
+              "hit_poof/05"
+            ],
+            "fps": 24,
+            "loop": false
+          }
+        }
+      },
+      "mid": {
+        "group": "oes",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/oes/birds/tortelduif-mid@1x-0.dc53eb815f1c.png",
+                "bytes": 23584,
+                "hash": "dc53eb815f1c"
+              },
+              "data": {
+                "path": "assets/oes/birds/tortelduif-mid@1x-0.5dda0f06c499.json",
+                "bytes": 2517,
+                "hash": "5dda0f06c499"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "planeScale": 0.42,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/02",
+              "flap/01"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "glide": {
+            "frames": [
+              "glide/00",
+              "glide/00"
+            ],
+            "fps": 6,
+            "loop": true
+          },
+          "hit_poof": {
+            "frames": [
+              "hit_poof/00",
+              "hit_poof/01",
+              "hit_poof/02",
+              "hit_poof/03",
+              "hit_poof/04",
+              "hit_poof/05"
+            ],
+            "fps": 24,
             "loop": false
           }
         }

@@ -113,7 +113,10 @@
     "secret.blikkiesdans": "The Blikkiesdans",
     "hud.blikkiesdans": "BLIKKIESDANS!",
     "cans.weg": "WEG!",
-    "notaboek.blik_5": "Keep a blikkie in the air for 5 hits"
+    "notaboek.blik_5": "Keep a blikkie in the air for 5 hits",
+    "title.harvest": "Die Oes",
+    "tally.harvest_title": "Oes-telling",
+    "share.harvest": "Die Oes"
   },
   "de": {
     "weapon.dubbelloop": "Dubbelloop",
@@ -228,7 +231,10 @@
     "cans.name": "Blikkies",
     "secret.blikkiesdans": "Der Blikkiesdans",
     "hud.blikkiesdans": "BLIKKIESDANS!",
-    "notaboek.blik_5": "Halte ein Blikkie 5 Treffer lang in der Luft"
+    "notaboek.blik_5": "Halte ein Blikkie 5 Treffer lang in der Luft",
+    "title.harvest": "Die Oes",
+    "tally.harvest_title": "Oes-telling",
+    "share.harvest": "Die Oes"
   },
   "nl": {
     "weapon.dubbelloop": "Dubbelloop",
@@ -327,6 +333,9 @@
     "cans.name": "Blikkies",
     "secret.blikkiesdans": "De blikkiesdans",
     "hud.blikkiesdans": "BLIKKIESDANS!",
-    "notaboek.blik_5": "Houd een blikkie 5 treffers lang in de lucht"
+    "notaboek.blik_5": "Houd een blikkie 5 treffers lang in de lucht",
+    "title.harvest": "Die Oes",
+    "tally.harvest_title": "Oes-telling",
+    "share.harvest": "Die Oes"
   }
 }

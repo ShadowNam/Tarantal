@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { designSizeFor, safeAreaInDesignPx } from '../layout';
 import { formatAward, formatClock, formatScore, popParts } from './format';
+import { harvestBarsRects } from './harvestBarsLayout';
 import {
   hudLayout,
   pickupAlpha,
@@ -114,6 +115,14 @@ describe('HUD layout at 16:9, 19.5:9 and 4:3', () => {
             const b = parts[j];
             if (a && b) expect(overlap(a, b)).toBe(false);
           }
+        // v1.8c (D-063): the Harvest's crop and fence bars overlap nothing the Harvest shows (the
+        // Season Run's charms and quota never show there).
+        const hv = harvestBarsRects(l);
+        for (const bar of [hv.crop, hv.repair]) {
+          expect(inside(l.safe, bar)).toBe(true);
+          for (const p of parts)
+            if (p !== l.charms && p !== l.quota) expect(overlap(bar, p)).toBe(false);
+        }
         expect(l.belt.h).toBeGreaterThanOrEqual(64);
         expect(Math.min(l.gadget.w, l.gadget.h)).toBeGreaterThanOrEqual(64);
         expect(rectContains(l.belt, l.belt.x + 5, l.belt.y + 5)).toBe(true);

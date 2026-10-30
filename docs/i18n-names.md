@@ -76,6 +76,8 @@ rather than translating word for word. The tables show the text each language fi
 | `shed.tab.birdbook` | Voëlboek | Bird Book | Vogelbuch | Vogelboek | already translated |
 | `run.padstal` | Padstal | Farm Stall | Hofladen | Stalletje | padstal = roadside farm stall (the Season Run shop) |
 | `tally.title` | Bakkie-telling | Pickup Tally | Pick-up-Bilanz | Pick-up-telling | the bakkie (pickup truck) is where the bag is counted |
+| `title.harvest` | Die Oes | The Harvest | Die Ernte | De Oogst | v1.8c (D-063): oes = harvest; the 30-s mode |
+| `tally.harvest_title` | Oes-telling | Harvest Tally | Ernte-Bilanz | Oogst-telling | its own tally |
 | `ftue.title` | Oupa se Les | Oupa's Lesson | Oupas Lektion | Oupa's Les | the tutorial |
 | `run.ad_retry_title` | Oupa se tweede kans! | Oupa's second chance! | Oupas zweite Chance! | Oupa's tweede kans! |  |
 | `admin.range` | Skietbaan | Skietbaan | Skietbaan | Skietbaan | Skietbaan: admin-only playtest tool, not translated |
@@ -96,6 +98,8 @@ rather than translating word for word. The tables show the text each language fi
 | `creature.hadeda` | Hadeda | Hadeda | Hadeda-Ibis | Hadada-ibis | the real English name; onomatopoeic |
 | `creature.sproeier` | Oom Faan se sproeivliegtuig | Uncle Faan's crop sprayer | Onkel Faans Sprühflieger | Ome Faans sproeivliegtuig | oom = uncle (the neighbour); Faan is a name |
 | `creature.visarend` | Visarend | Fish eagle | Schreiseeadler | Schreeuwarend |  |
+| `creature.fisant` | Fisant | Francolin | Frankolin | Frankolijn | v1.8c (D-063): Swainson's spurfowl; Afrikaans calls it a pheasant |
+| `creature.tortelduif` | Tortelduif | Turtle dove | Kapturteltaube | Tortelduif | v1.8c (D-063): the Cape turtle dove |
 | `creature.meerkat` | Meerkat | Meerkat | Erdmännchen | Stokstaartje |  |
 | `creature.lugballon` | Lugballon | Hot-air balloon | Heißluftballon | Heteluchtballon | v1.7d: Namibië's drifting non-target; the toggle says "Lugballon" |
 

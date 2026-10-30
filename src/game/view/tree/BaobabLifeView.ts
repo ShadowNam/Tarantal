@@ -4,6 +4,7 @@
 // makes it duck back or fly off. Rendering only: no sim state, no score; the residents sit under
 // the layer's birds, so they never stand in front of a shot at a bird. Sprites go in the layer's
 // prop-fruit container (above the tree, under its haze) and take the map light's tint.
+import { setFootOrigin } from '../footOrigin';
 import type * as Phaser from 'phaser';
 import type { Biome } from '../../../content/schemas';
 import type { SimEvent } from '../../../sim/events';
@@ -178,9 +179,8 @@ export class BaobabLifeView {
     sprites.forEach(({ id, s: sp }, i) => {
       const img = this.sprite(i, layer.propFruit);
       img.setFrame(sp.frame);
-      // Phaser flips round the texture's centre: a mirrored frame keeps its anchor by mirroring
-      // the origin too.
-      if (sp.flip) img.setOrigin(1 - img.frame.pivotX, img.frame.pivotY);
+      // The origin at the frame's anchor, flipped or not (a custom pivot: footOrigin.ts).
+      setFootOrigin(img, sp.flip);
       img
         .setScale(1 / this.k)
         .setPosition(this.x + sp.x, this.y + sp.y)

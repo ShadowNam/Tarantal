@@ -8,6 +8,7 @@ import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
 import { NUT_SHEET } from '../../src/game/view/palms/makalaniSheet';
 import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
 import { BABOON_SHEET } from '../../src/game/view/baboon/baboonKeys';
+import { HARVEST_SHEET } from '../../src/game/view/harvest/harvestKeys';
 import { TELL_SHEET } from '../../src/game/view/tell/tellKeys';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
 import { VELD_SHEET } from '../../src/game/view/namib/veldSheet';
@@ -102,6 +103,8 @@ function usages(
   if (key === TELL_SHEET) needles.push(/\bTELL_SHEET\b/);
   // v1.8b (D-062): the baboon sheet by its constant (BaboonView).
   if (key === BABOON_SHEET) needles.push(/\bBABOON_SHEET\b/);
+  // v1.8c (D-063): the Harvest sheet by its constant (HarvestView).
+  if (key === HARVEST_SHEET) needles.push(/\bHARVEST_SHEET\b/);
   const palm = /^okavango\/makalani_(trunk|crown)_(near|mid)$/.exec(key);
   if (palm !== null) needles.push(palm[1] === 'trunk' ? /\bpalmTrunkKey\(/ : /\bpalmCrownKey\(/);
   const spookSound = Object.entries(SPOOK_SOUNDS).find(([, k]) => k === key)?.[0];
@@ -145,6 +148,8 @@ function usages(
       needles.push(new RegExp(`"(start|bat|owl|lanternsOut|end)":\\s*"${line}"`));
       // v1.8b (D-062): Oupa's baboon lines (guide tables), voiced by HudScene's oupa(key).
       if (line.startsWith('guide\\.baboon\\.')) needles.push(/\bthis\.oupa\(/);
+      // v1.8c (D-063): Oupa's Harvest lines, the same way.
+      if (line.startsWith('guide\\.harvest\\.')) needles.push(/\bthis\.oupa\('guide\.harvest\./);
     } else needles.push(quoted(key));
     // Music, ambience and voice keys are built at runtime: the player must call the key helper.
     const helper =

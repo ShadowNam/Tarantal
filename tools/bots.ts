@@ -80,11 +80,112 @@ export function createBot(
   }
   const inner =
     kind === 'plinker' || kind === 'competent'
-      ? createHumanBot(kind, seed, content, inputKind)
+      ? harvestHunter(
+          createHumanBot(kind, seed, content, inputKind),
+          seed,
+          content,
+          inputKind,
+          kind === 'competent' ? 1 : 0.5,
+        )
       : kind === 'random'
         ? randomBot(seed)
         : aimBot(seed, content);
   return { kind, next: withRifle(inner, content, seed, style).next };
+}
+
+/**
+ * v1.8c (D-063): in the Harvest a player shoots the warthogs and the raiders in the crops. A warthog
+ * or raider in view (as seen LAG ticks ago) gets the next shot at its body with this chance
+ * (competent 1, plinker 0.5), with the human bots' aim error; otherwise the inner bot hunts the
+ * birds. Outside the Harvest it is the inner bot exactly (no draws from its stream).
+ */
+function harvestHunter(
+  inner: { next(state: SimState): Command[] },
+  seed: number,
+  content: ContentBundle,
+  inputKind: InputKind,
+  eager: number,
+): { next(state: SimState): Command[] } {
+  const rng = createStream((seed ^ fnv1a32('bot:harvest')) >>> 0);
+  const planes = content.scoring.planes;
+  const W = content.modes.modes.harvest.warthogs;
+  const box = content.birds.baboons.hitboxes;
+  const LAG = 15;
+  const SIGMA = inputKind === 'touch' ? 26 : 10;
+  const history: SimState[] = [];
+  let ready = 0;
+  const gauss = (): number => {
+    const u = Math.max(1e-9, rng.next());
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng.next());
+  };
+  return {
+    next(s) {
+      if (s.harvest === null) return inner.next(s);
+      history.push(s);
+      if (history.length > LAG + 1) history.shift();
+      const seen = history[0];
+      const w = s.weapon;
+      if (seen === undefined || w.shells === 0 || w.reloading || w.cooldownTicks > 0)
+        return inner.next(s);
+      if (s.tick < ready || seen.harvest === null || seen.harvest.phase !== 'rush')
+        return inner.next(s);
+      let aim: { dx: number; sy: number } | null = null;
+      let best = Infinity;
+      // Review round 2: a player takes the warthog or raider with a clear line of fire (no bird
+      // in front of the aim point: a bird on the same or a nearer plane within its body's reach).
+      const bird = content.birds.creatures.find((c) => c.id === 'tarentaal');
+      const birdR =
+        bird?.kind === 'target' ? Math.max(bird.hitbox.body.rx, bird.hitbox.body.ry) : 110;
+      const clear = (dx: number, sy: number, sf: number): boolean =>
+        !seen.birds.some((b) => {
+          const bf = planes[b.plane].scrollFactor;
+          if (bf < sf) return false;
+          const r = birdR * planes[b.plane].scale + 12;
+          return Math.abs(planeToDx(s.cameraX, bf, b.x) - dx) < r && Math.abs(b.y - sy) < r;
+        });
+      // A player tracks a warthog or raider in view (they run off fast once hit): aim at where it
+      // is now, not where it was LAG ticks ago (the birds' reaction lag stays in the inner bot).
+      const now = s.harvest;
+      for (const h of now.warthogs) {
+        if (h.phase === 'tumble') continue;
+        const b = (h.phase === 'dig' ? W.hitboxes.dig : W.hitboxes.trot).body;
+        const dx = planeToDx(
+          s.cameraX,
+          planes[h.plane].scrollFactor,
+          h.x + b.ox * h.scale * h.facing,
+        );
+        const sy = h.y + b.oy * h.scale;
+        if (
+          Math.abs(dx) < Math.min(best, VIEW_HALF_WIDTH) &&
+          clear(dx, sy, planes[h.plane].scrollFactor)
+        ) {
+          best = Math.abs(dx);
+          aim = { dx, sy };
+        }
+      }
+      for (const r of s.baboons?.raiders ?? []) {
+        if (r.phase === 'tumble') continue;
+        const b = box[r.phase === 'act' ? 'sit' : 'walk'].body;
+        const dx = planeToDx(
+          s.cameraX,
+          planes[r.plane].scrollFactor,
+          r.x + b.ox * r.scale * r.facing,
+        );
+        const sy = r.y + b.oy * r.scale;
+        if (
+          Math.abs(dx) < Math.min(best, VIEW_HALF_WIDTH) &&
+          clear(dx, sy, planes[r.plane].scrollFactor)
+        ) {
+          best = Math.abs(dx);
+          aim = { dx, sy };
+        }
+      }
+      if (aim === null) return inner.next(s);
+      ready = s.tick + 10;
+      if (rng.next() >= eager) return inner.next(s);
+      return [{ t: 'fire', dx: aim.dx + gauss() * SIGMA, sy: aim.sy + gauss() * SIGMA }];
+    },
+  };
 }
 
 /**

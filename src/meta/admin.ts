@@ -17,7 +17,8 @@ export const ISSUE_REPO = 'ShadowNam/Tarantal';
 export const ISSUE_URL_MAX = 7000;
 const NOTES_MAX = 4000;
 
-export type AdminKind = 'classic' | 'daily' | 'season';
+/** v1.8c (D-063): `harvest` = Die Oes on its own map. */
+export type AdminKind = 'classic' | 'daily' | 'season' | 'harvest';
 
 /** One playable map in the admin list. */
 export interface AdminEntry {
@@ -66,6 +67,11 @@ export function adminEntries(
   const out: AdminEntry[] = [];
   for (const b of content.biomes) {
     if (!playableBiomes.includes(b.id)) continue;
+    // v1.8c (D-063): the Harvest's field is played by the Harvest only.
+    if (b.id === content.modes.modes.harvest.biome) {
+      out.push(entry('harvest', 'harvest', { biome: b.id }));
+      continue;
+    }
     out.push(entry(`classic:${b.id}:plain`, 'classic', { biome: b.id, layout: 'none' }));
     for (const l of b.layouts)
       out.push(entry(`classic:${b.id}:${l.id}`, 'classic', { biome: b.id, layout: l.id }));

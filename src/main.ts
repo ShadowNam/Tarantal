@@ -18,6 +18,7 @@ import {
   withMakalaniPreview,
   withBaboonRaid,
   withNoBaboons,
+  withHarvestPreview,
   withNoPalms,
   withPlaneScales,
   withQuotaMul,
@@ -426,6 +427,10 @@ const hook: TestHook = {
   baboons: null,
   baboonRaid: null,
   baboonMs: 0,
+  harvestActors: null,
+  harvestFlyovers: [],
+  harvest: null,
+  harvestMs: 0,
   reloadFx: { chipIcons: [], bolts: 0, oupaHand: false, autoReloads: 0 },
   mirage: false,
   sceneryMs: 0,
@@ -440,6 +445,7 @@ const hook: TestHook = {
   challenge: null,
   notice: null,
   hudTag: null,
+  tallyDone: false,
   tally: null,
   lastShare: null,
   platform: currentPlatformId(),
@@ -491,7 +497,17 @@ const devSpook = testHooks && params.get('spook') === 'early' ? withEarlySpook(w
 const raidPreview = testHooks ? params.get('baboonRaid') : null;
 const withRaid = raidPreview === null ? devSpook : withBaboonRaid(devSpook, raidPreview);
 // e2e only (v1.8b, D-062): ?baboons=0 — no baboon troops (specs that don't test them).
-const devBundle = testHooks && params.get('baboons') === '0' ? withNoBaboons(withRaid) : withRaid;
+const noTroops = testHooks && params.get('baboons') === '0' ? withNoBaboons(withRaid) : withRaid;
+// e2e/dev only (v1.8c, D-063): ?harvestDuck=<seconds> (a struck worker stays down that long) and
+// ?harvestRush=1 (the rush's peak from the start), for the Harvest's screenshots.
+const duckParam = testHooks ? Number(params.get('harvestDuck') ?? NaN) : NaN;
+const rushParam = testHooks && params.get('harvestRush') === '1';
+const devBundle =
+  Number.isFinite(duckParam) && duckParam > 0
+    ? withHarvestPreview(noTroops, { duckSeconds: duckParam, rush: rushParam })
+    : rushParam
+      ? withHarvestPreview(noTroops, { rush: true })
+      : noTroops;
 // D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
 let adminSave: AdminSave | null = adminOn ? loadAdminSave() : null;
 const adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];

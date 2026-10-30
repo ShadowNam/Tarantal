@@ -5,6 +5,7 @@
 // A hit throws a puff of feathers (a nest hit: sand); the male's display booms, a hit bird
 // hisses, a running pair thuds. Sounds go through the AudioDirector (stand-in synths until
 // recordings are in).
+import { footOriginX } from '../footOrigin';
 import type * as Phaser from 'phaser';
 import type { SimEvent } from '../../../sim/events';
 import type { OstrichFamilyView, SimState } from '../../../sim/types';
@@ -360,7 +361,8 @@ export class OstrichView {
           const facing = bird.pose === 'look' && bird.look !== 0 ? bird.look : bird.facing;
           const flip = facing < 0;
           // Set only on change (review: unchanged setters every frame showed in the profile).
-          const ox = flip ? 1 - r.ox / r.w : r.ox / r.w;
+          // The frames have a custom pivot: the origin stays at the feet (footOrigin.ts).
+          const ox = footOriginX(r.ox / r.w, flip, img.frame.customPivot);
           const oy = r.oy / r.h;
           if (img.flipX !== flip) img.setFlipX(flip);
           if (img.originX !== ox || img.originY !== oy) img.setOrigin(ox, oy);

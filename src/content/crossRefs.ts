@@ -85,6 +85,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   const plannedBiomeIds = new Set([
     ...run.seasons.map((s) => s.biome),
     ...biomes.filter((b) => b.area !== undefined).map((b) => b.id),
+    // v1.8c (D-063): a mode's own map (the Harvest's field) is played by that mode only.
+    modes.modes.harvest.biome,
   ]);
   const omenIds = new Set(run.seasons.map((s) => s.omen));
   const loadedBiomes = new Map<string, Biome>(biomes.map((b) => [b.id, b]));
@@ -401,7 +403,7 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   }
 
   // --- modes.json --------------------------------------------------------------------------
-  for (const modeId of ['classic', 'daily'] as const) {
+  for (const modeId of ['classic', 'daily', 'harvest'] as const) {
     const setup = modes.modes[modeId];
     const weapon = weapons.weapons.find((w) => w.id === setup.weapon);
     if (weapon?.kind !== 'primary') {
@@ -454,7 +456,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       }
       if (c !== undefined && c.kind === 'target' && !c.planes.includes(plane))
         err(file, `range creature "${c.id}" never appears on the ${plane} plane`);
-      for (const biome of biomes) {
+      // v1.8c (D-063): the Harvest's field is never a Skietbaan backdrop.
+      for (const biome of biomes.filter((b) => b.id !== modes.modes.harvest.biome)) {
         if (!biome.layers.some((l) => l.plane === plane))
           err(file, `range ${plane}: biomes/${biome.id}.json has no ${plane} layer`);
         const lane = biome.lanes[plane];
