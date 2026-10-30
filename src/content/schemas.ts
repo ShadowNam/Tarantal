@@ -1769,7 +1769,7 @@ const harvestSchema = modeSetupSchema.extend({
     keyframes: z
       .array(obj({ t: fraction, warthogsPerMin: nonNeg }))
       .min(2)
-      .refine((k) => k.every((x, i) => i === 0 || x.t > k[i - 1]!.t), 'keyframes in t order'),
+      .refine((k) => k.every((x, i) => i === 0 || x.t > (k[i - 1]?.t ?? -1)), 'keyframes in t order'),
     /** At most this many warthogs (adults) in the field at once. */
     maxWarthogs: posInt,
     /** Share of the warthogs that come in on the near plane (round the fence's end). */
