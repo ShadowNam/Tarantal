@@ -102,6 +102,12 @@ describe('the Harvest hunt (D-063)', () => {
 
   it('two hits bag a warthog (an event bonus); the first sends it running', () => {
     const c = quiet('oes');
+    // Only the intro's family: no other warthogs or gap flocks in the way.
+    c.modes.modes.harvest.rush.keyframes = c.modes.modes.harvest.rush.keyframes.map((k) => ({
+      ...k,
+      warthogsPerMin: 0,
+      gapFlocksPerMin: 0,
+    }));
     const s = harvestSim(c, 3);
     const ev: SimEvent[] = [];
     // Through the intro: the family's sow trots in and digs.
@@ -117,8 +123,9 @@ describe('the Harvest hunt (D-063)', () => {
       const f = w.layerId === 'mid' ? midF : 1;
       s.step(aimAt(f, w.x + box.body.ox * w.scale * w.facing, w.y + box.body.oy * w.scale));
       ev.push(...s.drainEvents());
-      for (let k = 0; k < 40; k++) {
-        s.step([{ t: 'reload' }]);
+      // A hit one runs back to the gap: shoot again soon (the second barrel, else a reload).
+      for (let k = 0; k < 20; k++) {
+        s.step(s.snapshot().weapon.shells === 0 ? [{ t: 'reload' }] : []);
         ev.push(...s.drainEvents());
       }
     }
@@ -158,6 +165,8 @@ describe('workers and piglets are never targets (aimed-at rule)', () => {
         addScore: () => {},
         eatingBirds: () => 0,
         eatingRaiders: () => 0,
+        flocksOn: () => 0,
+        gapFlock: () => false,
         scatterFlocks: () => {},
       },
     );

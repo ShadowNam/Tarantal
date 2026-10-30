@@ -277,8 +277,13 @@ export function createDirector(deps: DirectorDeps): Director {
       h === undefined || gapLayer?.plane !== plane
         ? null
         : {
-            from: h.gap.u * core - h.gap.halfWidthPx - spread,
-            to: h.gap.u * core + Math.max(...h.workers.map((w) => w.dx)) + spread,
+            // The flock wanders round its home too (forageWanderPx, review round 1).
+            from: h.gap.u * core - h.gap.halfWidthPx - spread - fp.forageWanderPx * ratio,
+            to:
+              h.gap.u * core +
+              Math.max(...h.workers.map((w) => w.dx)) +
+              spread +
+              fp.forageWanderPx * ratio,
           };
     const spaced = (x: number): boolean =>
       (keepOut === null || x < keepOut.from || x > keepOut.to) &&

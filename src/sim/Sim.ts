@@ -993,6 +993,27 @@ export function createSim(config: SimConfig): Sim {
           return n;
         },
         eatingRaiders: () => baboons?.acting() ?? 0,
+        flocksOn: (plane) => {
+          let n = 0;
+          for (const f of flocks) if (f.plane === plane && f.members.length > 0) n++;
+          return n;
+        },
+        gapFlock: (plane, x, size, dir) => {
+          if (flocks.filter((f) => f.members.length > 0).length >= biome.pacing.maxFlocks)
+            return false;
+          const f = director.spawnFlockAt(
+            { ...directorContext(), flocks, nextFlockId: () => nextFlockId++ },
+            plane,
+            x,
+            size,
+            rng.stream('harvest'),
+          );
+          if (f === null) return false;
+          addFlocks([f]);
+          // In through the gap at a run, away from a "threat" behind them (the fence's far side).
+          emitTransition(f, forceState(f, 'run', x - dir * 60, 'event', fParams, flockRng));
+          return true;
+        },
         scatterFlocks: () => {
           for (const f of flocks)
             if (f.members.length > 0 && f.state !== 'flush')

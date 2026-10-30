@@ -37,6 +37,11 @@ export interface HarvestHost {
   eatingBirds(): number;
   /** Baboon raiders at their mielies now. */
   eatingRaiders(): number;
+  /** Flocks on a plane now (the gap's flocks wait while there are maxGapFlocks). */
+  flocksOn(plane: PlaneId): number;
+  /** A guineafowl flock comes in at layer x of the plane and runs in the direction `dir` (into
+   *  the rows); false: no room for it (the bird or flock caps). */
+  gapFlock(plane: PlaneId, x: number, size: number, dir: 1 | -1): boolean;
   /** The rush is over: every flock runs off. */
   scatterFlocks(): void;
 }
@@ -134,18 +139,32 @@ interface Worker {
 }
 
 /** Warthog arrivals per minute at a point of the rush (0..1), lerped between keyframes. */
-export function rushRate(keys: HarvestSetup['rush']['keyframes'], f: number): number {
+export function rushRate(
+  keys: HarvestSetup['rush']['keyframes'],
+  f: number,
+  what: 'warthogsPerMin' | 'gapFlocksPerMin' = 'warthogsPerMin',
+): number {
   const first = keys[0];
   if (first === undefined) return 0;
-  if (f <= first.t) return first.warthogsPerMin;
+  if (f <= first.t) return first[what];
   for (let i = 1; i < keys.length; i++) {
     const a = keys[i - 1];
     const b = keys[i];
     if (a === undefined || b === undefined) break;
-    if (f <= b.t)
-      return a.warthogsPerMin + ((f - a.t) / (b.t - a.t)) * (b.warthogsPerMin - a.warthogsPerMin);
+    if (f <= b.t) return a[what] + ((f - a.t) / (b.t - a.t)) * (b[what] - a[what]);
   }
-  return keys[keys.length - 1]?.warthogsPerMin ?? 0;
+  return keys[keys.length - 1]?.[what] ?? 0;
+}
+
+/** The side of the gap the workers mend it from (+1 right, −1 left). */
+export function workerSide(map: HarvestMap): 1 | -1 {
+  return map.workers.reduce((t, w) => t + w.dx, 0) >= 0 ? 1 : -1;
+}
+
+/** Where a flock through the gap starts: just past the gap's post on the side away from the
+ *  workers (it spreads round that point and runs on into the rows, never toward the workers). */
+export function gapFlockX(map: HarvestMap, gapLayerWidth: number, side: 1 | -1): number {
+  return map.gap.u * gapLayerWidth - side * (map.gap.halfWidthPx + 150);
 }
 
 /** The crop lost in one tick (percent) for what is eating now. */
@@ -241,6 +260,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
   let crop = 100;
   let warned = false;
   let acc = 0;
+  let flockAcc = 0;
   let bagged = 0;
   let bonus = 0;
   let bystanderPenalty = 0;
@@ -469,6 +489,16 @@ export const createHarvestSystem: HarvestSystemFactory = (
           }
         }
         acc -= 1;
+      }
+      // Guineafowl flocks pour in through the gap and run into the rows (away from the workers).
+      flockAcc += rushRate(H.rush.keyframes, f, 'gapFlocksPerMin') / 3600;
+      if (flockAcc >= 1) {
+        flockAcc -= 1;
+        if (host.flocksOn(map.gap.plane) < H.rush.maxGapFlocks) {
+          const size = rng.int(H.rush.gapFlockSize[0], H.rush.gapFlockSize[1]);
+          const side = workerSide(map);
+          host.gapFlock(map.gap.plane, gapFlockX(map, gapW, side), size, side === 1 ? -1 : 1);
+        }
       }
       const digging = warthogs.filter((w) => !w.gone && w.phase === 'dig').length;
       crop = Math.max(

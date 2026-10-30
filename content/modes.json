@@ -224,11 +224,13 @@
       "outroSeconds": 1.5,
       "rush": {
         "keyframes": [
-          { "t": 0, "warthogsPerMin": 6 },
-          { "t": 0.5, "warthogsPerMin": 12 },
-          { "t": 1, "warthogsPerMin": 20 }
+          { "t": 0, "warthogsPerMin": 10, "gapFlocksPerMin": 4 },
+          { "t": 0.5, "warthogsPerMin": 18, "gapFlocksPerMin": 6 },
+          { "t": 1, "warthogsPerMin": 30, "gapFlocksPerMin": 8 }
         ],
-        "maxWarthogs": 6,
+        "maxWarthogs": 8,
+        "gapFlockSize": [4, 7],
+        "maxGapFlocks": 4,
         "nearShare": 0.3
       },
       "warthogs": {
@@ -257,7 +259,7 @@
         "entryPx": 700
       },
       "crop": {
-        "drainPerSecond": { "guineafowl": 0.1, "warthog": 0.8, "baboon": 1.2 },
+        "drainPerSecond": { "guineafowl": 0.14, "warthog": 0.9, "baboon": 1.2 },
         "warnBelow": 40,
         "bonusPerPercent": 5
       },

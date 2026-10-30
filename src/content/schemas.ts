@@ -1767,11 +1767,23 @@ const harvestSchema = modeSetupSchema.extend({
   /** Warthog arrivals per minute over the 30 s (fractions of the rush, like pacing). */
   rush: obj({
     keyframes: z
-      .array(obj({ t: fraction, warthogsPerMin: nonNeg }))
+      .array(
+        obj({
+          t: fraction,
+          warthogsPerMin: nonNeg,
+          /** v1.8c review: guineafowl flocks that come in through the gap per minute. */
+          gapFlocksPerMin: nonNeg,
+        }),
+      )
       .min(2)
       .refine((k) => k.every((x, i) => i === 0 || x.t > (k[i - 1]?.t ?? -1)), 'keyframes in t order'),
     /** At most this many warthogs (adults) in the field at once. */
     maxWarthogs: posInt,
+    /** A flock through the gap: its size, and no new one while this many flocks forage on the
+     *  gap's plane (the biome's maxFlocks caps them all). It runs in from the gap, away from the
+     *  workers' side, and settles to forage in the rows. */
+    gapFlockSize: range(z.number().int().min(3)),
+    maxGapFlocks: posInt,
     /** Share of the warthogs that come in on the near plane (round the fence's end). */
     nearShare: fraction,
   }),

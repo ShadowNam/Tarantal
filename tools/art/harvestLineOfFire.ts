@@ -9,6 +9,8 @@
 // meet; screen y doesn't scroll, so they must meet in y too. Returns the clashes (empty: clear).
 import type { Biome, ContentBundle } from '../../src/content/schemas';
 import { CAMERA_RANGE, coreWidth } from '../../src/sim/world';
+import { tuningRatio } from '../../src/sim/planes';
+import { gapFlockX, workerSide } from '../../src/sim/harvest/system';
 
 export interface LofBox {
   readonly x0: number;
@@ -141,7 +143,9 @@ export function harvestTargets(content: ContentBundle, biome: Biome): LofBox[] {
       if (l === undefined || lane?.groundY === undefined) continue;
       const k = planes[sp.plane].scale;
       const w = coreWidth(l.scrollFactor);
-      const spread = (fd.spawnSpreadPx + fd.forageWanderPx) * k;
+      // Flock spacing scales by the plane's tuning ratio (D-049), not its drawing scale.
+      const ratio = tuningRatio(k, content.scoring.tuningRefScale);
+      const spread = (fd.spawnSpreadPx + fd.forageWanderPx) * ratio;
       for (const y of lane.groundY) {
         const a = shapesBox(
           shapes,
@@ -159,6 +163,21 @@ export function harvestTargets(content: ContentBundle, biome: Biome): LofBox[] {
           l.scrollFactor,
           `flock ${sp.plane}`,
         );
+        out.push({ ...a, x1: b.x1 });
+      }
+    }
+    // v1.8c review: the flocks that come in through the gap start round its left post
+    // (gapFlockX) within spawnSpreadPx, then run into the rows (away from the workers).
+    const gl2 = biome.layers.find((x) => x.id === h.gap.layer);
+    const lane = biome.lanes[h.gap.plane];
+    if (gl2 !== undefined && lane?.groundY !== undefined) {
+      const k = planes[h.gap.plane].scale;
+      const ratio = tuningRatio(k, content.scoring.tuningRefScale);
+      const x = gapFlockX(h, coreWidth(gl2.scrollFactor), workerSide(h));
+      const spread = content.birds.flockDefaults.spawnSpreadPx * ratio;
+      for (const y of lane.groundY) {
+        const a = shapesBox(shapes, x - spread, y, k, gl2.scrollFactor, 'flock through the gap');
+        const b = shapesBox(shapes, x + spread, y, k, gl2.scrollFactor, 'flock through the gap');
         out.push({ ...a, x1: b.x1 });
       }
     }

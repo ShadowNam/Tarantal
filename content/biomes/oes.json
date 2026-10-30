@@ -79,7 +79,7 @@
     {
       "id": "farmhouse",
       "layer": "far_veld",
-      "u": 0.2,
+      "u": 0.76,
       "y": 612,
       "asset": "oes/farmhouse",
       "occluder": {
@@ -142,31 +142,31 @@
     }
   },
   "pacing": {
-    "$comment": "Fractions of the whole hunt (the intro included). Flocks only on the mid plane (the far plane lines up with the workers); the rush ramps up to the end.",
+    "$comment": "Fractions of the whole hunt (the intro included). Flocks only on the mid plane (the far plane lines up with the workers); most flocks come in through the gap (modes.json harvest.rush gapFlocksPerMin), these few start on the feeding spots near it; fly-overs ramp up to the end.",
     "keyframes": [
       {
         "t": 0,
         "flocks": {
           "mid": 1
         },
-        "flyoversPerMin": 4,
-        "popupsPerMin": 2
+        "flyoversPerMin": 8,
+        "popupsPerMin": 3
       },
       {
         "t": 0.4,
         "flocks": {
-          "mid": 2
+          "mid": 1
         },
-        "flyoversPerMin": 8,
-        "popupsPerMin": 4
+        "flyoversPerMin": 12,
+        "popupsPerMin": 5
       },
       {
         "t": 1,
         "flocks": {
-          "mid": 3
+          "mid": 2
         },
-        "flyoversPerMin": 12,
-        "popupsPerMin": 6
+        "flyoversPerMin": 18,
+        "popupsPerMin": 8
       }
     ],
     "stampede": {
@@ -175,7 +175,7 @@
       "flockState": "run"
     },
     "maxBirdsOnScreen": 60,
-    "maxFlocks": 4
+    "maxFlocks": 6
   },
   "spawnTable": [
     {
@@ -203,15 +203,15 @@
     {
       "plane": "mid",
       "u": [
-        0.1,
-        0.34
+        0.26,
+        0.36
       ]
     },
     {
       "plane": "mid",
       "u": [
-        0.74,
-        0.92
+        0.8,
+        0.86
       ]
     }
   ],
@@ -231,17 +231,17 @@
     },
     "workers": [
       {
-        "dx": 280,
+        "dx": 200,
         "y": 702,
         "from": 1
       },
       {
-        "dx": 390,
+        "dx": 290,
         "y": 700,
         "from": 1
       },
       {
-        "dx": 500,
+        "dx": 380,
         "y": 703,
         "from": 1
       }
@@ -250,66 +250,66 @@
       {
         "plane": "mid",
         "layer": "mid",
-        "u": 0.14,
+        "u": 0.27,
         "y": 750
       },
       {
         "plane": "mid",
         "layer": "mid",
-        "u": 0.24,
+        "u": 0.33,
         "y": 765
       },
       {
         "plane": "mid",
         "layer": "mid",
-        "u": 0.33,
+        "u": 0.39,
         "y": 745
       },
       {
         "plane": "mid",
         "layer": "mid",
-        "u": 0.8,
+        "u": 0.7,
         "y": 760
       },
       {
         "plane": "mid",
         "layer": "mid",
-        "u": 0.9,
+        "u": 0.76,
         "y": 748
       },
       {
         "plane": "near",
         "layer": "near",
-        "u": 0.12,
+        "u": 0.36,
         "y": 1015
       },
       {
         "plane": "near",
         "layer": "near",
-        "u": 0.28,
+        "u": 0.44,
         "y": 1025
       },
       {
         "plane": "near",
         "layer": "near",
-        "u": 0.72,
+        "u": 0.56,
         "y": 1020
       },
       {
         "plane": "near",
         "layer": "near",
-        "u": 0.88,
+        "u": 0.64,
         "y": 1012
       }
     ],
     "flockSpots": [
       {
         "plane": "mid",
-        "u": 0.22
+        "u": 0.33
       },
       {
         "plane": "mid",
-        "u": 0.84
+        "u": 0.72
       }
     ]
   },
@@ -371,7 +371,7 @@
         "id": "mielie_left",
         "action": "mielie",
         "layer": "mid",
-        "u": 0.28,
+        "u": 0.35,
         "ox": 0,
         "y": 752,
         "from": -1
@@ -380,7 +380,7 @@
         "id": "mielie_right",
         "action": "mielie",
         "layer": "mid",
-        "u": 0.86,
+        "u": 0.74,
         "ox": 0,
         "y": 755,
         "from": 1
