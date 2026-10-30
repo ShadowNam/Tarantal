@@ -64,7 +64,9 @@ export type StreamName =
   // v1.7e (D-061): the secrets' tell animals (when they act, how long they stay away).
   | 'tells'
   // v1.8b (D-062): baboon troops (their make-up, idle moves, raids, how long they stay away).
-  | 'baboons';
+  | 'baboons'
+  // v1.8c (D-063): the Harvest's warthogs and piglets.
+  | 'harvest';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {

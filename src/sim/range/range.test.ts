@@ -184,7 +184,8 @@ describe('paper targets', () => {
 
   it('are free of props at the range camera on every biome and weekday light', () => {
     // A single pellet at each paper's centre must hit it (nothing stands in front).
-    for (const biome of content.biomes) {
+    // v1.8c (D-063): the Harvest's field is never a range backdrop.
+    for (const biome of content.biomes.filter((b) => b.id !== content.modes.modes.harvest.biome)) {
       for (const layout of WEEKDAY_IDS) {
         for (const plane of PLANE_IDS) {
           const sim = createSim({

@@ -7,7 +7,7 @@ export interface GoldenCase {
   readonly name: string;
   readonly seed: number;
   readonly bot: BotKind;
-  readonly mode: 'classic' | 'daily' | 'ftue' | 'seasonHunt';
+  readonly mode: 'classic' | 'daily' | 'ftue' | 'seasonHunt' | 'harvest';
   readonly inputKind: InputKind;
   readonly aimAssist?: AimAssistLevel;
   /** Full mode config when `{ id: mode }` is not enough (Season Run hunts). */
@@ -475,4 +475,13 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
     inputKind: 'pointer',
     modeConfig: { id: 'classic', layout: 'wed' },
   },
+  // v1.8c (D-063): Die Oes, the 30-s Harvest (intro, warthogs, workers, crop meter, outro).
+  {
+    name: 'harvest-63-competent-pointer',
+    seed: 63,
+    bot: 'competent',
+    mode: 'harvest',
+    inputKind: 'pointer',
+  },
+  { name: 'harvest-64-random-touch', seed: 64, bot: 'random', mode: 'harvest', inputKind: 'touch' },
 ];

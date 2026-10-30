@@ -318,6 +318,70 @@ export interface RaiderView {
   readonly hits: number;
 }
 
+/** v1.8c (D-063): the Harvest's phase: the intro, the 30-s rush, the outro (the gap closes). */
+export type HarvestPhase = 'intro' | 'rush' | 'outro';
+/** v1.8c (D-063): a warthog's pose (enter/trot: walking in; dig: eating; run: driven off). */
+export type WarthogPhase = 'trot' | 'dig' | 'run' | 'tumble';
+export type WorkerPhase = 'run' | 'work' | 'duck';
+
+/** v1.8c (D-063): one animal or person in the Harvest (layer px, feet). */
+export interface HarvestActorView {
+  readonly id: number;
+  readonly layerId: string;
+  readonly plane: PlaneId;
+  /** The plane scale it is drawn at (× pigletScale for a piglet). */
+  readonly scale: number;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: 1 | -1;
+  /** Ticks in this phase (animation on sim time). */
+  readonly t: number;
+}
+export interface WarthogView extends HarvestActorView {
+  readonly phase: WarthogPhase;
+  readonly hits: number;
+}
+export interface PigletView extends HarvestActorView {
+  readonly motherId: number;
+  readonly running: boolean;
+}
+export interface WorkerView extends HarvestActorView {
+  /** Which of the workers (0..2): the view's look (people vary). */
+  readonly look: number;
+  readonly phase: WorkerPhase;
+}
+
+/** v1.8c (D-063): the Harvest's state for the view and the HUD. */
+export interface HarvestView {
+  readonly phase: HarvestPhase;
+  /** Ticks since the hunt started (intro) or since the intro ended (rush, outro). */
+  readonly t: number;
+  /** The intro's length so far / in all (ticks); the fence breaks at breakTick. */
+  readonly introTicks: number;
+  readonly breakTick: number;
+  /** Crop saved, percent (100 → 0). */
+  readonly crop: number;
+  /** Fence repaired 0..1 (fills over the rush). */
+  readonly repair: number;
+  /** Ticks left on the 30-s clock (0 in the outro). */
+  readonly clockTicksLeft: number;
+  readonly gap: {
+    readonly layerId: string;
+    readonly x: number;
+    readonly y: number;
+    readonly halfWidth: number;
+  };
+  readonly warthogs: readonly WarthogView[];
+  readonly piglets: readonly PigletView[];
+  readonly workers: readonly WorkerView[];
+  /** Bagged so far (warthogs; the baboons and birds are counted elsewhere). */
+  readonly warthogsBagged: number;
+  /** The crop bonus paid when the fence closed (0 before). */
+  readonly cropBonus: number;
+  /** Points lost to aimed shots at workers and piglets. */
+  readonly bystanderPenalty: number;
+}
+
 /** v1.8b (D-062): the map's baboons (null: no troop on this hunt). */
 export interface BaboonsView {
   readonly troops: readonly TroopView[];
@@ -455,6 +519,8 @@ export interface SimState {
   readonly tells: readonly TellView[];
   /** v1.8b (D-062): the map's baboon troops and raiders (null: none on this hunt). */
   readonly baboons: BaboonsView | null;
+  /** v1.8c (D-063): the Harvest (null in every other mode). */
+  readonly harvest: HarvestView | null;
   readonly powerups: readonly PowerupView[];
   /** Null when the omen is off or the biome has no wind. */
   readonly wind: WindView | null;
