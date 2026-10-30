@@ -60,6 +60,8 @@ import { renderResidentSheet } from './baobabLife';
 import { renderTellSheet } from './tells';
 import { renderBaboonSheet } from './baboons';
 import { BABOON_GROUP, BABOON_SHEET } from '../../src/game/view/baboon/baboonKeys';
+import { renderHarvestSheet } from './harvest';
+import { HARVEST_SHEET } from '../../src/game/view/harvest/harvestKeys';
 import { TELL_SHEET } from '../../src/game/view/tell/tellSheet';
 import { renderColonySheet } from './colony';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
@@ -77,6 +79,7 @@ const RESIDENT_COLOURS = 96;
 const TELL_COLOURS = 128;
 /** v1.8b (D-062): the baboon sheet's palette (fur, faces, a few props). */
 const BABOON_COLOURS = 160;
+const HARVEST_COLOURS = 192;
 /** 1.9.4 (D-057): palette size of the weaver colony's sheet. */
 const COLONY_COLOURS = 96;
 /** v1.7d (D-059): palette size of the Namib veld sheet. */
@@ -727,6 +730,22 @@ if (wants('baboons') && !hdOnly) {
     );
     rmSync(join(hdSrc, 'sprites', `${BABOON_SHEET}.png`), { force: true });
     console.log(`sprites/${BABOON_SHEET}`);
+  }
+}
+if (wants('harvest') && !hdOnly) {
+  // v1.8c (D-063): the Harvest's warthogs, piglets, workers and fence gap at 2× in the Harvest
+  // map's own group (the catalog's: only its manifest lists the key), which the HD pack serves
+  // too (oes-hd).
+  const png = join(src, 'sprites', `${HARVEST_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${HARVEST_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderHarvestSheet(2), HARVEST_COLOURS));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({ origin: 'interim', encode: 'png8', master: 2, originX: 0, originY: 0 }),
+    );
+    rmSync(join(hdSrc, 'sprites', `${HARVEST_SHEET}.png`), { force: true });
+    console.log(`sprites/${HARVEST_SHEET}`);
   }
 }
 if (wants('treelife') && !hdOnly) {

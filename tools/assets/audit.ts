@@ -8,6 +8,7 @@ import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
 import { NUT_SHEET } from '../../src/game/view/palms/makalaniSheet';
 import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
 import { BABOON_SHEET } from '../../src/game/view/baboon/baboonKeys';
+import { HARVEST_SHEET } from '../../src/game/view/harvest/harvestKeys';
 import { TELL_SHEET } from '../../src/game/view/tell/tellKeys';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
 import { VELD_SHEET } from '../../src/game/view/namib/veldSheet';
@@ -102,6 +103,8 @@ function usages(
   if (key === TELL_SHEET) needles.push(/\bTELL_SHEET\b/);
   // v1.8b (D-062): the baboon sheet by its constant (BaboonView).
   if (key === BABOON_SHEET) needles.push(/\bBABOON_SHEET\b/);
+  // v1.8c (D-063): the Harvest sheet by its constant (HarvestView).
+  if (key === HARVEST_SHEET) needles.push(/\bHARVEST_SHEET\b/);
   const palm = /^okavango\/makalani_(trunk|crown)_(near|mid)$/.exec(key);
   if (palm !== null) needles.push(palm[1] === 'trunk' ? /\bpalmTrunkKey\(/ : /\bpalmCrownKey\(/);
   const spookSound = Object.entries(SPOOK_SOUNDS).find(([, k]) => k === key)?.[0];

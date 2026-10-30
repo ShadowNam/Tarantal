@@ -30,6 +30,7 @@ import { sheetHerds } from '../view/faunaHerds';
 import { FRUIT_SHEET, fruitSheetKey } from '../view/fruit/fruitTypes';
 import { TELL_SHEET, TELL_SHEET_H, TELL_SHEET_W } from '../view/tell/tellKeys';
 import { BABOON_SHEET, BABOON_SHEET_H, BABOON_SHEET_W } from '../view/baboon/baboonKeys';
+import { HARVEST_SHEET, HARVEST_SHEET_H, HARVEST_SHEET_W } from '../view/harvest/harvestKeys';
 import { hasColonies } from '../../sim/meerkats/colony';
 import { MEERKAT_SOUNDS } from '../assets/desertAssets';
 import { HD_PARTS, hdKeyOf, POTJIE_LID, POTJIE_LID_SIZE } from '../assets/hdProps';
@@ -1581,6 +1582,22 @@ export function createPlaceholderManifest(
       // Nothing: drawn art only.
     },
   });
+  // v1.8c (D-063): the Harvest's sheet (warthogs, piglets, workers, the fence gap), only on the
+  // Harvest's map, so it lands in that map's own lazy group (drawn art only: HarvestView waits for
+  // the delivered file).
+  if (biome.harvest !== undefined)
+    m.addTexture({
+      key: HARVEST_SHEET,
+      width: HARVEST_SHEET_W,
+      height: HARVEST_SHEET_H,
+      originX: 0,
+      originY: 0,
+      // HarvestView cuts its frames by the file under the key (the 2× art) and sets the scale.
+      viewScaled: true,
+      draw() {
+        // Nothing: drawn art only.
+      },
+    });
   // v1.7e (D-061): the secrets' tell animals' sheet (late group; drawn art only: the placeholder
   // is empty, so without delivered art the secrets show no tell while the hunt plays the same).
   m.addTexture({
