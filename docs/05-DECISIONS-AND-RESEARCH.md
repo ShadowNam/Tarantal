@@ -3636,6 +3636,35 @@ golden or content hash moved.
   [Wikipedia — Ptenopus](https://en.wikipedia.org/wiki/Ptenopus) ·
   [Wikipedia — Grey go-away-bird](https://en.wikipedia.org/wiki/Grey_go-away-bird)
 
+**D-067 1.13.0 v1.10: Reënbui — the first rain and the flying ants (31 Oct 2026):** from the
+product owner's list of 24 Oct ("Reënbui: summer storm, first rain, flying ants, every flock
+feeds"). GDD §11.3e.
+- *A world event of its own, not a biome `events` entry.* Its chance roll, start and column spots
+  come from its own stream `reenbui` (never shared), so the `events` stream (and every other
+  event's time) is unchanged on every map: only hunts where it rolls replay differently. Golden
+  replays re-recorded for that reason. Content: `content/reenbui.json` (phases, factors, per-area
+  chance with cross-references to the biomes), layouts `reenbui: force | none`.
+- *Where:* the Kalahari 45 %, the Okavango 35 %, Namibië 15 %, the Karoo 5 % (the season fits:
+  the first summer storms; the Okavango's spring is the end of the dry season, the Karoo's autumn
+  late rains are rare). Never the winter Bushveld; not the Harvest (late autumn, after the rains).
+  `calm` days never; overcast Wednesday in the Kalahari and the Okavango always.
+- *Not tied to omens*, but it meets them: in a Kalahari omen hunt the swarm rises when the
+  Donderstorm breaks (no second storm, no own build-up or drops); in an Okavango omen hunt the
+  sun-shower spells overlapping the event are dropped.
+- *Scoring:* `reenbuiMul` ×1.5 on bags in the swarm window, a system multiplier after the
+  Countdown's (GDD §5.3), so it stacks with the Frenzy and the Stampede; event bonuses unchanged.
+- *Flocks:* within reach of a column, a forage or settle flock's goal is the column (the same
+  draws from `flockNoise`, so nothing else shifts) and its shot alert radius is ×0.7; the build-up
+  makes every flock's radius ×1.15. Up to 2 extra flocks run in (inside maxFlocks and
+  maxBirdsOnScreen), drawn from the `reenbui` stream.
+- *e2e:* the event is off under `?e2e` unless `?reenbui=1` forces it (lesson 17), so every existing
+  spec plays its seed as before.
+- *Species note.* Termite alates (winged reproductives) leave the nest in swarms on warm, humid
+  evenings after the first good summer rains, and birds, lizards and people feast on them ("rysmiere"
+  in Afrikaans folk use; *Macrotermes* and harvester termites in the region).
+  Sources: [Wikipedia — Termite](https://en.wikipedia.org/wiki/Termite) ·
+  [Wikipedia — Alate](https://en.wikipedia.org/wiki/Alate)
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
