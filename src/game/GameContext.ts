@@ -10,7 +10,8 @@ import type { TreeLifeHook } from './view/tree/TreeLifeView';
 import type { TellHook } from './view/tell/TellView';
 import type { BaboonHook } from './view/baboon/BaboonView';
 import type { HarvestHook } from './view/harvest/HarvestView';
-import type { BaboonsView, HarvestView, PlaneId } from '../sim/types';
+import type { ReenbuiHook } from './view/reenbui/ReenbuiView';
+import type { BaboonsView, HarvestView, PlaneId, ReenbuiView as ReenbuiState } from '../sim/types';
 import type { NewYearHook } from './feesdae/NuwejaarView';
 import type { NamibLifeHook } from './view/namib/NamibLifeView';
 import type { LoadStatus, SaveStore } from '../meta/save';
@@ -524,6 +525,13 @@ export interface TestHook {
     bystanderPenalty: number;
   } | null;
   harvestMs: number;
+  /** v1.10 (D-067): this hunt's Reënbui from the snapshot (null: none), what its view drew this
+   *  frame (null: no view, or the chunk not in yet), the ms its view took summed over the frames
+   *  sceneryFrames counts (perf.spec: per scenery frame), and those ms by part. */
+  reenbui: ReenbuiState | null;
+  reenbuiDraw: ReenbuiHook | null;
+  reenbuiMs: number;
+  reenbuiParts: { rain: number; sky: number; ground: number; columns: number } | null;
   /** D-064 (perf): ms the special day's view took (its update; the heat shimmer is counted in
    *  sceneryMs with the mirage), summed over the frames sceneryFrames counts. */
   feesdagMs: number;

@@ -155,7 +155,8 @@ export class BirdView {
     return { x: x + head.ox * s * v.facing, y: y + (head.oy - head.r * 0.55) * s };
   }
 
-  update(birds: readonly DrawBird[], tick: number): void {
+  /** v1.10 (D-067): flocks feeding at a Reënbui column (their foragers peck more). */
+  update(birds: readonly DrawBird[], tick: number, feeding?: ReadonlySet<number>): void {
     const seen = new Set<number>();
     for (const b of birds) {
       const v = b.view;
@@ -168,7 +169,14 @@ export class BirdView {
       const clip =
         final !== null && this.scene.textures.exists(final.atlasKey)
           ? resolveClip(
-              clipFor(v.motion, v.phase, v.id, tick, this.forageSpellTicks),
+              clipFor(
+                v.motion,
+                v.phase,
+                v.id,
+                tick,
+                this.forageSpellTicks,
+                v.flockId !== null && feeding?.has(v.flockId) === true,
+              ),
               (c) => final.entry.clips[c] !== undefined,
             )
           : null;
