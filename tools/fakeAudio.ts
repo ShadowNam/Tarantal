@@ -93,8 +93,14 @@ export class FakeContext {
   readonly destination = new FakeNode();
   readonly sources: FakeSource[] = [];
   readonly decoded: string[] = [];
+  /** Every gain, panner and filter made (newest last). */
+  readonly gains: FakeGain[] = [];
+  readonly panList: (FakeNode & { pan: FakeParam })[] = [];
+  readonly filters: (FakeNode & { frequency: FakeParam })[] = [];
   createGain(): FakeGain {
-    return new FakeGain(this);
+    const g = new FakeGain(this);
+    this.gains.push(g);
+    return g;
   }
   createBufferSource(): FakeSource {
     const s = new FakeSource();
@@ -105,7 +111,9 @@ export class FakeContext {
   panners = 0;
   createStereoPanner(): FakeNode & { pan: FakeParam } {
     this.panners++;
-    return Object.assign(new FakeNode(), { pan: new FakeParam(this, 0) });
+    const p = Object.assign(new FakeNode(), { pan: new FakeParam(this, 0) });
+    this.panList.push(p);
+    return p;
   }
   createBuffer(
     _ch: number,
@@ -129,11 +137,13 @@ export class FakeContext {
     });
   }
   createBiquadFilter(): FakeNode & { frequency: FakeParam; Q: FakeParam; type: string } {
-    return Object.assign(new FakeNode(), {
+    const f = Object.assign(new FakeNode(), {
       frequency: new FakeParam(this, 350),
       Q: new FakeParam(this, 1),
       type: 'lowpass',
     });
+    this.filters.push(f);
+    return f;
   }
   /** "Decodes" bytes whose first byte is the duration in seconds (255 = undecodable); the id is the text after it. */
   decodeAudioData(bytes: ArrayBuffer): Promise<{ duration: number; id: string }> {

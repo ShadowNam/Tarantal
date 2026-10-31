@@ -443,3 +443,83 @@ describe('AudioDirector: each gun its own sounds (v1.1, D-032)', () => {
     expect(calls).toBe(1);
   });
 });
+
+describe('AudioDirector soundscape voice (v1.9, D-066)', () => {
+  const DOVE = 'sfx/amb_cape_turtle_dove';
+  const FROG = 'sfx/amb_reed_frog';
+  const ambient = (r: ReturnType<typeof rig>, key = DOVE) =>
+    r.audio.ambient(key, 0.5, -12, 1500, 2, 4);
+
+  it('nothing before the first gesture; decodes only the area on screen', async () => {
+    const r = rig();
+    r.audio.addRecorded([file(DOVE), file(FROG)]);
+    r.audio.setSoundscapeKeys([DOVE]);
+    expect(ambient(r)).toBe('locked');
+    r.audio.unlock();
+    await flush();
+    expect(r.ctx.decoded).toContain(DOVE);
+    expect(r.ctx.decoded).not.toContain(FROG);
+    expect(ambient(r, FROG)).toBe('missing');
+    expect(ambient(r)).toBe('played');
+    // Another area: the dove's buffer is released, the frog decoded.
+    r.audio.setSoundscapeKeys([FROG]);
+    await flush();
+    expect(ambient(r)).toBe('missing');
+    expect(ambient(r, FROG)).toBe('played');
+  });
+
+  it('a low-passed, quieter voice on the effects bus, panned within ±0.7', async () => {
+    const r = rig();
+    r.audio.addRecorded([file(DOVE)]);
+    r.audio.setSoundscapeKeys([DOVE]);
+    r.audio.unlock();
+    await flush();
+    const filters = r.ctx.filters.length;
+    expect(r.audio.ambient(DOVE, 1, -20, 1500, 2, 4)).toBe('played');
+    expect(r.ctx.filters.slice(filters).some((f) => f.frequency.value === 1500)).toBe(true);
+    expect(r.ctx.panList.at(-1)?.pan.value).toBeCloseTo(0.7);
+    expect(r.ctx.gains.some((g) => Math.abs(g.gain.value - 0.1) < 1e-6)).toBe(true);
+  });
+
+  it('muted (hidden, paused, effects at 0) plays nothing', async () => {
+    const r = rig();
+    r.audio.addRecorded([file(DOVE)]);
+    r.audio.setSoundscapeKeys([DOVE]);
+    r.audio.unlock();
+    await flush();
+    r.setHidden(true);
+    expect(ambient(r)).toBe('muted');
+    r.setHidden(false);
+    r.audio.setMuted('pause', true);
+    expect(ambient(r)).toBe('muted');
+    r.audio.setMuted('pause', false);
+    r.audio.setVolumes({ master: 1, sfx: 0, music: 1, voice: 1 });
+    expect(ambient(r)).toBe('muted');
+  });
+
+  it('at most `max` soundscape voices, and never the voices the game needs', async () => {
+    const r = rig();
+    r.audio.addRecorded([file(DOVE)]);
+    r.audio.setSoundscapeKeys([DOVE]);
+    r.audio.unlock();
+    await flush();
+    expect(ambient(r)).toBe('played');
+    expect(ambient(r)).toBe('played');
+    expect(ambient(r)).toBe('voices');
+    expect(r.audio.ambientPlaying).toBe(2);
+    // The game's own sounds still get their voices (16 − 2 soundscape − reserve 4 left over).
+    const before = r.ctx.panners;
+    for (let i = 0; i < 10; i++)
+      r.audio.handle([{ type: 'emptyClick' } as unknown as SimEvent], () => 0);
+    expect(r.ctx.panners - before).toBe(10);
+    // With the game using 12 + 2 soundscape voices, no new call fits under the reserve.
+    const r2 = rig();
+    r2.audio.addRecorded([file(DOVE)]);
+    r2.audio.setSoundscapeKeys([DOVE]);
+    r2.audio.unlock();
+    await flush();
+    for (let i = 0; i < 12; i++)
+      r2.audio.handle([{ type: 'emptyClick' } as unknown as SimEvent], () => 0);
+    expect(r2.audio.ambient(DOVE, 0, -12, 0, 2, 4)).toBe('voices');
+  });
+});
