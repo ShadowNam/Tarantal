@@ -10,7 +10,8 @@
 //   award  = round(points × mult)
 // D-065: countdownMul is New Year's "Countdown ×2" (1 outside its last 10 s); it stacks with
 // the Stampede's, so the last 10 s of a New Year Daily are ×4.
-// D-067: reenbuiMul is the Reënbui swarm's (×1.5 while the alates fly; 1 otherwise), bags only.
+// D-067: reenbuiMul is the Reënbui swarm's (content reenbui.scoreMul while the alates fly; 1
+// otherwise), bags only.
 
 export interface BagContext {
   /** Plane base points, or the creature's baseOverride. */

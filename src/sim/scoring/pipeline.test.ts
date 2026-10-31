@@ -16,12 +16,15 @@ interface Row {
   readonly weapon?: number;
   readonly frenzy?: number;
   readonly stampede?: number;
-  /** D-067: the Reënbui swarm window. */
+  /** D-067: the Reënbui swarm window (REENBUI_MUL, content reenbui.scoreMul). */
   readonly reenbui?: number;
   readonly points: number;
   readonly mult: number;
   readonly award: number;
 }
+
+/** D-067: the swarm's reenbuiMul as tuned (content reenbui.scoreMul; checked below). */
+const REENBUI_MUL = 1.3;
 
 // Golden table: hand-computed from GDD §5.3. Changing the pipeline order or rounding breaks it.
 const TABLE: readonly Row[] = [
@@ -162,13 +165,13 @@ const TABLE: readonly Row[] = [
     award: 60,
   },
   {
-    name: 'D-067 Reënbui swarm ×1.5: mid forage',
+    name: 'D-067 Reënbui swarm × reenbuiMul: mid forage',
     base: 10,
     behaviour: 0,
-    reenbui: 1.5,
+    reenbui: REENBUI_MUL,
     points: 10,
-    mult: 1.5,
-    award: 15,
+    mult: 1.3,
+    award: 13,
   },
   {
     name: 'D-067 Reënbui × Frenzy 3 × Stampede: far flying',
@@ -176,20 +179,20 @@ const TABLE: readonly Row[] = [
     behaviour: 1,
     frenzy: 1.5,
     stampede: 2,
-    reenbui: 1.5,
+    reenbui: REENBUI_MUL,
     points: 25,
-    mult: 9,
-    award: 225,
+    mult: 7.8,
+    award: 195,
   },
   {
     name: 'D-067 Reënbui after a charm ×2 and +1 points: near run',
     base: 5,
     behaviour: 0.5,
     mods: [pts(1), mul(2)],
-    reenbui: 1.5,
+    reenbui: REENBUI_MUL,
     points: 6,
-    mult: 4.5,
-    award: 27,
+    mult: 3.9,
+    award: 23,
   },
   {
     name: 'everything: far flying, +1 ×1.5, Kettie, Frenzy 6, Stampede',
@@ -223,13 +226,17 @@ describe('scoring pipeline golden table (GDD §5.3)', () => {
         },
         row.mods ?? [],
       );
-      expect({ points: r.points, mult: r.mult, award: r.award }).toEqual({
+      expect({ points: r.points, award: r.award }).toEqual({
         points: row.points,
-        mult: row.mult,
         award: row.award,
       });
+      expect(r.mult).toBeCloseTo(row.mult, 9);
     });
   }
+
+  it("D-067: the table's reenbuiMul is the tuned one (content reenbui.scoreMul)", () => {
+    expect(loadContent().reenbui.scoreMul).toBe(REENBUI_MUL);
+  });
 
   it('swapping two charms changes the award (slot order matters)', () => {
     const ctx = { base: 10, behaviourAdd: 1, weaponScoreMul: 1, frenzyMul: 1, stampedeMul: 1 };
@@ -308,7 +315,7 @@ describe('scoring pipeline golden table (GDD §5.3)', () => {
         frenzyMul: 1.5,
         stampedeMul: 2,
         countdownMul: 2,
-        reenbuiMul: 1.5,
+        reenbuiMul: REENBUI_MUL,
         ruleMul: 0,
       },
       [],
