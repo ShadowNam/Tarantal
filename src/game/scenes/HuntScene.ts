@@ -922,6 +922,7 @@ export class HuntScene extends Phaser.Scene {
           this.ctx.hook !== null,
           performance.now(),
           FORECAST_SIM,
+          this.ctx.soundscapeBoost,
         );
       })
       .catch(() => {

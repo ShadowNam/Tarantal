@@ -795,6 +795,9 @@ export interface GameContext {
   readonly faunaStill: boolean;
   /** e2e/dev only (?soundscape=0, v1.9 D-066): no veld soundscape (nothing of it loads). */
   readonly soundscapeOff: boolean;
+  /** e2e/dev only (?soundscapeBoost=6, D-066): every soundscape rate × this (warning windows
+   *  and rates are seen within a short hunt). 1 = as in content. */
+  readonly soundscapeBoost: number;
   /** e2e/dev only (?treeLife=<resident>|falcon|off, 1.9.4 D-057): that baobab resident (or the
    *  colony's falcon) is out almost all the time, or no tree life at all (art previews). */
   readonly treeLifePreview: string | null;

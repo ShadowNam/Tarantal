@@ -89,6 +89,9 @@ for (const gfx of ['standard', 'hd'] as const)
       // v1.0.1 (D-028 §4): how much the frame cost includes score pops (undefined before v1.0.1).
       score: h.score,
       pops: h.pops,
+      // v1.9 (D-066, report only): the veld soundscape's frame cost and what it offered/played.
+      soundscapeMsPerFrame: h.soundscapeFrames > 0 ? h.soundscapeMs / h.soundscapeFrames : 0,
+      soundscapeCounts: h.soundscape?.counts ?? null,
       realFrameMs: real,
       realFps: real.avg > 0 ? 1000 / real.avg : 0,
       cpuFrameMs: cpu,

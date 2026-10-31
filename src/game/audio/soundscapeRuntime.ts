@@ -81,8 +81,22 @@ export class SoundscapeRuntime implements SoundscapeSink {
     now: number,
     /** The sim's schedule functions (forecastSim.ts, from the main bundle). */
     private readonly sim: ForecastSim,
+    /** e2e only (?soundscapeBoost): every rate × this. */
+    boost = 1,
   ) {
-    this.sc = loadSoundscapeContent();
+    const sc = loadSoundscapeContent();
+    this.sc =
+      boost === 1
+        ? sc
+        : {
+            ...sc,
+            areas: Object.fromEntries(
+              Object.entries(sc.areas).map(([a, l]) => [
+                a,
+                l.map((e) => ({ ...e, perMinute: e.perMinute * boost })),
+              ]),
+            ),
+          };
     this.director = new SoundscapeDirector(this.sc, hookOn);
     const warned = Object.values(this.sc.calls).flatMap((c) =>
       c.warns === undefined ? [] : [c.warns],
