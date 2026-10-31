@@ -9,6 +9,7 @@ import { NUT_SHEET } from '../../src/game/view/palms/makalaniSheet';
 import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
 import { BABOON_SHEET } from '../../src/game/view/baboon/baboonKeys';
 import { HARVEST_SHEET } from '../../src/game/view/harvest/harvestKeys';
+import { REENBUI_SHEET } from '../../src/game/view/reenbui/reenbuiKeys';
 import { TELL_SHEET } from '../../src/game/view/tell/tellKeys';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
 import { VELD_SHEET } from '../../src/game/view/namib/veldSheet';
@@ -111,6 +112,8 @@ function usages(
   if (key === BABOON_SHEET) needles.push(/\bBABOON_SHEET\b/);
   // v1.8c (D-063): the Harvest sheet by its constant (HarvestView).
   if (key === HARVEST_SHEET) needles.push(/\bHARVEST_SHEET\b/);
+  // v1.10 (D-067): Reënbui's sheet by its constant (ReenbuiView).
+  if (key === REENBUI_SHEET) needles.push(/\bREENBUI_SHEET\b/);
   const palm = /^okavango\/makalani_(trunk|crown)_(near|mid)$/.exec(key);
   if (palm !== null) needles.push(palm[1] === 'trunk' ? /\bpalmTrunkKey\(/ : /\bpalmCrownKey\(/);
   const xmasSound = Object.entries(XMAS_SOUNDS).find(([, k]) => k === key)?.[0];

@@ -240,6 +240,27 @@ describe('the baobab residents sheet (1.9.4, D-057)', () => {
   });
 });
 
+describe("Reënbui's sheet (v1.10, D-067)", () => {
+  it('is used where ReenbuiView names its constant, unused otherwise', () => {
+    const cat: Catalog = {
+      ...catalog,
+      entries: new Map([
+        [
+          'reenbui/sheet',
+          entry('reenbui/sheet', 'texture', { width: 8, height: 8, group: 'late' }),
+        ],
+      ]),
+    };
+    const view = 'src/game/view/reenbui/ReenbuiView.ts';
+    const used = audit(
+      base({ catalog: cat, sources: new Map([[view, 'exists(REENBUI_SHEET)']]), tex: {} }),
+    );
+    expect(used.rows.find((x) => x.key === 'reenbui/sheet')?.usedIn).toContain(view);
+    const bare = audit(base({ catalog: cat, sources: new Map([['src/x.ts', 'x']]), tex: {} }));
+    expect(bare.problems.some((p) => p.includes('reenbui/sheet'))).toBe(true);
+  });
+});
+
 describe('the veld soundscape calls (v1.9, D-066)', () => {
   it('are used when soundscape.json names them and the director plays soundscape calls', () => {
     const key = 'sfx/amb_reed_frog';
