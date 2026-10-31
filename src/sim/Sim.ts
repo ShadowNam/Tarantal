@@ -111,7 +111,7 @@ import {
   type Secret,
 } from './props/secrets';
 import { sin } from './detmath';
-import { createRng } from './rng';
+import { createRng, type RandomStream } from './rng';
 import { twoFliesBonus, wholeFlockBonus } from './scoring/bonuses';
 import { dropTier, frenzyMul, frenzyTier, nextStreak } from './scoring/frenzy';
 import { scoreBag, scoreEventBonus } from './scoring/pipeline';
@@ -1151,17 +1151,20 @@ export function createSim(config: SimConfig): Sim {
           spawnFlock: (plane, x, size, dir) => {
             if (flocks.filter((f) => f.members.length > 0).length >= biome.pacing.maxFlocks)
               return false;
+            const own = rng.stream('reenbui');
             const f = director.spawnFlockAt(
               { ...directorContext(), flocks, nextFlockId: () => nextFlockId++ },
               plane,
               x,
               size,
-              rng.stream('reenbui'),
+              own,
             );
             if (f === null) return false;
-            addFlocks([f]);
-            // In at a run toward the columns, away from a "threat" behind them.
-            emitTransition(f, forceState(f, 'run', x - dir * 60, 'event', fParams, flockRng));
+            addFlocks([f], own);
+            // In at a run toward the columns, away from a "threat" behind them (every draw from
+            // the event's own stream).
+            const behind = content.reenbui.extraFlocks.runFromPx * planeGeo[plane].ratio;
+            emitTransition(f, forceState(f, 'run', x - dir * behind, 'event', fParams, own));
             return true;
           },
         });
@@ -1299,10 +1302,12 @@ export function createSim(config: SimConfig): Sim {
       emitTransition(t.flock, forceState(t.flock, effect, t.x, cause, fParams, flockRng));
   }
 
-  function addFlocks(added: readonly Flock[]): void {
+  /** `own`: the stream of the system that brought the flocks in (Reënbui's extra flocks draw
+   *  their twist and Stampede state from `reenbui`, never a shared stream); else the usual ones. */
+  function addFlocks(added: readonly Flock[], own: RandomStream | null = null): void {
     for (const f of added) {
       // Biome twist (Bushveld): some flocks run instead of taking wing (own stream, D-025).
-      if (runChance > 0) f.runsOnly = twistRng.chance(runChance);
+      if (runChance > 0) f.runsOnly = (own ?? twistRng).chance(runChance);
       // Kalahari storm: in the rain every flock runs (GDD §11 "rain makes flocks run not fly").
       if (stormActive()) f.runsOnly = true;
       flocks.push(f);
@@ -1317,7 +1322,7 @@ export function createSim(config: SimConfig): Sim {
         state: f.state,
         x: c.x,
       });
-      if (stampedeActive()) stampede(f);
+      if (stampedeActive()) stampede(f, own ?? flockRng);
     }
   }
 
@@ -1331,12 +1336,9 @@ export function createSim(config: SimConfig): Sim {
 
   /** GDD §8 mass run/flush: the flock runs (or flushes) toward the screen centre, so the
    *  Stampede crosses the player's view instead of fleeing out of it. */
-  function stampede(f: Flock): void {
+  function stampede(f: Flock, r: RandomStream = flockRng): void {
     if (stampedeFlockState === null) return;
-    emitTransition(
-      f,
-      forceState(f, stampedeFlockState, towardCentre(f), 'stampede', fParams, flockRng),
-    );
+    emitTransition(f, forceState(f, stampedeFlockState, towardCentre(f), 'stampede', fParams, r));
   }
 
   function spawnFlocks(): void {

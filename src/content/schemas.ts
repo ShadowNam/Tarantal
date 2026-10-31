@@ -2079,6 +2079,8 @@ export const ReenbuiSchema = obj({
     /** They come in from this far beyond a column, on the side away from the view centre
      *  (mid-plane px). */
     fromPx: pos,
+    /** They run in away from a "threat" this far behind them (mid-plane px). */
+    runFromPx: pos,
   }),
 });
 export type Reenbui = z.infer<typeof ReenbuiSchema>;
