@@ -974,7 +974,7 @@ plays a carol]", "[paper rustles, a little bell rings]". Oupa's five Christmas l
 like his others (§10.1; nl text speaks Afrikaans).
 
 **New Year — the countdown (D-065; interim art: `npm run art:interim -- --only newyear`,
-tools/art/newyear.ts; 400 × 358 design px, drawn at 2× and shipped as a 1× pack, ~0.57 MB on the
+tools/art/newyear.ts; 400 × 1294 design px with the baked firework frames, drawn at 2× and shipped as a 1× pack, ~2 MB on the
 GPU; Standard in HD from the start, so an HD hunt on the Okavango stays ≤ 256 MB):**
 - *Light:* its own preset, `nuwejaar_skemer`, grading the whole scene: the low sun's warm light
   on the near plane, the mid plane dimmer, the far planes cool and violet in shadow, a rose-gold
@@ -990,7 +990,11 @@ GPU; Standard in HD from the start, so an HD hunt on the Okavango stays ≤ 256 
   large or full-screen flash: each burst is ≤ ~170 px across, at most 3 start in any second (one
   per 1/3 s slot), more in the countdown (2.4/s) than before it (0.7/s), half as many on the low
   tier; with "reduce flashes" only plain dots twinkle where they hang (≤ 35 % alpha, no core,
-  never brighter than the sky). A fixed pool of sprites, made once.
+  never brighter than the sky). Baked (D-065 perf): the burst's animation is drawn offline from
+  that spark math (src/game/feesdae/fireworkMath.ts) into 14 half-size frames on the sheet — the
+  coloured sparks (tinted per burst) and the white sparks with the core (untinted) — so in the game
+  a burst is two images changing frame and alpha (mirrored or not, a slight turn, its own size and
+  colour); the stars twinkle as four groups.
 - *Party hats:* a striped paper cone (gold, red, blue bands, shaded round), a white zigzag trim and
   a gold pompom, on about 30 % of the guineafowl, on the witch and Santa hats' head anchors and
   sizes (three drawings; the small one two-tone).

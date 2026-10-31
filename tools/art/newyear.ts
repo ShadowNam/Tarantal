@@ -17,6 +17,15 @@ import {
   type NyFrame,
 } from '../../src/game/feesdae/newyearAssets';
 import { OUPA_DRAWN } from '../../src/game/feesdae/christmasKeys';
+import {
+  BURST_CELL,
+  BURST_T,
+  burstCore,
+  burstSparks,
+  twinkleDots,
+  type BurstLook,
+} from '../../src/game/feesdae/fireworkMath';
+import { loadFeel } from '../testContent';
 import type { Rgba } from '../assets/image';
 import { oupa, oupaHead } from './christmas';
 import { renderSvg } from './raster';
@@ -372,7 +381,102 @@ function burst(seed: number): string {
   return g({}, defs(core), ...rays, path(ellipseD(0, 0, 12, 12), core.url));
 }
 
+// --- the baked firework burst (D-065 perf) -------------------------------------------------------
+
+const FW: BurstLook = loadFeel().feesdae.looks.newyear.fireworks;
+
+/** One frame of the burst (fireworkMath.ts, the reviewed spark math), drawn at half size round
+ *  the cell's centre: `c` the coloured sparks in white (the game tints them per burst), `w` the
+ *  white sparks and the core (untinted). Alphas are relative to the whole burst's fade (the game
+ *  sets that as the image's alpha). */
+function fireworkFrame(kind: 'c' | 'w', i: number): string {
+  const t = BURST_T[i] ?? 0;
+  const tail = uid('ft');
+  const glow = radial(
+    [
+      [0, '#FFFFFF', 1],
+      [0.45, '#FFFFFF', 1],
+      [1, '#FFFFFF', 0],
+    ],
+    0.5,
+    0.5,
+  );
+  const coreGlow = radial(
+    [
+      [0, '#FFF4D8', 1],
+      [0.35, '#FFF4D8', 1],
+      [1, '#FFF4D8', 0],
+    ],
+    0.5,
+    0.5,
+  );
+  const sparks = burstSparks(FW, t, i)
+    .filter((sp) => sp.white === (kind === 'w'))
+    .map((sp) =>
+      g(
+        {
+          transform: `translate(${r2(sp.x)} ${r2(sp.y)}) rotate(${r2((sp.rot * 180) / Math.PI)}) scale(${r2(sp.len)} ${r2(sp.thick)})`,
+          opacity: sp.alpha,
+        },
+        path(
+          polyD([
+            [-32, -0.6],
+            [0, -2.6],
+            [0, 2.6],
+            [-32, 0.6],
+          ]),
+          `url(#${tail})`,
+        ),
+        path(ellipseD(0, 0, 4.4, 4.4), glow.url),
+      ),
+    );
+  const core = kind === 'w' ? burstCore(FW, t) : null;
+  return g(
+    { transform: `scale(${BURST_CELL.scale})` },
+    defs(glow, coreGlow),
+    el(
+      'defs',
+      {},
+      el(
+        'linearGradient',
+        { id: tail, x1: 0, y1: 0, x2: 1, y2: 0 },
+        el('stop', { offset: 0, 'stop-color': '#FFFFFF', 'stop-opacity': 0 }),
+        el('stop', { offset: 0.75, 'stop-color': '#FFFFFF', 'stop-opacity': 0.7 }),
+        el('stop', { offset: 1, 'stop-color': '#FFFFFF', 'stop-opacity': 1 }),
+      ),
+    ),
+    ...sparks,
+    core === null
+      ? ''
+      : path(ellipseD(0, 0, 8 * core.scale, 8 * core.scale), coreGlow.url, {
+          opacity: core.alpha,
+        }),
+  );
+}
+
+/** Reduce flashes: the dim dots a burst twinkles as (white: the game tints them). */
+function twinkleFrame(): string {
+  const glow = radial(
+    [
+      [0, '#FFFFFF', 1],
+      [0.35, '#FFFFFF', 1],
+      [1, '#FFFFFF', 0],
+    ],
+    0.5,
+    0.5,
+  );
+  return g(
+    { transform: `scale(${BURST_CELL.scale})` },
+    defs(glow),
+    ...twinkleDots(FW).map((d) =>
+      path(ellipseD(d.x, d.y, 7.5 * 0.35, 7.5 * 0.35), glow.url, { opacity: d.alpha }),
+    ),
+  );
+}
+
 function frameArt(name: NyFrame): string {
+  const fw = /^fw_([cw])_(\d+)$/.exec(name);
+  if (fw !== null) return fireworkFrame(fw[1] === 'w' ? 'w' : 'c', Number(fw[2]));
   switch (name) {
     case 'hat_l':
       return partyHat('l');
@@ -399,6 +503,8 @@ function frameArt(name: NyFrame): string {
       return streamer([C.blueLit, C.blue, C.blueShade], 3113);
     case 'burst':
       return burst(2027);
+    case 'fw_twinkle':
+      return twinkleFrame();
     default:
       return '';
   }

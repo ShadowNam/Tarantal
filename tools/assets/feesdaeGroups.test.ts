@@ -70,13 +70,14 @@ describe('the special days split their lazy groups (D-064)', () => {
     expect(index.images[HALLOWEEN_SHEET]?.group).toBe(FEESDAE_GROUP);
     for (const k of Object.values(XMAS_SOUNDS)) expect(index.audio[k]?.group).toBe(CHRISTMAS_GROUP);
     for (const g of index.initialGroups) expect(g.startsWith('feesdae')).toBe(false);
-    // D-065: New Year's sheet is the 1× Standard pack in HD too (≈ 0.57 MB on the GPU), its
+    // D-065: New Year's sheet is the 1× Standard pack in HD too (≈ 2 MB on the GPU with the baked
+    // firework frames; the Okavango's HD case has ~5.5 MB of room), its
     // sounds in its own group, no -hd twin.
     const ny = index.images[NEWYEAR_SHEET];
     expect(ny?.group).toBe(NEWYEAR_GROUP);
     expect(ny?.hd).toBeUndefined();
     expect([ny?.width, ny?.height]).toEqual([NY_SHEET_W, NY_SHEET_H]);
-    expect(NY_SHEET_W * NY_SHEET_H * 4).toBeLessThan(0.6 * 1024 * 1024);
+    expect(NY_SHEET_W * NY_SHEET_H * 4).toBeLessThan(2.1 * 1024 * 1024);
     expect([...groups].filter((g) => g.startsWith('feesdae-newyear-hd'))).toEqual([]);
     for (const k of Object.values(NY_SOUNDS)) expect(index.audio[k]?.group).toBe(NEWYEAR_GROUP);
   });

@@ -2784,12 +2784,12 @@
       "group": "feesdae-newyear",
       "origin": "interim",
       "file": {
-        "path": "assets/feesdae-newyear/img/feesdae_newyear.6fc5b528fbf1.png",
-        "bytes": 18703,
-        "hash": "6fc5b528fbf1"
+        "path": "assets/feesdae-newyear/img/feesdae_newyear.82e4a225e05b.png",
+        "bytes": 30947,
+        "hash": "82e4a225e05b"
       },
       "width": 400,
-      "height": 358,
+      "height": 1294,
       "originX": 0,
       "originY": 0
     },

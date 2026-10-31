@@ -1,11 +1,10 @@
 // D-065 (perf): New Year's view on a full pool of fireworks (?fireworks=max: a burst every slot),
 // with stub images that count every setter and spies on the trig functions — a proxy for the
-// Pixel 7 smoke's "New Year view ms per frame" (perf.spec). Per frame the sparks may do only
-// arithmetic and one atan2 each (their rays' sin/cos are worked out once, at launch), the stars
-// read a sine table, setters run only when a value changes, and a frame whose tick has not moved
-// (a held frame, a fast display) does nothing at all.
-// Measured with this harness on the version before (D-065 perf fix): 186 setter calls and 305 trig
-// calls a frame, 256 setter calls on a held frame; after: 116, 46 and 0.
+// Pixel 7 smoke's "New Year view ms per frame" (perf.spec). Each burst is baked frame by frame
+// (fireworkMath.ts): per frame a burst changes its frame and alpha only when they change, the
+// stars are four groups (an alpha each), and a frame whose tick has not moved does nothing.
+// Measured with this harness: per-spark images (af6ce21) 186 setter and 305 trig calls a frame;
+// precomputed per-spark (f78f3eb) 116 and 46; baked bursts: see the test's [ny perf proxy] line.
 // The ground's blue hour (300 statics + 20 herds over a 90-s hunt), before: every 1 % step of the
 // sky's wash re-tinted the whole map in one frame — 13 928 setTint calls in all, 279 in the worst
 // frame; after (1/32 steps, a changed layer a frame, only real changes): 8 928, at most 50.
@@ -72,6 +71,8 @@ function stubImage(): Record<string, unknown> {
   img['setOrigin'] = chain('setOrigin');
   img['setBlendMode'] = chain('setBlendMode');
   img['setTexture'] = chain('setTexture');
+  img['setFrame'] = chain('setFrame');
+  img['setFlipX'] = chain('setFlipX');
   img['destroy'] = () => undefined;
   return img;
 }
@@ -142,7 +143,20 @@ function makeView(ground: GroundStub = stubParallax()): NuwejaarSceneView {
   const special = loadContent().feesdae.specials.find((f) => f.id === 'newyear');
   if (special === undefined) throw new Error('no newyear');
   const scene = {
-    add: { image: () => stubImage(), rectangle: () => stubImage() },
+    add: {
+      image: () => stubImage(),
+      rectangle: () => stubImage(),
+      container: () => {
+        const box = stubImage();
+        const list: unknown[] = [];
+        box['list'] = list;
+        box['add'] = (c: unknown) => {
+          list.push(c);
+          return box;
+        };
+        return box;
+      },
+    },
     textures: {
       exists: (k: string) => k === NEWYEAR_SHEET,
       get: () => ({ getSourceImage: () => ({ width: 400 }) }),
@@ -199,13 +213,14 @@ describe('New Year view per-frame cost (D-065 perf)', () => {
     vi.restoreAllMocks();
   });
 
-  it('a full pool of fireworks: one atan2 a spark, setters only on change, a held frame free', () => {
+  it('a full pool of fireworks: baked frames, an alpha a group of stars, a held frame free', () => {
     const view = makeView();
-    const m = measure(view);
-    // 4 bursts × 16 sparks: about one atan2 per live spark and frame, no other trig per frame.
-    expect(m.trig).toBeLessThanOrEqual(64);
-    // Positions move every tick; rotation, scale and alpha only when they change.
-    expect(m.setters).toBeLessThanOrEqual(150);
+    // Mid-hunt, the stars out and twinkling (the ramp's middle), the pool full.
+    const m = measure(view, 3000);
+    // No per-spark trig at all: a sine for a reduce-flashes twinkle at most.
+    expect(m.trig).toBeLessThanOrEqual(4);
+    // Two images a burst (a frame, an alpha), a rocket's position, four star groups' alphas.
+    expect(m.setters).toBeLessThanOrEqual(12);
     expect(m.held).toBe(0);
     console.log(`[ny perf proxy] ${JSON.stringify(m)}`);
   });

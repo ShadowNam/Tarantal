@@ -430,7 +430,7 @@ test('perf: a Christmas in the sun hunt at 4× CPU throttle (Pixel 7)', async ({
 
 // D-065: a New Year countdown hunt in HD on its heaviest map — the Okavango (253.9 MB on its own
 // in HD), which is 31 Dec 2026's own Daily map — reached from the title: New Year's sheet is
-// Standard in HD from the start (400 × 358 px, ~0.57 MB on the GPU), the fireworks and stars use
+// Standard in HD from the start (400 × 1294 px with the baked firework frames, ~2 MB on the GPU), the fireworks and stars use
 // its 16 px spark and 12 px star (no stand-in: the hunt waits for its listed sheet), no other
 // area's HD layers. ≤ 256 MB asserted.
 test('HD texture memory, a New Year hunt on its heaviest map (okavango)', async ({
