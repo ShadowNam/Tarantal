@@ -249,6 +249,22 @@ fact + a joke. Completing pages unlocks cosmetics. Collection is a quiet, strong
 - **End of hunt → Bakkie Tally:** count-up of bagged birds by plane, accuracy, wing-shot %, whole
   flocks, secrets, penalties, final score, rank stamp, Bird Book unlocks, then **[Again]** (one tap)
   and **[Season Run]**/**[Share]**.
+- **Die Braai (1.14.0, D-068): the tally is told at Oupa's fire.** Classic and Daily hunts (a
+  Feesdae Daily too, with its own decorations at the fire; the Harvest with its own tally lines)
+  end at night at Oupa's braai: a clear sky with the Milky Way and the Southern Cross, the area's
+  horizon as a dark silhouette, a fire with coals and a grid, Oupa in his camp chair beside it, the
+  bakkie dark against the sky. The chalk slate stands in front with every number, button and the
+  focus order as before (the setting changes, not the content). After the count-up Oupa tells the
+  hunt in two to four lines picked from its result — an opener for the bag, then the hunt's best
+  moments in a fixed order of priority (a new best or rank up, a Ver/Die Verste bag, a whole flock,
+  a Blikkies chain, a Reënbui swarm bag, a meerkat or nest scold, a near miss on the record), then
+  a closer; the same result always tells the same story. Voiced phrases only; the numbers are in
+  the caption. A **perfect hunt** (the top rank, or no miss with at least
+  `feel.braai.perfect.minBagged` birds) or a rank up earns a short **vastrap** from Oupa with a
+  concertina sting. A tap anywhere but a button, or Space, skips the count-up and the story. The
+  Season Run's day end (the Padstal) stays as it is, and Oupa se Les keeps the plain slate. If the
+  braai's lazy files haven't arrived the slate shows as before; nothing waits for them. "Reduce
+  motion" stills the sparks and skips the dance; "reduce flashes" keeps the fire's glow steady.
 
 ## 9. Combos
 

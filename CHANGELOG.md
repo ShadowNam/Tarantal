@@ -3,6 +3,15 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.14.0] — v1.11: Die Braai, the day ends at Oupa's fire (31 Oct 2026)
+
+Decision record D-068. From the product owner's list of 24 Oct: "Die Braai: results told by Oupa at
+the fire, vastrap dance for a perfect hunt".
+
+- **Die Braai**: Classic and Daily hunts end at night at Oupa's fire under the Milky Way and the
+  Southern Cross. The chalk slate with every number and button stands in front, as before.
+- The Daily streak says "Streak: 1 day" (was "1 days").
+
 ## [1.13.0] — v1.10: Reënbui, the first rain and the flying ants (31 Oct 2026)
 
 Decision record D-067. From the product owner's list of 24 Oct: "Reënbui: summer storm, first

@@ -3718,6 +3718,33 @@ feeds"). GDD §11.3e.
   Sources: [Wikipedia — Termite](https://en.wikipedia.org/wiki/Termite) ·
   [Wikipedia — Alate](https://en.wikipedia.org/wiki/Alate)
 
+**D-068 1.14.0 v1.11: Die Braai — the day ends at Oupa's fire (31 Oct 2026):** from the product
+owner's list of 24 Oct ("Die Braai: results told by Oupa at the fire, vastrap dance for a perfect
+hunt"). GDD §8.
+- *A setting, not a new tally.* The Bakkie Tally keeps every number, button, focus order, news line
+  and hook value; the braai is drawn behind and around the slate. Where: Classic and the Daily (a
+  Feesdae Daily with its own decorations joining the fire: the party hats, the present, the
+  pumpkin), the Harvest with its own lines. Not the Season Run's day end (the Padstal's layout fills
+  the screen; no vignette: the run's own day end stays as it is) and not Oupa se Les (the first
+  tally stays plain and quick, GDD §16 step 7).
+- *Presentation only.* Nothing in `src/sim/` changes; no golden or content hash moves. The story's
+  facts the result doesn't carry (a Ver bag, the scolds, the Reënbui swarm's bag) are counted in
+  the game layer from the sim's event stream; the story is a pure function of the result, those
+  counts and the save's changes (same result ⇒ same lines). Tuning is client-only
+  (`content/client/feel.json → braai`, outside the content hash).
+- *Lazy and never waited for.* The braai's art, sounds and Oupa's story lines are in a lazy group
+  (`braai`, its HD twin `braai-hd`, the voice lines in `braai-voice-<lang>`) fetched by the braai's
+  own lazy chunk when a hunt starts, so they are there by the tally; with no delivery, or before
+  they arrive, the tally shows today's plain slate. Nothing new in the first download but strings
+  and a little code.
+- *Texture memory (lesson 29).* The heaviest HD hunt (Okavango with the Reënbui, ≈ 254.8 of 256 MB)
+  leaves ~1.2 MB. The sky is a code-drawn gradient (no texture), the stars a few baked tiles, the
+  horizon a code-drawn silhouette; the fire, Oupa, the dance and the bakkie one small sheet. The
+  sheet becomes a texture only when the braai tally opens and is removed when it closes, so no
+  hunt carries it. Its HD twin is used only when the texture memory in use leaves room for it under
+  the budget; otherwise (the Okavango Reënbui case) the Standard sheet shows. perf.spec measures
+  that case at the tally.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

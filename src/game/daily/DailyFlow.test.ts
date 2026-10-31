@@ -153,7 +153,7 @@ describe('DailyFlow', () => {
     ]);
     const x = flow.finish(plan, result(plan, 2840), '🟩🟩🟨🟩⬛');
     expect(x.tag).toBe('Daily #1');
-    expect(x.news).toEqual(['Streak: 1 days']);
+    expect(x.news).toEqual(['Streak: 1 day']);
     expect(save.data.daily.history).toEqual([
       { day: DAY, score: 2840, rank: 'bosveldjagter', wholeFlocks: 2, grid: '🟩🟩🟨🟩⬛' },
     ]);

@@ -391,6 +391,7 @@
   "tally.vs_tie": "Du {you} · {them} {score} · Gleichstand!",
   "tally.vs_lose": "Du {you} · {them} {score} · so knapp!",
   "tally.streak": "Serie: {n} Tage",
+  "tally.streak_one": "Serie: 1 Tag",
   "tally.freeze_used": "Serienschutz verbraucht",
   "tally.cosmetic": "Freigeschaltet: {item}",
   "tally.daily_best": "Neuer Tagesrekord!",
