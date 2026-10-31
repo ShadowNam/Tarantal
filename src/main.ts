@@ -454,6 +454,7 @@ const hook: TestHook = {
   braai: null,
   braaiMs: 0,
   braaiFrames: 0,
+  braaiLoaded: false,
   reenbuiParts: null,
   reloadFx: { chipIcons: [], bolts: 0, oupaHand: false, autoReloads: 0 },
   mirage: false,

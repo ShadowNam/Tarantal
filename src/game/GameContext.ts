@@ -542,6 +542,8 @@ export interface TestHook {
   /** v1.11 (D-068): ms the braai view took, summed over its frames (perf: per frame ≤ 0.3). */
   braaiMs: number;
   braaiFrames: number;
+  /** v1.11 (D-068): the braai's chunk and Standard sheet have arrived (seen from the hunt). */
+  braaiLoaded: boolean;
   reenbuiParts: { rain: number; sky: number; ground: number; columns: number } | null;
   /** D-064 (perf): ms the special day's view took (its update; the heat shimmer is counted in
    *  sceneryMs with the mirage), summed over the frames sceneryFrames counts. */

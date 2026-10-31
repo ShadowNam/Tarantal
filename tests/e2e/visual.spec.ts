@@ -111,12 +111,23 @@ test('hunt held at a fixed tick', async ({ page }, info) => {
 
 test('tally after a short hunt', async ({ page }, info) => {
   baselineProfile(info);
-  await boot(page, `today=${EPOCH}&seed=42&huntSeconds=2&stamp=0&reenbui=0`);
+  // v1.11 (D-068): the tally at the braai. The hunt is held at its start until the braai's lazy
+  // files are in (the tally shows the braai only then), and the braai's clock is held at 2.4 s
+  // (?braaiAt): the same fire, sparks, pose and story line in every run.
+  await boot(page, `today=${EPOCH}&seed=42&huntSeconds=2&stamp=0&reenbui=0&holdAt=20&braaiAt=2400`);
   await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
     timeout: 60_000,
   });
   await tapRect(page, isTouchProject(info), 'start');
+  await page.waitForFunction(() => window.__TM__?.braaiLoaded === true, null, {
+    timeout: 120_000,
+  });
+  await page.evaluate(() => {
+    const hold = (window as unknown as { __TM_HOLD_AT__?: (t: number) => void }).__TM_HOLD_AT__;
+    hold?.(Number.MAX_SAFE_INTEGER);
+  });
   await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 90_000 });
+  await page.waitForFunction(() => window.__TM__?.braai != null, null, { timeout: 30_000 });
   await page.waitForFunction(() => window.__TM__?.rects['again'] !== undefined);
   // Past the count-up, stamp and news line.
   await page.waitForTimeout(2500);

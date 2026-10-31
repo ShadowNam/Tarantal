@@ -67,7 +67,7 @@ import type { NamibLifeView } from '../view/namib/NamibLifeView';
 import type { TellView } from '../view/tell/TellView';
 import type { BaboonView } from '../view/baboon/BaboonView';
 import type { ReenbuiView } from '../view/reenbui/ReenbuiView';
-import { requestBraai } from '../braai/braaiChunk';
+import { braaiReady, requestBraai } from '../braai/braaiChunk';
 import { StoryFactsLog } from '../braai/storyFacts';
 import type { HarvestView } from '../view/harvest/HarvestView';
 import type { HarvestTally } from './TallyScene';
@@ -2487,6 +2487,8 @@ export class HuntScene extends Phaser.Scene {
       hook.baboonRaid = state.baboons?.raid ?? null;
       hook.harvestActors = this.harvest?.actors ?? null;
       hook.reenbui = state.reenbui;
+      // v1.11 (D-068): the braai's chunk and sheet are in (the tally will show it).
+      hook.braaiLoaded = braaiReady() !== null;
       hook.reenbuiDraw = this.reenbui?.hook ?? null;
       const hv = state.harvest;
       hook.harvest =

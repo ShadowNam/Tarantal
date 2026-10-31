@@ -93,7 +93,7 @@ function storySlot(i: BraaiLayoutIn, oupa: Rect | null, avoid: readonly Rect[]):
 }
 
 export function braaiLayout(i: BraaiLayoutIn): BraaiLayout {
-  const { width, height, safe, panel, slot } = i;
+  const { height, safe, panel, slot } = i;
   const footY = safe.y + safe.h - 24;
   const horizonY = Math.round(height * 0.6);
   const left = safe.x + GAP;
