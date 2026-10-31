@@ -167,7 +167,7 @@ function mixArea(area: string, light: string): { l: Buf; r: Buf; placed: Placed[
   }
   const placed = schedule(area, light);
   for (const p of placed) {
-    let x = callBuf(p.key).slice();
+    let x: Buf = callBuf(p.key).slice();
     // The game's biquad low-pass ≈ two one-pole stages.
     if (p.lowpassHz > 0) x = lowpass(lowpass(x, SR, p.lowpassHz), SR, p.lowpassHz);
     add(x, p.at, 10 ** (p.levelDb / 20), p.pan * 0.7);
