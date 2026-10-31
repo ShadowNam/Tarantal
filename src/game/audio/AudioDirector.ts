@@ -15,14 +15,28 @@ import { isOupaLine } from './oupaMode';
 
 const MAX_VOICES = 16;
 const MAX_PAN = 0.7;
+
+/** v1.9 (D-066): one soundscape call playing. */
+interface AmbientVoice {
+  readonly src: AudioBufferSourceNode;
+  readonly panner: StereoPannerNode;
+  done: boolean;
+}
+
 /** Sounds on the music bus. */
 const MUSIC: ReadonlySet<SfxId> = new Set<SfxId>(['sting', 'stampede']);
 
-/** Why audio is muted; any reason mutes. */
 /** Plays a synthesised sound into `out` now; returns its length in seconds. */
 export type Synth = (ctx: AudioContext, out: AudioNode, noise: AudioBuffer) => number;
 
+/** Why audio is muted; any reason mutes. */
 export type MuteReason = 'pause' | 'ad' | 'menu' | 'portal';
+
+/** v1.9 (D-066): a soundscape call's sound keys are sfx/amb_<id> (decoded for the area only). */
+export const isSoundscapeKey = (key: string): boolean => key.startsWith('sfx/amb_');
+
+/** v1.9 (D-066): why a soundscape call didn't play (or 'played'). */
+export type AmbientOutcome = 'played' | 'locked' | 'muted' | 'missing' | 'voices';
 
 export interface Volumes {
   readonly master: number;
@@ -94,6 +108,14 @@ export class AudioDirector {
   /** Music and ambience recordings, compressed (decoded only for the biome on screen). */
   private readonly musicFiles = new Map<string, FinalSound>();
   private readonly decoding = new Set<string>();
+  /** v1.9 (D-066): soundscape recordings, compressed; only the wanted (area's) keys are decoded. */
+  private readonly scapeFiles = new Map<string, FinalSound>();
+  private scapeWanted: ReadonlySet<string> = new Set();
+  /** v1.9 (D-066): soundscape voices playing now (wall clock, besides the scheduler's count). */
+  private ambientVoices = 0;
+  /** v1.9 (D-066): the soundscape voices playing, oldest first: a game sound that finds all 16
+   *  voices taken cuts the oldest one (`voice()`), so the soundscape never costs the game a sound. */
+  private readonly ambientPlayingNow: AmbientVoice[] = [];
   /** Sound keys that play from a decoded recording (read by the test hook). */
   readonly recorded: string[] = [];
   private biome: string | null = null;
@@ -221,6 +243,8 @@ export class AudioDirector {
       // v1.5: a voice pack that arrives after the language changed is not kept.
       if (f.key.startsWith('voice/') && !f.key.startsWith(`voice/${this.voiceLang}/`)) continue;
       if (biomeOfKey(f.key) !== null) this.musicFiles.set(f.key, f);
+      // v1.9 (D-066): soundscape calls wait compressed until their area is on screen.
+      else if (isSoundscapeKey(f.key)) this.scapeFiles.set(f.key, f);
       else if (!known.has(f.key)) this.pending.push(f);
     }
     this.decodePending();
@@ -234,6 +258,9 @@ export class AudioDirector {
     this.pending = [];
     for (const f of this.musicFiles.values())
       if (biomeOfKey(f.key) === this.biome && !this.buffers.has(f.key) && !this.decoding.has(f.key))
+        batch.push(f);
+    for (const f of this.scapeFiles.values())
+      if (this.scapeWanted.has(f.key) && !this.buffers.has(f.key) && !this.decoding.has(f.key))
         batch.push(f);
     if (batch.length === 0) return;
     for (const f of batch) this.decoding.add(f.key);
@@ -258,6 +285,8 @@ export class AudioDirector {
     // A biome left while decoding doesn't keep its music.
     const biome = biomeOfKey(f.key);
     if (buf === null || (biome !== null && biome !== this.biome)) return;
+    // v1.9: nor a soundscape call of an area left while decoding.
+    if (isSoundscapeKey(f.key) && !this.scapeWanted.has(f.key)) return;
     // v1.5: nor does a voice language left while decoding.
     if (f.key.startsWith('voice/') && !f.key.startsWith(`voice/${this.voiceLang}/`)) return;
     this.buffers.set(f.key, buf);
@@ -281,6 +310,93 @@ export class AudioDirector {
     }
     this.refreshMusic();
     this.decodePending();
+  }
+
+  /**
+   * v1.9 (D-066): the soundscape calls of the area on screen: these are decoded (once their files
+   * are in), every other call's decoded buffer is released (the compressed bytes stay).
+   */
+  setSoundscapeKeys(keys: readonly string[]): void {
+    this.scapeWanted = new Set(keys);
+    for (const key of [...this.buffers.keys()])
+      if (isSoundscapeKey(key) && !this.scapeWanted.has(key)) this.buffers.delete(key);
+    this.decodePending();
+  }
+
+  /**
+   * v1.9 (D-066): a soundscape call at the lowest priority, on the effects bus: never while
+   * muted or before the first gesture, never when fewer than `reserve` of the 16 voices would be
+   * left for the game (a shot, a bag, a bark or a warning is never refused for it), at most
+   * `max` soundscape voices at once. `levelDb` and `lowpassHz` (0 = none) set its distance.
+   */
+  ambient(
+    key: string,
+    pan: number,
+    levelDb: number,
+    lowpassHz: number,
+    max: number,
+    reserve: number,
+  ): AmbientOutcome {
+    const { ctx, sfxBus } = this;
+    if (ctx === null || sfxBus === null) return 'locked';
+    if (this.muted || this.volumes.sfx <= 0 || this.volumes.master <= 0) return 'muted';
+    const buf = this.buffers.get(key);
+    if (buf === undefined) return 'missing';
+    if (this.ambientVoices >= max || this.voices + reserve >= MAX_VOICES) return 'voices';
+    try {
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const gain = ctx.createGain();
+      gain.gain.value = 10 ** (levelDb / 20);
+      const panner = ctx.createStereoPanner();
+      panner.pan.value = Math.max(-MAX_PAN, Math.min(MAX_PAN, pan * MAX_PAN));
+      let head: AudioNode = gain;
+      if (lowpassHz > 0) {
+        const lp = ctx.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.value = lowpassHz;
+        lp.connect(gain);
+        head = lp;
+      }
+      src.connect(head);
+      gain.connect(panner).connect(sfxBus);
+      this.voices++;
+      this.ambientVoices++;
+      const playing: AmbientVoice = { src, panner, done: false };
+      this.ambientPlayingNow.push(playing);
+      src.start();
+      this.env.setTimer(
+        () => {
+          this.endAmbient(playing);
+        },
+        buf.duration * 1000 + 50,
+      );
+      return 'played';
+    } catch {
+      return 'locked';
+    }
+  }
+
+  /** v1.9 (D-066): soundscape voices playing now (test hook). */
+  get ambientPlaying(): number {
+    return this.ambientVoices;
+  }
+
+  /** v1.9 (D-066): a soundscape voice ends (its timer, or cut for a game sound); once only. */
+  private endAmbient(v: AmbientVoice, cut = false): void {
+    if (v.done) return;
+    v.done = true;
+    const i = this.ambientPlayingNow.indexOf(v);
+    if (i >= 0) this.ambientPlayingNow.splice(i, 1);
+    this.voices--;
+    this.ambientVoices--;
+    if (cut)
+      try {
+        v.src.stop();
+      } catch {
+        // Already stopped: nothing to cut.
+      }
+    v.panner.disconnect();
   }
 
   /** M10: a new hunt starts calm, not on the last hunt's stampede stem. */
@@ -576,7 +692,12 @@ export class AudioDirector {
 
   private voice(key: string, pan: number, bus: GainNode | null, synth: Synth, pitch = 1): void {
     const { ctx, noise } = this;
-    if (ctx === null || bus === null || noise === null || this.voices >= MAX_VOICES) return;
+    if (ctx === null || bus === null || noise === null) return;
+    // v1.9 (D-066): the soundscape is the lowest priority: a game sound that finds every voice
+    // taken cuts the oldest soundscape call rather than go unheard.
+    const oldest = this.ambientPlayingNow[0];
+    if (this.voices >= MAX_VOICES && oldest !== undefined) this.endAmbient(oldest, true);
+    if (this.voices >= MAX_VOICES) return;
     const panner = ctx.createStereoPanner();
     panner.pan.value = Math.max(-MAX_PAN, Math.min(MAX_PAN, pan * MAX_PAN));
     panner.connect(bus);

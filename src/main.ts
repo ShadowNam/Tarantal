@@ -433,6 +433,9 @@ const hook: TestHook = {
   feesdagDimMs: 0,
   feesdagFxMs: 0,
   feesdagStarsMs: 0,
+  soundscape: null,
+  soundscapeMs: 0,
+  soundscapeFrames: 0,
   gunRect: null,
   titleOupa: null,
   countdown: null,
@@ -1132,6 +1135,11 @@ async function boot(): Promise<void> {
     faunaBefore: devOrTestBuild && testHooks && params.get('fauna') === 'before',
     faunaDebug: devOrTestBuild && testHooks && params.get('faunaDebug') === '1',
     faunaStill: devOrTestBuild && testHooks && params.get('faunaIdle') === '0',
+    soundscapeOff: devOrTestBuild && testHooks && params.get('soundscape') === '0',
+    soundscapeBoost:
+      devOrTestBuild && testHooks && Number(params.get('soundscapeBoost')) > 0
+        ? Number(params.get('soundscapeBoost'))
+        : 1,
     treeLifePreview: devOrTestBuild && testHooks ? params.get('treeLife') : null,
     omen: adminSetup === null ? omenParam() : adminSetup.omen,
     classicBiome: adminSetup === null ? biomeParam() : adminSetup.classicBiome,

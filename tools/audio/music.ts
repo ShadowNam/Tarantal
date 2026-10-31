@@ -4,6 +4,13 @@
 // and key (Karoo: fingerpicked guitar in D; Bushveld: marimba in G; Kalahari: kalimba in A minor
 // pentatonic; Okavango: guitar and marimba in F). Mono at 32 kHz to keep each biome's lazy chunk
 // small (Tech §15); the pack tool normalises music to −16 and ambience to −20 LUFS.
+// v1.9 (D-066, art bible §10): Southern African instrument parts in the same keys and tempo — a
+// pennywhistle lead (the kwela voice) over an mbira (thumb-piano) ostinato in the calm stem, a
+// marimba line joining in the build, hand drums (a djembe/ngoma-style groove) on top of the
+// brushed snare in the Stampede. Each area has its own colour (`Colour`): Okavango and Bushveld
+// marimba-forward, Kalahari and Namibië sparse drum-and-mbira (hand drums from the build on),
+// Karoo mostly kwela with a light marimba. All original material: phrases are built from each
+// area's chords with its own seed, no tune quoted.
 import {
   ad,
   bandpass,
@@ -39,12 +46,29 @@ export const STEM_IDS = ['calm', 'build', 'stampede'] as const;
 export type StemId = (typeof STEM_IDS)[number];
 
 type Lead = 'guitar' | 'marimba' | 'kalimba' | 'guitarMarimba';
+/** v1.9 (D-066): how loud each Southern African part is in an area (0 = none). */
+interface Colour {
+  /** The pennywhistle lead (calm: every other phrase; build and Stampede: all). */
+  readonly whistle: number;
+  /** The mbira ostinato (calm full, build lighter, Stampede lighter still). */
+  readonly mbira: number;
+  /** The marimba line (build and Stampede). */
+  readonly marimba: number;
+  /** The hand drums (Stampede; from the build on where `drumsInBuild`). */
+  readonly drums: number;
+  readonly drumsInBuild: boolean;
+  /** The arpeggio lead's level under the new parts (it was 0.5–0.65). */
+  readonly lead: number;
+  /** The shaker's level (noise is the costliest thing to encode: Karoo's is thinned). */
+  readonly shaker: number;
+}
 interface Style {
   readonly root: number;
   /** Four chords (scale-degree semitone sets from the root), two bars each. */
   readonly chords: readonly (readonly number[])[];
   readonly lead: Lead;
   readonly seed: number;
+  readonly colour: Colour;
 }
 
 const STYLES: Readonly<Record<string, Style>> = {
@@ -59,6 +83,15 @@ const STYLES: Readonly<Record<string, Style>> = {
     ],
     lead: 'guitar',
     seed: 101,
+    colour: {
+      whistle: 0.42,
+      mbira: 0.14,
+      marimba: 0.16,
+      drums: 0.22,
+      drumsInBuild: false,
+      lead: 0.42,
+      shaker: 0.6,
+    },
   },
   // I – IV – I – V in G on marimba.
   'bushveld-winter': {
@@ -71,6 +104,15 @@ const STYLES: Readonly<Record<string, Style>> = {
     ],
     lead: 'marimba',
     seed: 202,
+    colour: {
+      whistle: 0.36,
+      mbira: 0.24,
+      marimba: 0.34,
+      drums: 0.36,
+      drumsInBuild: false,
+      lead: 0.4,
+      shaker: 1,
+    },
   },
   // i – VII – VI – VII in A minor, kalimba.
   'kalahari-summer': {
@@ -83,6 +125,15 @@ const STYLES: Readonly<Record<string, Style>> = {
     ],
     lead: 'kalimba',
     seed: 303,
+    colour: {
+      whistle: 0.3,
+      mbira: 0.34,
+      marimba: 0.12,
+      drums: 0.42,
+      drumsInBuild: true,
+      lead: 0.36,
+      shaker: 0.8,
+    },
   },
   // I – vi – IV – V in F, guitar with marimba answers.
   'okavango-spring': {
@@ -95,6 +146,15 @@ const STYLES: Readonly<Record<string, Style>> = {
     ],
     lead: 'guitarMarimba',
     seed: 404,
+    colour: {
+      whistle: 0.36,
+      mbira: 0.22,
+      marimba: 0.34,
+      drums: 0.36,
+      drumsInBuild: false,
+      lead: 0.38,
+      shaker: 1,
+    },
   },
   // v1.4 B (D-039): i – iv – VII – i in D minor, slow kalimba over the open pan.
   namibie: {
@@ -107,6 +167,15 @@ const STYLES: Readonly<Record<string, Style>> = {
     ],
     lead: 'kalimba',
     seed: 505,
+    colour: {
+      whistle: 0.28,
+      mbira: 0.34,
+      marimba: 0.1,
+      drums: 0.4,
+      drumsInBuild: true,
+      lead: 0.34,
+      shaker: 0.7,
+    },
   },
 };
 
@@ -153,6 +222,222 @@ const bass = (m: number, len: number): Buf =>
     900,
   );
 
+// --- v1.9 (D-066) Southern African voices --------------------------------------------------
+
+/** Mbira (thumb piano): a struck tine's inharmonic partials and the bottle-cap buzz. */
+function mbiraNote(m: number, r: () => number): Buf {
+  const x = bar(mtof(m), 1.1, SR, [
+    [1, 1, 0.42],
+    [3.03, 0.2, 0.06],
+    [6.4, 0.06, 0.02],
+  ]);
+  const buzz = shape(bandpass(noise(0.18, SR, r), SR, 3000, 2.5), SR, ad(0.001, 0.05));
+  mix(x, buzz, 0, SR, 0.05);
+  return x;
+}
+
+/** Marimba: the struck wooden bar (as the Bushveld lead). */
+const marimbaNote = (m: number, len = 0.9): Buf =>
+  bar(mtof(m), len, SR, [
+    [1, 1, 0.26],
+    [3.93, 0.3, 0.05],
+    [9.2, 0.06, 0.015],
+  ]);
+
+/** Pennywhistle: a breathy, slightly sharp-attack tin whistle with a kwela flick up into the
+ *  note and a vibrato that blooms on long notes. */
+function whistleNote(m: number, len: number, r: () => number, flick: boolean): Buf {
+  const f0 = mtof(m);
+  const sec = len + 0.06;
+  const f = (t: number): number =>
+    f0 *
+    (1 + 0.006 * Math.min(1, t / 0.3) * Math.sin(2 * Math.PI * 5.6 * t)) *
+    (flick && t < 0.05 ? 2 ** (-(1 - t / 0.05) / 12) : 1);
+  const x = osc('sine', f, sec, SR);
+  mix(
+    x,
+    osc('sine', (t) => f(t) * 2, sec, SR),
+    0,
+    SR,
+    0.07,
+  );
+  mix(x, bandpass(noise(sec, SR, r), SR, f0, 6), 0, SR, 0.5);
+  return shape(x, SR, (t) =>
+    t < 0.015 ? t / 0.015 : t > len ? Math.max(0, 1 - (t - len) / 0.06) : 1 - 0.15 * (t / len),
+  );
+}
+
+/** Hand drum (djembe / ngoma): the open bass, the tone at the rim, the slap. */
+function handDrum(kind: 'bass' | 'tone' | 'slap', r: () => number): Buf {
+  if (kind === 'bass') {
+    const x = shape(osc('sine', glide(96, 58, 0.14), 0.32, SR), SR, ad(0.002, 0.11));
+    mix(x, shape(lowpass(noise(0.05, SR, r), SR, 400), SR, ad(0.001, 0.012)), 0, SR, 0.5);
+    return x;
+  }
+  if (kind === 'tone') {
+    const x = shape(osc('sine', glide(250, 205, 0.05), 0.2, SR), SR, ad(0.001, 0.06));
+    mix(x, shape(bandpass(noise(0.05, SR, r), SR, 900, 1.5), SR, ad(0.001, 0.015)), 0, SR, 0.35);
+    return x;
+  }
+  const x = shape(bandpass(noise(0.08, SR, r), SR, 2500, 1.2), SR, ad(0.0005, 0.022));
+  mix(
+    x,
+    shape(
+      osc('sine', () => 390, 0.05, SR),
+      SR,
+      ad(0.001, 0.015),
+    ),
+    0,
+    SR,
+    0.4,
+  );
+  return x;
+}
+
+/** Major or minor pentatonic over the root, from the first chord's third. */
+const pentatonic = (chords: Style['chords']): readonly number[] =>
+  chords[0]?.includes(3) === true ? [0, 3, 5, 7, 10] : [0, 2, 4, 7, 9];
+
+/** Whistle phrase rhythms over one chord (two bars = 8 beats): [start, length] in beats. */
+const PHRASES: readonly (readonly (readonly [number, number])[])[] = [
+  [
+    [0, 1],
+    [1, 0.5],
+    [1.5, 0.5],
+    [2, 1],
+    [3.5, 0.5],
+    [4, 1.5],
+    [6, 1],
+    [7, 0.75],
+  ],
+  [
+    [0, 0.5],
+    [0.5, 0.5],
+    [1, 1],
+    [2.5, 0.5],
+    [3, 1],
+    [4, 0.5],
+    [4.5, 0.5],
+    [5, 1],
+    [6.5, 1.25],
+  ],
+  [
+    [0, 1.5],
+    [1.5, 0.5],
+    [2, 0.5],
+    [2.5, 1.5],
+    [4, 1],
+    [5, 1],
+    [6, 1.75],
+  ],
+];
+
+/** The pennywhistle, mbira, marimba and hand-drum parts of one stem (mixed into `out`). */
+function localParts(out: Buf, s: Style, stem: StemId): void {
+  const c = s.colour;
+  const r = rng(s.seed * 31 + 1009 + STEM_IDS.indexOf(stem));
+  const scale = pentatonic(s.chords);
+  const fast = stem === 'stampede';
+  // Melody RNG apart from the rest: the same tune in every stem of an area.
+  const tune = rng(s.seed * 17 + 77);
+  const phraseOf = s.chords.map(() => PHRASES[Math.floor(tune() * PHRASES.length)] ?? []);
+  for (let ci = 0; ci < s.chords.length; ci++) {
+    const chord = s.chords[ci] ?? [0, 4, 7];
+    const t0 = ci * 8 * BEAT;
+    // Pennywhistle: a stepwise pentatonic line that starts and ends on chord tones.
+    if (c.whistle > 0 && (stem !== 'calm' || ci % 2 === 1)) {
+      const notes = phraseOf[ci] ?? [];
+      let deg = scale.indexOf((chord[ci % 2 === 0 ? 2 : 1] ?? 0) % 12);
+      if (deg < 0) deg = 2;
+      let oct = 0;
+      notes.forEach(([at, len], k) => {
+        if (k === notes.length - 1) deg = Math.max(0, scale.indexOf((chord[0] ?? 0) % 12));
+        const m = s.root + 24 + 12 * oct + (scale[deg] ?? 0);
+        mixLoop(
+          out,
+          whistleNote(m, len * BEAT * 0.92, r, k === 0 || len >= 1),
+          t0 + at * BEAT,
+          SR,
+          c.whistle,
+        );
+        const step = Math.floor(tune() * 5) - 2;
+        deg += step === 0 ? 1 : step;
+        while (deg < 0) {
+          deg += scale.length;
+          oct--;
+        }
+        while (deg >= scale.length) {
+          deg -= scale.length;
+          oct++;
+        }
+        oct = Math.max(-1, Math.min(0, oct));
+      });
+    }
+    for (let b = 0; b < 2; b++) {
+      const tb = t0 + b * 4 * BEAT;
+      // Mbira: two interlocking lines on the eighths — the low one on the beat, the high one off.
+      const mb = stem === 'calm' ? c.mbira : stem === 'build' ? c.mbira * 0.7 : c.mbira * 0.45;
+      if (mb > 0)
+        for (let k = 0; k < 8; k++) {
+          const low = k % 2 === 0;
+          const tone = low ? (chord[(k / 2) % 2 === 0 ? 0 : 2] ?? 0) : (chord[(k + b) % 3] ?? 0);
+          mixLoop(
+            out,
+            mbiraNote(s.root + (low ? 12 : 24) + tone, r),
+            tb + k * (BEAT / 2),
+            SR,
+            mb * (low ? 0.9 : 0.7),
+          );
+        }
+      // Marimba: a 3-3-2 line on the eighths, up the chord in the first bar, down in the second.
+      if (c.marimba > 0 && stem !== 'calm')
+        [0, 3, 6].forEach((k, i) => {
+          const tones = b === 0 ? [chord[0], chord[1], chord[2]] : [chord[2], chord[1], chord[0]];
+          mixLoop(
+            out,
+            marimbaNote(s.root + 12 + (tones[i] ?? 0) + (fast && i === 2 ? 12 : 0)),
+            tb + k * (BEAT / 2),
+            SR,
+            c.marimba,
+          );
+        });
+      // Hand drums: a 16-step ngoma-style groove over the kit (bass, tones, slaps).
+      if (c.drums > 0 && (fast || (stem === 'build' && c.drumsInBuild))) {
+        const lvl = fast ? c.drums : c.drums * 0.6;
+        const groove: readonly (readonly [number, 'bass' | 'tone' | 'slap'])[] = fast
+          ? [
+              [0, 'bass'],
+              [2, 'slap'],
+              [3, 'tone'],
+              [4, 'tone'],
+              [6, 'bass'],
+              [7, 'slap'],
+              [10, 'slap'],
+              [11, 'tone'],
+              [12, 'tone'],
+              [14, 'slap'],
+              [15, 'slap'],
+            ]
+          : [
+              [0, 'bass'],
+              [3, 'tone'],
+              [6, 'bass'],
+              [10, 'slap'],
+              [12, 'tone'],
+            ];
+        for (const [step, kind] of groove)
+          mixLoop(
+            out,
+            handDrum(kind, r),
+            tb + step * (BEAT / 4) + (r() - 0.5) * 0.006,
+            SR,
+            lvl * (kind === 'slap' ? 0.7 : 1),
+          );
+      }
+    }
+  }
+}
+
 /** A wet-only reverb of a loop, folded so its tail wraps seamlessly. */
 function loopReverb(x: Buf, size: number): Buf {
   const twice = new Float32Array(x.length * 2);
@@ -185,7 +470,8 @@ export function renderStem(biome: string, stem: StemId): Buf {
         note(lead, s.root + 12 + deg + oct, r, fast ? 0.8 : 1.6),
         at,
         SR,
-        0.5 + r() * 0.15,
+        // v1.9: under the new parts (the same draw, so the rest of the stem is unchanged).
+        (0.5 + r() * 0.15) * (s.colour.lead / 0.55),
       );
     }
     if (s.lead === 'guitarMarimba' && b % 2 === 1)
@@ -217,11 +503,13 @@ export function renderStem(biome: string, stem: StemId): Buf {
           shaker(r, k % 2 === 0 ? 1 : 0.6),
           at + (k * BEAT) / per,
           SR,
-          fast ? 0.22 : 0.16,
+          (fast ? 0.22 : 0.16) * s.colour.shaker,
         );
       if (fast && beat === 3) mixLoop(out, drum(r, 180), at + BEAT / 2, SR, 0.4);
     }
   }
+  // v1.9 (D-066): the pennywhistle, mbira, marimba and hand drums.
+  localParts(out, s, stem);
   const wet = loopReverb(out, s.lead === 'guitar' ? 1.1 : 1.3);
   for (let i = 0; i < out.length; i++) out[i] = (out[i] ?? 0) + (wet[i] ?? 0) * 0.28;
   // Gentle saturation tames the plucks' peaks so the stem reaches −16 LUFS under −1 dBTP.

@@ -240,6 +240,34 @@ describe('the baobab residents sheet (1.9.4, D-057)', () => {
   });
 });
 
+describe('the veld soundscape calls (v1.9, D-066)', () => {
+  it('are used when soundscape.json names them and the director plays soundscape calls', () => {
+    const key = 'sfx/amb_reed_frog';
+    const cat: Catalog = {
+      ...catalog,
+      entries: new Map([[key, entry(key, 'sound', { group: 'soundscape' })]]),
+    };
+    const json = ['content/client/soundscape.json', `{ "sound": "${key}" }`] as const;
+    const used = audit(
+      base({
+        catalog: cat,
+        sources: new Map([json, ['src/game/audio/soundscapeRuntime.ts', 'audio.ambient(c.key)']]),
+        tex: {},
+      }),
+    );
+    expect(used.rows.find((x) => x.key === key)?.usedIn).toContain(
+      'content/client/soundscape.json',
+    );
+    // Named but never played, or played but not named: unused.
+    const unplayed = audit(base({ catalog: cat, sources: new Map([json]), tex: {} }));
+    expect(unplayed.problems.some((p) => p.includes(key))).toBe(true);
+    const unnamed = audit(
+      base({ catalog: cat, sources: new Map([['src/x.ts', 'audio.ambient(k)']]), tex: {} }),
+    );
+    expect(unnamed.problems.some((p) => p.includes(key))).toBe(true);
+  });
+});
+
 describe('delivered bird clips (M10 review)', () => {
   it('the near plane needs only the pop-up clip; other planes need the whole flock set', () => {
     expect(clipsNeeded('near')).toEqual(['peek']);

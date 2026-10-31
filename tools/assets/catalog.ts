@@ -52,7 +52,8 @@ import {
   RANGE_GROUP,
   RANGE_SOUNDS,
 } from '../../src/game/range/rangeAssets';
-import { loadFeel } from '../testContent';
+import { loadFeel, loadSoundscape } from '../testContent';
+import { SOUNDSCAPE_GROUP, soundscapeSounds } from '../../src/game/audio/soundscapeKeys';
 import { RaidActionSchema } from '../../src/content/schemas';
 
 export interface CatalogEntry {
@@ -188,6 +189,10 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   });
   for (const key of Object.values(NY_SOUNDS))
     entries.set(key, { key, kind: 'sound', group: NEWYEAR_GROUP, biomes: everyBiome });
+  // v1.9 (D-066): the soundscape's calls, in one lazy group (its chunk loads them after the hunt
+  // has started; no placeholder manifest has them).
+  for (const key of soundscapeSounds(loadSoundscape()))
+    entries.set(key, { key, kind: 'sound', group: SOUNDSCAPE_GROUP, biomes: everyBiome });
   // v1.5 (D-041): Oupa's voice, one lazy pack per voice language (voice/<lang>/<bark key>): his
   // trigger lines (feel.json barks) and every secret's bark.
   // D-048: a special day's own lines go in a lazy group per language, loaded with that day.

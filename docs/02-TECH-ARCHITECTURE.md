@@ -786,6 +786,40 @@ v1.4 B (D-039):
 - Formats (M10, D-027): Ogg Vorbis where `canPlayType` says "probably", else MP3 (Safari);
   recorded files come from the asset index, the synth stays the fallback per sound.
 
+### 7.1 The veld soundscape (v1.9, D-066)
+- One-shot calls of each area's birds, insects and weather over its ambience bed (art bible
+  §10.2), presentation only: no sim state, no replay, no golden or content-hash change. Content in
+  `content/client/soundscape.json` (schema, parser and cross-checks in `src/content/soundscape.ts`,
+  checked by `content:validate`: every biome incl. `oes` has an area, every call a sound, every
+  light it names a preset, every layout light a factor in every profile, penalty-creature calls far).
+- `SoundscapeDirector` (`src/game/audio/soundscape.ts`) is a pure scheduler on sim ticks: one
+  presentation-only generator per area entry (mulberry32 seeded from the hunt seed, area, light
+  and title/hunt, never a sim stream), so the same seed, area and light give the same schedule at
+  any frame rate. By construction: ≤ `maxVoices` (2) soundscape voices, ≥ `minGapMs` between call
+  starts, a call more than `lateMs` late is skipped (a slow frame, a held or hidden hunt), at most
+  one due call per entry per frame. It allocates nothing per frame.
+- The penalty creatures' quiet window: the sim keeps its event schedule to itself, so
+  `warningForecast.ts` re-runs the sim's own pure schedule functions (`scheduleWorldEvents`,
+  `scheduleExtraEvents` for a charm's extra events) on the hunt's seed and mode, read-only, handed
+  in from the main bundle (`forecastSim.ts`); `WarningQuiet` adds the creature's presence in the
+  snapshot and its `worldEvent`. A unit test checks the forecast against every event the real sim
+  emits on several areas, modes and seeds.
+- `AudioDirector.ambient()` plays a call at the lowest priority on the SFX bus (effects volume,
+  mute on pause, `visibilitychange` and ads apply): refused before the first gesture, past
+  `maxVoices` soundscape voices, or when fewer than `reserveVoices` (4) of the 16 voices would be
+  left for the game; distance is a gain and a biquad low-pass. The calls (`sfx/amb_*`, group
+  `soundscape`) stay compressed and only the area on screen's are decoded
+  (`setSoundscapeKeys`), as music does.
+- Loading (`soundscapeRuntime.ts`, a lazy chunk imported after the first gesture): the files load
+  when a hunt starts, or `titleLoadDelayMs` after the first gesture on the title; never awaited by
+  START. Their index entries live in the lazy audio half (`asset-index-voice.json`). HuntScene
+  steps it each frame with the hunt's tick (the title: its own clock at `titleRateMul`); test hook
+  `__TM_HOOK__.soundscape` (area, light, recent calls with tick, distance, pan and outcome,
+  counts, the forecast) and `soundscapeMs`/`soundscapeFrames` (the perf smoke reports it).
+  `?soundscape=0` turns it off, `?soundscapeBoost=<n>` multiplies the rates (test builds only).
+- Music (v1.9): the interim stems gain a pennywhistle, an mbira, a marimba and hand drums in the
+  same keys, tempo and three stems (`tools/audio/music.ts`); seams and loudness are unit-tested.
+
 ## 8. Platform layer (`src/platform/`)
 
 ```ts

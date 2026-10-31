@@ -3029,3 +3029,8 @@ export const DailyMetaSchema = obj({
   challenge: obj({ maxLinkChars: posInt, maxByChars: posInt.max(64) }),
 });
 export type DailyMeta = z.infer<typeof DailyMetaSchema>;
+
+// v1.9 (D-066) client/soundscape.json — the veld soundscape: its schema lives in ./soundscape.ts
+// (only the lazy soundscape chunk and the tools load it; here it would split this module's chunk
+// and grow the first download). The type is re-exported for everyone else.
+export type { Soundscape } from './soundscape';

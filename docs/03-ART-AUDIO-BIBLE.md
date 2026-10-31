@@ -790,7 +790,8 @@ Use these to explore; then give the winners to a human illustrator. Always appen
 ## 10. Audio bible
 
 **Direction:** "boeremusiek-kwela surf" — pennywhistle (kwela) lead, konsertina, banjo/guitar
-*vastrap* groove, upright bass, brushed snare. Three stems per biome (calm / build / stampede),
+*vastrap* groove, upright bass, brushed snare; v1.9 (D-066, §10.2): with an mbira ostinato in the
+calm stem, a marimba line in the build and hand drums in the Stampede, each area its own colour. Three stems per biome (calm / build / stampede),
 120 → 150 bpm in the Stampede. Original compositions only; no quoting existing tunes.
 
 **Guineafowl voices:** alarm "kek-kek-kek-kaaa", soft contact "kek", flock chatter, take-off wing
@@ -877,6 +878,50 @@ scratch (penalty), Frenzy tier stings ×3, Stampede rumble, tally ticks, rank st
 
 **Mix:** music −16 LUFS integrated; SFX peaks ≤ −1 dBTP; music ducks −6 dB under barks; spatial pan
 by screen x (±0.7 max); separate volume sliders (music / effects / voice).
+
+### 10.2 The veld soundscape and local instruments (v1.9, D-066)
+
+The product owner (24 Oct): "Veld soundscape per area and time of day, plus marimba, mbira and
+drum layers." The veld should sound alive and local: the birds and insects of that place at that
+time of day, and music with Southern African instruments.
+
+**The soundscape.** Over each area's ambience bed, one-shot calls of its creatures and weather,
+each with a rate (calls a minute, ±45 % jitter), a level and a distance — near (as recorded), mid
+(−5 dB, a 6.5 kHz low-pass) or far (−12 dB, a 1.5 kHz low-pass) — panned to a random spot across
+the screen (±0.7). The time of day is the map's light: each call has a profile with a factor per
+layout light (dawn_mist, midday, overcast, golden, dusk, bright_calm, dusty_wind); a bonus map's
+haze makes everything a little further away (−1.5 to −4.5 dB); a special day's light falls back to
+the map's own. At most two calls sound at once and never closer than 1.4 s; the title plays the
+area on screen at half the rate. Numbers in `content/client/soundscape.json`.
+
+| Area | Calls (distance; when) |
+|---|---|
+| Everywhere | Cape turtle dove "work-HAR-der" (mid; all day, fewest at midday and in the wind), laughing dove's bubbling coo (mid; all day, softer at midday), hadedas' "haa-haa-haa" (far; at dawn and dusk, rare at midday) |
+| Karoo | wind gusts (near; most in the dusty wind), a windpomp's creak (far; with the wind), a sheep far off (far; by day) |
+| Bushveld | francolins at dawn (mid), cicadas in the heat (mid, quiet; midday and golden, silent at dawn and dusk), a grey go-away-bird far off (far; by day) |
+| Kalahari | cicadas (mid; loudest at midday, silent at dawn and dusk), barking geckos at dusk (mid), a korhaan's croak (mid; by day) |
+| Okavango | the fish eagle's "weee-ah, hyo-hyo-hyo" (far; by day), reed frogs tinkling at dusk (mid), a hippo's grunt far off (far; any time) |
+| Namibië | barking geckos at dusk (mid), a korhaan (mid), cicadas far off in the heat |
+| The Harvest | doves, cicadas in the heat, francolins at dawn, hadedas far off |
+
+**Warnings stay clear.** The hadeda, the fish eagle and the kwêvoël are penalty creatures with
+their own calls in the game. Their soundscape calls are far only (quiet, muffled), and none plays
+from 5 s before that creature's world event until 2 s after it has left the screen, so its own
+call is always the player's warning.
+
+**Local instruments.** The three stems keep their keys, tempo and kwela character and gain
+Southern African parts: **calm** — a pennywhistle lead (breathy, a flick up into the long notes,
+vibrato blooming) over an **mbira** (thumb-piano) ostinato of two interlocking lines, low on the
+beat and high off it, with the bottle-cap buzz; **build** — a **marimba** line in a 3-3-2 rhythm,
+up the chord then down; **Stampede** — **hand drums** (a djembe/ngoma groove of open bass, rim
+tones and slaps) over the brushed snare. Each area has its own colour: Okavango and Bushveld
+marimba-forward; Kalahari and Namibië sparse drum-and-mbira (their hand drums start in the build);
+Karoo mostly kwela with a light marimba. All phrases are original, built from each area's chords.
+
+**Recordings.** Every call is an interim synth (`tools/audio/soundscape.ts`) until a recording
+replaces it (`docs/06-ASSET-DELIVERY.md` §5 lists the keys); own recordings or public-domain ones
+with their source written down, never NonCommercial library or xeno-canto files. `npm run
+audio:preview` renders a 20 s mix per area with its spectrogram for review (`docs/audio-preview/`).
 
 ## 11. Special days (Feesdae, D-048)
 

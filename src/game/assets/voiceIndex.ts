@@ -5,6 +5,7 @@
 // once, the first time a pack loads. Tools merge it back (tools/assets/fullIndex.ts).
 import { z } from 'zod';
 import { audioEntry, type AssetIndex } from './assetIndex';
+import { SOUNDSCAPE_GROUP } from '../audio/soundscapeKeys';
 
 export const VOICE_INDEX_PATH = 'assets/asset-index-voice.json';
 
@@ -14,9 +15,10 @@ const voiceIndexSchema = z.object({
 });
 export type VoiceIndex = z.infer<typeof voiceIndexSchema>;
 
-/** A voice pack's group (Oupa's, or a special day's). */
+/** A voice pack's group (Oupa's, or a special day's); v1.9 (D-066) and the soundscape's calls
+ *  (lazy audio too: their entries stay out of the first download's index). */
 export const isVoiceGroup = (group: string): boolean =>
-  group.startsWith('voice-') || group.startsWith('feesdae-voice-');
+  group.startsWith('voice-') || group.startsWith('feesdae-voice-') || group === SOUNDSCAPE_GROUP;
 
 /** The index without its voice entries, and those entries. */
 export function splitVoiceIndex(index: AssetIndex): { index: AssetIndex; voice: VoiceIndex } {
