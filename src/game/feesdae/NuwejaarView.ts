@@ -54,6 +54,8 @@ const SINE64 = Float32Array.from({ length: 64 }, (_, i) => Math.sin((i / 64) * M
 const SPARK_FIELDS = 4;
 /** A spark's rotation is set again only when it turns more than this (radians, ~2°). */
 const TURN_EPS = 0.035;
+/** The ground's blue hour moves in this many steps over its ramp (a 30-s hunt: one ~every 0.8 s). */
+const GROUND_STEPS = 32;
 
 /** Sets an image's origin from the frame table (the streak's head is its origin). */
 function originOf(img: Phaser.GameObjects.Image, frame: 'spark' | 'streak'): void {
@@ -332,6 +334,9 @@ export class NuwejaarSceneView {
   private last: FeesdagState | null = null;
   private lastSlot = -1;
   private washAlpha = -1;
+  /** D-065: the ground's blue-hour step applied (dimGround), and ms spent on the ground dim. */
+  private groundK = -1;
+  dimMs = 0;
   /** The tick (and hide state) the stars and fireworks were last drawn for. */
   private drawnTick = -1;
   private drawnHidden = false;
@@ -499,9 +504,18 @@ export class NuwejaarSceneView {
     if (wa !== this.washAlpha) {
       this.washAlpha = wa;
       this.wash?.setAlpha(wa);
-      // The rest of the scene goes to blue hour with it (its art, props and far animals).
-      this.dimGround(bh.alpha <= 0 ? 0 : wa / bh.alpha);
     }
+    // The rest of the scene goes to blue hour with it (its art, props and far animals), in
+    // 1/GROUND_STEPS steps of the same ramp (a slow ramp: no visible stepping), one changed
+    // layer a frame.
+    const d0 = performance.now();
+    const gk = Math.round(ramp(p, bh.from, bh.to) * GROUND_STEPS) / GROUND_STEPS;
+    if (gk !== this.groundK) {
+      this.groundK = gk;
+      this.dimGround(gk);
+    }
+    this.parallax.stepDim();
+    this.dimMs += performance.now() - d0;
     // Stars: out over the hunt, each twinkling slowly on its own phase.
     const st = this.look.stars;
     const sa = this.hidden ? 0 : st.alpha * ramp(p, st.from, st.to);

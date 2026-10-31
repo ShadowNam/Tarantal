@@ -564,6 +564,8 @@ test('perf: a New Year countdown hunt at 4× CPU throttle, fireworks at their mo
     stars: first.spook?.newYear?.stars ?? 0,
     bursts: h.spook?.newYear?.starts.length ?? 0,
     feesdagMsPerFrame: h.sceneryFrames > 0 ? h.feesdagMs / h.sceneryFrames : 0,
+    // Report only: the ground dim's share of it (no budget of its own).
+    feesdagDimMsPerFrame: h.sceneryFrames > 0 ? h.feesdagDimMs / h.sceneryFrames : 0,
     realFrameMs: real,
     cpuFrameMs: cpu,
   };

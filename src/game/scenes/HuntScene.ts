@@ -1895,6 +1895,7 @@ export class HuntScene extends Phaser.Scene {
       hook.harvest = null;
       hook.harvestMs = 0;
       hook.feesdagMs = 0;
+      hook.feesdagDimMs = 0;
       hook.fruit = null;
       hook.hunts++;
     }
@@ -2034,7 +2035,13 @@ export class HuntScene extends Phaser.Scene {
     }
     const f0 = performance.now();
     this.spookView?.update(state.feesdag, runner.prev.feesdag, alpha, state.tick);
-    if (this.ctx.hook) this.ctx.hook.feesdagMs += performance.now() - f0;
+    if (this.ctx.hook) {
+      this.ctx.hook.feesdagMs += performance.now() - f0;
+      // D-065: the ground dim's share of it (New Year's view only).
+      const sv = this.spookView;
+      if (sv !== null && 'dimMs' in sv && typeof sv.dimMs === 'number')
+        this.ctx.hook.feesdagDimMs = sv.dimMs;
+    }
     // Interpolated like the birds and the camera (a held frame keeps alpha 0: it holds).
     this.fruit?.update(state, width, state.tick - 1 + alpha);
     this.treeLife?.update(state, alpha);

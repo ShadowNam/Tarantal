@@ -430,6 +430,7 @@ const hook: TestHook = {
   baboonRaid: null,
   baboonMs: 0,
   feesdagMs: 0,
+  feesdagDimMs: 0,
   gunRect: null,
   titleOupa: null,
   countdown: null,

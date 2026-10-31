@@ -6,9 +6,13 @@
 // (a held frame, a fast display) does nothing at all.
 // Measured with this harness on the version before (D-065 perf fix): 186 setter calls and 305 trig
 // calls a frame, 256 setter calls on a held frame; after: 116, 46 and 0.
+// The ground's blue hour (300 statics + 20 herds over a 90-s hunt), before: every 1 % step of the
+// sky's wash re-tinted the whole map in one frame — 13 928 setTint calls in all, 279 in the worst
+// frame; after (1/32 steps, a changed layer a frame, only real changes): 8 928, at most 50.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { loadContent, loadFeel } from '../../../tools/testContent';
 import type { ParallaxView } from '../view/ParallaxView';
+import { LayerDimmer, type DimLayer } from '../view/layerDimmer';
 import { NEWYEAR_SHEET } from './newyearKeys';
 import { NuwejaarSceneView } from './NuwejaarView';
 import type { FeesdagView as FeesdagState } from '../../sim/types';
@@ -72,16 +76,71 @@ function stubImage(): Record<string, unknown> {
   return img;
 }
 
-function makeView(): NuwejaarSceneView {
-  const feel = loadFeel();
-  const special = loadContent().feesdae.specials.find((f) => f.id === 'newyear');
-  if (special === undefined) throw new Error('no newyear');
+/** A stub parallax: sky only, or (ground) N statics and herds spread over the ground layers,
+ *  dimmed by the real LayerDimmer; counts setTint calls. */
+interface GroundStub {
+  readonly parallax: ParallaxView;
+  /** setTint calls per frame index (update call), and the real tint changes made. */
+  readonly perFrame: number[];
+  changes: number;
+}
+
+function stubParallax(statics = 0, herds = 0): GroundStub {
   const sky = {
     id: 'sky',
     scrollFactor: 0.05,
     root: { x: 0, y: 0, scaleX: 1 },
     fixtures: { add: () => undefined },
   };
+  const ids = ['sky', 'far_ridge', 'ver_veld', 'far_veld', 'mid', 'near', 'foreground'];
+  const g: GroundStub = { parallax: null as never, perFrame: [], changes: 0 };
+  let frameCalls = 0;
+  const layers: DimLayer[] = ids.map((id, li) => {
+    const imgs = Array.from({ length: Math.round(statics / ids.length) }, () => {
+      const img = {
+        tintTopLeft: 0xd8a080,
+        setTint(t: number) {
+          frameCalls++;
+          if (t !== img.tintTopLeft) g.changes++;
+          img.tintTopLeft = t;
+          return img;
+        },
+      };
+      return img;
+    });
+    const fauna = Array.from({ length: li >= 1 && li <= 3 ? Math.round(herds / 3) : 0 }, () => {
+      let tint = 0xd8a080;
+      return {
+        setTint(t: number) {
+          frameCalls++;
+          if (t !== tint) g.changes++;
+          tint = t;
+        },
+      };
+    });
+    return { id, base: 0xd8a080, images: () => imgs, fauna };
+  });
+  const dimmer = new LayerDimmer(layers);
+  (g as { parallax: ParallaxView }).parallax = {
+    layer: (id: string) => (id === 'sky' ? sky : undefined),
+    dimLayers: (extra: ReadonlyMap<string, number>) => {
+      dimmer.set(extra);
+    },
+    stepDim: () => {
+      dimmer.step();
+    },
+    endFrame: () => {
+      g.perFrame.push(frameCalls);
+      frameCalls = 0;
+    },
+  } as unknown as ParallaxView;
+  return g;
+}
+
+function makeView(ground: GroundStub = stubParallax()): NuwejaarSceneView {
+  const feel = loadFeel();
+  const special = loadContent().feesdae.specials.find((f) => f.id === 'newyear');
+  if (special === undefined) throw new Error('no newyear');
   const scene = {
     add: { image: () => stubImage(), rectangle: () => stubImage() },
     textures: {
@@ -89,10 +148,7 @@ function makeView(): NuwejaarSceneView {
       get: () => ({ getSourceImage: () => ({ width: 400 }) }),
     },
   };
-  const parallax = {
-    layer: (id: string) => (id === 'sky' ? sky : undefined),
-    dimLayers: () => undefined,
-  } as unknown as ParallaxView;
+  const parallax = ground.parallax;
   return new NuwejaarSceneView({
     scene: scene as never,
     parallax,
@@ -152,5 +208,27 @@ describe('New Year view per-frame cost (D-065 perf)', () => {
     expect(m.setters).toBeLessThanOrEqual(150);
     expect(m.held).toBe(0);
     console.log(`[ny perf proxy] ${JSON.stringify(m)}`);
+  });
+
+  it('the ground goes to blue hour in steps, one changed layer a frame, tinting only what changes', () => {
+    // 300 statics and 20 herds (the Okavango is about that) over a whole 90-s hunt.
+    const ground = stubParallax(300, 20);
+    const view = makeView(ground);
+    const end = STATE.countdown === undefined ? 5400 : STATE.countdown.atTick + 600;
+    const stub = ground.parallax as unknown as { endFrame: () => void };
+    const endFrame = (): void => {
+      stub.endFrame();
+    };
+    for (let t = 0; t <= end; t++) {
+      view.update(STATE, undefined, 0, t);
+      endFrame();
+    }
+    const total = ground.perFrame.reduce((a, b) => a + b, 0);
+    const peak = Math.max(...ground.perFrame);
+    // Every setTint call is a real change (herds tint themselves only on change as well).
+    expect(total).toBeLessThanOrEqual(ground.changes);
+    // At most one layer's worth in any frame (300 / 7 statics + its herds), never the whole map.
+    expect(peak).toBeLessThanOrEqual(Math.ceil(300 / 7) + 7);
+    console.log(`[ny dim proxy] ${JSON.stringify({ total, peak, changes: ground.changes })}`);
   });
 });
