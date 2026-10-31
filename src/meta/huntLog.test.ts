@@ -54,6 +54,25 @@ describe('hunt log', () => {
     expect(h.baggedFar).toBe(1);
   });
 
+  it('v1.10 (D-067): a Reënbui swarm adds the alates to the Bird Book and counts its bags', () => {
+    const log = createHuntLogger();
+    log.add([
+      { type: 'alatesSwarm', tick: 100, mult: 1.3, columns: [] },
+      { type: 'rainEased', tick: 1000, bagged: 11 },
+    ]);
+    const h = log.finish({
+      mode: 'classic',
+      biome: 'kalahari-summer',
+      baggedByPlane: { near: 0, mid: 0, far: 0, ver: 0 },
+    } as unknown as HuntResult);
+    expect(h.creaturesSeen).toContain('rysmier');
+    expect(h.reenbuiBags).toBe(11);
+    expect(
+      createHuntLogger().finish({ baggedByPlane: { far: 0, ver: 0 } } as unknown as HuntResult)
+        .reenbuiBags,
+    ).toBe(0);
+  });
+
   it('records a perching creature only once it lands and calls (same rule as the ⛔ call-out)', () => {
     const log = createHuntLogger((c) => c === 'kwevoel');
     log.add([

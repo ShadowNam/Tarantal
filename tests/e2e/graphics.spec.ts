@@ -33,7 +33,7 @@ async function savedGraphics(page: Page): Promise<unknown> {
 
 /** Opens the page as a real build would (the card when no preset is saved). */
 async function open(page: Page, extra = ''): Promise<void> {
-  await page.goto(`/?e2e=1&graphics=card&ftue=0&layout=none&feesdag=none${extra}`);
+  await page.goto(`/?e2e=1&reenbui=0&graphics=card&ftue=0&layout=none&feesdag=none${extra}`);
 }
 
 async function titleUp(page: Page): Promise<void> {
@@ -130,7 +130,7 @@ test('HD slow: "Play now in Standard" (loading screen and hunt veil), then HD sw
   });
   // Classic hunts in the Bushveld (a lazy area): its hunt puts up the in-game HD veil.
   await page.goto(
-    '/?e2e=1&graphics=hd&ftue=0&layout=none&feesdag=none&biome=bushveld-winter&seed=3&huntSeconds=600',
+    '/?e2e=1&reenbui=0&graphics=hd&ftue=0&layout=none&feesdag=none&biome=bushveld-winter&seed=3&huntSeconds=600',
   );
   const now = page.locator('#tm-hd-standard');
   await expect(page.locator('#tm-hd-loading')).toBeVisible({ timeout: 60_000 });

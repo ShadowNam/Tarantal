@@ -64,9 +64,11 @@ function updateGoal(f: Flock, p: FlockParams, rng: RandomStream, cx: number): vo
   f.goalTicks--;
   if (f.goalTicks > 0) return;
   f.goalTicks = Math.max(1, drawTicks(rng, p.forageGoalTicks));
-  const wander = p.forageWanderPx * f.ratio;
+  // v1.10 Reënbui (D-067): a feeding flock forages round its alate column (the same draws).
+  const feeding = f.feedX !== undefined;
+  const wander = (feeding ? (f.feedSpreadPx ?? 0) : p.forageWanderPx) * f.ratio;
   const margin = p.spawnSpreadPx * f.ratio;
-  const home = Math.min(f.coreWidth - margin, Math.max(margin, f.homeX));
+  const home = Math.min(f.coreWidth - margin, Math.max(margin, f.feedX ?? f.homeX));
   f.goalX = home + rng.range(-wander, wander);
   f.goalY = rng.range(f.groundY[0], f.groundY[1]);
 }
@@ -84,6 +86,12 @@ function groundSpeed(f: Flock, b: Bird, p: FlockParams): number {
     default:
       return m.walk;
   }
+}
+
+/** v1.10 Reënbui (D-067): a feeding flock's walkers still far from their column hurry there. */
+function feedHurry(f: Flock, b: Bird): boolean {
+  if (f.feedX === undefined || b.phase !== 'walk' || f.state !== 'forage') return false;
+  return Math.abs(b.x - f.feedX) > (f.feedHurryPx ?? Infinity) * f.ratio;
 }
 
 function steerGround(f: Flock, p: FlockParams, rng: RandomStream): void {
@@ -160,7 +168,7 @@ function steerGround(f: Flock, p: FlockParams, rng: RandomStream): void {
       ty += sin((2 * Math.PI * f.stateTicks) / p.zigPeriodTicks + m.zigPhase) * p.zigWeight;
     }
     const tl = len(tx, ty);
-    const speed = groundSpeed(f, b, p);
+    const speed = feedHurry(f, b) ? m.run * (f.feedHurryMul ?? 1) : groundSpeed(f, b, p);
     const wantX = tl > 1e-6 ? (tx / tl) * speed : 0;
     const wantY = tl > 1e-6 ? (ty / tl) * speed * DEPTH_SPEED : 0;
     next.push({ vx: m.vx + (wantX - m.vx) * p.turnRate, vy: m.vy + (wantY - m.vy) * p.turnRate });

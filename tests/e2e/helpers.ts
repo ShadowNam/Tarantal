@@ -102,14 +102,19 @@ export async function quick(
  * Unless the query picks a day (`today=`), a map (`layout=`, `bonus=`) or a challenge (`c=`),
  * Classic plays the plain biome (`layout=none`, v1.2): otherwise the weekday layout moves the
  * props these specs tap, and a spec would pass on one UTC day and fail on the next. Likewise the
- * Daily is never a special day (`feesdag=none`, D-048) unless the query names one.
+ * Daily is never a special day (`feesdag=none`, D-048) unless the query names one. And no hunt has
+ * a Reënbui (`reenbui=0`, D-067) unless the query names `reenbui=`: a spec that compares with Node
+ * (the Daily seed, challenge links, replays) boots with `reenbui=content` — the real content hash.
  */
 export async function boot(page: Page, query: string): Promise<void> {
   const pinned = /(^|&)(today|layout|bonus|c)=/.test(query);
   const mapped = pinned ? query : `${query}&layout=none`;
   // D-048: an ordinary Daily unless the spec asks for a special (a run on 31 Oct stays the same).
   const withMap = /(^|&)feesdag=/.test(mapped) ? mapped : `${mapped}&feesdag=none`;
-  const q = /(^|&)ftue=/.test(withMap) ? withMap : `${withMap}&ftue=0`;
+  const withFtue = /(^|&)ftue=/.test(withMap) ? withMap : `${withMap}&ftue=0`;
+  // v1.10 (D-067, lesson 17): no Reënbui unless the spec names `reenbui=` (=1 forces it, =content
+  // keeps the content as shipped: the specs that compare with Node's content hash or replays).
+  const q = /(^|&)reenbui=/.test(withFtue) ? withFtue : `${withFtue}&reenbui=0`;
   await page.goto(`/?e2e=1&${q}`);
   await expect(page.locator('#game canvas')).toHaveCount(1);
   await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 60_000 });

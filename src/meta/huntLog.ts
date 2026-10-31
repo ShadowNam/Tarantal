@@ -27,6 +27,8 @@ export interface HuntLog {
   readonly secretsFound: readonly string[];
   /** v1.8 (D-050): the longest tin-can juggle of the hunt (air hits; 0 without a fence). */
   readonly canChain?: number;
+  /** v1.10 (D-067): birds bagged in the hunt's Reënbui swarm (0 without one). */
+  readonly reenbuiBags?: number;
 }
 
 export interface HuntLogger {
@@ -46,6 +48,7 @@ export function createHuntLogger(
 ): HuntLogger {
   const creatures = new Set<string>();
   const secrets = new Set<string>();
+  let reenbuiBags = 0;
   return {
     creaturesSeen: creatures,
     add(events) {
@@ -57,6 +60,9 @@ export function createHuntLogger(
         else if (e.type === 'colonySpawned') creatures.add('meerkat');
         // v1.8b (D-062): the baboon's Bird Book entry, once a raider came down.
         else if (e.type === 'baboonRaidStarted') creatures.add('bobbejaan');
+        // v1.10 (D-067): the alates' Bird Book note once a swarm rose; its bags (Notaboek).
+        else if (e.type === 'alatesSwarm') creatures.add('rysmier');
+        else if (e.type === 'rainEased') reenbuiBags = Math.max(reenbuiBags, e.bagged);
       }
     },
     finish(r, bonusUnlocked = null) {
@@ -78,6 +84,7 @@ export function createHuntLogger(
         creaturesSeen: [...creatures].sort(),
         secretsFound: [...secrets].sort(),
         canChain: r.cans?.bestChain ?? 0,
+        reenbuiBags,
       };
     },
   };

@@ -2,7 +2,7 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|christmas|newyear|blikkies|makalani|treelife|colony|namiblife|tells|baboons
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|christmas|newyear|blikkies|makalani|treelife|colony|namiblife|tells|baboons|reenbui
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
 //                         range = the Skietbaan's steel plate (24 Oct update),
@@ -96,6 +96,8 @@ import { CHRISTMAS_SHEET, XMAS_MASTER } from '../../src/game/feesdae/christmasAs
 import { renderChristmasSheet } from './christmas';
 import { NEWYEAR_SHEET, NY_MASTER } from '../../src/game/feesdae/newyearAssets';
 import { renderNewYearSheet } from './newyear';
+import { REENBUI_SHEET } from '../../src/game/view/reenbui/reenbuiKeys';
+import { renderReenbuiSheet } from './reenbui';
 import { renderHalloweenSheet } from './halloween';
 import { CAN_MASTER, renderCanSheet } from './blikkies';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
@@ -681,6 +683,29 @@ if (wants('newyear')) {
       }),
     );
     console.log(`sprites/${NEWYEAR_SHEET}`);
+  }
+}
+if (wants('reenbui') && !hdOnly) {
+  // v1.10 (D-067): Reënbui's sheet (rain tiles, alate columns, puffs, wet ground, storm towers,
+  // forks) at 1× in the late group, listed only by the maps that can have one; Standard in HD
+  // (no HD twin: the Okavango's HD hunt has ~3 MB of texture headroom).
+  const png = join(src, 'sprites', `${REENBUI_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${REENBUI_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderReenbuiSheet(1)));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({
+        origin: 'interim',
+        encode: 'png8',
+        master: 1,
+        hd: false,
+        originX: 0,
+        originY: 0,
+        group: LATE_GROUP,
+      }),
+    );
+    console.log(`sprites/${REENBUI_SHEET}`);
   }
 }
 if (wants('blikkies')) {

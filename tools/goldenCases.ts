@@ -509,6 +509,24 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
     inputKind: 'pointer',
     modeConfig: { id: 'classic', layout: 'wed' },
   },
+  // v1.10 (D-067): Reënbui — forced on the Kalahari's overcast Wednesday: its own phases (Classic,
+  // no omen), and the Daily's, whose swarm rises with the Donderstorm.
+  {
+    name: 'classic-91-kalahari-wed-reenbui-competent-pointer',
+    seed: 91,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: { id: 'classic', biome: 'kalahari-summer', layout: 'wed' },
+  },
+  {
+    name: 'daily-92-kalahari-wed-storm-reenbui-competent-touch',
+    seed: 92,
+    bot: 'competent',
+    mode: 'daily',
+    inputKind: 'touch',
+    modeConfig: { id: 'daily', biome: 'kalahari-summer', layout: 'wed', omen: true },
+  },
   // v1.8c (D-063): Die Oes, the 30-s Harvest (intro, warthogs, workers, crop meter, outro).
   {
     name: 'harvest-63-competent-pointer',

@@ -29,6 +29,7 @@ import { ellipse, ground, inked, INK, prng, tuft } from './draw';
 import { sheetHerds } from '../view/faunaHerds';
 import { FRUIT_SHEET, fruitSheetKey } from '../view/fruit/fruitTypes';
 import { TELL_SHEET, TELL_SHEET_H, TELL_SHEET_W } from '../view/tell/tellKeys';
+import { REENBUI_SHEET, REENBUI_SHEET_H, REENBUI_SHEET_W } from '../view/reenbui/reenbuiKeys';
 import { BABOON_SHEET, BABOON_SHEET_H, BABOON_SHEET_W } from '../view/baboon/baboonKeys';
 import { HARVEST_SHEET, HARVEST_SHEET_H, HARVEST_SHEET_W } from '../view/harvest/harvestKeys';
 import { hasColonies } from '../../sim/meerkats/colony';
@@ -1609,6 +1610,21 @@ export function createPlaceholderManifest(
       originX: 0,
       originY: 0,
       // HarvestView cuts its frames by the file under the key (the 2× art) and sets the scale.
+      viewScaled: true,
+      draw() {
+        // Nothing: drawn art only.
+      },
+    });
+  // v1.10 (D-067): Reënbui's sheet, on the maps that can have one (late group; drawn art only:
+  // until the delivered file is in, ReenbuiView draws nothing while the hunt plays the same).
+  if (content.reenbui.areas.some((a) => a.biome === biome.id))
+    m.addTexture({
+      key: REENBUI_SHEET,
+      width: REENBUI_SHEET_W,
+      height: REENBUI_SHEET_H,
+      originX: 0,
+      originY: 0,
+      // ReenbuiView cuts its frames by the file under the key and sets the scale.
       viewScaled: true,
       draw() {
         // Nothing: drawn art only.

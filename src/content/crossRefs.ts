@@ -55,7 +55,7 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     (options.strict === true ? errors : warnings).push({ file, message });
   };
 
-  const { scoring, birds, weapons, powerups, charms, run, modes, biomes, feesdae } = bundle;
+  const { scoring, birds, weapons, powerups, charms, run, modes, biomes, feesdae, reenbui } = bundle;
 
   // --- unique ids --------------------------------------------------------------------------
   checkUnique('birds.json', 'creature', birds.creatures.map((c) => c.id), err);
@@ -516,6 +516,27 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
         warn('charms.json', m);
       },
     });
+  }
+
+  // --- reenbui.json (D-067) ----------------------------------------------------------------
+  checkUnique('reenbui.json', 'area', reenbui.areas.map((a) => a.biome), err);
+  for (const a of reenbui.areas)
+    if (!loadedBiomes.has(a.biome)) err('reenbui.json', `area at unknown biome "${a.biome}"`);
+  {
+    // The whole event, with its end margin, fits in the shortest hunt of its modes.
+    const ph = reenbui.phaseSeconds;
+    const total = ph.buildup + ph.drops + ph.swarm + ph.easing + reenbui.endMarginSeconds;
+    for (const m of reenbui.modes) {
+      if (m === 'ftue' || m === 'range' || m === 'harvest')
+        err('reenbui.json', `mode "${m}" never has a Reënbui (GDD §11.3e)`);
+      const secs =
+        m === 'seasonHunt' ? run.huntSeconds : m === 'classic' || m === 'daily' ? modes.modes[m].huntSeconds : 0;
+      if (secs > 0 && total > secs) err('reenbui.json', `the event is longer than a ${m} hunt`);
+    }
+    for (const b of biomes)
+      for (const l of b.layouts)
+        if (l.reenbui === 'force' && l.weather === 'calm')
+          err(`biomes/${b.id}.json`, `layout ${l.id}: a calm day can't force a Reënbui`);
   }
 
   // --- feesdae.json (D-048) ----------------------------------------------------------------

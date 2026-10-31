@@ -3,6 +3,30 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.13.0] — v1.10: Reënbui, the first rain and the flying ants (31 Oct 2026)
+
+Decision record D-067. From the product owner's list of 24 Oct: "Reënbui: summer storm, first
+rain, flying ants, every flock feeds".
+
+- **Reënbui**: some hunts a summer storm rolls in — towering clouds, the light dimming, distant
+  thunder — then the first fat drops hit the dust, the ground darkens, and flying ants (alates)
+  pour out of the ground in shimmering columns. Every nearby flock comes down to feast, calmer
+  than usual, and up to two more flocks run in. **Every bag scores ×1.3** while the alates fly;
+  then the rain eases, the sky clears and the wet ground dries.
+- **Where:** the Kalahari (45 % of hunts), the Okavango (35 %), Namibië (15 %), the Karoo (5 %);
+  never the winter Bushveld or the Harvest; always on the overcast Wednesday in the Kalahari and
+  the Okavango, never on calm days. Classic, the Daily and the Season Run's plain and omen hunts.
+  In a Kalahari storm hunt the ants rise when the Donderstorm breaks; on the Okavango the
+  sun-showers make way.
+- **Sounds:** thunder, rain on the sinkdak, the swarm's buzz and the excited birds; the veld's own
+  calls go quiet for the storm. Oupa: "Smell that rain?!" and two more lines (voiced en/af/de).
+- **Extras:** a Notaboek challenge (bag 10 during one Reënbui), the alates in the Bird Book.
+- Lightning stays a small fork far off (never a screen flash; "reduce flashes" dims it, "reduce
+  motion" leaves it out). Nothing new in the first download: the art is in the late group, the
+  sounds in the soundscape's lazy group, the view in its own lazy chunk.
+- Golden replays re-recorded (a new sim event; the content hash moved). Balance:
+  `docs/balance/v1.10-reenbui.md`.
+
 ## [1.12.0] — v1.9: the veld soundscape and local music (31 Oct 2026)
 
 Decision record D-066. From the product owner's list of 24 Oct: "Veld soundscape per area and time

@@ -121,4 +121,56 @@ describe('sim performance budget', () => {
     expect(maxAnimals).toBeGreaterThanOrEqual(30);
     expect(mean).toBeLessThan(1.5);
   });
+
+  // v1.10 (D-067): Reënbui's swarm at its peak — 4 columns, every flock feeding, the extra flocks
+  // in, 60 birds (flocks and fly-overs) — with shooting every few ticks.
+  it('step() averages ≤ 1.5 ms with 60 birds in the Reënbui swarm', () => {
+    const content = structuredClone(loadContent());
+    const r = content.reenbui;
+    r.areas = content.biomes.map((b) => ({ biome: b.id, chance: 1 }));
+    r.window = [0.02, 0.02];
+    r.phaseSeconds = { buildup: 1, drops: 1, swarm: 60, easing: 1 };
+    r.columns.count = [4, 4];
+    r.extraFlocks.everySeconds = 1;
+    r.extraFlocks.max = 4;
+    content.birds.flockDefaults.sizeMin = 10;
+    content.birds.flockDefaults.sizeMax = 10;
+    for (const b of content.biomes) {
+      b.pacing.maxFlocks = 8;
+      b.pacing.maxBirdsOnScreen = 60;
+      for (const k of b.pacing.keyframes) {
+        k.flocks = { mid: 3, far: 2 };
+        k.flyoversPerMin = 600;
+      }
+    }
+    const mode = { id: 'classic' as const, biome: 'kalahari-summer', huntSeconds: 120 };
+    const sim = createSim({ seed: 5, content, mode, inputKind: 'touch' });
+    while (sim.snapshot().reenbui?.phase !== 'swarm') sim.step([]);
+    for (let i = 0; i < 300; i++) sim.step([]);
+    sim.drainEvents();
+    let total = 0;
+    let steps = 0;
+    let maxBirds = 0;
+    let feeding = 0;
+    for (let i = 0; i < 1200 && !sim.isOver(); i++) {
+      const cmds: Command[] = [];
+      if (i % 6 === 0)
+        cmds.push({ t: 'fire', dx: ((i * 37) % 1600) - 800, sy: 600 + ((i * 53) % 200) });
+      if (i % 30 === 0) cmds.push({ t: 'reload' });
+      const t0 = performance.now();
+      sim.step(cmds);
+      total += performance.now() - t0;
+      steps++;
+      sim.drainEvents();
+      const s = sim.snapshot();
+      maxBirds = Math.max(maxBirds, s.birds.length);
+      feeding = Math.max(feeding, s.flocks.filter((f) => f.feeding === true).length);
+    }
+    const mean = total / steps;
+    console.log(`reenbui step(): mean ${(mean * 1000).toFixed(1)} µs, up to ${maxBirds} birds`);
+    expect(sim.snapshot().reenbui?.phase).toBe('swarm');
+    expect(maxBirds).toBeGreaterThanOrEqual(55);
+    expect(feeding).toBeGreaterThanOrEqual(2);
+    expect(mean).toBeLessThan(1.5);
+  });
 });

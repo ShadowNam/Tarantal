@@ -152,7 +152,12 @@ export class WorldView {
     this.windpomps.update(s);
     if (++this.hdFrames % 30 === 0) this.parallax.upgradeHd(this.scene.textures);
     this.potjie.update(s, this.reducedMotion, width);
-    this.parallax.driftClouds(s.tick, s.rain || s.lightning);
+    // v1.10 (D-067): the fair-weather clouds grey over for a Reënbui too (until the rain eases).
+    const reenbui = s.reenbui?.phase;
+    this.parallax.driftClouds(
+      s.tick,
+      s.rain || s.lightning || (reenbui !== null && reenbui !== undefined && reenbui !== 'easing'),
+    );
     this.parallax.animateFauna(s.tick, this.reducedMotion, width);
     this.drawSecrets(s);
     this.drawCrates(s);

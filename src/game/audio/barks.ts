@@ -64,6 +64,11 @@ export interface Bark {
 
 export class BarkDirector {
   private lastAt = -Infinity;
+
+  /** When the last line went out (the gap clock's ms; -Infinity before any): e2e waits on it. */
+  get lastSaidAt(): number {
+    return this.lastAt;
+  }
   private readonly lastByTrigger = new Map<BarkTrigger, number>();
   private readonly nextLine = new Map<BarkTrigger, number>();
   // Per hunt.
@@ -211,6 +216,19 @@ export class BarkDirector {
           break;
         case 'weatherChanged':
           if (e.rain) cands.push('rain');
+          break;
+        // v1.10 (D-067) Reënbui: the first drops ("Smell that rain?!"; with the Kalahari storm
+        // its own rain line was said), the alates rising (held until said), the rain easing.
+        case 'reenbuiRain':
+          this.pending.add('reenbuiRain');
+          break;
+        case 'alatesSwarm':
+          this.pending.delete('reenbuiRain');
+          this.pending.add('alatesSwarm');
+          break;
+        case 'rainEased':
+          this.pending.delete('alatesSwarm');
+          cands.push('rainEased');
           break;
         // D-048: the Spookjag. Lanterns out is held until said (it is the day's secret).
         case 'spookHit':

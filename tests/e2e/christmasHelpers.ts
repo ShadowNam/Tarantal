@@ -3,6 +3,7 @@
 // (feesdaeHelpers.fireAt); every wait is bounded by sim ticks or a hook value.
 import type { Page } from '@playwright/test';
 import { cameraStill, fireAt, reloadIfEmpty } from './feesdaeHelpers';
+import feel from '../../content/client/feel.json' with { type: 'json' };
 
 /** Waits until Christmas's hunt runs with its presents in the hook (its chunk loads lazily). */
 export async function xmasRunning(page: Page): Promise<void> {
@@ -76,6 +77,22 @@ export async function presentInView(page: Page, band = 300): Promise<number> {
  * same every run, so it gets up to `tries` shots; a shot is a miss once 20 ticks pass without the
  * present opening (no long wait that burns the clock).
  */
+/**
+ * Waits until Oupa's bark gap (audio.barkGapMs, on the HUD's own clock) has passed since his last
+ * line, so a line the next action triggers (a present opened) is said, not dropped inside the gap
+ * of an earlier one (a dry spell, an idle or miss-streak line on a slow device: review of #110).
+ */
+export async function waitBarkGap(page: Page): Promise<void> {
+  await page.waitForFunction(
+    (gap) => {
+      const c = window.__TM__?.barkClock;
+      return c === null || c === undefined || c.last === null || c.now - c.last >= gap + 50;
+    },
+    feel.audio.barkGapMs,
+    { timeout: 120_000 },
+  );
+}
+
 export async function shootPresentOpen(
   page: Page,
   touch: boolean,
@@ -84,6 +101,8 @@ export async function shootPresentOpen(
 ): Promise<boolean> {
   for (let i = 0; i < tries; i++) {
     await reloadIfEmpty(page, touch);
+    // Every shot with Oupa's gap clear: the shot that opens the present gets his line.
+    await waitBarkGap(page);
     const before = await fireAt(page, touch, { id });
     if (before === null) return false;
     const out = await page

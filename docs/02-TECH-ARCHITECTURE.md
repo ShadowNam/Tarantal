@@ -320,6 +320,41 @@ export interface Sim {
 - Omen (M4): `ModeConfig.omen` if given, else `modes.json → <mode>.omen` (Classic off, Daily on);
   omen-only events and the biome's `omen.wind` run only then (`src/sim/omen/`).
 
+### 3.6b Reënbui, the first rain and the flying ants (v1.10, D-067)
+- A world event of its own (`src/sim/reenbui/`), not a biome `events` entry: its chance roll,
+  start, alate columns and extra flocks draw only from `rng.stream('reenbui')`, so the `events`
+  stream — and every other event's time — is unchanged on every map. Content:
+  `content/reenbui.json` (phases, window, per-area chance cross-checked against the biomes, modes,
+  factors) and a weekday layout's `reenbui: force | none`; a `calm` map never has it.
+- `planReenbui` (at hunt start) gives the phase ticks: build-up, first drops, swarm, easing, end,
+  pulled back so it ends `endMarginSeconds` before the hunt. In a Kalahari omen hunt the swarm
+  starts at the Donderstorm's tick (`withStorm`: no build-up or drops of its own); in an Okavango
+  omen hunt the sun-shower spells overlapping it are dropped (after they are drawn: the `omen`
+  stream is untouched). Season Run boss hunts, special days, the FTUE, the Skietbaan and the
+  Harvest never have it.
+- `ReenbuiSystem` (stepped after the Harvest's): phase events in the typed stream
+  (`reenbuiBuildup` with every phase tick, `reenbuiRain`, `alatesSwarm` with the columns and the
+  multiplier, `rainEased` with the swarm's bags, `reenbuiDone`); at the swarm, 2–4 columns on the
+  mid/far ground near the view; each tick of the swarm a forage/settle/alert flock in reach gets
+  `Flock.feedX` (its foraging goal is drawn round the column with the same `flockNoise` draws;
+  its far walkers hurry at run speed) and the shot alert radius × `feeding.alertRadiusMul` (a
+  per-flock factor passed to `shotThreats`); the build-up × `buildupAlertRadiusMul`; up to
+  `extraFlocks.max` flocks spawn beyond a column and run in (`spawnFlockAt`, inside maxFlocks and
+  maxBirdsOnScreen). The snapshot's `reenbui` (`ReenbuiView`) carries the plan from tick 0, the
+  phase, the columns and the bags; `FlockView.feeding` marks feeding flocks.
+- `step()` at the swarm's peak with 60 birds: ~0.1 ms (`tools/simPerf.test.ts`). Test flags
+  (`src/game/devContent.ts`): `?reenbui=1` (every hunt, 2 s in), `?reenbuiPhase=<phase>` (held
+  600 s; `after`: all phases ½ s), `?reenbui=0` turns it off (e2e boot() adds it unless a spec
+  names `reenbui=`; specs that compare with Node use `reenbui=content`). `?e2e` alone never
+  changes the content or its hash (`withReenbuiParams`, unit-tested against `loadContentHash()`).
+- The view (`src/game/view/reenbui/ReenbuiView.ts`, lazy chunk loaded only for a hunt with one):
+  baked rain tiles in two screen-space containers (one move a frame), storm towers on the sky
+  layer, the chunked `LayerDimmer`, a small fork through the shared `FlashLimiter`, wet patches
+  and puffs on the ground layers, a mound and one image per column; the sheet `reenbui/sheet` is
+  1× in the late group, listed only by the maps that can have one, Standard in HD. Own timer
+  `reenbuiMs` with parts (`reenbuiParts`: rain, sky, ground, columns); BirdView pecks more for a
+  feeding flock.
+
 ### 3.7 Scoring pipeline
 Implement GDD §5.3 exactly in `scoring/pipeline.ts` as a pure function:
 `scoreBag(ctx: BagContext, modifiers: readonly Modifier[]) → { points, mult, award, breakdown }`.
@@ -817,6 +852,15 @@ v1.4 B (D-039):
   `__TM_HOOK__.soundscape` (area, light, recent calls with tick, distance, pan and outcome,
   counts, the forecast) and `soundscapeMs`/`soundscapeFrames` (the perf smoke reports it).
   `?soundscape=0` turns it off, `?soundscapeBoost=<n>` multiplies the rates (test builds only).
+- Reënbui (v1.10, D-067) makes room: every call is `'quiet'` from `reenbui.quietBeforeMs` before
+  its build-up until `quietAfterMs` after the rain has eased (`SoundscapeSink.room`,
+  `reenbuiCues.ts`), read from the snapshot's `ReenbuiView` (the sim's own phase ticks, from the
+  hunt's first tick). Its own cues (`reenbui.cues` in `client/soundscape.json`: thunder, the
+  first drops, the rain, the swarm's buzz, excited birds) are worked out once per hunt from those
+  ticks and walked with a cursor on sim time (each once at any frame rate; late ones skipped),
+  played through `ambient()` with up to `reenbui.maxVoices`; their files (`sfx/amb_reenbui_*`,
+  group `soundscape`) are decoded only for a hunt that has one. With the Kalahari storm only the
+  buzz and the birds play (the storm has its thunder and rain).
 - Music (v1.9): the interim stems gain a pennywhistle, an mbira, a marimba and hand drums in the
   same keys, tempo and three stems (`tools/audio/music.ts`); seams and loudness are unit-tested.
 

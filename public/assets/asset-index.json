@@ -3731,6 +3731,19 @@
       "originX": 0.5,
       "originY": 0.07290640394088671
     },
+    "reenbui/sheet": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/reenbui_sheet.cb7fb5d5e786.png",
+        "bytes": 55649,
+        "hash": "cb7fb5d5e786"
+      },
+      "width": 1024,
+      "height": 490,
+      "originX": 0,
+      "originY": 0
+    },
     "secret/mark": {
       "group": "common",
       "origin": "interim",

@@ -78,7 +78,7 @@ async function press(touch: boolean, target: Locator): Promise<void> {
 }
 
 async function openAdmin(page: Page, query = ''): Promise<void> {
-  await page.goto(`/?e2e=1&admin=1${query}`);
+  await page.goto(`/?e2e=1&reenbui=0&admin=1${query}`);
   await page.waitForFunction(() => window.__TM__?.admin?.view === 'list', null, {
     timeout: 90_000,
   });

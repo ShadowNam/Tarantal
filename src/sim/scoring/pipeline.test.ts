@@ -16,6 +16,8 @@ interface Row {
   readonly weapon?: number;
   readonly frenzy?: number;
   readonly stampede?: number;
+  /** D-067: the Reënbui swarm window. */
+  readonly reenbui?: number;
   readonly points: number;
   readonly mult: number;
   readonly award: number;
@@ -160,6 +162,36 @@ const TABLE: readonly Row[] = [
     award: 60,
   },
   {
+    name: 'D-067 Reënbui swarm ×1.5: mid forage',
+    base: 10,
+    behaviour: 0,
+    reenbui: 1.5,
+    points: 10,
+    mult: 1.5,
+    award: 15,
+  },
+  {
+    name: 'D-067 Reënbui × Frenzy 3 × Stampede: far flying',
+    base: 25,
+    behaviour: 1,
+    frenzy: 1.5,
+    stampede: 2,
+    reenbui: 1.5,
+    points: 25,
+    mult: 9,
+    award: 225,
+  },
+  {
+    name: 'D-067 Reënbui after a charm ×2 and +1 points: near run',
+    base: 5,
+    behaviour: 0.5,
+    mods: [pts(1), mul(2)],
+    reenbui: 1.5,
+    points: 6,
+    mult: 4.5,
+    award: 27,
+  },
+  {
     name: 'everything: far flying, +1 ×1.5, Kettie, Frenzy 6, Stampede',
     base: 25,
     behaviour: 1,
@@ -187,6 +219,7 @@ describe('scoring pipeline golden table (GDD §5.3)', () => {
           weaponScoreMul: row.weapon ?? 1,
           frenzyMul: row.frenzy ?? 1,
           stampedeMul: row.stampede ?? 1,
+          reenbuiMul: row.reenbui ?? 1,
         },
         row.mods ?? [],
       );
@@ -264,6 +297,32 @@ describe('scoring pipeline golden table (GDD §5.3)', () => {
       [],
     );
     expect(plain.breakdown.map((s) => s.kind)).toEqual(['base', 'behaviour']);
+  });
+
+  it('D-067: the Reënbui swarm multiplies after the Countdown and before a Boss Rule', () => {
+    const r = scoreBag(
+      {
+        base: 10,
+        behaviourAdd: 0,
+        weaponScoreMul: 1,
+        frenzyMul: 1.5,
+        stampedeMul: 2,
+        countdownMul: 2,
+        reenbuiMul: 1.5,
+        ruleMul: 0,
+      },
+      [],
+    );
+    expect(r.breakdown.map((s) => s.kind)).toEqual([
+      'base',
+      'behaviour',
+      'frenzy',
+      'stampede',
+      'countdown',
+      'reenbui',
+      'bossRule',
+    ]);
+    expect(r.award).toBe(0);
   });
 });
 

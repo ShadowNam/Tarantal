@@ -66,6 +66,7 @@ import type { TreeLifeView } from '../view/tree/TreeLifeView';
 import type { NamibLifeView } from '../view/namib/NamibLifeView';
 import type { TellView } from '../view/tell/TellView';
 import type { BaboonView } from '../view/baboon/BaboonView';
+import type { ReenbuiView } from '../view/reenbui/ReenbuiView';
 import type { HarvestView } from '../view/harvest/HarvestView';
 import type { HarvestTally } from './TallyScene';
 import { playPotjieSound } from '../view/potjieSounds';
@@ -186,6 +187,11 @@ export class HuntScene extends Phaser.Scene {
   /** v1.8c (D-063): the Harvest's view (its lazy chunk), on the Harvest's map only. */
   private harvest: HarvestView | null = null;
   private harvestGen = 0;
+  /** v1.10 (D-067): Reënbui's view (lazy chunk; null until it is in, or no Reënbui this hunt). */
+  private reenbui: ReenbuiView | null = null;
+  private reenbuiGen = 0;
+  private reenbuiBiome: Biome | null = null;
+  private readonly feedingFlocks = new Set<number>();
   /** Family nests by prop id (layer, x on it): the weavers' scolding is panned from here. */
   private weaverNests = new Map<string, { layer: string; x: number }>();
   /** Nest shots before the tree-life chunk was in (its burst plays them once it is). */
@@ -652,6 +658,7 @@ export class HuntScene extends Phaser.Scene {
     this.loadTells(mapBiome);
     this.loadBaboons(mapBiome);
     this.loadHarvest(mapBiome);
+    this.reenbuiBiome = mapBiome;
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -1791,6 +1798,9 @@ export class HuntScene extends Phaser.Scene {
       this.shareLog = createShareLogger(this.ctx.dailyMeta.grid);
     }
     if (range === null) this.ctx.admin?.played(seed, sim.snapshot().weapon.id);
+    // v1.10 (D-067): Reënbui's view, only for a hunt that has one (its chunk loads in the
+    // background: the hunt never waits for it, lesson 19).
+    this.loadReenbui(sim.snapshot().reenbui !== null);
     const durationTicks = sim.snapshot().durationTicks;
     this.ftue =
       modeId === 'ftue'
@@ -1962,6 +1972,10 @@ export class HuntScene extends Phaser.Scene {
       hook.harvestActors = null;
       hook.harvest = null;
       hook.harvestMs = 0;
+      hook.reenbui = null;
+      hook.reenbuiDraw = null;
+      hook.reenbuiMs = 0;
+      hook.reenbuiParts = null;
       hook.feesdagMs = 0;
       hook.feesdagDimMs = 0;
       hook.feesdagFxMs = 0;
@@ -2048,7 +2062,7 @@ export class HuntScene extends Phaser.Scene {
     // v1.9 (D-066): the veld soundscape on the hunt's tick (its own hook timer, report only).
     if (soundscape !== null) {
       const s0 = hook ? performance.now() : 0;
-      soundscape.frame(state.tick, state.birds, events, now);
+      soundscape.frame(state.tick, state.birds, events, now, state.reenbui);
       if (hook && !this.ending) {
         hook.soundscapeMs += performance.now() - s0;
         hook.soundscapeFrames++;
@@ -2102,7 +2116,11 @@ export class HuntScene extends Phaser.Scene {
     this.weapon.setScoped(zoom.raise);
     const drawBirds = interpolateBirds(runner.prev, state, alpha);
     this.birds.setViewZoom(zoom.z);
-    this.birds.update(drawBirds, state.tick);
+    // v1.10 (D-067): flocks feeding at a Reënbui column peck more (a reused set).
+    this.feedingFlocks.clear();
+    if (state.reenbui !== null)
+      for (const f of state.flocks) if (f.feeding === true) this.feedingFlocks.add(f.id);
+    this.birds.update(drawBirds, state.tick, this.feedingFlocks);
     this.world.update(state, width, designSize().height);
     // D-051: the potjie's simmer, rattles and clang (on sim ticks; none on a held frame).
     for (const c of this.world.potjie.cues)
@@ -2170,6 +2188,15 @@ export class HuntScene extends Phaser.Scene {
     if (this.harvest !== null) {
       this.harvest.update(state);
       if (this.ctx.hook) this.ctx.hook.harvestMs += this.harvest.lastMs;
+    }
+    // v1.10 (D-067): Reënbui's storm, rain and alate columns, on their own timer.
+    if (this.reenbui !== null) {
+      this.reenbui.update(state, width);
+      if (this.ctx.hook) {
+        this.ctx.hook.reenbuiMs += this.reenbui.lastMs;
+        const p = this.reenbui.partMs;
+        this.ctx.hook.reenbuiParts = { ...p };
+      }
     }
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
     // v1.7b (D-046): Chilli Biltong's sparks at the muzzle.
@@ -2322,7 +2349,16 @@ export class HuntScene extends Phaser.Scene {
         const n = Math.max(1, members.length);
         const x = members.reduce((t, b) => t + this.parallax.screenX(b.plane, b.x), 0) / n;
         const y = members.reduce((t, b) => t + b.y, 0) / n;
-        return { id: f.id, state: f.state, alive: f.alive, x, y, plane: f.plane };
+        return {
+          id: f.id,
+          state: f.state,
+          alive: f.alive,
+          x,
+          y,
+          plane: f.plane,
+          // v1.10 (D-067): feeding at a Reënbui column.
+          ...(f.feeding === true ? { feeding: true } : {}),
+        };
       });
       hook.secretSpots = state.secrets.flatMap((sec) => {
         const layer = this.parallax.layer(sec.layerId);
@@ -2437,6 +2473,8 @@ export class HuntScene extends Phaser.Scene {
       hook.baboons = this.baboons?.baboons ?? null;
       hook.baboonRaid = state.baboons?.raid ?? null;
       hook.harvestActors = this.harvest?.actors ?? null;
+      hook.reenbui = state.reenbui;
+      hook.reenbuiDraw = this.reenbui?.hook ?? null;
       const hv = state.harvest;
       hook.harvest =
         hv === null
@@ -2565,6 +2603,51 @@ export class HuntScene extends Phaser.Scene {
       })
       .catch(() => {
         // Offline without the chunk cached: the troops are simply not drawn.
+      });
+  }
+
+  /** v1.10 (D-067): Reënbui's chunk, for a hunt that has one. */
+  private loadReenbui(has: boolean): void {
+    this.reenbui?.destroy();
+    this.reenbui = null;
+    const gen = ++this.reenbuiGen;
+    const biome = this.reenbuiBiome;
+    if (!has || biome === null) return;
+    const planes = this.ctx.content.scoring.planes;
+    void import('../view/reenbui/ReenbuiView')
+      .then((m) => {
+        if (gen !== this.reenbuiGen) return;
+        this.reenbui = new m.ReenbuiView({
+          scene: this,
+          parallax: this.parallax,
+          manifest: this.manifest,
+          screen: this.screenFixed,
+          planeScale: {
+            near: planes.near.scale,
+            mid: planes.mid.scale,
+            far: planes.far.scale,
+            ver: planes.ver.scale,
+          },
+          groundY: {
+            near: biome.lanes.near?.groundY,
+            mid: biome.lanes.mid?.groundY,
+            far: biome.lanes.far?.groundY,
+          },
+          flashes: this.ctx.flashes,
+          reduceFlashes: () => this.ctx.prefs.reduceFlashes,
+          reducedMotion: this.ctx.reducedMotion,
+          now: () => performance.now(),
+          hooks: this.ctx.hook !== null,
+          ...(this.ctx.hook === null
+            ? {}
+            : {
+                hideColumns: () =>
+                  (window as { __TM_REENBUI_HIDE__?: boolean }).__TM_REENBUI_HIDE__ === true,
+              }),
+        });
+      })
+      .catch(() => {
+        // Offline without the chunk cached: the event plays the same, undrawn.
       });
   }
 
@@ -3198,6 +3281,9 @@ export class HuntScene extends Phaser.Scene {
     this.harvest?.destroy();
     this.harvest = null;
     this.harvestGen++;
+    this.reenbui?.destroy();
+    this.reenbui = null;
+    this.reenbuiGen++;
     this.game.canvas.style.cursor = '';
   }
 }

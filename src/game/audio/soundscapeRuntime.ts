@@ -24,6 +24,7 @@ import {
   type SoundscapeSink,
 } from './soundscape';
 import { SOUNDSCAPE_GROUP, soundscapeSounds } from './soundscapeKeys';
+import { makingRoom, ReenbuiCues, type CueOutcome, type ReenbuiTiming } from './reenbuiCues';
 import { forecastWarnings, WarningQuiet, type ForecastEvent } from './warningForecast';
 
 const FILE_TIMEOUT_MS = 15_000;
@@ -42,6 +43,9 @@ export interface SoundscapeHook {
   warnings: ForecastEvent[];
   /** Soundscape voices playing now (the director's wall-clock count). */
   voices: number;
+  /** v1.10 (D-067): a Reënbui this hunt — whether the calls make room now, and its cues'
+   *  outcomes so far (null: no Reënbui). */
+  reenbui: { room: boolean; counts: Record<CueOutcome, number> } | null;
 }
 
 /** Where and when the soundscape plays. */
@@ -75,6 +79,11 @@ export class SoundscapeRuntime implements SoundscapeSink {
   private readonly createdAt: number;
   readonly hook: SoundscapeHook | null;
   private scapeArea: string | null = null;
+  /** The area's call sounds (decoded while it is on screen). */
+  private areaSounds: string[] = [];
+  /** v1.10 (D-067): this hunt's Reënbui (the sim's phase ticks) and its cues. */
+  private reenbui: ReenbuiTiming | null = null;
+  private readonly cues: ReenbuiCues;
 
   constructor(
     private readonly audio: AudioDirector,
@@ -100,6 +109,7 @@ export class SoundscapeRuntime implements SoundscapeSink {
             ),
           };
     this.director = new SoundscapeDirector(this.sc, hookOn);
+    this.cues = new ReenbuiCues(this.sc.reenbui);
     const warned = Object.values(this.sc.calls).flatMap((c) =>
       c.warns === undefined ? [] : [c.warns],
     );
@@ -120,6 +130,7 @@ export class SoundscapeRuntime implements SoundscapeSink {
           counts: this.director.counts,
           warnings: [],
           voices: 0,
+          reenbui: null,
         }
       : null;
   }
@@ -176,8 +187,16 @@ export class SoundscapeRuntime implements SoundscapeSink {
         const c = this.sc.calls[e.call];
         return c === undefined ? [] : [c.sound];
       });
-      this.audio.setSoundscapeKeys([...new Set(sounds)]);
+      this.areaSounds = [...new Set(sounds)];
+      this.audio.setSoundscapeKeys(this.areaSounds);
+    } else if (this.reenbui !== null) {
+      // Same area after a Reënbui hunt: release the event's sounds (only the area's stay decoded).
+      this.audio.setSoundscapeKeys(this.areaSounds);
     }
+    // A new scene: no Reënbui until a hunt's snapshot says so (frame()).
+    this.reenbui = null;
+    this.cues.reset(null);
+    if (this.hook) this.hook.reenbui = null;
     const watched = new Set(this.warnedCreatures());
     const forecast =
       s.hunt === null
@@ -216,6 +235,8 @@ export class SoundscapeRuntime implements SoundscapeSink {
     birds: readonly { readonly creature: string }[] | null,
     events: readonly SimEvent[] | null,
     now: number,
+    /** v1.10 (D-067): the hunt's Reënbui from its snapshot (null: none; absent: the title). */
+    reenbui?: ReenbuiTiming | null,
   ): void {
     if (
       !this.titleLoadTried &&
@@ -232,8 +253,26 @@ export class SoundscapeRuntime implements SoundscapeSink {
           const c = this.eventCreature.get(e.event);
           if (c !== undefined) this.warn.arrived(c, e.tick);
         }
+    if (reenbui !== undefined) this.followReenbui(tick, reenbui);
     this.director.step(tick, this);
-    if (this.hook) this.hook.voices = this.audio.ambientPlaying;
+    if (this.reenbui !== null)
+      this.cues.step(tick, (c) => {
+        const call = this.sc.calls[c.call];
+        if (call === undefined) return 'missing';
+        const dist = this.sc.distances[c.distance];
+        return this.audio.ambient(
+          call.sound,
+          0,
+          c.levelDb + dist.levelDb,
+          dist.lowpassHz,
+          this.sc.reenbui.maxVoices,
+          this.sc.reserveVoices,
+        );
+      });
+    if (this.hook) {
+      this.hook.voices = this.audio.ambientPlaying;
+      if (this.hook.reenbui !== null) this.hook.reenbui.room = this.room(tick);
+    }
   }
 
   play(c: Readonly<SoundscapeCall>): CallOutcome {
@@ -249,5 +288,38 @@ export class SoundscapeRuntime implements SoundscapeSink {
 
   quiet(creature: string, tick: number): boolean {
     return this.warn.quiet(creature, tick);
+  }
+
+  /** v1.10 (D-067): every call makes room for a Reënbui's storm and rain. */
+  room(tick: number): boolean {
+    return makingRoom(this.sc.reenbui, this.reenbui, tick);
+  }
+
+  /** v1.10 (D-067): the hunt's Reënbui from its snapshot: a new one gets its cues and its sounds
+   *  decoded (with the area's); none keeps them released. */
+  private followReenbui(tick: number, v: ReenbuiTiming | null): void {
+    const same = v === null ? this.reenbui === null : this.reenbui?.buildupTick === v.buildupTick;
+    if (same) return;
+    this.reenbui =
+      v === null
+        ? null
+        : {
+            buildupTick: v.buildupTick,
+            dropsTick: v.dropsTick,
+            swarmTick: v.swarmTick,
+            easingTick: v.easingTick,
+            endTick: v.endTick,
+            withStorm: v.withStorm,
+          };
+    this.cues.reset(this.reenbui, tick);
+    const own = this.sc.reenbui.cues.flatMap((c) => {
+      const call = this.sc.calls[c.call];
+      return call === undefined ? [] : [call.sound];
+    });
+    this.audio.setSoundscapeKeys(
+      this.reenbui === null ? this.areaSounds : [...new Set([...this.areaSounds, ...own])],
+    );
+    if (this.hook)
+      this.hook.reenbui = this.reenbui === null ? null : { room: false, counts: this.cues.counts };
   }
 }

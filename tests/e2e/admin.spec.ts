@@ -37,7 +37,7 @@ test.describe('playtest admin page', () => {
     test.setTimeout(300_000);
     const errors = collectErrors(page);
     const touch = isTouchProject(info);
-    await page.goto('/?e2e=1&admin=1');
+    await page.goto('/?e2e=1&reenbui=0&admin=1');
     await waitAdmin(page, 'list');
     expect((await hook(page)).scene).toBe('admin');
 
