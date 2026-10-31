@@ -1,7 +1,7 @@
 // e2e/dev-only content tweaks from URL parameters (main.ts allows them only in dev/test builds
 // and with ?e2e=1). They change the content, so the hunt's contentHash changes too: such hunts
 // are never official.
-import type { ContentBundle } from '../content/schemas';
+import { REENBUI_PHASES, type ContentBundle, type ReenbuiPhase } from '../content/schemas';
 
 /**
  * ?crate=<id>: every crate holds this power-up or crate weapon, and the first crate drops in the
@@ -342,6 +342,47 @@ export function withHarvestPreview(
               : h.rush,
         },
       },
+    },
+  };
+}
+
+/**
+ * v1.10 (D-067, lesson 17) e2e only: no Reënbui on any map — `?e2e` without `?reenbui=`, so every
+ * spec that pins a seed plays it as before.
+ */
+export function withNoReenbui(b: ContentBundle): ContentBundle {
+  return { ...b, reenbui: { ...b.reenbui, areas: [] } };
+}
+
+/**
+ * v1.10 (D-067) e2e/dev only: `?reenbui=1` — a Reënbui in every hunt that may have one, on every
+ * map, its build-up `startSeconds` in (on the hunt's length); `?reenbuiPhase=<phase>` also holds
+ * that phase (600 s) after half-second earlier phases, for tests and screenshots (lesson 11).
+ */
+export function withReenbuiPreview(
+  b: ContentBundle,
+  hold: ReenbuiPhase | null,
+  startSeconds = 2,
+): ContentBundle {
+  const r = b.reenbui;
+  const hunt = b.modes.modes.classic.huntSeconds;
+  const at = Math.min(1, startSeconds / hunt);
+  let phaseSeconds = r.phaseSeconds;
+  if (hold !== null) {
+    const i = REENBUI_PHASES.indexOf(hold);
+    phaseSeconds = { ...phaseSeconds };
+    REENBUI_PHASES.forEach((p, j) => {
+      if (j < i) phaseSeconds = { ...phaseSeconds, [p]: 0.5 };
+      if (j === i) phaseSeconds = { ...phaseSeconds, [p]: 600 };
+    });
+  }
+  return {
+    ...b,
+    reenbui: {
+      ...r,
+      areas: b.biomes.map((x) => ({ biome: x.id, chance: 1 })),
+      window: [at, at],
+      phaseSeconds,
     },
   };
 }

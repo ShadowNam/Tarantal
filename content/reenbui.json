@@ -12,7 +12,7 @@
   ],
   "modes": ["classic", "daily", "seasonHunt"],
   "buildupAlertRadiusMul": 1.15,
-  "scoreMul": 1.5,
+  "scoreMul": 1.3,
   "columns": { "count": [2, 4], "planes": ["mid", "mid", "far"], "spreadPx": 760, "minGapPx": 420 },
   "feeding": { "reachPx": 900, "spreadPx": 70, "alertRadiusMul": 0.7, "hurryBeyondPx": 160, "hurrySpeedMul": 0.8 },
   "extraFlocks": { "max": 2, "size": [3, 6], "everySeconds": 4, "fromPx": 1100 }
