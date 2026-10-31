@@ -133,6 +133,8 @@ export class HudScene extends Phaser.Scene {
   private countdownTop = -1;
   /** D-065: the y the notice lines start below while the countdown shows (null otherwise). */
   private noticesBelow: number | null = null;
+  /** D-065: the banner's line (its centre y) while the countdown shows, else null. */
+  private bannerLineY: number | null = null;
   /** The last second the tick sounded for (a relayout redraws without ticking again). */
   private countdownTicked = 0;
   private pops: Pop[] = [];
@@ -802,18 +804,18 @@ export class HudScene extends Phaser.Scene {
   /**
    * D-065: where the notice lines go — the banner (bonuses, secrets) and the call-out (a
    * protected creature's first sighting: "Go-away bird — don't shoot!"). Normally at their fixed
-   * heights; in New Year's countdown below it (banner first, the call-out under the banner's
-   * slot). The hook gets each line's slot (full safe width, one line high) for the overlap checks.
+   * heights; in New Year's countdown below it (the call-out first, the line the player must act
+   * on, in the open sky above the horizon; the banner on the line under it). The hook gets each line's slot (full safe width, one line high) for the overlap checks.
    */
   private placeNotices(l: HudLayout): void {
     const below = this.noticesBelow;
     const bannerH = Math.max(this.banner.height, 84);
     const calloutH = Math.max(this.callout.height, 48);
-    const bannerY = below === null ? l.safe.y + 180 : below + bannerH / 2;
-    const calloutY =
-      below === null
-        ? l.safe.y + 290
-        : Math.max(l.safe.y + 290, bannerY + bannerH / 2 + 12 + calloutH / 2);
+    // In the countdown the call-out (the line the player must act on: "don't shoot!") takes the
+    // first line under it, in the open sky above the horizon; the banner goes on the line below.
+    const calloutY = below === null ? l.safe.y + 290 : below + calloutH / 2;
+    const bannerY = below === null ? l.safe.y + 180 : calloutY + calloutH / 2 + 12 + bannerH / 2;
+    this.bannerLineY = below === null ? null : bannerY;
     if (this.banner.visible && below !== null && this.banner.y < bannerY) this.banner.setY(bannerY);
     if (this.callout.y !== calloutY) this.callout.setY(calloutY);
     const hook = this.ctx.hook;
@@ -1752,7 +1754,8 @@ export class HudScene extends Phaser.Scene {
         Math.max(
           card === null ? top : Math.max(top, card.rect.y + card.rect.h + 56),
           // D-065: below New Year's countdown while it shows.
-          this.noticesBelow === null ? 0 : this.noticesBelow + this.banner.height / 2,
+          // D-065: under the call-out's line, below New Year's countdown, while it shows.
+          this.bannerLineY ?? 0,
         ),
       );
     // Long banners (crate + hint, bonus time + bark) shrink to fit between the HUD corners.

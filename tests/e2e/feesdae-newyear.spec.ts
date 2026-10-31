@@ -239,6 +239,10 @@ test.describe('Feesdae: New Year countdown (D-065)', () => {
       for (const [id, o] of Object.entries(cd.notices))
         expect(overlaps(digit, o), `the countdown over the ${id} line`).toBe(false);
     expect(overlaps(cd.notices.banner, cd.notices.callout), 'banner over call-out').toBe(false);
+    // The call-out ("don't shoot!") is the first line under the countdown, the banner below it.
+    expect(cd.notices.callout.y).toBeLessThan(cd.notices.banner.y);
+    if (digit !== undefined)
+      expect(cd.notices.callout.y - (digit.y + digit.h)).toBeLessThanOrEqual(20);
 
     // A bag in the countdown: its pipeline has the countdown's ×2 after the Stampede's, and the
     // score went up by the award (read where the hook keeps them).
