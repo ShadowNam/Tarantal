@@ -522,4 +522,26 @@ describe('AudioDirector soundscape voice (v1.9, D-066)', () => {
       r2.audio.handle([{ type: 'emptyClick' } as unknown as SimEvent], () => 0);
     expect(r2.audio.ambient(DOVE, 0, -12, 0, 2, 4)).toBe('voices');
   });
+
+  it('a game sound that finds all 16 voices taken cuts the oldest soundscape call', async () => {
+    const r = rig();
+    r.audio.addRecorded([file(DOVE)]);
+    r.audio.setSoundscapeKeys([DOVE]);
+    r.audio.unlock();
+    await flush();
+    const first = r.ctx.sources.length;
+    expect(ambient(r)).toBe('played');
+    const oldest = r.ctx.sources[first];
+    expect(ambient(r)).toBe('played');
+    // The Stampede floods the voices: all 16 of the game's sounds still play (14 free, then the
+    // two soundscape calls are cut, oldest first) and no 17th sound plays.
+    const before = r.ctx.panners;
+    for (let i = 0; i < 17; i++)
+      r.audio.handle([{ type: 'emptyClick' } as unknown as SimEvent], () => 0);
+    expect(r.ctx.panners - before).toBe(16);
+    expect(r.audio.ambientPlaying).toBe(0);
+    expect(oldest?.stoppedAt).not.toBeNull();
+    // No soundscape call fits until the game's sounds end.
+    expect(ambient(r)).toBe('voices');
+  });
 });

@@ -70,6 +70,8 @@ export class SoundscapeRuntime implements SoundscapeSink {
   /** Event id → its creature, in the area playing (worldEvent → arrival). */
   private eventCreature = new Map<string, string>();
   private loading: Promise<void> | null = null;
+  /** The title's own load (titleLoadDelayMs after start) is tried once; hunts call load(). */
+  private titleLoadTried = false;
   private readonly createdAt: number;
   readonly hook: SoundscapeHook | null;
   private scapeArea: string | null = null;
@@ -130,13 +132,15 @@ export class SoundscapeRuntime implements SoundscapeSink {
 
   private async fetchFiles(): Promise<void> {
     const format = this.audio.fileFormat();
+    // A browser that plays neither Ogg nor MP3 gets no files at all (never asked again).
+    if (format === null) return;
     // The same delivery switch as every sound (and the voice packs): no index, or an index
     // without any audio, means nothing was delivered — the soundscape stays silent then.
     const main = await fetchAssetIndex(FILE_TIMEOUT_MS);
     if (main.index === null || Object.keys(main.index.audio).length === 0) return;
     const voice = await loadVoiceIndex();
-    if (format === null || voice === null) {
-      // A failure is forgotten: the next hunt tries again.
+    if (voice === null) {
+      // A failure is forgotten: the next hunt's load() tries again (frame() does not retry).
       this.loading = null;
       return;
     }
@@ -213,7 +217,14 @@ export class SoundscapeRuntime implements SoundscapeSink {
     events: readonly SimEvent[] | null,
     now: number,
   ): void {
-    if (this.loading === null && now - this.createdAt >= this.sc.titleLoadDelayMs) void this.load();
+    if (
+      !this.titleLoadTried &&
+      this.loading === null &&
+      now - this.createdAt >= this.sc.titleLoadDelayMs
+    ) {
+      this.titleLoadTried = true;
+      void this.load();
+    }
     if (birds !== null) this.warn.observe(tick, birds);
     if (events !== null)
       for (const e of events)

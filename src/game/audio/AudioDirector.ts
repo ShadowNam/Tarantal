@@ -15,6 +15,14 @@ import { isOupaLine } from './oupaMode';
 
 const MAX_VOICES = 16;
 const MAX_PAN = 0.7;
+
+/** v1.9 (D-066): one soundscape call playing. */
+interface AmbientVoice {
+  readonly src: AudioBufferSourceNode;
+  readonly panner: StereoPannerNode;
+  done: boolean;
+}
+
 /** Sounds on the music bus. */
 const MUSIC: ReadonlySet<SfxId> = new Set<SfxId>(['sting', 'stampede']);
 
@@ -105,6 +113,9 @@ export class AudioDirector {
   private scapeWanted: ReadonlySet<string> = new Set();
   /** v1.9 (D-066): soundscape voices playing now (wall clock, besides the scheduler's count). */
   private ambientVoices = 0;
+  /** v1.9 (D-066): the soundscape voices playing, oldest first: a game sound that finds all 16
+   *  voices taken cuts the oldest one (`voice()`), so the soundscape never costs the game a sound. */
+  private readonly ambientPlayingNow: AmbientVoice[] = [];
   /** Sound keys that play from a decoded recording (read by the test hook). */
   readonly recorded: string[] = [];
   private biome: string | null = null;
@@ -351,12 +362,12 @@ export class AudioDirector {
       gain.connect(panner).connect(sfxBus);
       this.voices++;
       this.ambientVoices++;
+      const playing: AmbientVoice = { src, panner, done: false };
+      this.ambientPlayingNow.push(playing);
       src.start();
       this.env.setTimer(
         () => {
-          this.voices--;
-          this.ambientVoices--;
-          panner.disconnect();
+          this.endAmbient(playing);
         },
         buf.duration * 1000 + 50,
       );
@@ -369,6 +380,23 @@ export class AudioDirector {
   /** v1.9 (D-066): soundscape voices playing now (test hook). */
   get ambientPlaying(): number {
     return this.ambientVoices;
+  }
+
+  /** v1.9 (D-066): a soundscape voice ends (its timer, or cut for a game sound); once only. */
+  private endAmbient(v: AmbientVoice, cut = false): void {
+    if (v.done) return;
+    v.done = true;
+    const i = this.ambientPlayingNow.indexOf(v);
+    if (i >= 0) this.ambientPlayingNow.splice(i, 1);
+    this.voices--;
+    this.ambientVoices--;
+    if (cut)
+      try {
+        v.src.stop();
+      } catch {
+        // Already stopped: nothing to cut.
+      }
+    v.panner.disconnect();
   }
 
   /** M10: a new hunt starts calm, not on the last hunt's stampede stem. */
@@ -664,7 +692,12 @@ export class AudioDirector {
 
   private voice(key: string, pan: number, bus: GainNode | null, synth: Synth, pitch = 1): void {
     const { ctx, noise } = this;
-    if (ctx === null || bus === null || noise === null || this.voices >= MAX_VOICES) return;
+    if (ctx === null || bus === null || noise === null) return;
+    // v1.9 (D-066): the soundscape is the lowest priority: a game sound that finds every voice
+    // taken cuts the oldest soundscape call rather than go unheard.
+    const oldest = this.ambientPlayingNow[0];
+    if (this.voices >= MAX_VOICES && oldest !== undefined) this.endAmbient(oldest, true);
+    if (this.voices >= MAX_VOICES) return;
     const panner = ctx.createStereoPanner();
     panner.pan.value = Math.max(-MAX_PAN, Math.min(MAX_PAN, pan * MAX_PAN));
     panner.connect(bus);
