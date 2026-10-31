@@ -1,21 +1,13 @@
 // v1.9 (D-066): when the hunt's penalty creatures (hadeda, fish eagle, kwêvoël) will appear, so the
 // soundscape can stay quiet BEFORE their world events (their own calls are the player's warning).
 // The sim keeps its event schedule to itself and doesn't change for presentation, so this re-runs
-// the sim's own pure schedule functions on the hunt's seed and mode, read-only: the same streams
+// the sim's own pure schedule functions (forecastSim.ts) on the hunt's seed and mode, read-only: the same streams
 // (`events`, and `charms` for the extra events of a charm), the same map, light and omen. Nothing
 // here can touch the sim. warningForecast.test.ts checks it against every event the real sim
 // emits, so a change to the sim's schedule fails the test rather than silently drifting.
 import type { ContentBundle } from '../../content/schemas';
-import { passivesOf } from '../../sim/charms';
-import { secondsToTicks } from '../../sim/clock';
-import {
-  mergeSchedules,
-  scheduleExtraEvents,
-  scheduleWorldEvents,
-} from '../../sim/director/events';
-import { mapOmen, resolveMap } from '../../sim/maps';
-import { createRng } from '../../sim/rng';
 import type { ModeConfig } from '../../sim/types';
+import type { ForecastSim } from './forecastSim';
 
 export interface ForecastEvent {
   readonly tick: number;
@@ -29,7 +21,10 @@ export function forecastWarnings(
   seed: number,
   mode: ModeConfig,
   creatures: ReadonlySet<string>,
+  sim: ForecastSim,
 ): ForecastEvent[] {
+  const { createRng, mapOmen, mergeSchedules, passivesOf, resolveMap, scheduleExtraEvents } = sim;
+  const { scheduleWorldEvents, secondsToTicks } = sim;
   // The Skietbaan and the FTUE script schedule nothing of the biome's.
   if (mode.id === 'range') return [];
   const defaults = mode.id === 'seasonHunt' ? undefined : content.modes.modes[mode.id];

@@ -42,6 +42,7 @@ import {
   type LateNeed,
 } from '../assets/AssetManifest';
 import { stemFor } from '../audio/music';
+import { FORECAST_SIM } from '../audio/forecastSim';
 import { rumbleDue } from '../view/juice';
 import type { HuntPlan } from '../daily/DailyFlow';
 import { FtueDirector, type FtueStep } from '../ftue/FtueDirector';
@@ -113,6 +114,10 @@ interface MapChoice {
   /** D-048: a special day's look on the map (its light and decorations). */
   readonly feesdag?: string;
 }
+
+/** v1.9 (D-066): the veld soundscape (a lazy chunk, loaded after the first gesture; one per page). */
+let soundscape: import('../audio/soundscapeRuntime').SoundscapeRuntime | null = null;
+let soundscapeImport: Promise<void> | null = null;
 
 /** D-048: the special days' view module (a lazy chunk), once it has loaded. */
 let feesdaeModule: typeof import('../feesdae/FeesdagView') | null = null;
@@ -186,6 +191,12 @@ export class HuntScene extends Phaser.Scene {
   /** Nest shots before the tree-life chunk was in (its burst plays them once it is). */
   private lifeHeld: SimEvent[] = [];
   private lightIds: readonly string[] = [];
+  /** v1.9 (D-066): the map's own lights (a special day's light replaces them on screen). */
+  private mapLightIds: readonly string[] = [];
+  /** v1.9 (D-066): the title's soundscape clock (ticks; the title has no sim). */
+  private titleTicks = 0;
+  /** v1.9 (D-066): the hunt the soundscape plays (seed and mode: the warning forecast). */
+  private soundscapeHunt: { seed: number; mode: ModeConfig } | null = null;
   private huntSeed = 0;
   /** Scroll factor of each prop of the map on screen (where a pellet stopped, for the fruit). */
   private propFactor = new Map<string, number>();
@@ -330,6 +341,11 @@ export class HuntScene extends Phaser.Scene {
     };
     this.game.canvas.addEventListener('pointerup', unlockAudio);
     window.addEventListener('keydown', unlockAudio);
+    // v1.9 (D-066): the soundscape's code arrives after the first gesture (never before START).
+    if (!this.ctx.soundscapeOff)
+      this.ctx.audio.onUnlocked(() => {
+        this.importSoundscape();
+      });
     this.cleanups.push(() => {
       this.game.canvas.removeEventListener('pointerup', unlockAudio);
       window.removeEventListener('keydown', unlockAudio);
@@ -427,6 +443,7 @@ export class HuntScene extends Phaser.Scene {
         : feesdagById(this.ctx.content.feesdae, this.map.feesdag);
     const lightIds = special === null ? mapLights(map) : [special.light];
     this.lightIds = lightIds;
+    this.mapLightIds = mapLights(map);
     const lights = lightIds.flatMap((id) => {
       const light = this.ctx.feel.lights[id];
       return light === undefined ? [] : [light];
@@ -443,6 +460,8 @@ export class HuntScene extends Phaser.Scene {
     this.tierFilters?.clear();
     this.tierFilters = new TierFilters(this.cameras.main);
     this.tierFilters.apply(this.ctx.prefs);
+    // v1.9 (D-066): the soundscape follows the area and light on screen.
+    this.syncSoundscape();
     if (this.ctx.hook) {
       this.ctx.hook.quality.layers = this.parallax.layers.length;
       this.ctx.hook.quality.filters = this.tierFilters.active;
@@ -890,6 +909,50 @@ export class HuntScene extends Phaser.Scene {
     fitCamera(this.cameras.main);
     this.weapon.layout(width * (this.ctx.prefs.leftHanded ? 0.38 : 0.62), height);
   };
+
+  // --- soundscape (v1.9, D-066) -------------------------------------------------------------
+
+  /** Loads the soundscape's chunk once per page (after the first gesture), then plays. */
+  private importSoundscape(): void {
+    soundscapeImport ??= import('../audio/soundscapeRuntime')
+      .then((m) => {
+        soundscape ??= new m.SoundscapeRuntime(
+          this.ctx.audio,
+          this.ctx.content,
+          this.ctx.hook !== null,
+          performance.now(),
+          FORECAST_SIM,
+        );
+      })
+      .catch(() => {
+        // Offline or a failed chunk: no soundscape this page (the next gesture won't retry).
+      });
+    void soundscapeImport.then(() => {
+      if (this.sys.isActive()) this.syncSoundscape();
+      if (this.ctx.hook && soundscape !== null) this.ctx.hook.soundscape = soundscape.hook;
+      // A hunt already running loads the recordings now.
+      if (this.runner !== null && this.soundscapeHunt !== null) void soundscape?.load();
+    });
+  }
+
+  /** The area and light on screen (title or hunt) to the soundscape; nothing on the Skietbaan. */
+  private syncSoundscape(): void {
+    const s = soundscape;
+    if (s === null) return;
+    const hunt = this.runner === null ? null : this.soundscapeHunt;
+    if (this.runner !== null && hunt === null) {
+      s.stop();
+      return;
+    }
+    s.setScene({
+      area: this.biome.id,
+      lights: this.lightIds,
+      mapLights: this.mapLightIds,
+      title: hunt === null,
+      hunt,
+      startTick: hunt === null ? Math.floor(this.titleTicks) : 0,
+    });
+  }
 
   // --- title ------------------------------------------------------------------------------
 
@@ -1806,6 +1869,10 @@ export class HuntScene extends Phaser.Scene {
       perTick: () => mapper.perTick(),
       ...(this.ctx.holdAtTick === undefined ? {} : { holdAtTick: this.ctx.holdAtTick }),
     });
+    // v1.9 (D-066): the hunt's soundscape (its recordings start loading now, after START).
+    this.soundscapeHunt = range === null ? { seed, mode } : null;
+    this.syncSoundscape();
+    if (range === null) void soundscape?.load();
     this.weapon.setTouchMode(kind === 'touch');
     hud.setInputKind(kind);
     hud.setSeason(runHunt === null ? null : { quota: runHunt.info.quota });
@@ -1898,6 +1965,8 @@ export class HuntScene extends Phaser.Scene {
       hook.feesdagDimMs = 0;
       hook.feesdagFxMs = 0;
       hook.feesdagStarsMs = 0;
+      hook.soundscapeMs = 0;
+      hook.soundscapeFrames = 0;
       hook.fruit = null;
       hook.hunts++;
     }
@@ -1922,6 +1991,9 @@ export class HuntScene extends Phaser.Scene {
     if (this.game.loop.frame % 30 === 0) this.refreshHd(runner === null);
     this.weapon.update(delta);
     if (runner === null) {
+      // v1.9 (D-066): the title's soundscape on its own clock (the title has no sim).
+      this.titleTicks += (delta * TICKS_PER_SECOND) / 1000;
+      soundscape?.frame(Math.floor(this.titleTicks), null, null, now);
       // Between hunts (start card, title) nothing stays frozen or slowed from capture mode.
       if (this.anims.globalTimeScale !== 1) this.anims.globalTimeScale = 1;
       if (!this.texturesDone) {
@@ -1971,6 +2043,15 @@ export class HuntScene extends Phaser.Scene {
       this.tweens.timeScale = 1;
       this.anims.globalTimeScale = 1;
       this.scene.get('Hud').tweens.timeScale = 1;
+    }
+    // v1.9 (D-066): the veld soundscape on the hunt's tick (its own hook timer, report only).
+    if (soundscape !== null) {
+      const s0 = hook ? performance.now() : 0;
+      soundscape.frame(state.tick, state.birds, events, now);
+      if (hook && !this.ending) {
+        hook.soundscapeMs += performance.now() - s0;
+        hook.soundscapeFrames++;
+      }
     }
     // M10: the music follows the hunt's intensity (calm / build / stampede).
     this.ctx.audio.setIntensity(stemFor(runner.over ? null : state, this.ctx.feel.audio));

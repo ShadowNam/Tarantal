@@ -31,6 +31,7 @@ import type { DailyFlow } from './daily/DailyFlow';
 import type { Insets } from './layout';
 import type { Rect } from './ui/hudLayout';
 import type { AdminContext } from './admin/AdminContext';
+import type { SoundscapeHook } from './audio/soundscapeRuntime';
 
 /** v1.3x (D-037) Skietbaan state for Playwright (filled by the lazy range chunk). */
 export interface RangeHookState {
@@ -531,6 +532,13 @@ export interface TestHook {
   /** D-065 (perf): ms of feesdagMs spent on New Year's fireworks and on its stars. */
   feesdagFxMs: number;
   feesdagStarsMs: number;
+  /** v1.9 (D-066): the veld soundscape (area, light, recent calls with their outcomes), once its
+   *  lazy chunk has loaded; null before. */
+  soundscape: SoundscapeHook | null;
+  /** v1.9 (D-066, perf): ms the soundscape's frame took (scheduler + voices), summed over the
+   *  hunt's frames (soundscapeFrames). */
+  soundscapeMs: number;
+  soundscapeFrames: number;
   /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
    *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
   reloadFx: { chipIcons: (string | null)[]; bolts: number; oupaHand: boolean; autoReloads: number };
@@ -785,6 +793,8 @@ export interface GameContext {
   readonly faunaDebug: boolean;
   /** e2e/dev only (?faunaIdle=0, R10): far animals held at rest (bounds compare across runs). */
   readonly faunaStill: boolean;
+  /** e2e/dev only (?soundscape=0, v1.9 D-066): no veld soundscape (nothing of it loads). */
+  readonly soundscapeOff: boolean;
   /** e2e/dev only (?treeLife=<resident>|falcon|off, 1.9.4 D-057): that baobab resident (or the
    *  colony's falcon) is out almost all the time, or no tree life at all (art previews). */
   readonly treeLifePreview: string | null;
