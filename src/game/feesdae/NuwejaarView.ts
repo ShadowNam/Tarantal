@@ -27,12 +27,20 @@ import {
   nyFrames,
   partyHatFrame,
   type NySound,
-  FW_COLOUR,
-  FW_WHITE,
+  FW_FRAMES,
+  type NyFrame,
 } from './newyearAssets';
 import anchorsJson from './hatAnchors.json';
 import { nyKeyIn, nyMasterOf } from './newyearKeys';
-import { BURST_CELL, BURST_R, burstAlpha, burstFrameAt, hash01 } from './fireworkMath';
+import {
+  BURST_CELL,
+  BURST_R,
+  BURST_T,
+  burstAlpha,
+  burstFrameAt,
+  FW_STRIPS,
+  hash01,
+} from './fireworkMath';
 import { designSize } from '../layout';
 
 type Anchor = readonly [number, number, number, number];
@@ -225,6 +233,8 @@ export interface BurstPlan {
   readonly y: number;
   readonly radius: number;
   readonly colour: number;
+  /** Which of fireworks.colours (its baked strip, FW_FRAMES). */
+  readonly colourIndex: number;
   readonly slot: number;
 }
 
@@ -241,24 +251,30 @@ export function burstInSlot(
   const chance = Math.min(1, rate / fw.maxPerSecond);
   if (hash01(slot, 1) >= chance) return null;
   const colours = coloursOf(fw.colours);
+  const colourIndex = Math.floor(hash01(slot, 6) * colours.length) % colours.length;
   return {
     start: slot * slotTicks + Math.floor(hash01(slot, 2) * slotTicks * 0.5),
     across: hash01(slot, 3) * 1.7 - 0.85,
     y: fw.y[0] + hash01(slot, 4) * (fw.y[1] - fw.y[0]),
     radius: fw.radius[0] + hash01(slot, 5) * (fw.radius[1] - fw.radius[0]),
-    colour: colours[Math.floor(hash01(slot, 6) * colours.length) % colours.length] ?? 0xffffff,
+    colour: colours[colourIndex] ?? 0xffffff,
+    colourIndex,
     slot,
   };
 }
 
 interface Burst {
-  /** The baked burst (fireworkMath.ts): the coloured sparks (tinted per burst) and the white
-   *  sparks with the core (untinted), the frame of each shown now and its alpha. */
-  readonly colour: Phaser.GameObjects.Image;
-  readonly white: Phaser.GameObjects.Image;
+  /** The baked burst (fireworkMath.ts): one image showing its colour's strip (its sparks, the
+   *  white ones, the core and the fade baked in), the frame shown now; reduce flashes: the
+   *  twinkle frame (tinted) and its alpha. */
+  readonly img: Phaser.GameObjects.Image;
   readonly rocket: Phaser.GameObjects.Image;
+  /** The strip (FW_FRAMES row) of the plan now, the frame shown, the twinkle's alpha. */
+  strip: readonly NyFrame[];
   frame: number;
   alpha: number;
+  /** The rocket's tint now (set only when a burst of another colour reuses it). */
+  rocketTint: number;
   plan: BurstPlan | null;
   /** Layer x of its centre (fixed when it starts: it stays put on the sky as the view pans). */
   x: number;
@@ -331,6 +347,11 @@ export class NuwejaarSceneView {
   /** D-065: the ground's blue-hour step applied (dimGround), and ms spent on the ground dim. */
   private groundK = -1;
   dimMs = 0;
+  /** D-065 (perf): ms on the fireworks and on the stars (perf.spec reports them). */
+  fxMs = 0;
+  starsMs = 0;
+  /** Which of the stars (1) or the fireworks (0) this frame updates. */
+  private turn = 0;
   /** The tick (and hide state) the stars and fireworks were last drawn for. */
   private drawnTick = -1;
   private drawnHidden = false;
@@ -394,7 +415,7 @@ export class NuwejaarSceneView {
     this.buildFireworks();
     if (d.hooks === true)
       (window as { __TM_NY_HIDE__?: (on: boolean) => void }).__TM_NY_HIDE__ = (on) => {
-        this.hidden = on;
+        this.setHidden(on);
       };
     const hatsOn = d.decorations.includes('partyHats');
     this.hats = {
@@ -426,36 +447,48 @@ export class NuwejaarSceneView {
     if (!this.fireworksOn || !this.final || sky === undefined || this.bursts.length > 0) return;
     const fw = this.look.fireworks;
     const blend = this.reduceFlashes ? BLEND_NORMAL : BLEND_ADD;
-    const origin = (img: Phaser.GameObjects.Image): Phaser.GameObjects.Image =>
-      img.setOrigin(BURST_CELL.ox / BURST_CELL.w, BURST_CELL.oy / BURST_CELL.h);
     for (let b = 0; b < fw.pool; b++) {
-      const colour = origin(
-        this.scene.add
-          .image(0, 0, this.key, this.reduceFlashes ? 'fw_twinkle' : FW_COLOUR[0])
-          .setVisible(false)
-          .setBlendMode(blend),
-      );
-      const white = origin(
-        this.scene.add.image(0, 0, this.key, FW_WHITE[0]).setVisible(false).setBlendMode(blend),
-      );
+      const strip = FW_FRAMES[0] ?? [];
+      const img = this.scene.add
+        .image(0, 0, this.key, this.reduceFlashes ? 'fw_twinkle' : (strip[0] ?? 'fw_0_0'))
+        .setOrigin(BURST_CELL.ox / BURST_CELL.w, BURST_CELL.oy / BURST_CELL.h)
+        .setVisible(false)
+        .setBlendMode(blend);
       const rocket = this.scene.add.image(0, 0, this.key, 'streak').setVisible(false);
       originOf(rocket, 'streak');
-      rocket.setRotation(-Math.PI / 2);
+      rocket
+        .setRotation(-Math.PI / 2)
+        .setAlpha(fw.alpha * 0.55)
+        .setScale(0.5 * this.sparkScale, 0.6 * this.sparkScale);
       sky.fixtures.add(rocket);
-      sky.fixtures.add(colour);
-      sky.fixtures.add(white);
+      sky.fixtures.add(img);
       this.bursts.push({
-        colour,
-        white,
+        img,
         rocket,
+        strip,
         frame: -1,
         alpha: -1,
+        rocketTint: -1,
         plan: null,
         x: 0,
         popped: false,
         shown: false,
       });
     }
+  }
+
+  /**
+   * e2e only: hides (or shows) the fireworks and stars at once — on a held frame too, whichever
+   * of them that frame's turn would have updated — so a spec can grab the same held tick with and
+   * without them.
+   */
+  private setHidden(on: boolean): void {
+    this.hidden = on;
+    const state = this.last;
+    if (state === null) return;
+    this.drawnHidden = on;
+    this.updateStars(on ? 0 : this.starAlpha, this.drawnTick);
+    if (this.fireworksOn) this.updateFireworks(state, this.drawnTick);
   }
 
   /** Nothing screen-fixed to fit. */
@@ -517,12 +550,27 @@ export class NuwejaarSceneView {
     this.dimMs += performance.now() - d0;
     // Stars: out over the hunt, each twinkling slowly on its own phase.
     const st = this.look.stars;
-    const sa = this.hidden ? 0 : st.alpha * ramp(p, st.from, st.to);
-    this.starAlpha = sa;
+    this.starAlpha = st.alpha * ramp(p, st.from, st.to);
+    const sa = this.hidden ? 0 : this.starAlpha;
     // Nothing below moves unless the sim tick (or a hide) moved: a held or repeated frame is free.
     if (tick === this.drawnTick && this.hidden === this.drawnHidden) return;
+    // The stars and the fireworks take turns, a frame each (30 Hz at 60 fps: a burst's frame
+    // lasts several render frames anyway); a hide or show updates both at once.
+    const both = this.hidden !== this.drawnHidden;
     this.drawnTick = tick;
     this.drawnHidden = this.hidden;
+    this.turn ^= 1;
+    const s0 = performance.now();
+    if (both || this.turn === 1) this.updateStars(sa, tick);
+    const s1 = performance.now();
+    this.starsMs += s1 - s0;
+    if (this.fireworksOn && (both || this.turn === 0)) this.updateFireworks(state, tick);
+    this.fxMs += performance.now() - s1;
+  }
+
+  /** The star groups' alphas (each its own slow phase), set only when they change. */
+  private updateStars(sa: number, tick: number): void {
+    const st = this.look.stars;
     const per = st.twinkleSeconds * TICKS_PER_SECOND;
     for (const gr of this.stars) {
       const tw = 0.65 + 0.35 * (SINE64[Math.floor(((tick / per + gr.phase) % 1) * 64) & 63] ?? 0);
@@ -534,7 +582,6 @@ export class NuwejaarSceneView {
         if (gr.box.visible !== vis) gr.box.setVisible(vis);
       }
     }
-    if (this.fireworksOn) this.updateFireworks(state, tick);
   }
 
   /** Every listed layer's extra tint at blue-hour progress k (0 … 1); reused map, no garbage. */
@@ -580,13 +627,16 @@ export class NuwejaarSceneView {
       const half = designSize().width / 2;
       const centre = sky === undefined ? 0 : (half - sky.root.x) / k;
       free.x = centre + (plan.across * half * 0.92) / k;
-      // A little variety: mirrored or not, a slight turn, its own size and colour.
+      // A little variety: mirrored or not (a negative x scale), a slight turn, its own size and
+      // colour (its strip): three calls.
       const scale = (plan.radius / BURST_R / BURST_CELL.scale) * this.sparkScale;
-      const turn = (hash01(plan.slot, 9) - 0.5) * 0.3;
-      const flip = hash01(plan.slot, 10) < 0.5;
-      for (const img of [free.colour, free.white])
-        img.setScale(scale).setRotation(turn).setFlipX(flip).setPosition(free.x, plan.y);
-      free.colour.setTint(plan.colour);
+      const flip = hash01(plan.slot, 10) < 0.5 ? -1 : 1;
+      free.img
+        .setPosition(free.x, plan.y)
+        .setScale(scale * flip, scale)
+        .setRotation((hash01(plan.slot, 9) - 0.5) * 0.3);
+      if (this.reduceFlashes) free.img.setTint(plan.colour);
+      free.strip = FW_FRAMES[plan.colourIndex % FW_STRIPS] ?? free.strip;
       free.frame = -1;
       free.alpha = -1;
       this.starts.push(plan.start);
@@ -605,21 +655,22 @@ export class NuwejaarSceneView {
       if (b.shown) {
         b.shown = false;
         b.rocket.setVisible(false);
-        b.colour.setVisible(false);
-        b.white.setVisible(false);
+        b.img.setVisible(false);
       }
       return;
     }
     b.shown = true;
-    // The rocket: a dim short streak climbing to the burst's height.
+    // The rocket: a dim short streak climbing to the burst's height (its tint only when the
+    // colour changes).
     if (age < riseTicks) {
       const k = age / Math.max(1, riseTicks);
-      if (!b.rocket.visible)
-        b.rocket
-          .setVisible(true)
-          .setTint(plan.colour)
-          .setAlpha(fw.alpha * 0.55)
-          .setScale(0.5 * this.sparkScale, 0.6 * this.sparkScale);
+      if (!b.rocket.visible) {
+        b.rocket.setVisible(true);
+        if (b.rocketTint !== plan.colour) {
+          b.rocketTint = plan.colour;
+          b.rocket.setTint(plan.colour);
+        }
+      }
       b.rocket.setPosition(b.x, plan.y + fw.rise * (1 - k));
       return;
     }
@@ -631,32 +682,21 @@ export class NuwejaarSceneView {
         this.pops.push(sky.root.x + b.x * sky.root.scaleX);
     }
     const t = (age - riseTicks) / durTicks;
+    if (!b.img.visible) b.img.setVisible(true);
     if (this.reduceFlashes) {
       // Only a twinkle where the burst hangs: no growth, no core, dim (never brighter than the sky).
-      if (!b.colour.visible) b.colour.setVisible(true);
       const a = Math.round(fw.twinkleAlpha * Math.sin(t * Math.PI) * 64) / 64;
       if (a !== b.alpha) {
         b.alpha = a;
-        b.colour.alpha = a;
+        b.img.alpha = a;
       }
       return;
     }
-    // The baked burst: its frame for this age (fireworkMath BURST_T), faded as a whole.
-    if (!b.colour.visible) {
-      b.colour.setVisible(true);
-      b.white.setVisible(true);
-    }
+    // The baked burst: its frame for this age (fireworkMath BURST_T), the fade baked in.
     const f = burstFrameAt(t);
     if (f !== b.frame) {
       b.frame = f;
-      b.colour.setFrame(FW_COLOUR[f] ?? 'fw_c_0');
-      b.white.setFrame(FW_WHITE[f] ?? 'fw_w_0');
-    }
-    const a = Math.round(burstAlpha(fw, t) * 64) / 64;
-    if (a !== b.alpha) {
-      b.alpha = a;
-      b.colour.alpha = a;
-      b.white.alpha = a;
+      b.img.setFrame(b.strip[f] ?? 'fw_0_0');
     }
   }
 
@@ -685,15 +725,22 @@ export class NuwejaarSceneView {
       stars: this.starCount,
       starAlpha: Math.round(this.starAlpha * 100) / 100,
       bursts: this.bursts.flatMap((b) => {
-        if (!b.shown || b.plan === null) return [];
-        const s = b.colour;
-        if (!s.visible) return [];
+        // Only a burst really drawn: the delivered sheet's baked frame (past the rocket), shown,
+        // not nearly faded.
+        if (!this.final || !b.shown || b.plan === null) return [];
+        const s = b.img;
+        if (!s.visible || (!this.reduceFlashes && b.frame < 0)) return [];
+        // The alpha it is drawn at: the twinkle's, or the burst's fade baked into its frame.
+        const alpha = this.reduceFlashes
+          ? s.alpha
+          : burstAlpha(this.look.fireworks, BURST_T[b.frame] ?? 0);
+        if (alpha < 0.3 && !this.reduceFlashes) return [];
         return [
           {
             x: Math.round(ox + b.x * k),
             y: Math.round(oy + b.plan.y * k),
             r: Math.round(b.plan.radius * k),
-            alpha: Math.round(s.alpha * 100) / 100,
+            alpha: Math.round(alpha * 100) / 100,
             slot: b.plan.slot,
           },
         ];
@@ -707,8 +754,7 @@ export class NuwejaarSceneView {
   clear(): void {
     for (const b of this.bursts) {
       b.rocket.destroy();
-      b.colour.destroy();
-      b.white.destroy();
+      b.img.destroy();
     }
     this.bursts.length = 0;
     for (const gr of this.stars) gr.box.destroy();

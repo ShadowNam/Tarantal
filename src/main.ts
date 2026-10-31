@@ -431,6 +431,8 @@ const hook: TestHook = {
   baboonMs: 0,
   feesdagMs: 0,
   feesdagDimMs: 0,
+  feesdagFxMs: 0,
+  feesdagStarsMs: 0,
   gunRect: null,
   titleOupa: null,
   countdown: null,

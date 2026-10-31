@@ -4,16 +4,18 @@
 // (fireworkMath.ts): per frame a burst changes its frame and alpha only when they change, the
 // stars are four groups (an alpha each), and a frame whose tick has not moved does nothing.
 // Measured with this harness: per-spark images (af6ce21) 186 setter and 305 trig calls a frame;
-// precomputed per-spark (f78f3eb) 116 and 46; baked bursts: see the test's [ny perf proxy] line.
+// precomputed per-spark (f78f3eb) 116 and 46; at 20 ticks a frame (the 4× smoke's regime) one baked
+// strip per colour: ~8 calls and no trig (2 a frame at 60 fps).
 // The ground's blue hour (300 statics + 20 herds over a 90-s hunt), before: every 1 % step of the
 // sky's wash re-tinted the whole map in one frame — 13 928 setTint calls in all, 279 in the worst
-// frame; after (1/32 steps, a changed layer a frame, only real changes): 8 928, at most 50.
+// frame; after (1/32 steps, ≤ DIM_BUDGET images a frame, only real changes): 8 928, at most 40.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { loadContent, loadFeel } from '../../../tools/testContent';
 import type { ParallaxView } from '../view/ParallaxView';
-import { LayerDimmer, type DimLayer } from '../view/layerDimmer';
+import { DIM_BUDGET, LayerDimmer, type DimLayer } from '../view/layerDimmer';
 import { NEWYEAR_SHEET } from './newyearKeys';
 import { NuwejaarSceneView } from './NuwejaarView';
+import { FW_STRIPS } from './fireworkMath';
 import type { FeesdagView as FeesdagState } from '../../sim/types';
 
 /** Setter calls on every stub image, by name. */
@@ -191,18 +193,24 @@ function measure(
   view: { update(s: FeesdagState, p: undefined, a: number, t: number): void },
   from = 600,
   frames = 240,
+  /** Sim ticks a render frame advances (perf.spec's 4× throttle smoke: ~20). */
+  step = 1,
 ): { setters: number; trig: number; held: number } {
-  for (let t = from - 120; t < from; t++) view.update(STATE, undefined, 0, t);
+  for (let t = from - 120; t < from; t += step) view.update(STATE, undefined, 0, t);
   const spies = (['sin', 'cos', 'atan2', 'hypot', 'tan', 'pow'] as const).map((f) =>
     vi.spyOn(Math, f),
   );
   calls.clear();
-  for (let t = from; t < from + frames; t++) view.update(STATE, undefined, 0, t);
+  let last = from;
+  for (let f = 0; f < frames; f++) {
+    last = from + f * step;
+    view.update(STATE, undefined, 0, last);
+  }
   const setters = [...calls.values()].reduce((a, b) => a + b, 0) / frames;
   const trig = spies.reduce((a, s) => a + s.mock.calls.length, 0) / frames;
   // A held frame: the same tick again.
   calls.clear();
-  view.update(STATE, undefined, 0, from + frames - 1);
+  view.update(STATE, undefined, 0, last);
   const held = [...calls.values()].reduce((a, b) => a + b, 0);
   for (const s of spies) s.mockRestore();
   return { setters, trig, held };
@@ -213,16 +221,22 @@ describe('New Year view per-frame cost (D-065 perf)', () => {
     vi.restoreAllMocks();
   });
 
-  it('a full pool of fireworks: baked frames, an alpha a group of stars, a held frame free', () => {
+  it('a full pool of fireworks at the smoke’s 20 ticks a frame: ≤ 12 calls a frame, a held frame free', () => {
+    // perf.spec's 4× throttle smoke runs ~330 ms a frame: every frame jumps ~20 sim ticks, so most
+    // frames launch a burst and every live burst changes frame. Mid-hunt (the stars out).
     const view = makeView();
-    // Mid-hunt, the stars out and twinkling (the ramp's middle), the pool full.
-    const m = measure(view, 3000);
-    // No per-spark trig at all: a sine for a reduce-flashes twinkle at most.
+    const m = measure(view, 3000, 120, 20);
     expect(m.trig).toBeLessThanOrEqual(4);
-    // Two images a burst (a frame, an alpha), a rocket's position, four star groups' alphas.
     expect(m.setters).toBeLessThanOrEqual(12);
     expect(m.held).toBe(0);
-    console.log(`[ny perf proxy] ${JSON.stringify(m)}`);
+    // And at a real 60 fps (a tick a frame).
+    const smooth = measure(makeView(), 3000, 240, 1);
+    expect(smooth.setters).toBeLessThanOrEqual(6);
+    console.log(`[ny perf proxy] ${JSON.stringify({ smoke: m, smooth })}`);
+  });
+
+  it('one baked strip per burst colour', () => {
+    expect(loadFeel().feesdae.looks.newyear.fireworks.colours.length).toBe(FW_STRIPS);
   });
 
   it('the ground goes to blue hour in steps, one changed layer a frame, tinting only what changes', () => {
@@ -242,8 +256,8 @@ describe('New Year view per-frame cost (D-065 perf)', () => {
     const peak = Math.max(...ground.perFrame);
     // Every setTint call is a real change (herds tint themselves only on change as well).
     expect(total).toBeLessThanOrEqual(ground.changes);
-    // At most one layer's worth in any frame (300 / 7 statics + its herds), never the whole map.
-    expect(peak).toBeLessThanOrEqual(Math.ceil(300 / 7) + 7);
+    // At most DIM_BUDGET images (then the layer's herds) in any frame, never the whole map.
+    expect(peak).toBeLessThanOrEqual(DIM_BUDGET + 7);
     console.log(`[ny dim proxy] ${JSON.stringify({ total, peak, changes: ground.changes })}`);
   });
 });

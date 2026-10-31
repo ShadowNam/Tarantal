@@ -23,13 +23,17 @@ export interface BurstLook {
   readonly whiteEvery: number;
 }
 
+/** One baked strip per burst colour (feel.json fireworks.colours, in order; a unit test checks the
+ *  count): each frame has the coloured sparks, the white sparks, the core and the burst's fade in
+ *  it, so the game only changes the frame (no tint, no alpha). */
+export const FW_STRIPS = 4;
 /** The radius the frames are drawn at (design px); a burst of radius r is shown at r / BURST_R. */
 export const BURST_R = 84;
 /** The spark pattern baked into the frames (the old per-burst slot's role). */
 export const BURST_PATTERN = 7;
 /** Frames in the strip, and the burst age (0 … 1) each one shows: more of them early, where it
  *  opens fast. */
-export const BURST_FRAMES = 14;
+export const BURST_FRAMES = 12;
 export const BURST_T: readonly number[] = Array.from(
   { length: BURST_FRAMES },
   (_, i) => 0.93 * (i / (BURST_FRAMES - 1)) ** 1.7,

@@ -20,6 +20,7 @@ import { OUPA_DRAWN } from '../../src/game/feesdae/christmasKeys';
 import {
   BURST_CELL,
   BURST_T,
+  burstAlpha,
   burstCore,
   burstSparks,
   twinkleDots,
@@ -383,24 +384,41 @@ function burst(seed: number): string {
 
 // --- the baked firework burst (D-065 perf) -------------------------------------------------------
 
-const FW: BurstLook = loadFeel().feesdae.looks.newyear.fireworks;
+const FW: BurstLook & { readonly colours: readonly string[] } =
+  loadFeel().feesdae.looks.newyear.fireworks;
 
-/** One frame of the burst (fireworkMath.ts, the reviewed spark math), drawn at half size round
- *  the cell's centre: `c` the coloured sparks in white (the game tints them per burst), `w` the
- *  white sparks and the core (untinted). Alphas are relative to the whole burst's fade (the game
- *  sets that as the image's alpha). */
-function fireworkFrame(kind: 'c' | 'w', i: number): string {
+/** One frame of a burst strip (fireworkMath.ts, the reviewed spark math), drawn at half size
+ *  round the cell's centre in burst colour `ci` (feel.json fireworks.colours): its coloured
+ *  sparks, the white sparks and the core, all at the burst's fade for that frame — the game only
+ *  changes the frame (no tint, no alpha). */
+function fireworkFrame(ci: number, i: number): string {
   const t = BURST_T[i] ?? 0;
-  const tail = uid('ft');
-  const glow = radial(
-    [
-      [0, '#FFFFFF', 1],
-      [0.45, '#FFFFFF', 1],
-      [1, '#FFFFFF', 0],
-    ],
-    0.5,
-    0.5,
-  );
+  const fade = burstAlpha(FW, t);
+  const colour = FW.colours[ci] ?? '#FFFFFF';
+  const gradients = (
+    c: string,
+  ): { tail: string; glow: { def: string; url: string }; def: string } => {
+    const tail = uid('ft');
+    const glow = radial(
+      [
+        [0, c, 1],
+        [0.45, c, 1],
+        [1, c, 0],
+      ],
+      0.5,
+      0.5,
+    );
+    const def = el(
+      'linearGradient',
+      { id: tail, x1: 0, y1: 0, x2: 1, y2: 0 },
+      el('stop', { offset: 0, 'stop-color': c, 'stop-opacity': 0 }),
+      el('stop', { offset: 0.75, 'stop-color': c, 'stop-opacity': 0.7 }),
+      el('stop', { offset: 1, 'stop-color': c, 'stop-opacity': 1 }),
+    );
+    return { tail, glow, def };
+  };
+  const tinted = gradients(colour);
+  const white = gradients('#FFFFFF');
   const coreGlow = radial(
     [
       [0, '#FFF4D8', 1],
@@ -410,46 +428,35 @@ function fireworkFrame(kind: 'c' | 'w', i: number): string {
     0.5,
     0.5,
   );
-  const sparks = burstSparks(FW, t, i)
-    .filter((sp) => sp.white === (kind === 'w'))
-    .map((sp) =>
-      g(
-        {
-          transform: `translate(${r2(sp.x)} ${r2(sp.y)}) rotate(${r2((sp.rot * 180) / Math.PI)}) scale(${r2(sp.len)} ${r2(sp.thick)})`,
-          opacity: sp.alpha,
-        },
-        path(
-          polyD([
-            [-32, -0.6],
-            [0, -2.6],
-            [0, 2.6],
-            [-32, 0.6],
-          ]),
-          `url(#${tail})`,
-        ),
-        path(ellipseD(0, 0, 4.4, 4.4), glow.url),
+  const sparks = burstSparks(FW, t, i).map((sp) => {
+    const gr = sp.white ? white : tinted;
+    return g(
+      {
+        transform: `translate(${r2(sp.x)} ${r2(sp.y)}) rotate(${r2((sp.rot * 180) / Math.PI)}) scale(${r2(sp.len)} ${r2(sp.thick)})`,
+        opacity: r2(sp.alpha * fade),
+      },
+      path(
+        polyD([
+          [-32, -0.6],
+          [0, -2.6],
+          [0, 2.6],
+          [-32, 0.6],
+        ]),
+        `url(#${gr.tail})`,
       ),
+      path(ellipseD(0, 0, 4.4, 4.4), gr.glow.url),
     );
-  const core = kind === 'w' ? burstCore(FW, t) : null;
+  });
+  const core = burstCore(FW, t);
   return g(
     { transform: `scale(${BURST_CELL.scale})` },
-    defs(glow, coreGlow),
-    el(
-      'defs',
-      {},
-      el(
-        'linearGradient',
-        { id: tail, x1: 0, y1: 0, x2: 1, y2: 0 },
-        el('stop', { offset: 0, 'stop-color': '#FFFFFF', 'stop-opacity': 0 }),
-        el('stop', { offset: 0.75, 'stop-color': '#FFFFFF', 'stop-opacity': 0.7 }),
-        el('stop', { offset: 1, 'stop-color': '#FFFFFF', 'stop-opacity': 1 }),
-      ),
-    ),
+    defs(tinted.glow, white.glow, coreGlow),
+    el('defs', {}, tinted.def, white.def),
     ...sparks,
     core === null
       ? ''
       : path(ellipseD(0, 0, 8 * core.scale, 8 * core.scale), coreGlow.url, {
-          opacity: core.alpha,
+          opacity: r2(Math.min(1, core.alpha * fade)),
         }),
   );
 }
@@ -475,8 +482,8 @@ function twinkleFrame(): string {
 }
 
 function frameArt(name: NyFrame): string {
-  const fw = /^fw_([cw])_(\d+)$/.exec(name);
-  if (fw !== null) return fireworkFrame(fw[1] === 'w' ? 'w' : 'c', Number(fw[2]));
+  const fw = /^fw_(\d+)_(\d+)$/.exec(name);
+  if (fw !== null) return fireworkFrame(Number(fw[1]), Number(fw[2]));
   switch (name) {
     case 'hat_l':
       return partyHat('l');

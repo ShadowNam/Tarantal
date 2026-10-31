@@ -528,6 +528,9 @@ export interface TestHook {
   feesdagMs: number;
   /** D-065 (perf): ms of feesdagMs spent on New Year's ground dim (dimGround + stepDim). */
   feesdagDimMs: number;
+  /** D-065 (perf): ms of feesdagMs spent on New Year's fireworks and on its stars. */
+  feesdagFxMs: number;
+  feesdagStarsMs: number;
   /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
    *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
   reloadFx: { chipIcons: (string | null)[]; bolts: number; oupaHand: boolean; autoReloads: number };

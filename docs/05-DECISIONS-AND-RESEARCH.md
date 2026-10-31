@@ -3571,12 +3571,12 @@ double points in the last 10 s; 31 Dec–1 Jan UTC."
   existing golden replays unchanged (content hash only); a New Year golden is added.
 - *Groups.* `feesdae-newyear` (the sheet, four sounds) and `feesdae-voice-newyear-<lang>`, lazy,
   loaded only by a New Year hunt or the title on the day. The sheet is **Standard in HD from the
-  start** (D-064: a 1× pack, 400 × 1294 px with the baked firework frames, ~2 MB on the GPU; no `-hd` twin): the Okavango leaves
+  start** (D-064: a 1× pack, 400 × 1934 px with the baked firework strips, ~3 MB on the GPU; no `-hd` twin): the Okavango leaves
   ~2 MB of HD texture memory. The fireworks and stars use a 16 px spark and a 12 px star frame.
 - *Look.* Its own light (`nuwejaar_skemer`: a warm rose-gold dusk) that deepens to blue hour over
   the hunt (a wash on the sky layer, sim time), stars coming out; small fireworks low over the far
   horizon on the sky layer (behind the far ridge): a fixed pool made once (4 bursts, each baked
-  frame by frame into the sheet — two images and a rocket — for the phone budget), the schedule a pure function of the tick (one 1/3 s slot can start at most one burst:
+  frame by frame into the sheet, one strip per colour — an image and a rocket — for the phone budget), the schedule a pure function of the tick (one 1/3 s slot can start at most one burst:
   never more than 3 a second), more in the countdown, half as many on the low tier, and with
   "reduce flashes" only a dim twinkle; party hats on the witch and Santa hats' anchors; Oupa (D-064's
   figure) in a party hat with a party blower beside the title badge, on the tally slate and on his

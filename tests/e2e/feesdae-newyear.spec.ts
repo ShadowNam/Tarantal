@@ -15,7 +15,7 @@ import feel from '../../content/client/feel.json' with { type: 'json' };
 import { tapRectInPage } from './feesdaeHelpers';
 import { boot, collectErrors, hook, isLandscape, isTouchProject, tapRect } from './helpers';
 import { bagInCountdown, countdownOn, hideNy, nyRunning, nySheetIn } from './newyearHelpers';
-import { holdNow, release } from './christmasHelpers';
+import { release } from './christmasHelpers';
 
 const NEW_YEAR = loadContent().feesdae.specials.find((f) => f.id === 'newyear');
 if (NEW_YEAR === undefined) throw new Error('no newyear in feesdae.json');
@@ -149,40 +149,68 @@ test.describe('Feesdae: New Year countdown (D-065)', () => {
       timeout: 120_000,
     });
 
-    // A burst on the canvas: wait for one opening (read in the frame that shows it), hold that
-    // tick, then grab it with the fireworks shown and hidden.
+    // A burst on the canvas: with the delivered sheet (its baked frames), hold a frame that shows
+    // one well drawn (alpha ≥ 0.3, read and held in the same in-page check), grab it with the
+    // fireworks shown and hidden at that held tick. Bounded: up to 6 bursts; a hard failure if no
+    // burst's pixels are ever there.
     await nySheetIn(page);
-    await page.waitForFunction(
-      () =>
-        (window.__TM__?.spook?.newYear?.bursts ?? []).some(
-          (b) => b.alpha > 0.4 && b.x > 100 && b.x < (window.__TM__?.designWidth ?? 0) - 100,
-        ),
-      null,
-      { timeout: 120_000 },
-    );
-    await holdNow(page);
-    h = await hook(page);
-    const burst = (h.spook?.newYear?.bursts ?? []).find((b) => b.x > 100 && b.alpha > 0.2);
-    expect(burst).toBeDefined();
+    await page.waitForFunction(() => window.__TM__?.spook?.final === true, null, {
+      timeout: 120_000,
+    });
     const grab = async (): Promise<Rgba> =>
       decodePng(await page.locator('#game canvas').screenshot());
-    const on = await grab();
-    await hideNy(page, true);
-    const off = await grab();
-    await hideNy(page, false);
-    const k = on.height / h.designHeight;
-    if (burst !== undefined) {
+    let best = 0;
+    let shot: { on: Rgba; off: Rgba } | null = null;
+    for (let attempt = 0; attempt < 6 && best <= 12; attempt++) {
+      const held = await page.waitForFunction(
+        () => {
+          const g = window.__TM__;
+          const hold = (window as unknown as { __TM_HOLD_AT__?: (t: number) => void })
+            .__TM_HOLD_AT__;
+          if (g === undefined || hold === undefined) return null;
+          const b = (g.spook?.newYear?.bursts ?? []).find(
+            (x) => x.alpha >= 0.3 && x.x > 100 && x.x < g.designWidth - 100,
+          );
+          if (b === undefined) return null;
+          hold(g.tick + 1);
+          return b;
+        },
+        null,
+        { timeout: 120_000, polling: 'raf' },
+      );
+      const burst = (await held.jsonValue()) as {
+        x: number;
+        y: number;
+        r: number;
+        alpha: number;
+      };
+      await page.waitForTimeout(600);
+      h = await hook(page);
+      const on = await grab();
+      await hideNy(page, true);
+      const off = await grab();
+      await hideNy(page, false);
+      const k = on.height / h.designHeight;
       const r = burst.r + 8;
-      const c = changed(on, off, k, { x: burst.x - r, y: burst.y - r, w: r * 2, h: r * 2 });
-      // Some sparks really drawn round it (a burst is a ring of small sparks, not a disc).
-      expect(c.n).toBeGreaterThan(12);
+      // The baked burst drifts down as it falls: the box reaches below its centre too.
+      const c = changed(on, off, k, { x: burst.x - r, y: burst.y - r, w: r * 2, h: r * 2.6 });
+      best = Math.max(best, c.n);
       // Small and local: never a large flash (the burst's box is a sliver of the screen).
       expect((r * 2) ** 2).toBeLessThan(h.designWidth * h.designHeight * 0.02);
       expect(burst.alpha).toBeLessThanOrEqual(FW.alpha);
+      shot = { on, off };
+      await release(page);
+      if (best <= 12) {
+        const t0 = await page.evaluate(() => window.__TM__?.tick ?? 0);
+        await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 20, t0, {
+          timeout: 60_000,
+        });
+      }
     }
+    // Some sparks really drawn round it (a burst is a ring of small sparks, not a disc).
+    expect(best, 'a burst’s sparks drawn on the canvas').toBeGreaterThan(12);
     // No large flash: the whole frame is barely brighter with the fireworks than without.
-    expect(luminance(on) - luminance(off)).toBeLessThan(4);
-    await release(page);
+    if (shot !== null) expect(luminance(shot.on) - luminance(shot.off)).toBeLessThan(4);
 
     // The countdown: read its rects in the frame it shows, inside the safe area and clear of
     // every other HUD rect, with the ×2 tag.

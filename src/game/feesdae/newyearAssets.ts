@@ -17,17 +17,13 @@ export {
   type NySound,
 } from './newyearKeys';
 import { NEWYEAR_SHEET, NY_SHEET_W, NY_SOUNDS } from './newyearKeys';
-import { BURST_CELL, BURST_FRAMES } from './fireworkMath';
+import { BURST_CELL, BURST_FRAMES, FW_STRIPS } from './fireworkMath';
 
 const CELL = { w: BURST_CELL.w, h: BURST_CELL.h, ox: BURST_CELL.ox, oy: BURST_CELL.oy };
-/** The burst's frame names, coloured and white, by frame index. */
-export const FW_COLOUR: readonly NyFrame[] = Array.from(
-  { length: BURST_FRAMES },
-  (_, i): NyFrame => `fw_c_${i}`,
-);
-export const FW_WHITE: readonly NyFrame[] = Array.from(
-  { length: BURST_FRAMES },
-  (_, i): NyFrame => `fw_w_${i}`,
+/** The burst's frame names: one strip per burst colour (FW_STRIPS), by frame index. */
+export const FW_FRAMES: readonly (readonly NyFrame[])[] = Array.from(
+  { length: FW_STRIPS },
+  (_, c) => Array.from({ length: BURST_FRAMES }, (_, i): NyFrame => `fw_${c}_${i}`),
 );
 
 export type NyFrame =
@@ -42,10 +38,9 @@ export type NyFrame =
   | 'streamer_a'
   | 'streamer_b'
   | 'burst'
-  // D-065 (perf): a firework burst baked frame by frame (fireworkMath.ts): the coloured sparks
-  // (tinted per burst), the white sparks and the core (untinted), and the reduce-flashes twinkle.
-  | `fw_c_${number}`
-  | `fw_w_${number}`
+  // D-065 (perf): a firework burst baked frame by frame (fireworkMath.ts), one strip per burst
+  // colour (its sparks, the white ones, the core and the fade), and the reduce-flashes twinkle.
+  | `fw_${number}_${number}`
   | 'fw_twinkle';
 
 interface FrameSpec {
@@ -61,8 +56,7 @@ interface FrameSpec {
 /** Packed in shelves, tallest first. Oupa's frames match Christmas's (badgeOupaRect, the slate). */
 const SPECS: readonly FrameSpec[] = [
   { name: 'oupa', w: 120, h: 210, ox: 55, oy: 206 },
-  ...FW_COLOUR.map((name) => ({ name, ...CELL })),
-  ...FW_WHITE.map((name) => ({ name, ...CELL })),
+  ...FW_FRAMES.flat().map((name) => ({ name, ...CELL })),
   { name: 'fw_twinkle', ...CELL },
   { name: 'hat_l', w: 90, h: 120, ox: 45, oy: 108, forScale: 1 },
   { name: 'burst', w: 110, h: 110, ox: 55, oy: 55 },

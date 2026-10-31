@@ -1269,12 +1269,13 @@ The friends' Android app before any store account (docs/ANDROID-TEST-APP.md). Ca
   `scoreBag` (a `countdown` breakdown step after `stampede`) and `scoreEventBonus`; penalties are
   untouched; `countdownStarted` and `feesdag.countdown` (atTick, active, mult) in the snapshot.
   Its files are `feesdae-newyear` and `feesdae-voice-newyear-<lang>`, the sheet Standard in HD from
-  the start (1×, ~2 MB with the baked firework frames); the hunt waits for it like Christmas's. `NuwejaarView` keeps a fixed
+  the start (1×, ~3 MB with the baked firework strips); the hunt waits for it like Christmas's. `NuwejaarView` keeps a fixed
   pool of firework sprites on the sky layer (made once; the schedule is a pure function of the
   tick: one burst at most per 1/maxPerSecond slot) and sets properties only when they change; each
-  burst is baked into frames (`fireworkMath.ts`, drawn by tools/art/newyear.ts), so a burst is two
-  images (frame + alpha) and a rocket, and the stars are four groups (an alpha each). The ground's
-  blue hour goes through `LayerDimmer` (1/32 steps, one changed layer a frame).
+  burst is baked into frames (`fireworkMath.ts`, drawn by tools/art/newyear.ts; one strip per
+  colour, the fade baked in), so a burst is one image that changes frame, and a rocket; the stars
+  are four groups (an alpha each); fireworks and stars update on alternate frames. The ground's
+  blue hour goes through `LayerDimmer` (1/32 steps, at most 40 images a frame).
 
 ## 13. Leaderboards (v1.x)
 Small serverless API (e.g. Cloudflare Workers + D1, or Supabase). Client submits
