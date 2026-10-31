@@ -19,6 +19,7 @@ import {
   REENBUI_SHEET_H,
   REENBUI_SHEET_W,
   reenbuiFrames,
+  sheetRect,
   type ReenbuiFrame,
 } from '../../src/game/view/reenbui/reenbuiSheet';
 import type { Rgba } from '../assets/image';
@@ -418,13 +419,22 @@ export function reenbuiSheetSvg(k = 1): string {
   const parts: string[] = [];
   for (const f of reenbuiFrames()) {
     const id = uid('cell');
+    // The cell on the sheet (cropped; half size for the frames drawn ×2).
+    const c = sheetRect(f);
     parts.push(
       g(
         {},
-        el('clipPath', { id }, el('rect', { x: f.x, y: f.y, width: f.w, height: f.h })),
+        el('clipPath', { id }, el('rect', { x: c.x, y: c.y, width: c.w, height: c.h })),
         g(
           { 'clip-path': `url(#${id})` },
-          g({ transform: `translate(${r2(f.x + f.ox)} ${r2(f.y + f.oy)})` }, frameArt(f.name)),
+          g(
+            {
+              transform: `translate(${r2(f.x + f.ox * f.res)} ${r2(f.y + f.oy * f.res)})${
+                f.res === 1 ? '' : ` scale(${f.res})`
+              }`,
+            },
+            frameArt(f.name),
+          ),
         ),
       ),
     );

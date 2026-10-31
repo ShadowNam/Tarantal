@@ -4,7 +4,7 @@
 
 /** The sheet's texture key (listed only by the maps that can have a Reënbui). */
 export const REENBUI_SHEET = 'reenbui/sheet';
-/** Sheet size, design px at 1× (reenbuiSheet.ts packs the frames into it). Drawn at 1× and
- *  Standard in HD (no HD twin): ~2 MB on the GPU, inside the Okavango's HD headroom. */
-export const REENBUI_SHEET_W = 1024;
-export const REENBUI_SHEET_H = 490;
+/** Sheet size (sheet px at 1×; reenbuiSheet.ts packs the cropped, partly half-size frames into
+ *  it). Standard in HD (no HD twin): 0.5 MiB on the GPU, inside the Okavango's HD headroom. */
+export const REENBUI_SHEET_W = 512;
+export const REENBUI_SHEET_H = 256;

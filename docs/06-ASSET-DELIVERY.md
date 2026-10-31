@@ -393,13 +393,14 @@ Record your own, or use public-domain recordings with the source written down; m
 xeno-canto recordings are NonCommercial and can't be used.
 
 **Reënbui (v1.10, D-067; art bible §5.5).** One interim sheet, `sprites/reenbui/sheet.png`
-(1024 × 490 at 1×, the late group, `hd: false`: Standard in HD; layout and frame names in
-`src/game/view/reenbui/reenbuiSheet.ts`): `rain_far` and `rain_near` (256 × 192 tiles that must
-repeat seamlessly, top-left origin), `col_0`…`col_3` (the alate column's rising loop, 120 × 440 at mid-plane size,
-foot at 60, 432; frame 3 leads back into frame 0; alates 3–5 px across, a few glinting per frame), `mound`, `puff_0`…`puff_3`, `wet`,
+(512 × 256 at 1×, the late group, `hd: false`: Standard in HD; layout, crops and frame names in
+`src/game/view/reenbui/reenbuiSheet.ts`; frames with `res` 0.5 are drawn at half size and shown
+×2): `rain_far` and `rain_near` (256 × 192 tiles shown, 128 × 96 on the sheet, that must
+repeat seamlessly, top-left origin), `col_0`…`col_3` (the alate column's rising loop, 92 × 432 shown at mid-plane size,
+46 × 216 on the sheet, foot at 44, 426; frame 3 leads back into frame 0; alates 3–5 px across shown, a few glinting per frame), `mound`, `puff_0`…`puff_3`, `wet`,
 `cloud_a`, `cloud_b` (storm towers, base at the bottom centre) and `fork_a`, `fork_b` (small far
 lightning, top centre). A delivery keeps the size and the frame boxes (or updates the table and
-`reenbuiKeys.ts`) and stays ≤ ~2 MB on the GPU (the Okavango's HD headroom). The six
+`reenbuiKeys.ts`) and stays ≤ 0.5 MiB on the GPU (`GPU_BYTES_CAP`: the Okavango's HD headroom). The six
 `sfx/amb_reenbui_*` sounds are in the soundscape table above.
 
 **Desert group (v1.7, D-044).** The meerkat colonies' sheet `desert/meerkats` and their four

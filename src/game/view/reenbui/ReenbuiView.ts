@@ -20,8 +20,10 @@ import {
   RAIN_TILE,
   REENBUI_SHEET,
   columnFrame,
+  frameRes,
   puffFrame,
   reenbuiFrames,
+  sheetRect,
   reenbuiTexelsPerPx,
   type ReenbuiFrame,
 } from './reenbuiSheet';
@@ -217,9 +219,11 @@ export class ReenbuiView {
     if (tex === this.sheet) return true;
     const k = reenbuiTexelsPerPx(tex.getSourceImage().width);
     for (const f of reenbuiFrames()) {
+      // Cut at its size on the sheet (cropped; half size for the frames drawn ×2).
+      const c = sheetRect(f);
       const fr = tex.has(f.name)
         ? tex.get(f.name)
-        : tex.add(f.name, 0, f.x * k, f.y * k, f.w * k, f.h * k);
+        : tex.add(f.name, 0, c.x * k, c.y * k, c.w * k, c.h * k);
       if (fr === null) continue;
       fr.customPivot = true;
       fr.pivotX = f.ox / f.w;
@@ -308,12 +312,17 @@ export class ReenbuiView {
     else if (next === 'fork') this.makeFork();
   }
 
+  /** Image scale per design px of a frame: 1 / (texels per sheet px × sheet px per design px). */
+  private px(frame: ReenbuiFrame): number {
+    return 1 / (this.k * frameRes(frame));
+  }
+
   /** A new sheet resolution: every scale set from `k` again. */
   private rescale(): void {
-    this.rainFar?.setScale(RAIN.far.scale / this.k);
-    this.rainNear?.setScale(RAIN.near.scale / this.k);
-    for (const s of this.clouds) this.scale(s, CLOUDS.scale / this.k);
-    if (this.fork !== null) this.scale(this.fork, FORK.scale / this.k);
+    this.rainFar?.setScale(RAIN.far.scale * this.px('rain_far'));
+    this.rainNear?.setScale(RAIN.near.scale * this.px('rain_near'));
+    for (const s of this.clouds) this.scale(s, CLOUDS.scale * this.px('cloud_a'));
+    if (this.fork !== null) this.scale(this.fork, FORK.scale * this.px('fork_a'));
     for (const p of this.puffs) this.scale(p.s, this.puffScale(p.layer));
     for (const [i, w] of this.wet.entries()) {
       const sc = this.wetScale(w.layer);
@@ -321,8 +330,8 @@ export class ReenbuiView {
     }
     for (const e of this.cols.values()) {
       const sc = this.columnScale(e.layer);
-      this.scale(e.mound, sc * MOUND_SCALE);
-      this.scale(e.col, sc);
+      this.scale(e.mound, sc * MOUND_SCALE * this.px('mound'));
+      this.scale(e.col, sc * this.px(columnFrame(0)));
     }
   }
 
@@ -333,13 +342,14 @@ export class ReenbuiView {
     const c = this.o.scene.add.container(0, 0).setVisible(false).setAlpha(0);
     const cols = Math.ceil(MAX_SCREEN_WIDTH / (RAIN_TILE.w * r.scale)) + 1;
     const rows = Math.ceil(SCREEN_H / (RAIN_TILE.h * r.scale)) + 1;
-    // Tile size in texels at k texels a design px.
-    const w = RAIN_TILE.w * this.k;
-    const h = RAIN_TILE.h * this.k;
+    // Tile size in texels (the tile is half size on the sheet).
+    const frame: ReenbuiFrame = `rain_${which}`;
+    const w = RAIN_TILE.w / this.px(frame);
+    const h = RAIN_TILE.h / this.px(frame);
     for (let y = 0; y < rows; y++)
       for (let x = 0; x < cols; x++)
-        c.add(this.o.scene.add.image(x * w, y * h, REENBUI_SHEET, `rain_${which}`));
-    c.setScale(r.scale / this.k);
+        c.add(this.o.scene.add.image(x * w, y * h, REENBUI_SHEET, frame));
+    c.setScale(r.scale * this.px(frame));
     this.used += 3;
     this.o.screen.add(c);
     return c;
@@ -465,7 +475,7 @@ export class ReenbuiView {
     if (sky === undefined) return;
     for (let i = 0; i < CLOUDS.count; i++) {
       const s = this.image(i % 2 === 0 ? 'cloud_a' : 'cloud_b', sky.fixtures, sky);
-      this.scale(s, CLOUDS.scale / this.k);
+      this.scale(s, CLOUDS.scale * this.px('cloud_a'));
       if (i === 2) {
         s.img.setFlipX(true);
         this.used++;
@@ -478,7 +488,7 @@ export class ReenbuiView {
     const sky = this.o.parallax.layers[0];
     if (sky === undefined) return;
     this.fork = this.image('fork_a', sky.fixtures);
-    this.scale(this.fork, FORK.scale / this.k);
+    this.scale(this.fork, FORK.scale * this.px('fork_a'));
   }
 
   // --- the ground: wet patches, puffs ------------------------------------------------------------
@@ -525,7 +535,7 @@ export class ReenbuiView {
   }
 
   private wetScale(layer: LayerNode): number {
-    return (WET.scale * this.o.planeScale[layer.plane ?? 'near']) / this.k;
+    return WET.scale * this.o.planeScale[layer.plane ?? 'near'] * this.px('wet');
   }
 
   private makeWet(width: number): void {
@@ -557,7 +567,7 @@ export class ReenbuiView {
   }
 
   private puffScale(layer: LayerNode): number {
-    return (1.4 * this.o.planeScale[layer.plane ?? 'near']) / this.k;
+    return 1.4 * this.o.planeScale[layer.plane ?? 'near'] * this.px('puff_0');
   }
 
   private makePuffs(): void {
@@ -576,7 +586,7 @@ export class ReenbuiView {
 
   private columnScale(layer: LayerNode): number {
     const plane = layer.plane ?? 'mid';
-    return this.o.planeScale[plane] / this.o.planeScale.mid / this.k;
+    return this.o.planeScale[plane] / this.o.planeScale.mid;
   }
 
   private updateColumns(v: SimReenbui, t: number, width: number): void {
@@ -596,9 +606,9 @@ export class ReenbuiView {
         made = true;
         const sc = this.columnScale(layer);
         const mound = this.image('mound', layer.fixtures, layer);
-        this.scale(mound, sc * MOUND_SCALE);
+        this.scale(mound, sc * MOUND_SCALE * this.px('mound'));
         const col = this.image(columnFrame(0), layer.fixtures, layer);
-        this.scale(col, sc);
+        this.scale(col, sc * this.px(columnFrame(0)));
         this.place(mound, c.x, c.y);
         this.place(col, c.x, c.y);
         e = { col, mound, layer };

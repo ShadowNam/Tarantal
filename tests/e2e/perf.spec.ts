@@ -588,7 +588,7 @@ test('perf: a New Year countdown hunt at 4× CPU throttle, fireworks at their mo
 
 // v1.10 (D-067): a Reënbui in HD on the heaviest map — the Okavango (252.9 MB with the New Year
 // special; ~3 MB left) — reached from the title, the swarm held (?reenbuiPhase=swarm): the event's
-// sheet is 1× and Standard in HD (1024 × 490 px, ~2 MB on the GPU), no HD Reënbui texture, no
+// sheet is 1× and Standard in HD (512 × 256 px, 0.5 MiB on the GPU), no HD Reënbui texture, no
 // other area's HD layers. ≤ 256 MB asserted.
 test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async ({
   page,

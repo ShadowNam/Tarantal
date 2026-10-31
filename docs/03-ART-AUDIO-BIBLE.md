@@ -705,8 +705,9 @@ jingle when the fence is whole. Oupa's Harvest lines (`guide.harvest.*`): en/af/
 
 ### 5.5 Reënbui: the storm, the rain and the alate columns (1.13.0, D-067)
 Interim at the D-035 bar, soft weather in gradients and layered tones (no ink on vapour). **One
-sheet** (`reenbui/sheet`, 1024 × 490 at 1×, the late group, Standard in HD: ~2 MB on the GPU,
-inside the Okavango's HD headroom): two rain tiles that repeat across the screen (fine far streaks;
+sheet** (`reenbui/sheet`, 512 × 256 at 1×, the late group, Standard in HD: 0.5 MiB on the GPU,
+inside the Okavango's HD headroom; each frame cropped to its art, the columns, rain tiles, towers
+and wet patch authored at half size and drawn ×2): two rain tiles that repeat across the screen (fine far streaks;
 fat near drops with a bright head; each streak drawn at its wrapped copies, so no seam), the alate
 column's four rising frames, the mound, the first drops' dust puff (four frames), a wet-ground
 patch, two storm towers (dark flat bases, lit billowing tops; one with an anvil) and two small

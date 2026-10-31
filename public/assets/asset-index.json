@@ -3735,12 +3735,12 @@
       "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/late/img/reenbui_sheet.cb7fb5d5e786.png",
-        "bytes": 55649,
-        "hash": "cb7fb5d5e786"
+        "path": "assets/late/img/reenbui_sheet.66bd65d3908d.png",
+        "bytes": 27556,
+        "hash": "66bd65d3908d"
       },
-      "width": 1024,
-      "height": 490,
+      "width": 512,
+      "height": 256,
       "originX": 0,
       "originY": 0
     },

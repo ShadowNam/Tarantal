@@ -11,7 +11,7 @@ import type { ReenbuiView as SimReenbui, SimState } from '../../../sim/types';
 import { FlashLimiter } from '../flashLimit';
 import { LayerDimmer, type DimLayer } from '../layerDimmer';
 import type { ParallaxView } from '../ParallaxView';
-import { REENBUI_SHEET } from './reenbuiSheet';
+import { REENBUI_SHEET, REENBUI_SHEET_W } from './reenbuiSheet';
 import { ReenbuiView } from './ReenbuiView';
 
 const calls = new Map<string, number>();
@@ -91,7 +91,11 @@ function makeView(
   } as unknown as ParallaxView;
   const frame = { customPivot: false, pivotX: 0, pivotY: 0 };
   // One texture object, as Phaser's texture manager keeps one per key.
-  const tex = { getSourceImage: () => ({ width: 1024 }), has: () => true, get: () => frame };
+  const tex = {
+    getSourceImage: () => ({ width: REENBUI_SHEET_W }),
+    has: () => true,
+    get: () => frame,
+  };
   const scene = {
     add: {
       image: () => {
