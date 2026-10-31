@@ -211,8 +211,15 @@ export class ReenbuiView {
     return true;
   }
 
-  private image(frame: ReenbuiFrame, parent: Phaser.GameObjects.Container): Img {
+  /** An image on a layer (`layer`: it takes the layer's map light, as the props do). */
+  private image(
+    frame: ReenbuiFrame,
+    parent: Phaser.GameObjects.Container,
+    layer: LayerNode | null = null,
+  ): Img {
     const img = this.o.scene.add.image(0, 0, REENBUI_SHEET, frame).setVisible(false).setAlpha(0);
+    const tint = layer === null ? 0xffffff : this.o.parallax.layerTint(layer.id);
+    if (tint !== 0xffffff) img.setTint(tint);
     parent.add(img);
     return { img, shown: false, alpha: 0, frame, x: 0, y: 0 };
   }
@@ -328,7 +335,7 @@ export class ReenbuiView {
         (1 - ramp(t, v.easingTick, v.endTick - v.easingTick + TICKS_PER_SECOND * 2));
     if (roll > 0 && this.clouds.length === 0)
       for (let i = 0; i < CLOUDS.count; i++) {
-        const s = this.image(i % 2 === 0 ? 'cloud_a' : 'cloud_b', sky.fixtures);
+        const s = this.image(i % 2 === 0 ? 'cloud_a' : 'cloud_b', sky.fixtures, sky);
         s.img.setScale(CLOUDS.scale / this.k);
         if (i === 2) s.img.setFlipX(true);
         this.clouds.push(s);
@@ -444,7 +451,7 @@ export class ReenbuiView {
       const sc = (WET.scale * this.o.planeScale[plane]) / this.k;
       const cx = this.centreOf(layer, width);
       for (let i = 0; i < n; i++) {
-        const s = this.image('wet', layer.fixtures);
+        const s = this.image('wet', layer.fixtures, layer);
         s.img.setScale(sc * (0.8 + hash01(i * 13 + n) * 0.5), sc);
         const span = (MAX_SCREEN_WIDTH * 1.4) / (layer.root.scaleX || 1);
         const x = cx + ((i + 0.5) / n - 0.5) * span + (hash01(i * 7) - 0.5) * 200;
@@ -460,7 +467,7 @@ export class ReenbuiView {
       const plane: PlaneId = i % 3 === 2 ? 'mid' : 'near';
       const layer = this.planeLayer(plane);
       if (layer === undefined) continue;
-      const s = this.image(puffFrame(0), layer.fixtures);
+      const s = this.image(puffFrame(0), layer.fixtures, layer);
       s.img.setScale((1.4 * this.o.planeScale[plane]) / this.k);
       s.img.setAlpha(0.9);
       s.alpha = 0.9;
@@ -482,9 +489,9 @@ export class ReenbuiView {
         const layer = this.planeLayer(c.plane);
         if (layer === undefined) continue;
         const sc = (COLUMN_SCALE * this.o.planeScale[c.plane]) / this.k;
-        const mound = this.image('mound', layer.fixtures);
+        const mound = this.image('mound', layer.fixtures, layer);
         mound.img.setScale(sc);
-        const col = this.image(columnFrame(0), layer.fixtures);
+        const col = this.image(columnFrame(0), layer.fixtures, layer);
         col.img.setScale(sc);
         this.place(mound, c.x, c.y);
         this.place(col, c.x, c.y);

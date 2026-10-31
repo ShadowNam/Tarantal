@@ -77,6 +77,7 @@ function makeView(
   const parallax = {
     layers,
     layer: (id: string) => layers.find((l) => l['id'] === id),
+    layerTint: () => 0xffffff,
     dimLayers: (m: ReadonlyMap<string, number>) => {
       dimmer.set(m);
     },

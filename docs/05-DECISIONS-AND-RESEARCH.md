@@ -3662,6 +3662,20 @@ feeds"). GDD §11.3e.
   maxBirdsOnScreen), drawn from the `reenbui` stream.
 - *e2e:* the event is off under `?e2e` unless `?reenbui=1` forces it (lesson 17), so every existing
   spec plays its seed as before.
+- *Art in the late group, not a group of its own:* one 1× sheet (1024 × 416, 53 KB PNG8,
+  ~1.7 MB on the GPU) shared by the four areas, listed only by their manifests, loaded in the
+  background after the first download and polled by the view (never waited for: the event plays
+  the same undrawn). A `reenbui` group would have needed its own loader plumbing for one file; a
+  per-area copy would have put it in four area chunks. Standard in HD (no HD twin): the soft rain,
+  vapour and the mid/far columns gain nothing at 2×, and the Okavango's HD hunt has ~3 MB left.
+- *Sounds in the soundscape's lazy group:* the five interim synths (`sfx/amb_reenbui_*`, ~25 s
+  mono) are soundscape calls the director never schedules by itself; the soundscape runtime plays
+  them as the event's cues on sim time and decodes them only for a hunt with a Reënbui. The
+  soundscape makes room by reading the sim's own phase ticks from the snapshot (lesson 36).
+- *Phones:* the rain is two screen-space containers of baked tiles (one move a frame), the columns
+  one image each cycling four baked frames, the sky and the ground parts on alternate frames,
+  properties only on change: ≤ 40 Phaser calls a frame at the swarm's peak in the perf smoke's
+  20-ticks-a-frame regime (unit-tested); the sim's `step()` ~0.1 ms with 60 birds in the swarm.
 - *Species note.* Termite alates (winged reproductives) leave the nest in swarms on warm, humid
   evenings after the first good summer rains, and birds, lizards and people feast on them ("rysmiere"
   in Afrikaans folk use; *Macrotermes* and harvester termites in the region).
