@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-30T19:46:50Z",
+ "updated": "2026-10-31T06:10:00Z",
  "by": "Claude",
- "summary": "Live on the test build: the Christmas Daily, \"Christmas in the sun\" (1.11.1, merged 21:46 Namibia time on 30 Oct, your pick of 27 Oct). On 25 Dec the Daily Hunt turns hot and festive: a bleached, shimmering horizon, tinsel and baubles in the camelthorn, Oupa in a Santa hat and shorts on the title, the tally and his speech bubble, some guineafowl in tiny Santa hats, and presents hidden in the scenery: shoot one and the lid tumbles off, the bow pops and confetti bursts (find them all for +25). Carols on the pennywhistle and a Christmas share card. Next: the New Year Daily, then v1.9–v1.13; Oupa's new voices last.",
+ "summary": "Live on the test build: the New Year Daily (1.11.2, merged 08:10 Namibia time on 31 Oct, your pick of 27 Oct). On 31 Dec and 1 Jan the Daily Hunt becomes a countdown hunt at dusk: a warm rose-gold sky that deepens to blue hour, small fireworks low over the far horizon (never full-screen flashes), guineafowl in party hats, Oupa in a party hat with a party blower, and a big 10…1 countdown in the last ten seconds where every award counts double (×4 together with the Stampede). \"Happy New Year!\" on the tally, Auld Lang Syne on the pennywhistle and a New Year share card. Next: v1.9 (the veld soundscape), then v1.10–v1.13; Oupa's new voices last.",
  "current": {
-  "version": "1.11.1",
-  "commit": "fd3f363"
+  "version": "1.11.2",
+  "commit": "bd70afb"
  },
  "links": [
   {
@@ -36,23 +36,23 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.11.1",
-   "note": "commit fd3f363, merged 30 Oct, 21:46 Namibia time (the test build deploys a few minutes after)"
+   "value": "1.11.2",
+   "note": "commit bd70afb, merged 31 Oct, 08:09 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "104",
-   "note": "#1 to #107"
+   "value": "105",
+   "note": "#1 to #108"
   },
   {
    "label": "Unit tests",
-   "value": "1,771",
+   "value": "1,794",
    "note": "plus the browser test suites on 3 devices"
   },
   {
    "label": "First download",
    "value": "2.98 MB",
-   "note": "2,977.8 KB of the 3,072 KB budget"
+   "note": "2,980.8 KB of the 3,072 KB budget"
   },
   {
    "label": "Hunting areas",
@@ -70,8 +70,8 @@
   },
   {
    "label": "Decisions logged",
-   "value": "64",
-   "note": "D-001 to D-064 on main"
+   "value": "65",
+   "note": "D-001 to D-065 on main"
   }
  ],
  "needsYou": [
@@ -2145,32 +2145,37 @@
    ]
   },
   {
-   "id": "new-year-daily-a-countdown-hunt-with-par",
-   "title": "New Year Daily: a countdown hunt with party hats, small fireworks and double points in the last 10 s (your pick, 27 Oct)",
+   "id": "new-year-daily-31-dec-1-jan-a-countdown-",
+   "title": "New Year Daily (31 Dec–1 Jan): a countdown hunt at dusk — party hats, small fireworks low over the horizon, the last 10 s double points (×4 with the Stampede), \"Happy New Year!\" tally and Auld Lang Syne on the pennywhistle; version 1.11.2 (your pick, 27 Oct)",
    "phase": "Version 1.x",
-   "status": "running",
-   "start": "2026-10-30T19:46:50Z",
-   "end": "2026-10-31T01:00:00Z",
-   "estimate": true,
-   "summary": "Tank task 5f6cc915"
+   "status": "done",
+   "start": "2026-10-30T20:27:02Z",
+   "end": "2026-10-31T06:09:53Z",
+   "estimate": false,
+   "prs": [
+    108
+   ]
   },
   {
    "id": "v1.9",
    "title": "v1.9: the veld soundscape and local music (doves, hadedas, cicadas, fish eagle; marimba, mbira, drums)",
    "phase": "Version 1.x",
-   "status": "next",
-   "start": "2026-10-31T01:00:00Z",
-   "end": "2026-10-31T06:00:00Z",
+   "status": "running",
+   "start": "2026-10-31T06:10:00Z",
+   "end": "2026-10-31T11:15:00Z",
    "estimate": true,
-   "version": "1.9.0"
+   "version": "1.9.0",
+   "summary": "The veld soundscape and local music: doves, hadedas, cicadas and the fish eagle in the background of each map, and music on marimba, mbira and drums.",
+   "owner": "Tank builds it (task c136e97d, started 08:10 Namibia); Claude runs the screenshots and checks",
+   "requestedBy": "You: the v1.9–v1.13 list, in your order."
   },
   {
    "id": "v1.10",
    "title": "v1.10: Reënbui — the first rain and the flying-ant feast",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T06:00:00Z",
-   "end": "2026-10-31T11:00:00Z",
+   "start": "2026-10-31T11:15:00Z",
+   "end": "2026-10-31T16:15:00Z",
    "estimate": true,
    "version": "1.10.0"
   },
@@ -2179,8 +2184,8 @@
    "title": "v1.11: Die Braai — the day ends at Oupa's fire under the Milky Way",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T11:00:00Z",
-   "end": "2026-10-31T16:00:00Z",
+   "start": "2026-10-31T16:15:00Z",
+   "end": "2026-10-31T21:15:00Z",
    "estimate": true,
    "version": "1.11.0"
   },
@@ -2189,8 +2194,8 @@
    "title": "v1.12: Brakkie, the farm dog",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T16:00:00Z",
-   "end": "2026-10-31T22:00:00Z",
+   "start": "2026-10-31T21:15:00Z",
+   "end": "2026-11-01T03:15:00Z",
    "estimate": true,
    "version": "1.12.0"
   },
@@ -2199,8 +2204,8 @@
    "title": "v1.13: veld cameos — warthogs, baboons, springbok, elephants, ostrich, dung beetle",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T22:00:00Z",
-   "end": "2026-11-01T04:00:00Z",
+   "start": "2026-11-01T03:15:00Z",
+   "end": "2026-11-01T09:15:00Z",
    "estimate": true,
    "version": "1.13.0"
   },
@@ -2209,8 +2214,8 @@
    "title": "Oupa's new voices, once all the text is final: English, Afrikaans and German generated through one voice API key (OpenRouter), each clip checked automatically by speech-to-text and redone if wrong; a short sample test first (your plan, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-11-01T04:00:00Z",
-   "end": "2026-11-01T09:00:00Z",
+   "start": "2026-11-01T09:15:00Z",
+   "end": "2026-11-01T14:15:00Z",
    "estimate": true
   }
  ],
@@ -2746,6 +2751,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-31T06:10:00Z",
+   "kind": "merge",
+   "text": "The New Year Daily is on the test build (1.11.2, #108): a countdown hunt at dusk with party hats, small fireworks on the horizon and double points in the last 10 seconds. Full CI green; reviewed screenshots on desktop, Pixel 7 and iPhone 14."
+  },
   {
    "at": "2026-10-30T19:46:50Z",
    "kind": "merge",
