@@ -347,26 +347,55 @@ describe('Reënbui: the swarm (D-067)', () => {
     ).toBe(1);
   });
 
-  it('brings at most extraFlocks.max extra flocks, inside maxFlocks', () => {
-    const c = forced();
-    c.reenbui.extraFlocks.everySeconds = 0.5;
+  it('brings at most extraFlocks.max extra flocks, inside maxFlocks and maxBirdsOnScreen on every tick', () => {
+    // The real caps, and tight ones the extra flocks press against.
+    const caps: ({ maxFlocks: number; maxBirds: number } | null)[] = [
+      null,
+      { maxFlocks: 3, maxBirds: 18 },
+    ];
     let total = 0;
-    for (let seed = 1; seed <= 6; seed++) {
-      const s = sim(c, KALAHARI, seed);
-      const ev = run(s, secondsToTicks(60));
-      const sw = ofType(ev, 'alatesSwarm')[0];
-      const eased = ofType(ev, 'rainEased')[0];
-      if (sw === undefined || eased === undefined) throw new Error('no swarm');
-      // Flocks spawned in the swarm window by the event (the director's keep coming too).
-      const extra = ofType(ev, 'flockStateChanged').filter(
-        (e) =>
-          e.cause === 'event' && e.tick >= sw.tick && e.tick < eased.tick && e.from === 'forage',
-      );
-      expect(extra.length).toBeLessThanOrEqual(c.reenbui.extraFlocks.max);
-      total += extra.length;
+    for (const cap of caps) {
+      const c = forced();
+      c.reenbui.extraFlocks.everySeconds = 0.5;
       const biome = c.biomes.find((b) => b.id === 'kalahari-summer');
-      const alive = s.snapshot().flocks.filter((f) => f.alive > 0).length;
-      expect(alive).toBeLessThanOrEqual(biome?.pacing.maxFlocks ?? 0);
+      if (biome === undefined) throw new Error('no kalahari');
+      if (cap !== null) {
+        biome.pacing.maxFlocks = cap.maxFlocks;
+        biome.pacing.maxBirdsOnScreen = cap.maxBirds;
+      }
+      const { maxFlocks, maxBirdsOnScreen } = biome.pacing;
+      for (let seed = 1; seed <= 6; seed++) {
+        const s = sim(c, KALAHARI, seed);
+        const ev: SimEvent[] = [];
+        let swarmAt = -1;
+        let easedAt = -1;
+        let checked = 0;
+        for (let t = 0; t < secondsToTicks(60) && !s.isOver(); t++) {
+          s.step([]);
+          for (const e of s.drainEvents()) {
+            ev.push(e);
+            if (e.type === 'alatesSwarm') swarmAt = e.tick;
+            if (e.type === 'rainEased') easedAt = e.tick;
+          }
+          // Every tick from the swarm through the easing.
+          if (swarmAt < 0 || (easedAt >= 0 && s.tick > easedAt)) continue;
+          const snap = s.snapshot();
+          const alive = snap.flocks.filter((f) => f.alive > 0).length;
+          expect(alive, `seed ${seed} tick ${s.tick}`).toBeLessThanOrEqual(maxFlocks);
+          expect(snap.birds.length, `seed ${seed} tick ${s.tick}`).toBeLessThanOrEqual(
+            maxBirdsOnScreen,
+          );
+          checked++;
+        }
+        expect(checked).toBeGreaterThanOrEqual(secondsToTicks(c.reenbui.phaseSeconds.swarm));
+        // Flocks spawned in the swarm window by the event (the director's keep coming too).
+        const extra = ofType(ev, 'flockStateChanged').filter(
+          (e) =>
+            e.cause === 'event' && e.tick >= swarmAt && e.tick < easedAt && e.from === 'forage',
+        );
+        expect(extra.length).toBeLessThanOrEqual(c.reenbui.extraFlocks.max);
+        total += extra.length;
+      }
     }
     expect(total).toBeGreaterThan(0);
   });
