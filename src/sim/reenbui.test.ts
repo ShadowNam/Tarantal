@@ -15,6 +15,8 @@ import {
   reenbuiPhaseAt,
   type ReenbuiEligibility,
 } from './reenbui/reenbui';
+import { makeFlock } from './flocks/testing';
+import { shotThreats } from './flocks/threats';
 import { createRng } from './rng';
 import { createSim, type Sim } from './Sim';
 import type { ModeConfig } from './types';
@@ -212,9 +214,7 @@ describe('Reënbui: the swarm (D-067)', () => {
     expect(s.snapshot().reenbui?.phase).toBeNull();
   });
 
-  it('feeding cuts the shot alert radius and the build-up widens it (content factors)', async () => {
-    const { shotThreats } = await import('./flocks/threats');
-    const { makeFlock } = await import('./flocks/testing');
+  it('feeding cuts the shot alert radius and the build-up widens it (content factors)', () => {
     const f = makeFlock(base, { size: 1, x: 1000 }).flock;
     const y = f.members[0]?.y ?? 0;
     const geo = {
