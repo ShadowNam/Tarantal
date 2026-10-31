@@ -152,3 +152,30 @@ export function applyAnim(p: AnimState | null, st: AnimState, t: AnimTargets): n
   }
   return n;
 }
+
+/**
+ * The text scale a caption needs to fit Oupa's bubble (BarkBubble: a 14 px pad, his name row at
+ * 0.7 × the font, the line wrapped to the slot's width; it shrinks the line to ≥ 0.5). A rough,
+ * deliberately generous estimate of Baloo 2's widths (0.55 × the font a character).
+ */
+export function captionScale(text: string, slot: { w: number; h: number }, fontPx: number): number {
+  const pad = 14;
+  const room = slot.h - 2 * pad - fontPx * 0.7 * 1.3;
+  for (let s = 1; s >= 0.3; s -= 0.05) {
+    const perLine = Math.max(1, Math.floor((slot.w - 2 * pad) / (fontPx * 0.55 * s)));
+    // Word wrap: words never split, so count line by line.
+    let lines = 1;
+    let used = 0;
+    for (const word of text.split(/\s+/)) {
+      const n = word.length;
+      if (used === 0) used = n;
+      else if (used + 1 + n <= perLine) used += 1 + n;
+      else {
+        lines++;
+        used = n;
+      }
+    }
+    if (lines * fontPx * 1.25 * s <= room) return Math.round(s * 100) / 100;
+  }
+  return 0.3;
+}

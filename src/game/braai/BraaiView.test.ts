@@ -4,8 +4,15 @@
 // is held. "Reduce motion" stills the sparks and skips the dance; "reduce flashes" steadies the glow.
 import { describe, expect, it } from 'vitest';
 import { loadFeel } from '../../../tools/testContent';
-import { animState, applyAnim, captionText, type AnimSprite, type AnimState } from './braaiAnim';
-import { tellStory } from './story';
+import {
+  animState,
+  applyAnim,
+  captionScale,
+  captionText,
+  type AnimSprite,
+  type AnimState,
+} from './braaiAnim';
+import { STORY_LINE_IDS, captionKey, sayKey, tellStory, type StoryVars } from './story';
 import { NO_FACTS } from './storyFacts';
 
 const tuning = loadFeel().braai;
@@ -123,5 +130,28 @@ describe('braai view (D-068)', () => {
     if (open === undefined) throw new Error('no story');
     expect(captionText(open, 'en')).toBe('14 birds in the pickup. Not bad at all!');
     expect(captionText(open, 'af')).toBe('14 voëls in die bakkie. Glad nie sleg nie!');
+  });
+});
+
+describe('captions fit the bubble (review: a skip used to join every line)', () => {
+  const slot = { w: 300, h: 150 }; // the narrowest side slot (tallyBarkSlot's SIDE_MIN_W)
+  const fontPx = loadFeel().barks.fontPx;
+  const big: StoryVars = { n: 99, score: 99_999, gap: 9_999, crop: 100, rank: 'bosveld_legend' };
+
+  it('every caption, every language, with the biggest numbers, fits at ≥ 0.6 of the text size', () => {
+    for (const lang of ['en', 'af', 'de', 'nl'] as const)
+      for (const id of STORY_LINE_IDS) {
+        const text = captionText({ id, say: sayKey(id), caption: captionKey(id), vars: big }, lang);
+        expect(captionScale(text, slot, fontPx), `${lang} ${id}: ${text}`).toBeGreaterThanOrEqual(
+          0.6,
+        );
+      }
+  });
+
+  it('a whole story joined would not (why a skip shows the closer alone)', () => {
+    const all = STORY_LINE_IDS.slice(0, 4)
+      .map((id) => captionText({ id, say: sayKey(id), caption: captionKey(id), vars: big }, 'de'))
+      .join(' ');
+    expect(captionScale(all, slot, fontPx)).toBeLessThan(0.5);
   });
 });

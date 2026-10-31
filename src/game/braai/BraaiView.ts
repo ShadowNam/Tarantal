@@ -501,9 +501,11 @@ export class BraaiView {
     this.shown = this.lines.length;
     this.hook.story.skipped = true;
     this.hook.story.shown = this.shown;
-    const text = rest.map((l) => captionText(l)).join(' ');
-    this.hook.story.captions.push(text);
-    this.s.tell(null, text);
+    // Review: only the closer goes in the bubble (every line joined overflowed it); the lines
+    // skipped over are logged as captions, unsaid.
+    for (const l of rest) this.hook.story.captions.push(captionText(l));
+    const closer = rest.at(-1);
+    if (closer !== undefined) this.s.tell(null, captionText(closer));
     if (this.danceDue && this.danceFrom === null) this.beginDance(ms);
   }
 
