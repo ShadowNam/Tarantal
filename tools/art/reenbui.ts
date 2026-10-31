@@ -113,70 +113,91 @@ function rainTile(seed: number, n: number, near: boolean): string {
 // --- the alate column ------------------------------------------------------------------------
 
 /** The swarm's pattern repeats every PERIOD px up the column (a frame rises PERIOD / frames). */
-const PERIOD = 88;
+const PERIOD = 110;
 
-/** Half-width of the plume at height `up` px above the mound. */
+/** Half-width of the plume at height `up` px above the mound (art px = mid-plane screen px). */
 function plumeHalf(up: number): number {
-  return 7 + (up / (COLUMN.oy - 6)) * 34;
+  return 6 + (up / (COLUMN.oy - 6)) * 44;
 }
 
-/** One alate: a dark body and two pale wings (one lit edge), at (x, y), tilted `a` rad. */
-function alate(x: number, y: number, a: number, s: number, lit: boolean): string {
+/** The column leans a little downwind as it climbs (px at height `up`). */
+const lean = (up: number): number => (up / COLUMN.oy) ** 2 * 7;
+
+/**
+ * One alate (a winged termite): a dark body and two long pale wings — 3–5 px across at the mid
+ * plane — cream, or catching the light in gold (`glint`), at (x, y), tilted `a` rad.
+ */
+function alate(x: number, y: number, a: number, s: number, glint: boolean): string {
   const deg = (a * 180) / Math.PI;
   return g(
     { transform: `translate(${r2(x)} ${r2(y)}) rotate(${r2(deg)}) scale(${r2(s)})` },
-    el('path', { d: ellipseD(-2.6, -0.6, 3.2, 1.2), fill: '#F6EEDC', opacity: 0.78 }),
-    el('path', { d: ellipseD(2.6, -0.6, 3.2, 1.2), fill: '#E8DEC8', opacity: 0.7 }),
-    el('path', { d: ellipseD(0, 0, 0.9, 2), fill: '#3A2A1C' }),
-    lit ? el('path', { d: ellipseD(-2.6, -1.1, 1.8, 0.5), fill: '#FFFBEA', opacity: 0.95 }) : '',
+    el('path', {
+      d: ellipseD(-1.9, -0.4, 2.1, 0.85),
+      fill: glint ? '#FFE29A' : '#FFF4DA',
+      opacity: 0.95,
+    }),
+    el('path', {
+      d: ellipseD(1.9, -0.4, 2.1, 0.85),
+      fill: glint ? '#FFD36A' : '#F1E4C4',
+      opacity: 0.9,
+    }),
+    el('path', { d: ellipseD(0, 0.2, 0.75, 1.5), fill: '#2E2014' }),
+    glint ? el('path', { d: ellipseD(-1.6, -0.8, 1.3, 0.45), fill: '#FFFFFF', opacity: 0.95 }) : '',
   );
+}
+
+/** A small stable hash in [0, 1) (which alates catch the light in which frame). */
+function h01(a: number, b: number, c: number): number {
+  let x = Math.imul(a + 1, 73856093) ^ Math.imul(b + 1, 19349663) ^ Math.imul(c + 1, 83492791);
+  x = Math.imul(x ^ (x >>> 13), 0x5bd1e995);
+  return ((x ^ (x >>> 15)) >>> 0) / 4294967296;
 }
 
 function columnFrame(i: number): string {
   const defs: string[] = [];
-  // The plume's haze: warm, faint, fading upward.
+  const top = -COLUMN.oy + 8;
+  const H = -top;
+  // The plume's haze: warm, densest at the mound, fading out high up into the sky.
   const haze = linear(
     [
-      [0, '#E8D9BE', 0],
-      [0.35, '#E3D2B2', 0.16],
-      [0.85, '#D9C49E', 0.3],
-      [1, '#CDB48A', 0.38],
+      [0, '#F2E6CC', 0],
+      [0.45, '#EADBB8', 0.1],
+      [0.85, '#E2CC9E', 0.32],
+      [1, '#D8BE88', 0.5],
     ],
     0,
     1,
   );
   defs.push(haze.def);
-  const top = -COLUMN.oy + 6;
   const hazePts: P[] = [];
-  for (let up = 0; up <= -top; up += 24) hazePts.push([plumeHalf(up) * 0.85, -up]);
-  const left = hazePts.map(([x, y]): P => [-x, y]).reverse();
+  for (let up = 0; up <= H; up += 22) hazePts.push([lean(up) + plumeHalf(up) * 0.8, -up]);
+  const left = [...hazePts].reverse().map(([x, y]): P => [2 * lean(-y) - x, y]);
   const body: string[] = [el('path', { d: smoothD([...hazePts, ...left]), fill: haze.url })];
-  // The swarm: a fixed scatter, periodic in PERIOD, risen i / frames of a period.
+  // A dense core at the mouth: the alates pouring out.
+  body.push(el('path', { d: ellipseD(0, -10, 9, 14), fill: '#E9D6AE', opacity: 0.45 }));
+  // The swarm: a fixed scatter, periodic in PERIOD, risen i / frames of a period; denser at the
+  // base, thinning upward; a different few catch the light in every frame (the shimmer).
   const rnd = prng(4711);
   const rise = (i / COLUMN_FRAMES) * PERIOD;
-  const perCell = 34;
-  const cells = Math.ceil(-top / PERIOD) + 1;
+  const perCell = 72;
+  const cells = Math.ceil(H / PERIOD) + 1;
   for (let k = 0; k < perCell; k++) {
     const v = rnd();
-    const lat = rnd() * 2 - 1;
+    const lat = (rnd() * 2 - 1) * (0.55 + 0.45 * rnd());
     const tilt = rnd() * Math.PI;
-    const size = 0.8 + rnd() * 0.5;
-    const lit = rnd() < 0.3;
+    const size = 0.9 + rnd() * 0.35;
     const wob = rnd() * Math.PI * 2;
     for (let c = 0; c < cells; c++) {
       const up = ((v * PERIOD + rise) % PERIOD) + c * PERIOD;
-      if (up > -top - 4) continue;
+      if (up > H - 4) continue;
+      const u = up / H;
+      // All of them low down, a quarter near the top.
+      if (h01(k, c, 7) > 1 - u * 0.75) continue;
       const half = plumeHalf(up);
-      // Thicker near the mound, thinning out as it climbs.
-      const keep = 1 - (up / -top) * 0.55;
-      if (((k * 7 + c * 3) % 10) / 10 > keep) continue;
-      const x = lat * half + Math.sin(up / 31 + wob) * 4;
-      const fade = 1 - (up / -top) * 0.6;
+      const x = lean(up) + lat * half + Math.sin(up / 29 + wob) * 5;
+      const glint = h01(k, c, i) < 0.16;
       body.push(
-        g(
-          { opacity: r2(Math.max(0.25, fade)) },
-          alate(x, -up, tilt + up / 40, size * (0.85 + (up / -top) * 0.35), lit),
-        ),
+        g({ opacity: r2(Math.max(0.45, 1 - u * 0.5)) }, alate(x, -up, tilt + up / 37, size, glint)),
       );
     }
   }
@@ -379,9 +400,9 @@ function frameArt(name: ReenbuiFrame): string {
     case 'wet':
       return wet();
     case 'cloud_a':
-      return cloud(1301, false);
+      return g({ transform: 'scale(0.94)' }, cloud(1301, false));
     case 'cloud_b':
-      return cloud(2207, true);
+      return g({ transform: 'scale(0.94)' }, cloud(2207, true));
     case 'fork_a':
       return fork(51);
     case 'fork_b':

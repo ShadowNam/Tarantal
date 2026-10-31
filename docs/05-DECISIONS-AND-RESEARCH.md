@@ -3668,16 +3668,24 @@ feeds"). GDD §11.3e.
   compare with Node (daily, the challenge links, the replays in hunt, maps, langloop, longrange)
   boot with `reenbui=content`: the real content on both sides, so a Reënbui that rolls is the same
   in Node. `?reenbui=1` forces it, `?reenbuiPhase=` holds a phase.
-- *Art in the late group, not a group of its own:* one 1× sheet (1024 × 416, 53 KB PNG8,
-  ~1.7 MB on the GPU) shared by the four areas, listed only by their manifests, loaded in the
+- *Art in the late group, not a group of its own:* one 1× sheet (1024 × 490, PNG8,
+  ~2 MB on the GPU) shared by the four areas, listed only by their manifests, loaded in the
   background after the first download and polled by the view (never waited for: the event plays
   the same undrawn). A `reenbui` group would have needed its own loader plumbing for one file; a
   per-area copy would have put it in four area chunks. Standard in HD (no HD twin): the soft rain,
   vapour and the mid/far columns gain nothing at 2×, and the Okavango's HD hunt has ~3 MB left.
-- *Sounds in the soundscape's lazy group:* the five interim synths (`sfx/amb_reenbui_*`, ~25 s
+- *Sounds in the soundscape's lazy group:* the six interim synths (`sfx/amb_reenbui_*`, ~29 s
   mono) are soundscape calls the director never schedules by itself; the soundscape runtime plays
   them as the event's cues on sim time and decodes them only for a hunt with a Reënbui. The
   soundscape makes room by reading the sim's own phase ticks from the snapshot (lesson 36).
+- *Review of #110 (the look):* the columns were faint specks at phone size. They are now drawn at
+  mid-plane size (~430 px tall there, by plane scale on the far one), alates 3–5 px across with
+  a few glinting per frame, a sideways sway, and the first column rises where a flock in view
+  forages (`placeColumns`' anchor, from the `reenbui` stream as before: golden replays
+  re-recorded). The rain eases to a faint drizzle in the swarm (alates fly when the rain lets up;
+  the columns and birds stay clear in the ×1.3 window) and stops with the easing; the rain sound
+  fades into a patter (`sfx/amb_reenbui_patter`). The sheet grew to 1024 × 490 (~2 MB on the GPU,
+  still Standard in HD).
 - *Phones:* the rain is two screen-space containers of baked tiles (one move a frame), the columns
   one image each cycling four baked frames, the sky and the ground parts on alternate frames,
   properties only on change: ≤ 40 Phaser calls a frame at the swarm's peak in the perf smoke's

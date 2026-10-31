@@ -2,6 +2,7 @@
 // feeding flocks and the extra flocks that run in. Owns no flock: the Sim passes them in and does
 // the spawning; everything random comes from the event's own stream.
 import type { Reenbui } from '../../content/schemas';
+import { planeCentreX } from '../camera';
 import { secondsToTicks } from '../clock';
 import type { SimEvent } from '../events';
 import { centroid, type Flock } from '../flocks/Flock';
@@ -73,6 +74,25 @@ export function createReenbuiSystem(
     }
   };
 
+  /** The flock on a column plane nearest the view's centre, if it is in view (spreadPx): the
+   *  first column rises where it forages. Flocks in id order; ties keep the first. */
+  const anchorFlock = (): { plane: AlateColumn['plane']; x: number } | null => {
+    let best: { plane: AlateColumn['plane']; x: number } | null = null;
+    let bestD = Infinity;
+    for (const f of deps.flocks()) {
+      if (f.members.length === 0 || f.state === 'flush') continue;
+      const geo = deps.planes.find((g) => g.plane === f.plane);
+      if (geo === undefined) continue;
+      const x = centroid(f).x;
+      const d = Math.abs(x - planeCentreX(deps.cameraX(), geo.scrollFactor)) / geo.ratio;
+      if (d <= cfg.columns.spreadPx && d < bestD) {
+        bestD = d;
+        best = { plane: geo.plane, x };
+      }
+    }
+    return best;
+  };
+
   /** Each forage/settle/alert flock in reach of a column feeds there; the others don't. */
   const assignFeeding = (): void => {
     for (const f of deps.flocks()) {
@@ -126,7 +146,7 @@ export function createReenbuiSystem(
         });
       if (tick === plan.dropsAt && !plan.withStorm) deps.emit({ type: 'reenbuiRain', tick });
       if (tick === plan.swarmAt) {
-        columns = placeColumns(cfg, deps.planes, deps.cameraX(), rng);
+        columns = placeColumns(cfg, deps.planes, deps.cameraX(), rng, anchorFlock());
         deps.emit({
           type: 'alatesSwarm',
           tick,

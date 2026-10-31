@@ -394,19 +394,32 @@ function reenbuiDrops(): Buf {
   return finish(normalise(out, 0.8), 0.12, 0.9);
 }
 
-/** The rain on a sinkdak and on the dust: a steady hiss full of ticks, in and out soft. */
+/** The rain on a sinkdak and on the dust: a steady hiss full of ticks, in soft, then easing off
+ *  (it lets up as the alates rise: the swarm's patter takes over). */
 function reenbuiRain(): Buf {
-  const sec = 10.2;
+  const sec = 6;
   const r = rng(8303);
   const hiss = highpass(lowpass(noise(sec, SR, r), SR, 7000), SR, 900);
   const body = lowpass(noise(sec, SR, r), SR, 500);
   const out = buf(sec, SR);
   mix(out, hiss, 0, SR, 0.35);
   mix(out, body, 0, SR, 0.25);
-  for (let t = 0; t < sec - 0.25; t += 0.012 + r() * 0.03)
+  for (let t = 0; t < sec - 0.25; t += 0.012 + r() * 0.03 + (t / sec) ** 2 * 0.05)
     mix(out, drop(r, r() < 0.6), t, SR, 0.18 + r() * 0.22);
-  shape(out, SR, (t) => Math.min(1, t / 1.4) * Math.min(1, (sec - t) / 2.2));
+  shape(out, SR, (t) => Math.min(1, t / 1.0) * Math.min(1, ((sec - t) / 2.8) ** 1.5));
   return finish(normalise(out, 0.8), 0.15, 1.2);
+}
+
+/** The swarm's drizzle: a sparse patter of drops on the sinkdak and the dust, no hiss. */
+function reenbuiPatter(): Buf {
+  const sec = 6.5;
+  const r = rng(8606);
+  const out = buf(sec, SR);
+  for (let t = 0.1; t < sec - 0.3; t += 0.09 + r() * 0.32)
+    mix(out, drop(r, r() < 0.5), t, SR, 0.35 + r() * 0.4);
+  mix(out, highpass(lowpass(noise(sec, SR, r), SR, 5000), SR, 1500), 0, SR, 0.03);
+  shape(out, SR, (t) => Math.min(1, t / 0.6) * Math.min(1, (sec - t) / 0.8));
+  return finish(normalise(out, 0.7), 0.15, 1);
 }
 
 /** The swarm's soft buzz: thousands of small wings, a warm drone with a flutter. */
@@ -483,6 +496,7 @@ const CALLS: Readonly<Record<string, () => Buf>> = {
   amb_reenbui_thunder: reenbuiThunder,
   amb_reenbui_drops: reenbuiDrops,
   amb_reenbui_rain: reenbuiRain,
+  amb_reenbui_patter: reenbuiPatter,
   amb_reenbui_buzz: reenbuiBuzz,
   amb_reenbui_birds: reenbuiBirds,
 };

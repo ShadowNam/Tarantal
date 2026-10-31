@@ -37,10 +37,12 @@ export interface ReenbuiFrameRect {
 /** The rain tiles repeat with this period (their art wraps at the edges). */
 export const RAIN_TILE = { w: 256, h: 192 } as const;
 /** The column frame: its foot (the mound's mouth) at (ox, oy). */
-export const COLUMN = { w: 96, h: 360, ox: 48, oy: 352 } as const;
+/** The column frame: its foot (the mound's mouth) at (ox, oy). Art px are mid-plane screen px
+ *  (shown 1:1 on the mid plane, scaled by plane for the far one): ~430 px tall there. */
+export const COLUMN = { w: 120, h: 440, ox: 60, oy: 432 } as const;
 
-/** Laid out by hand (design px): the columns, the rain tiles and the forks along the top, the
- *  storm towers under the rain tiles, the small frames in a row under the columns. */
+/** Laid out by hand (design px): the columns down the left, the rain tiles beside them, the
+ *  forks, puffs, mound and wet patch top right, the storm towers under them. */
 function layout(): ReenbuiFrameRect[] {
   const at = (
     name: ReenbuiFrame,
@@ -53,16 +55,17 @@ function layout(): ReenbuiFrameRect[] {
   ): ReenbuiFrameRect => ({ name, x, y, w, h, ox, oy });
   const out: ReenbuiFrameRect[] = [];
   for (let i = 0; i < COLUMN_FRAMES; i++)
-    out.push(at(`col_${i}`, 2 + i * 98, 2, COLUMN.w, COLUMN.h, COLUMN.ox, COLUMN.oy));
-  out.push(at('rain_far', 394, 2, RAIN_TILE.w, RAIN_TILE.h, 0, 0));
-  out.push(at('rain_near', 652, 2, RAIN_TILE.w, RAIN_TILE.h, 0, 0));
-  out.push(at('fork_a', 910, 2, 54, 150, 27, 4));
-  out.push(at('fork_b', 966, 2, 54, 150, 27, 4));
-  out.push(at('cloud_a', 394, 198, 288, 150, 144, 146));
-  out.push(at('cloud_b', 684, 198, 288, 150, 144, 146));
-  for (let i = 0; i < PUFF_FRAMES; i++) out.push(at(`puff_${i}`, 2 + i * 74, 364, 72, 44, 36, 40));
-  out.push(at('wet', 300, 364, 192, 48, 96, 24));
-  out.push(at('mound', 494, 364, 96, 28, 48, 18));
+    out.push(at(`col_${i}`, 2 + i * 122, 2, COLUMN.w, COLUMN.h, COLUMN.ox, COLUMN.oy));
+  out.push(at('rain_far', 492, 2, RAIN_TILE.w, RAIN_TILE.h, 0, 0));
+  out.push(at('rain_near', 492, 196, RAIN_TILE.w, RAIN_TILE.h, 0, 0));
+  out.push(at('fork_a', 750, 2, 54, 150, 27, 4));
+  out.push(at('fork_b', 806, 2, 54, 150, 27, 4));
+  for (let i = 0; i < PUFF_FRAMES; i++)
+    out.push(at(`puff_${i}`, 862 + (i % 2) * 74, 2 + Math.floor(i / 2) * 46, 72, 44, 36, 40));
+  out.push(at('mound', 862, 94, 96, 28, 48, 18));
+  out.push(at('wet', 750, 156, 192, 48, 96, 24));
+  out.push(at('cloud_a', 750, 206, 270, 140, 135, 137));
+  out.push(at('cloud_b', 750, 348, 270, 140, 135, 137));
   return out;
 }
 

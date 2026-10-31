@@ -381,7 +381,8 @@ after a hunt has started, never in the first download; the game decodes only the
 | `amb_go_away_bird` | A grey go-away-bird's nasal "kweh" far off (far only) | Bushveld | ≤ 1.4 s |
 | `amb_reenbui_thunder` | v1.10 Reënbui (D-067): distant thunder rolling in (a crackle, then a low rolling rumble) | Reënbui areas | ≤ 4.6 s |
 | `amb_reenbui_drops` | The first fat drops on a corrugated-iron roof (sinkdak) and on dust, closer and closer together | Reënbui areas | ≤ 3.2 s |
-| `amb_reenbui_rain` | Rain on a sinkdak and the dust, in and out soft (played twice over the swarm) | Reënbui areas | ≤ 10.2 s |
+| `amb_reenbui_rain` | Rain on a sinkdak and the dust, in soft, easing off at the end | Reënbui areas | ≤ 6 s |
+| `amb_reenbui_patter` | The swarm's drizzle: a sparse patter of drops on the sinkdak and the dust | Reënbui areas | ≤ 6.5 s |
 | `amb_reenbui_buzz` | A swarm of flying termites: a soft, warm buzz of small wings | Reënbui areas | ≤ 6.2 s |
 | `amb_reenbui_birds` | Excited birds at the feast: guineafowl chatter, quick small-bird chirps | Reënbui areas | ≤ 2.6 s |
 
@@ -392,13 +393,13 @@ Record your own, or use public-domain recordings with the source written down; m
 xeno-canto recordings are NonCommercial and can't be used.
 
 **Reënbui (v1.10, D-067; art bible §5.5).** One interim sheet, `sprites/reenbui/sheet.png`
-(1024 × 416 at 1×, the late group, `hd: false`: Standard in HD; layout and frame names in
+(1024 × 490 at 1×, the late group, `hd: false`: Standard in HD; layout and frame names in
 `src/game/view/reenbui/reenbuiSheet.ts`): `rain_far` and `rain_near` (256 × 192 tiles that must
-repeat seamlessly, top-left origin), `col_0`…`col_3` (the alate column's rising loop, 96 × 360,
-foot at 48, 352; frame 3 leads back into frame 0), `mound`, `puff_0`…`puff_3`, `wet`,
+repeat seamlessly, top-left origin), `col_0`…`col_3` (the alate column's rising loop, 120 × 440 at mid-plane size,
+foot at 60, 432; frame 3 leads back into frame 0; alates 3–5 px across, a few glinting per frame), `mound`, `puff_0`…`puff_3`, `wet`,
 `cloud_a`, `cloud_b` (storm towers, base at the bottom centre) and `fork_a`, `fork_b` (small far
 lightning, top centre). A delivery keeps the size and the frame boxes (or updates the table and
-`reenbuiKeys.ts`) and stays ≤ ~2 MB on the GPU (the Okavango's HD headroom). The five
+`reenbuiKeys.ts`) and stays ≤ ~2 MB on the GPU (the Okavango's HD headroom). The six
 `sfx/amb_reenbui_*` sounds are in the soundscape table above.
 
 **Desert group (v1.7, D-044).** The meerkat colonies' sheet `desert/meerkats` and their four

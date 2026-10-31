@@ -46,7 +46,16 @@ const CALM_RAIN = 0.45;
 
 /** The column loop: ticks per frame; its art's scale at plane scale 1. */
 const COLUMN_TICKS = 6;
-const COLUMN_SCALE = 1.25;
+/** The column art is drawn at mid-plane size (shown 1:1 there, by plane scale elsewhere); the
+ *  mound smaller than that. */
+const MOUND_SCALE = 0.6;
+/** The column sways sideways (mid-plane px) through a 16-step cycle of the loop's frames. */
+const DRIFT_PX = 7;
+const DRIFT = Float32Array.from({ length: 16 }, (_, i) => Math.sin((i / 16) * Math.PI * 2));
+/** Rain: the first drops are heavy; in the swarm it eases to a drizzle (the alates fly when the
+ *  rain lets up), which stops as the easing starts. */
+const DRIZZLE = 0.2;
+const RAIN_STOP_TICKS = 60;
 /** The columns rise over this long at the swarm's start and thin out over the easing. */
 const COLUMN_RISE_TICKS = 50;
 /** Mid-plane design px of a column's cull margin. */
@@ -284,14 +293,13 @@ export class ReenbuiView {
 
   /** Rain alpha per layer for the phase (0 = none). */
   private rainLevels(v: SimReenbui, t: number): { far: number; near: number } {
-    if (v.withStorm) return { far: 0, near: 0 };
+    if (v.withStorm || t < v.dropsTick || t >= v.endTick) return { far: 0, near: 0 };
     const drops = ramp(t, v.dropsTick, v.swarmTick - v.dropsTick);
     const swarm = ramp(t, v.swarmTick, TICKS_PER_SECOND * 2);
-    const ease = 1 - ramp(t, v.easingTick, v.endTick - v.easingTick);
-    if (t < v.dropsTick || t >= v.endTick) return { far: 0, near: 0 };
+    const stop = 1 - ramp(t, v.easingTick, RAIN_STOP_TICKS);
     return {
-      far: RAIN.far.alpha * swarm * ease,
-      near: RAIN.near.alpha * (0.55 * drops + 0.45 * swarm) * ease,
+      far: (RAIN.far.alpha * drops * (1 - swarm) + DRIZZLE * swarm) * stop,
+      near: RAIN.near.alpha * drops * (1 - swarm) * stop,
     };
   }
 
@@ -481,16 +489,17 @@ export class ReenbuiView {
     const level =
       ramp(t, v.swarmTick, COLUMN_RISE_TICKS) *
       (1 - ramp(t, v.easingTick, v.endTick - v.easingTick));
-    const frame = columnFrame(Math.floor((t - v.swarmTick) / COLUMN_TICKS));
+    const step = Math.floor((t - v.swarmTick) / COLUMN_TICKS);
+    const frame = columnFrame(step);
     const hooks: ReenbuiColumnHook[] | null = this.o.hooks ? [] : null;
     for (const c of v.columns) {
       let e = this.cols.get(c.id);
       if (e === undefined) {
         const layer = this.planeLayer(c.plane);
         if (layer === undefined) continue;
-        const sc = (COLUMN_SCALE * this.o.planeScale[c.plane]) / this.k;
+        const sc = this.o.planeScale[c.plane] / this.o.planeScale.mid / this.k;
         const mound = this.image('mound', layer.fixtures, layer);
-        mound.img.setScale(sc);
+        mound.img.setScale(sc * MOUND_SCALE);
         const col = this.image(columnFrame(0), layer.fixtures, layer);
         col.img.setScale(sc);
         this.place(mound, c.x, c.y);
@@ -505,6 +514,10 @@ export class ReenbuiView {
       this.show(e.mound, on);
       if (on) {
         this.frameOf(e.col, frame);
+        // A slight sideways drift (whole px, so it changes with the loop's frames only).
+        const sway = DRIFT[(((step + c.id * 5) % 16) + 16) % 16] ?? 0;
+        const ratio = this.o.planeScale[c.plane] / this.o.planeScale.mid;
+        this.place(e.col, Math.round(c.x + sway * DRIFT_PX * ratio), c.y);
         this.alpha(e.col, level);
         this.alpha(e.mound, Math.min(1, level * 2));
       }

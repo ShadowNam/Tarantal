@@ -253,23 +253,41 @@
       "lufs": -20.2,
       "peakDb": -1
     },
+    "sfx/amb_reenbui_patter": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_reenbui_patter.0ea086df9424.ogg",
+        "bytes": 58921,
+        "hash": "0ea086df9424"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_reenbui_patter.aa9a2b5ee167.mp3",
+        "bytes": 58680,
+        "hash": "aa9a2b5ee167"
+      },
+      "loop": false,
+      "lufs": -22.3,
+      "peakDb": -1
+    },
     "sfx/amb_reenbui_rain": {
       "group": "soundscape",
       "origin": "interim",
       "kind": "sfx",
       "ogg": {
-        "path": "assets/soundscape/audio/sfx/amb_reenbui_rain.2631206011c8.ogg",
-        "bytes": 87664,
-        "hash": "2631206011c8"
+        "path": "assets/soundscape/audio/sfx/amb_reenbui_rain.41fc0f3f2c1b.ogg",
+        "bytes": 53273,
+        "hash": "41fc0f3f2c1b"
       },
       "mp3": {
-        "path": "assets/soundscape/audio/sfx/amb_reenbui_rain.de495070968b.mp3",
-        "bytes": 84204,
-        "hash": "de495070968b"
+        "path": "assets/soundscape/audio/sfx/amb_reenbui_rain.1396d41c3c78.mp3",
+        "bytes": 49608,
+        "hash": "1396d41c3c78"
       },
       "loop": false,
       "lufs": -14,
-      "peakDb": -5.3
+      "peakDb": -5.1
     },
     "sfx/amb_reenbui_thunder": {
       "group": "soundscape",

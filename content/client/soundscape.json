@@ -122,12 +122,13 @@
     "go_away_bird": { "sound": "sfx/amb_go_away_bird", "lengthMs": 1400, "warns": "kwevoel" },
     "reenbui_thunder": { "sound": "sfx/amb_reenbui_thunder", "lengthMs": 4600 },
     "reenbui_drops": { "sound": "sfx/amb_reenbui_drops", "lengthMs": 3200 },
-    "reenbui_rain": { "sound": "sfx/amb_reenbui_rain", "lengthMs": 10200 },
+    "reenbui_rain": { "sound": "sfx/amb_reenbui_rain", "lengthMs": 6000 },
+    "reenbui_patter": { "sound": "sfx/amb_reenbui_patter", "lengthMs": 6500 },
     "reenbui_buzz": { "sound": "sfx/amb_reenbui_buzz", "lengthMs": 6200 },
     "reenbui_birds": { "sound": "sfx/amb_reenbui_birds", "lengthMs": 2600 }
   },
   "reenbui": {
-    "$comment": "v1.10 (D-067): the soundscape makes room for Reënbui (every call quiet from quietBeforeMs before the build-up until quietAfterMs after the rain has eased) and its own cues play instead: thunder rolling in, the first fat drops on the sinkdak and the dust, the rain, the swarm's soft buzz, the excited birds. Times are sim ms from each phase's start; withStorm: the cue plays when the swarm rose with the Kalahari Donderstorm too (its thunder and rain are the storm's).",
+    "$comment": "v1.10 (D-067): the soundscape makes room for Reënbui (every call quiet from quietBeforeMs before the build-up until quietAfterMs after the rain has eased) and its own cues play instead: thunder rolling in, the first fat drops on the sinkdak and the dust, the rain easing to a patter as the alates rise, the swarm's soft buzz, the excited birds. Times are sim ms from each phase's start; withStorm: the cue plays when the swarm rose with the Kalahari Donderstorm too (its thunder and rain are the storm's).",
     "quietBeforeMs": 500,
     "quietAfterMs": 1500,
     "maxVoices": 4,
@@ -135,8 +136,8 @@
     "cues": [
       { "call": "reenbui_thunder", "phase": "buildup", "atMs": 300, "everyMs": 3000, "levelDb": -7, "distance": "far", "withStorm": false },
       { "call": "reenbui_drops", "phase": "drops", "atMs": 0, "everyMs": 0, "levelDb": -4, "distance": "near", "withStorm": false },
-      { "call": "reenbui_rain", "phase": "drops", "atMs": 1800, "everyMs": 0, "levelDb": -5, "distance": "near", "withStorm": false },
-      { "call": "reenbui_rain", "phase": "swarm", "atMs": 8600, "everyMs": 0, "levelDb": -6, "distance": "near", "withStorm": false },
+      { "call": "reenbui_rain", "phase": "drops", "atMs": 1000, "everyMs": 0, "levelDb": -5, "distance": "near", "withStorm": false },
+      { "call": "reenbui_patter", "phase": "swarm", "atMs": 2500, "everyMs": 6000, "levelDb": -10, "distance": "near", "withStorm": false },
       { "call": "reenbui_thunder", "phase": "swarm", "atMs": 5200, "everyMs": 6400, "levelDb": -12, "distance": "far", "withStorm": false },
       { "call": "reenbui_buzz", "phase": "swarm", "atMs": 200, "everyMs": 5800, "levelDb": -9, "distance": "mid", "withStorm": true },
       { "call": "reenbui_birds", "phase": "swarm", "atMs": 900, "everyMs": 2300, "levelDb": -8, "distance": "mid", "withStorm": true }

@@ -588,7 +588,7 @@ test('perf: a New Year countdown hunt at 4× CPU throttle, fireworks at their mo
 
 // v1.10 (D-067): a Reënbui in HD on the heaviest map — the Okavango (252.9 MB with the New Year
 // special; ~3 MB left) — reached from the title, the swarm held (?reenbuiPhase=swarm): the event's
-// sheet is 1× and Standard in HD (1024 × 416 px, ~1.7 MB on the GPU), no HD Reënbui texture, no
+// sheet is 1× and Standard in HD (1024 × 490 px, ~2 MB on the GPU), no HD Reënbui texture, no
 // other area's HD layers. ≤ 256 MB asserted.
 test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async ({
   page,
@@ -717,7 +717,8 @@ test('perf: a Reënbui swarm at its peak at 4× CPU throttle (Pixel 7)', async (
       maxColumns,
       (h.reenbuiDraw?.columns ?? []).filter((c) => c.visible).length,
     );
-    rain = Math.max(rain, h.reenbuiDraw?.rainNear ?? 0);
+    // The swarm's drizzle (fine far streaks only).
+    rain = Math.max(rain, h.reenbuiDraw?.rainFar ?? 0);
     await waitTicks(page, 60);
   }
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });

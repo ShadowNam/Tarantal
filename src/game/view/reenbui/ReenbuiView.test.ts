@@ -180,23 +180,32 @@ describe('ReenbuiView (D-067, lessons 32–34)', () => {
     expect(total()).toBe(0);
   });
 
-  it('draws the columns on their ground band, rain in the swarm, none before the drops', () => {
+  it('heavy first drops, a drizzle in the swarm, none before or once it eases; columns on the ground', () => {
     const v = makeView();
     run(v, 600, 900, 2);
     expect(v.hook?.rainNear).toBe(0);
     expect(v.hook?.phase).toBe('buildup');
-    run(v, 900, 1500, 2);
+    run(v, 900, 1136, 2);
+    const heavy = { near: v.hook?.rainNear ?? 0, far: v.hook?.rainFar ?? 0 };
+    expect(v.hook?.phase).toBe('drops');
+    expect(heavy.near).toBeGreaterThan(0.4);
+    run(v, 1136, 1500, 2);
     const h = v.hook;
     expect(h?.phase).toBe('swarm');
-    expect(h?.rainNear).toBeGreaterThan(0);
+    // The drizzle: no fat near drops, the fine streaks fainter than the first drops' rain.
+    expect(h?.rainNear).toBe(0);
     expect(h?.rainFar).toBeGreaterThan(0);
+    expect(h?.rainFar ?? 1).toBeLessThan(Math.max(heavy.near, heavy.far));
     expect(h?.columns).toHaveLength(4);
     for (const c of h?.columns ?? []) {
       expect(c.y).toBeGreaterThanOrEqual(c.groundTop);
       expect(c.y).toBeLessThanOrEqual(c.groundBottom);
     }
     expect(h?.columns.some((c) => c.visible)).toBe(true);
-    run(v, 1500, 2600, 4);
+    run(v, 1500, 2120, 4);
+    expect(v.hook?.phase).toBe('easing');
+    expect(v.hook?.rainFar).toBe(0);
+    run(v, 2120, 2600, 4);
     expect(v.hook?.rainNear).toBe(0);
     expect(v.hook?.columns.every((c) => !c.visible)).toBe(true);
   });

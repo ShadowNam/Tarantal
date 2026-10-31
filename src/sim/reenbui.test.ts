@@ -181,6 +181,12 @@ describe('Reënbui: the swarm (D-067)', () => {
             );
       }
     }
+    // A flock in view anchors the first column where it forages.
+    const anchored = placeColumns(cfg, planes, 2560, createRng(9).stream('reenbui'), {
+      plane: 'mid',
+      x: 1777,
+    });
+    expect(anchored[0]).toMatchObject({ id: 0, plane: 'mid', x: 1777 });
     const cols = [{ id: 0, plane: 'mid' as const, x: 1000, y: 700 }];
     expect(feedColumn(cols, 'mid', 1800, 900)?.id).toBe(0);
     expect(feedColumn(cols, 'mid', 2000, 900)).toBeNull();
@@ -212,6 +218,28 @@ describe('Reënbui: the swarm (D-067)', () => {
     run(s, secondsToTicks(c.reenbui.phaseSeconds.swarm + c.reenbui.phaseSeconds.easing));
     expect(s.snapshot().flocks.some((f) => f.feeding === true)).toBe(false);
     expect(s.snapshot().reenbui?.phase).toBeNull();
+  });
+
+  it('the first column rises at the flock nearest the view centre (review of #110)', () => {
+    const c = forced();
+    for (let seed = 1; seed <= 6; seed++) {
+      const s = sim(c, KALAHARI, seed);
+      const until = Math.floor(0.1 * secondsToTicks(90)) + secondsToTicks(9) + 30;
+      run(s, until);
+      const snap = s.snapshot();
+      const v = snap.reenbui;
+      expect(v?.phase).toBe('swarm');
+      const first = v?.columns[0];
+      if (first === undefined) throw new Error('no column');
+      // Some flock on its plane forages within a few birds' width of it.
+      const near = snap.flocks.some((f) => {
+        const xs = snap.birds.filter((b) => b.flockId === f.id).map((b) => b.x);
+        if (f.plane !== first.plane || xs.length === 0) return false;
+        const cx = xs.reduce((a, b) => a + b, 0) / xs.length;
+        return Math.abs(cx - first.x) < 200;
+      });
+      expect(near, `seed ${seed}`).toBe(true);
+    }
   });
 
   it('feeding cuts the shot alert radius and the build-up widens it (content factors)', () => {

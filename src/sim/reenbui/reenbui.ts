@@ -134,13 +134,16 @@ const PLACE_TRIES = 6;
 /**
  * The swarm's columns (2–4), in and near the view at the moment it rises: a plane each, then x
  * round the view's centre on that plane (at least minGapPx from a column on the same plane), y
- * in the plane's ground band. Ordered by id; a column that finds no room is left out.
+ * in the plane's ground band. `anchor` (a flock in view): the first column rises right where it
+ * forages, so a flock feeds at a column on screen (review of #110). Ordered by id; a column that
+ * finds no room is left out.
  */
 export function placeColumns(
   cfg: Reenbui,
   planes: readonly ColumnPlaneGeo[],
   cameraX: number,
   rng: RandomStream,
+  anchor: { readonly plane: ColumnPlane; readonly x: number } | null = null,
 ): AlateColumn[] {
   const usable = cfg.columns.planes
     .map((id) => planes.find((g) => g.plane === id))
@@ -148,7 +151,18 @@ export function placeColumns(
   if (usable.length === 0) return [];
   const count = rng.int(cfg.columns.count[0], cfg.columns.count[1]);
   const out: AlateColumn[] = [];
-  for (let i = 0; i < count; i++) {
+  const anchorGeo = anchor === null ? undefined : usable.find((g) => g.plane === anchor.plane);
+  if (anchor !== null && anchorGeo !== undefined) {
+    const margin = Math.min(anchorGeo.coreWidth / 2, (cfg.columns.spreadPx * anchorGeo.ratio) / 4);
+    const x = Math.min(anchorGeo.coreWidth - margin, Math.max(margin, anchor.x));
+    out.push({
+      id: 0,
+      plane: anchor.plane,
+      x,
+      y: rng.range(anchorGeo.groundY[0], anchorGeo.groundY[1]),
+    });
+  }
+  for (let i = out.length; i < count; i++) {
     const g = usable[rng.int(0, usable.length - 1)];
     if (g === undefined) continue;
     const centre = planeCentreX(cameraX, g.scrollFactor);
