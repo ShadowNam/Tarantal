@@ -10,6 +10,7 @@ import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
 import { BABOON_SHEET } from '../../src/game/view/baboon/baboonKeys';
 import { HARVEST_SHEET } from '../../src/game/view/harvest/harvestKeys';
 import { REENBUI_SHEET } from '../../src/game/view/reenbui/reenbuiKeys';
+import { BRAAI_SHEET, BRAAI_SOUNDS } from '../../src/game/braai/braaiKeys';
 import { TELL_SHEET } from '../../src/game/view/tell/tellKeys';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
 import { VELD_SHEET } from '../../src/game/view/namib/veldSheet';
@@ -114,6 +115,10 @@ function usages(
   if (key === HARVEST_SHEET) needles.push(/\bHARVEST_SHEET\b/);
   // v1.10 (D-067): Reënbui's sheet by its constant (ReenbuiView).
   if (key === REENBUI_SHEET) needles.push(/\bREENBUI_SHEET\b/);
+  // v1.11 (D-068): the braai's sheet and sounds by their constants (BraaiView, braaiLoad).
+  if (key === BRAAI_SHEET) needles.push(/\bBRAAI_SHEET\b/);
+  const braaiSound = Object.entries(BRAAI_SOUNDS).find(([, k]) => k === key)?.[0];
+  if (braaiSound !== undefined) needles.push(new RegExp(`BRAAI_SOUNDS\\.${braaiSound}\\b`));
   const palm = /^okavango\/makalani_(trunk|crown)_(near|mid)$/.exec(key);
   if (palm !== null) needles.push(palm[1] === 'trunk' ? /\bpalmTrunkKey\(/ : /\bpalmCrownKey\(/);
   const xmasSound = Object.entries(XMAS_SOUNDS).find(([, k]) => k === key)?.[0];

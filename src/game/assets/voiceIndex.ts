@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import { audioEntry, type AssetIndex } from './assetIndex';
 import { SOUNDSCAPE_GROUP } from '../audio/soundscapeKeys';
+import { BRAAI_GROUP, BRAAI_VOICE_GROUP_PREFIX } from '../braai/braaiKeys';
 
 export const VOICE_INDEX_PATH = 'assets/asset-index-voice.json';
 
@@ -18,7 +19,12 @@ export type VoiceIndex = z.infer<typeof voiceIndexSchema>;
 /** A voice pack's group (Oupa's, or a special day's); v1.9 (D-066) and the soundscape's calls
  *  (lazy audio too: their entries stay out of the first download's index). */
 export const isVoiceGroup = (group: string): boolean =>
-  group.startsWith('voice-') || group.startsWith('feesdae-voice-') || group === SOUNDSCAPE_GROUP;
+  group.startsWith('voice-') ||
+  group.startsWith('feesdae-voice-') ||
+  group === SOUNDSCAPE_GROUP ||
+  // v1.11 (D-068): the braai's sounds and Oupa's story lines (the braai's lazy chunk loads them).
+  group === BRAAI_GROUP ||
+  group.startsWith(BRAAI_VOICE_GROUP_PREFIX);
 
 /** The index without its voice entries, and those entries. */
 export function splitVoiceIndex(index: AssetIndex): { index: AssetIndex; voice: VoiceIndex } {
