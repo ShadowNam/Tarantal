@@ -52,6 +52,8 @@ export interface TallyBraai {
   readonly facts: StoryFacts;
   /** The area's best before this hunt (the Harvest's own), null: none. */
   readonly bestBefore: number | null;
+  /** The save's best rank before this hunt (null: none yet: no rank up for the story). */
+  readonly rankBefore: string | null;
   readonly biome: string;
 }
 
@@ -639,6 +641,7 @@ export class TallyScene extends Phaser.Scene {
             ? hv.newBest && braai.bestBefore !== null
             : (o?.newBest?.previous ?? null) !== null,
         rankUp: o?.rankUp ?? null,
+        rankBefore: braai.rankBefore,
         bestBefore: braai.bestBefore,
         harvestCrop: hv?.crop ?? null,
         topRank: ranks.at(-1)?.id ?? '',

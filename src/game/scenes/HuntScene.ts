@@ -2974,6 +2974,8 @@ export class HuntScene extends Phaser.Scene {
     const bonus = this.recordBonus(result);
     const verder = bonus.line;
     // v1.11 (D-068): the area's best before this hunt (the braai story's near miss).
+    // v1.11 (D-068, review B): the best rank before this hunt (a first scored hunt is no rank up).
+    const rankBefore = this.ctx.save.data.bestRank;
     const bestBefore =
       this.modeId === 'harvest'
         ? this.ctx.save.data.harvest.best
@@ -3017,7 +3019,14 @@ export class HuntScene extends Phaser.Scene {
         ...(harvest === null ? {} : { harvest }),
         ...(this.storyFacts === null
           ? {}
-          : { braai: { facts: this.storyFacts.facts(), bestBefore, biome: result.biome } }),
+          : {
+              braai: {
+                facts: this.storyFacts.facts(),
+                bestBefore,
+                rankBefore,
+                biome: result.biome,
+              },
+            }),
         share: (x) => this.ctx.daily.share(x),
         again: (pointerType) => {
           this.afterBreak(() => {

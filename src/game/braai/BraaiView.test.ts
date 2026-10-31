@@ -115,6 +115,7 @@ describe('braai view (D-068)', () => {
         harvestCrop: null,
         topRank: 'bosveld_legend',
         bottomRank: 'stadsjapie',
+        rankBefore: null,
       },
       tuning,
     );

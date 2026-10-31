@@ -1747,6 +1747,24 @@
       "lufs": -19.7,
       "peakDb": -1
     },
+    "voice/af/braai.say.close_rank_up": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_close_rank_up.717aefaa5e38.ogg",
+        "bytes": 25397,
+        "hash": "717aefaa5e38"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_close_rank_up.5bae89a9aa67.mp3",
+        "bytes": 31546,
+        "hash": "5bae89a9aa67"
+      },
+      "loop": false,
+      "lufs": -18.2,
+      "peakDb": -1
+    },
     "voice/af/braai.say.close_try": {
       "group": "braai-voice-af",
       "origin": "interim",
@@ -3601,6 +3619,24 @@
       "lufs": -16,
       "peakDb": -6.3
     },
+    "voice/de/braai.say.close_rank_up": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_close_rank_up.1247781e3b70.ogg",
+        "bytes": 30990,
+        "hash": "1247781e3b70"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_close_rank_up.94a63f795137.mp3",
+        "bytes": 34740,
+        "hash": "94a63f795137"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -5.3
+    },
     "voice/de/braai.say.close_try": {
       "group": "braai-voice-de",
       "origin": "interim",
@@ -5453,6 +5489,24 @@
       },
       "loop": false,
       "lufs": -17.4,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.close_rank_up": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_rank_up.6e58a873e7a3.ogg",
+        "bytes": 23325,
+        "hash": "6e58a873e7a3"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_rank_up.c7733835b0c7.mp3",
+        "bytes": 29198,
+        "hash": "c7733835b0c7"
+      },
+      "loop": false,
+      "lufs": -19,
       "peakDb": -1
     },
     "voice/en/braai.say.close_try": {

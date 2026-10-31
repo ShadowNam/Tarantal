@@ -419,7 +419,7 @@ boxes (or updates the table and `braaiKeys.ts`) and stays ≤ 0.84 MiB on the GP
 download): `sfx/braai_fire` (the bed: a wood fire's crackle with crickets, a seamless loop, ~10 s),
 `sfx/braai_guitar` (a soft original fingerpicked loop, ~13 s, seamless), `sfx/braai_nightjar` (a
 fiery-necked nightjar far off, "Good Lord, deliver us", ≤ 3.6 s), `sfx/braai_vastrap` (a
-concertina oom-pa sting, ≤ 3 s). Oupa's 18 story phrases are voiced per language
+concertina oom-pa sting, ≤ 3 s). Oupa's 19 story phrases are voiced per language
 (`audio/voice/<lang>/braai.say.<id>.wav`, lazy packs `braai-voice-<lang>`; text in
 `src/i18n/braai/<lang>.json`, the numbers only in the captions).
 

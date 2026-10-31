@@ -34,6 +34,7 @@ const input = (over: Partial<StoryInput> = {}): StoryInput => ({
   facts: NO_FACTS,
   newBest: false,
   rankUp: null,
+  rankBefore: 'plaaswerker',
   bestBefore: null,
   harvestCrop: null,
   topRank: 'bosveld_legend',
@@ -66,9 +67,23 @@ describe('the braai story (D-068)', () => {
       ['open_many', 'new_best', 'ver', 'close_perfect'],
     ],
     [
-      'a rank up earns the dance',
+      'a rank up (not a perfect hunt) earns the dance with its own closer',
       input({ rankUp: 'bosveldjagter', facts: { ...NO_FACTS, farBagged: 1, farthest: 'far' } }),
-      ['open_some', 'rank_up', 'far', 'close_perfect'],
+      ['open_some', 'rank_up', 'far', 'close_rank_up'],
+    ],
+    [
+      "a new player's first scored hunt with 0 birds: no rank up, no dance (review B)",
+      input({
+        result: result({ score: 0, bagged: 0, shots: 4, hitShots: 0, rank: 'stadsjapie' }),
+        rankUp: 'stadsjapie',
+        rankBefore: null,
+      }),
+      ['open_none', 'close_try'],
+    ],
+    [
+      'a first scored hunt that reaches a higher rank is still no rank up',
+      input({ rankUp: 'bosveldjagter', rankBefore: null }),
+      ['open_some', 'close_good'],
     ],
     [
       'a Harvest hunt',
@@ -128,6 +143,19 @@ describe('the braai story (D-068)', () => {
     expect(isPerfectHunt({ rank: 'x', shots: 11, hitShots: 10, bagged: 12 }, top, p)).toBe(false);
     expect(isPerfectHunt({ rank: 'x', shots: 0, hitShots: 0, bagged: 0 }, top, p)).toBe(false);
     expect(earnsDance(input({ rankUp: 'x' }), p)).toBe(true);
+    // Review B: no earlier rank, or the bottom rank, is never a rank up.
+    expect(earnsDance(input({ rankUp: 'x', rankBefore: null }), p)).toBe(false);
+    expect(earnsDance(input({ rankUp: 'stadsjapie', rankBefore: 'stadsjapie' }), p)).toBe(false);
+    expect(
+      earnsDance(
+        input({
+          rankUp: 'stadsjapie',
+          rankBefore: null,
+          result: result({ score: 0, bagged: 0, shots: 0, hitShots: 0, rank: 'stadsjapie' }),
+        }),
+        p,
+      ),
+    ).toBe(false);
     expect(earnsDance(input(), p)).toBe(false);
   });
 
@@ -139,8 +167,8 @@ describe('the braai story (D-068)', () => {
         expect(say, sayKey(id)).toBeTruthy();
         expect(say).not.toMatch(/[{}0-9]/);
       }
-    // 18 phrases: the voiced clip count per language.
-    expect(STORY_LINE_IDS.length).toBe(18);
+    // 19 phrases: the voiced clip count per language (57 clips in en/af/de).
+    expect(STORY_LINE_IDS.length).toBe(19);
   });
 });
 

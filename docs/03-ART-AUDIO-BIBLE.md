@@ -1000,8 +1000,8 @@ far fiery-necked nightjar calls ("Good Lord, deliver us": two clear whistles, th
 phrase falling away, through a long night reverb). Oupa's vastrap comes with a short concertina
 oom-pa sting (an original phrase). All interim and made in code (`tools/audio/braai.ts`); muted,
 paused and silenced on a hidden tab like every sound.
-**Oupa's story:** 18 voiced phrases (an opener for the bag, the hunt's best moments, a closer)
-per voice language — 54 clips in en/af/de (Dutch text speaks Afrikaans), made with the same
+**Oupa's story:** 19 voiced phrases (an opener for the bag, the hunt's best moments, a closer)
+per voice language — 57 clips in en/af/de (Dutch text speaks Afrikaans), made with the same
 interim voice pipeline as his other lines (§10.1); the numbers are only in the caption, never
 spoken, so the clips stay few. Example: "Jislaaik, what a bag! The pickup's full!" (caption:
 "Jislaaik, 14 birds! The pickup's full!").

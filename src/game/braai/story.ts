@@ -21,7 +21,13 @@ export const STORY_MOMENTS = [
   'nest',
   'near_record',
 ] as const;
-export const STORY_CLOSERS = ['close_perfect', 'close_feesdag', 'close_try', 'close_good'] as const;
+export const STORY_CLOSERS = [
+  'close_perfect',
+  'close_rank_up',
+  'close_feesdag',
+  'close_try',
+  'close_good',
+] as const;
 
 export type StoryLineId =
   (typeof STORY_OPENERS)[number] | (typeof STORY_MOMENTS)[number] | (typeof STORY_CLOSERS)[number];
@@ -65,6 +71,9 @@ export interface StoryInput {
   readonly newBest: boolean;
   /** The rank reached for the first time (rank id), or null. */
   readonly rankUp: string | null;
+  /** The save's best rank before this hunt (null: no scored hunt yet). A first scored hunt
+   *  always "reaches" a rank: that is no rank up for the story or the dance. */
+  readonly rankBefore: string | null;
   /** The best before this hunt (null: none), for the near miss. */
   readonly bestBefore: number | null;
   /** The Harvest's crop saved (whole %), or null for every other mode. */
@@ -89,7 +98,15 @@ export function isPerfectHunt(
 
 /** A perfect hunt or a rank up earns Oupa's vastrap. */
 export function earnsDance(i: StoryInput, tuning: Pick<BraaiTuning, 'perfect'>): boolean {
-  return i.rankUp !== null || isPerfectHunt(i.result, i.topRank, tuning);
+  return storyRankUp(i) !== null || isPerfectHunt(i.result, i.topRank, tuning);
+}
+
+/** The rank the story celebrates: a real climb (an earlier rank, never the bottom one), else null. */
+export function storyRankUp(i: StoryInput): string | null {
+  const up = i.rankUp;
+  if (up === null || i.rankBefore === null || up === i.rankBefore || up === i.bottomRank)
+    return null;
+  return up;
 }
 
 const line = (id: StoryLineId, vars: StoryVars = {}): StoryLine => ({
@@ -112,7 +129,8 @@ export function storyMoments(i: StoryInput, t: BraaiTuning): StoryLine[] {
   const f = i.facts;
   const out: StoryLine[] = [];
   if (i.newBest) out.push(line('new_best', { score: r.score }));
-  if (i.rankUp !== null) out.push(line('rank_up', { rank: i.rankUp }));
+  const up = storyRankUp(i);
+  if (up !== null) out.push(line('rank_up', { rank: up }));
   if (f.verBagged > 0) out.push(line('ver', { n: f.verBagged }));
   else if (f.farBagged > 0) out.push(line('far', { n: f.farBagged }));
   if (r.wholeFlocks > 0) out.push(line('whole_flock', { n: r.wholeFlocks }));
@@ -135,7 +153,8 @@ export function storyMoments(i: StoryInput, t: BraaiTuning): StoryLine[] {
 }
 
 function closer(i: StoryInput, t: BraaiTuning): StoryLine {
-  if (earnsDance(i, t)) return line('close_perfect');
+  if (isPerfectHunt(i.result, i.topRank, t)) return line('close_perfect');
+  if (storyRankUp(i) !== null) return line('close_rank_up');
   if (i.result.feesdag !== undefined) return line('close_feesdag');
   const r = i.result;
   if (i.harvestCrop === null && (r.bagged <= 0 || r.rank === i.bottomRank))

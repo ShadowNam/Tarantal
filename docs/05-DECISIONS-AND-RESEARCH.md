@@ -3748,14 +3748,19 @@ hunt"). GDD §8.
   the hunt's moments in a fixed priority — a new best (one that beat an earlier best), a rank up,
   a Ver bag (else a far-plane bag), whole flocks, a Blikkies chain of 3+, 3+ bags in the Reënbui
   swarm, a meerkat scold, a nest scold, a near miss (within 90 % of the area's best) — at most
-  `story.maxLines − 2` (2) of them, then a closer (the dance, a Feesdae day, a poor hunt, else
-  "the coals are just right"). 18 phrases, each voiced without numbers (`braai.say.*`, 54 clips in
+  `story.maxLines − 2` (2) of them, then a closer (a perfect hunt, a rank up, a Feesdae day, a
+  poor hunt, else "the coals are just right"). 19 phrases, each voiced without numbers (`braai.say.*`, 57 clips in
   en/af/de) and captioned with them (`braai.*`): a small, fixed clip count whatever the numbers.
-  The story's strings and the 18 × 2 keys live in a lazy table (`src/i18n/braai/`, the braai's
+  The story's strings and the 19 × 2 keys live in a lazy table (`src/i18n/braai/`, the braai's
   chunk), not the first download's.
 - *A perfect hunt* is the top rank (Bosveld Legend), or every shot bagged with at least
   `perfect.minBagged` (10) birds — rare enough to be a reward, reachable without the top score. It
-  or a rank up earns the vastrap (`danceMs` 3.6 s, four steps mirrored).
+  or a rank up earns the vastrap (`danceMs` 3.6 s, four steps mirrored); a perfect hunt closes "A
+  perfect hunt!", a plain rank up "That calls for a dance!" (`close_rank_up`). *Review B:* the save's
+  `bestRank` starts null, so a new player's first scored hunt always "reaches" a rank (the tally's
+  news line says so, unchanged); for the story and the dance a rank up counts only when there was
+  an earlier rank (`TallyBraai.rankBefore`, read before the hunt is recorded) and never for the
+  bottom rank — a first 0-point hunt closes "Tomorrow the birds won't be so lucky", no dance.
 - *Layout (lesson 25).* Oupa and the fire stand in the column left of the slate, sized to it
   (`braaiLayout.ts`, unit-tested against every tally rect at 16:9, 20:9 and 19.5:9 with the
   iPhone's insets); his bubble sits above his head; on 4:3 he and the fire are left out.
