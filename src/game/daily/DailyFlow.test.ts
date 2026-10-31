@@ -158,7 +158,7 @@ describe('DailyFlow', () => {
       { day: DAY, score: 2840, rank: 'bosveldjagter', wholeFlocks: 2, grid: '🟩🟩🟨🟩⬛' },
     ]);
     expect(x.share?.text).toContain(
-      'Daily #1 · Wednesday · 2\u00a0840 · Bushveld Hunter · 🟩🟩🟨🟩⬛ · 2× whole flock',
+      'Daily #1 · Wednesday · 🔥 2\u00a0840 🌌 · Bushveld Hunter · 🟩🟩🟨🟩⬛ · 2× whole flock',
     );
     const param = new URL(x.share?.url ?? '').searchParams.get('c') ?? '';
     const decoded = decodeChallenge(param, {

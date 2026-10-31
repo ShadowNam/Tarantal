@@ -196,7 +196,7 @@ export interface BraaiSetup {
 
 const SKY_TOP = 0x03050f;
 const SKY_MID = 0x0b1430;
-const SKY_LOW = 0x1c2444;
+const SKY_LOW = 0x2a3456;
 const LAND = 0x05060a;
 const GROUND = 0x0b0a0c;
 /** Behind everything the tally draws (the slate, the buttons, the bubble). */
@@ -259,7 +259,7 @@ export class BraaiView {
     const { width, height } = s.layoutIn;
     this.drawSky(width, height, L);
     this.drawStars(width, L.horizonY);
-    this.put('milky', L.milky.x, L.milky.y, L.milky.scaleX, 1.6)
+    this.put('milky', L.milky.x, L.milky.y, L.milky.scaleX, 1.3)
       .setRotation(L.milky.rotation)
       .setAlpha(0.85);
     this.put('cross', L.cross.x, L.cross.y, 1, 1);

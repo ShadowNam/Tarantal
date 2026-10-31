@@ -799,13 +799,13 @@ function starTile(): string {
   const S = STAR_TILE;
   const parts: string[] = [];
   const colours = ['#FFFFFF', '#DDE8FF', '#FFF1D6', '#CFE0FF', '#FFE2C0'];
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < 38; i++) {
     const x = rnd() * S;
     const y = rnd() * S;
-    const b = rnd() ** 3;
-    const r = 1.2 + b * 2.6;
+    const b = rnd() ** 4;
+    const r = 1.1 + b * 2.4;
     const c = colours[Math.floor(rnd() * colours.length)] ?? '#FFFFFF';
-    const op = 0.45 + b * 0.55;
+    const op = 0.25 + b * 0.75;
     for (const dx of [-S, 0, S])
       for (const dy of [-S, 0, S]) {
         const cx = x + dx;

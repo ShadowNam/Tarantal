@@ -336,6 +336,8 @@ export class DailyFlow {
             layout: result.layout,
             bonus: result.bonus,
             ...(result.feesdag === undefined ? {} : { feesdag: this.shareSpecial(result, daily) }),
+            // v1.11 (D-068): an ordinary Daily's card puts the braai round its score.
+            braai: dailyNumber !== null && result.feesdag === undefined,
             score: result.score,
             rank: result.rank,
             grid,

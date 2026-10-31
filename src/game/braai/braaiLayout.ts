@@ -56,6 +56,8 @@ const GROUP_H = Math.max(DANCING.oy, SEATED.oy);
 /** The flames rise this far above the fire's base (art px). */
 const FIRE_UP = 86;
 const MAX_SCALE = 1.5;
+/** x per y of the Milky Way's band (its rotation −1.15 rad): 1 / tan(1.15). */
+const MILKY_RISE = 1 / Math.tan(1.15);
 const MIN_SCALE = 0.8;
 const GAP = 16;
 
@@ -113,6 +115,8 @@ export function braaiLayout(i: BraaiLayoutIn): BraaiLayout {
     }
   }
   const rightCol = { x: panel.x + panel.w, w: safe.x + safe.w - (panel.x + panel.w) };
+  const skyX = rightCol.x + Math.max(60, rightCol.w / 2) - 30;
+  const crossY = safe.y + Math.min(200, height * 0.2);
   const bakkieScale = Math.min(1.3, Math.max(0.7, (rightCol.w - 2 * GAP) / 340));
   const bakkieX = Math.max(rightCol.x + rightCol.w / 2, rightCol.x + 130 * bakkieScale);
   return {
@@ -121,11 +125,10 @@ export function braaiLayout(i: BraaiLayoutIn): BraaiLayout {
     oupa,
     fire: oupa === null ? null : { x: oupa.x + FIRE_DX * scale, y: oupa.y },
     bakkie: { x: bakkieX, y: footY - 6, scale: bakkieScale },
-    cross: {
-      x: rightCol.x + Math.max(60, rightCol.w / 2),
-      y: safe.y + Math.min(190, height * 0.18),
-    },
-    milky: { x: width * 0.5, y: height * 0.3, rotation: -0.38, scaleX: (width * 1.3) / 720 },
+    // The Milky Way rises steeply through the right column, the Southern Cross in it (as it
+    // stands in the southern sky on a summer evening, the Coalsack beside it).
+    cross: { x: skyX + MILKY_RISE * (height * 0.4 - crossY), y: crossY },
+    milky: { x: skyX, y: height * 0.4, rotation: -1.15, scaleX: (height * 1.2) / 720 },
     oupaRect: rects?.oupa ?? null,
     fireRect: rects?.fire ?? null,
     storySlot: storySlot(i, rects?.oupa ?? null, blockers.slice(2)),
