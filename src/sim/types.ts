@@ -5,6 +5,7 @@ import type { OstrichPose } from './ostriches/ostriches';
 import type { TellPhase } from './tells/tells';
 import type { BaboonRole, RaidPhase, RaiderPhase, RidgePose } from './baboons/baboons';
 import type { RangeProgramFactory } from './range/types';
+import type { AlateColumn, ReenbuiPhase } from './reenbui/reenbui';
 import type { LazySystems } from './lazySystems';
 
 /** v1.3 (D-036): `ver` is the distant band behind the far plane; only rifles reach it. */
@@ -155,6 +156,24 @@ export type BirdPhase =
 /** Flock FSM states (GDD §6.1, Tech §3.5). Roost (dusk hunts) arrives with the dusk biomes. */
 export type FlockState = 'forage' | 'alert' | 'run' | 'flush' | 'settle';
 
+/** v1.10 (D-067): a Reënbui as drawn (phase ticks, the alate columns, the swarm's bags). */
+export interface ReenbuiView {
+  /** Null before the build-up and once it is over. */
+  readonly phase: ReenbuiPhase | null;
+  readonly buildupTick: number;
+  readonly dropsTick: number;
+  readonly swarmTick: number;
+  readonly easingTick: number;
+  readonly endTick: number;
+  /** The Kalahari omen: it rose with the Donderstorm (no build-up or drops of its own). */
+  readonly withStorm: boolean;
+  /** The columns (empty until the swarm, and again once it is over). */
+  readonly columns: readonly AlateColumn[];
+  /** Bags in the swarm window so far. */
+  readonly bagged: number;
+  readonly mult: number;
+}
+
 export interface FlockView {
   readonly id: number;
   readonly plane: PlaneId;
@@ -165,6 +184,8 @@ export interface FlockView {
   readonly alive: number;
   /** True while bagging every remaining member still earns the Whole-Flock bonus. */
   readonly eligible: boolean;
+  /** v1.10 (D-067): feeding at a Reënbui alate column (absent = not). */
+  readonly feeding?: true;
 }
 
 export interface GadgetView {
@@ -521,6 +542,8 @@ export interface SimState {
   readonly baboons: BaboonsView | null;
   /** v1.8c (D-063): the Harvest (null in every other mode). */
   readonly harvest: HarvestView | null;
+  /** v1.10 (D-067): this hunt's Reënbui (null when it has none). */
+  readonly reenbui: ReenbuiView | null;
   readonly powerups: readonly PowerupView[];
   /** Null when the omen is off or the biome has no wind. */
   readonly wind: WindView | null;

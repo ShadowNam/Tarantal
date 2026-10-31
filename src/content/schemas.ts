@@ -1442,6 +1442,9 @@ export const LayoutSchema = obj({
     .optional(),
   light: id,
   weather: z.enum(['calm', 'default', 'omen']),
+  /** v1.10 (D-067): Reënbui always (`force`) or never (`none`) on this day; absent = the area's
+   *  chance. A `calm` day never has it. */
+  reenbui: z.enum(['force', 'none']).optional(),
 });
 export type Layout = z.infer<typeof LayoutSchema>;
 
@@ -2022,6 +2025,64 @@ export const FeesdaeSchema = obj({
 });
 export type Feesdae = z.infer<typeof FeesdaeSchema>;
 
+// reenbui.json — v1.10 (D-067, GDD §11.3e): Reënbui, the first summer rain and the flying ants. A
+// world event of its own (stream `reenbui`): at most once a hunt, by a chance per area; layouts
+// force or forbid it. Px are design px at the mid plane (D-049: tuningRatio converts them).
+
+export const REENBUI_PHASES = ['buildup', 'drops', 'swarm', 'easing'] as const;
+export type ReenbuiPhase = (typeof REENBUI_PHASES)[number];
+
+export const ReenbuiSchema = obj({
+  version,
+  /** Each phase's length (s). */
+  phaseSeconds: obj({ buildup: nonNeg, drops: nonNeg, swarm: pos, easing: nonNeg }),
+  /** Where the build-up may start, as fractions of the hunt; the event always ends at least
+   *  endMarginSeconds before the hunt does (a later start is pulled back). */
+  window: windowFraction,
+  endMarginSeconds: nonNeg,
+  /** The chance a hunt has it, per biome (absent biome = never). */
+  areas: z.array(obj({ biome: id, chance: fraction })).min(1),
+  /** Modes it can happen in (Season Run: plain and omen hunts only; never on a special day). */
+  modes: z.array(ModeIdSchema).min(1),
+  /** Build-up: every flock's shot alert radius × this (a little jumpier). */
+  buildupAlertRadiusMul: pos,
+  /** Every bag in the swarm window: this system multiplier (GDD §5.3, after the Countdown's). */
+  scoreMul: pos,
+  columns: obj({
+    /** How many columns rise (drawn from the stream). */
+    count: range(posInt),
+    /** Planes they rise on (flocks forage there). */
+    planes: z.array(z.enum(['mid', 'far'])).min(1),
+    /** Columns stand within this of the view's centre on their plane (mid-plane px). */
+    spreadPx: pos,
+    /** And at least this far apart on one plane (mid-plane px). */
+    minGapPx: nonNeg,
+  }),
+  feeding: obj({
+    /** A forage/settle flock this close to a column (mid-plane px) goes to feed at it. */
+    reachPx: pos,
+    /** Its feeding goal is drawn this far round the column (mid-plane px). */
+    spreadPx: nonNeg,
+    /** A feeding flock's shot alert radius × this (calmer while it feasts). */
+    alertRadiusMul: pos,
+    /** Its foragers farther than this from the column (mid-plane px) hurry there at their run
+     *  speed × hurrySpeedMul. */
+    hurryBeyondPx: pos,
+    hurrySpeedMul: pos,
+  }),
+  extraFlocks: obj({
+    /** At most this many extra flocks run in (inside maxFlocks and maxBirdsOnScreen). */
+    max: nonNegInt,
+    size: range(posInt),
+    /** One tries to come in this often (s) during the swarm, the first right away. */
+    everySeconds: pos,
+    /** They come in from this far beyond a column, on the side away from the view centre
+     *  (mid-plane px). */
+    fromPx: pos,
+  }),
+});
+export type Reenbui = z.infer<typeof ReenbuiSchema>;
+
 // ---------------------------------------------------------------------------------------------
 // The whole bundle
 
@@ -2035,6 +2096,7 @@ export const CONTENT_FILES = {
   'run.json': RunSchema,
   'modes.json': ModesSchema,
   'feesdae.json': FeesdaeSchema,
+  'reenbui.json': ReenbuiSchema,
 } as const;
 
 export interface ContentBundle {
@@ -2047,6 +2109,8 @@ export interface ContentBundle {
   readonly modes: Modes;
   /** D-048: the special days (Feesdae). */
   readonly feesdae: Feesdae;
+  /** D-067: Reënbui, the first rain and the flying ants. */
+  readonly reenbui: Reenbui;
   readonly biomes: readonly Biome[];
 }
 

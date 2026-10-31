@@ -1,6 +1,7 @@
 // Typed gameplay events (Tech §3.4, CLAUDE.md rule 4). Audio, FX, UI, analytics and replay
 // hashing subscribe to these; they never read internal sim fields.
 import type { RaidAction, WorldEventId } from '../content/schemas';
+import type { AlateColumn } from './reenbui/reenbui';
 import { fnv1a32 } from './rng';
 import type { BreakdownStep } from './scoring/pipeline';
 import type { BagBehaviour, BirdMotion, FlockState, PlaneId, RangeTarget } from './types';
@@ -656,6 +657,30 @@ export type SimEvent =
       readonly endTick: number;
       readonly mult: number;
     }
+  /** v1.10 (D-067) Reënbui: the storm rolls in (the phase ticks; `withStorm`: the Kalahari
+   *  omen's Donderstorm is its build-up and drops). */
+  | {
+      readonly type: 'reenbuiBuildup';
+      readonly tick: number;
+      readonly dropsTick: number;
+      readonly swarmTick: number;
+      readonly easingTick: number;
+      readonly endTick: number;
+      readonly withStorm: boolean;
+    }
+  /** The first fat drops (not with the storm: its own rain started it). */
+  | { readonly type: 'reenbuiRain'; readonly tick: number }
+  /** The alates rise in columns; every bag × `mult` until rainEased. */
+  | {
+      readonly type: 'alatesSwarm';
+      readonly tick: number;
+      readonly mult: number;
+      readonly columns: readonly AlateColumn[];
+    }
+  /** The rain eases and the swarm thins; `bagged` = bags in the swarm window. */
+  | { readonly type: 'rainEased'; readonly tick: number; readonly bagged: number }
+  /** The sky has cleared. */
+  | { readonly type: 'reenbuiDone'; readonly tick: number }
   /** D-064: the day's last present opened — "Presents found!", paid once (an event bonus). */
   | { readonly type: 'presentsFound'; readonly tick: number; readonly points: number }
   /** v1.8 (D-050): a tin can was shot off its post (chain 0) or hit again in the air (chain n ≥ 1,

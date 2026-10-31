@@ -67,6 +67,13 @@ export function parseContent(raw: RawContent): ParseResult {
     errors,
   );
 
+  const reenbui = parseFile(
+    CONTENT_FILES['reenbui.json'],
+    'reenbui.json',
+    f['reenbui.json'],
+    errors,
+  );
+
   for (const name of Object.keys(f)) {
     if (!(name in CONTENT_FILES)) errors.push({ file: name, message: 'unknown content file' });
   }
@@ -91,9 +98,10 @@ export function parseContent(raw: RawContent): ParseResult {
     charms === undefined ||
     run === undefined ||
     modes === undefined ||
-    feesdae === undefined
+    feesdae === undefined ||
+    reenbui === undefined
   ) {
     return { ok: false, errors };
   }
-  return { ok: true, bundle: { scoring, birds, weapons, powerups, charms, run, modes, feesdae, biomes }, errors: [] };
+  return { ok: true, bundle: { scoring, birds, weapons, powerups, charms, run, modes, feesdae, reenbui, biomes }, errors: [] };
 }

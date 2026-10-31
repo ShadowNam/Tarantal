@@ -693,6 +693,7 @@
       "id": "wed",
       "light": "overcast",
       "weather": "default",
+      "reenbui": "force",
       "$comment": "Overcast: the reeds stand thicker in the west; birds run more than they fly.",
       "props": [
         {

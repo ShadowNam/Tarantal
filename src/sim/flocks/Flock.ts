@@ -147,6 +147,13 @@ export interface Flock {
   /** Biome twist (Bushveld, Kalahari rain, D-025): a threat in RUN never makes this flock take
    *  wing — it keeps running. World flushes (Vuvuzela, secrets) still do. */
   runsOnly?: boolean;
+  /** v1.10 Reënbui (D-067): plane x of the alate column this flock feeds at (its foraging goal is
+   *  drawn round it, `feedSpreadPx` mid-plane px); absent = forages round its home. */
+  feedX?: number;
+  feedSpreadPx?: number;
+  /** Walkers farther than this (mid-plane px) from the column run there at run × feedHurryMul. */
+  feedHurryPx?: number;
+  feedHurryMul?: number;
 }
 
 /** Members' plane-space centre (the flock's own home if it has no members). */
@@ -185,5 +192,6 @@ export function flockView(f: Flock): FlockView {
     spawnSize: f.spawnSize,
     alive: f.members.length,
     eligible: f.eligible,
+    ...(f.feedX === undefined ? {} : { feeding: true }),
   };
 }
