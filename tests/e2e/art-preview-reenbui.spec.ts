@@ -232,8 +232,11 @@ async function columnBox(page: Page): Promise<{ x: number; y: number; w: number;
     );
   const c = cols[0];
   if (c === undefined) throw new Error('no alate column on screen');
-  const tall = c.plane === 'mid' ? 240 : 110;
-  return { x: c.x - 240, y: c.y - tall, w: 480, h: tall + 70 };
+  // The whole column (~430 px tall on the mid plane, by plane scale on the far one) and the birds
+  // feeding at its foot; clear of the top of the screen.
+  const tall = c.plane === 'mid' ? 460 : 180;
+  const top = Math.max(10, c.y - tall);
+  return { x: c.x - 260, y: top, w: 520, h: c.y - top + 70 };
 }
 
 test('Reënbui: the build-up and the first drops', async ({ page }, info) => {
