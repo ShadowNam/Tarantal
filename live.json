@@ -1,9 +1,9 @@
 {
-  "updated": "2026-10-31T06:10:00Z",
-  "summary": "Live on the test build: the New Year Daily (1.11.2, merged 08:10 Namibia time on 31 Oct, your pick of 27 Oct). On 31 Dec and 1 Jan the Daily Hunt becomes a countdown hunt at dusk: a warm rose-gold sky that deepens to blue hour, small fireworks low over the far horizon (never full-screen flashes), guineafowl in party hats, Oupa in a party hat with a party blower, and a big 10…1 countdown in the last ten seconds where every award counts double (×4 together with the Stampede). \"Happy New Year!\" on the tally, Auld Lang Syne on the pennywhistle and a New Year share card. Next: v1.9 (the veld soundscape), then v1.10–v1.13; Oupa's new voices last.",
+  "updated": "2026-10-31T09:54:00Z",
+  "summary": "Live on the test build: v1.9, the veld soundscape and local music (1.12.0, merged 11:54 Namibia time on 31 Oct). Each area now sounds like its place and time of day: Cape turtle doves and laughing doves everywhere, hadedas far off at dawn and dusk, cicadas in the heat, the fish eagle, reed frogs and a distant hippo on the Okavango, wind, a windpomp and sheep in the Karoo, barking geckos in the Kalahari and Namibië. The hadeda, fish eagle and kwêvoël go quiet before the real one appears, so its call stays your warning. The music gained a pennywhistle over an mbira, a marimba and hand drums in the Stampede. The sounds are stand-in synths until real recordings arrive. Next: v1.10 Reënbui (the first rain), then v1.11–v1.13; Oupa's new voices last.",
   "current": {
-    "version": "1.11.2",
-    "commit": "bd70afb"
+    "version": "1.12.0",
+    "commit": "0954374"
   },
   "links": [
     {
@@ -34,23 +34,23 @@
   "numbers": [
     {
       "label": "Version on the test build",
-      "value": "1.11.2",
-      "note": "commit bd70afb, merged 08:10 on 31 Oct"
+      "value": "1.12.0",
+      "note": "commit 0954374, merged 11:54 on 31 Oct"
     },
     {
       "label": "Pull requests merged",
-      "value": "105",
-      "note": "#1 to #108"
+      "value": "106",
+      "note": "#1 to #109"
     },
     {
       "label": "Unit tests",
-      "value": "1,794",
+      "value": "1,828",
       "note": "plus the browser test suites on 3 devices"
     },
     {
       "label": "First download",
-      "value": "2.98 MB",
-      "note": "2,980.8 KB of the 3,072 KB budget"
+      "value": "2.96 MB",
+      "note": "2,959.5 KB of the 3,072 KB budget"
     },
     {
       "label": "Hunting areas",
@@ -68,8 +68,8 @@
     },
     {
       "label": "Decisions logged",
-      "value": "42",
-      "note": "D-001 to D-042 on main; D-043 to D-045 in review"
+      "value": "66",
+      "note": "D-001 to D-066 on main"
     }
   ],
   "needsYou": [
@@ -1037,8 +1037,14 @@
       "status": "done"
     },
     "v1.9": {
-      "owner": "Tank builds it (task c136e97d, started 08:10 Namibia); Claude runs the screenshots and checks",
+      "owner": "Tank built it (task c136e97d); Claude reviewed the audio previews and spectrograms, the size table and CI, and merged it (#109)",
       "summary": "The veld soundscape and local music: doves, hadedas, cicadas and the fish eagle in the background of each map, and music on marimba, mbira and drums.",
+      "requestedBy": "You: the v1.9–v1.13 list, in your order.",
+      "status": "done"
+    },
+    "v1.10": {
+      "owner": "Tank builds it (task ccfcc40f, started 11:57 Namibia); Claude runs the screenshots and checks",
+      "summary": "Reënbui: the first summer rain — a storm front, rain on the veld and the flying-ant feast that follows, with the birds coming out to eat.",
       "requestedBy": "You: the v1.9–v1.13 list, in your order.",
       "status": "running"
     }
@@ -2175,6 +2181,11 @@
       "at": "2026-10-31T06:10:00Z",
       "kind": "merge",
       "text": "The New Year Daily is on the test build (1.11.2, #108): a countdown hunt at dusk with party hats, small fireworks on the horizon and double points in the last 10 seconds. Full CI green; reviewed screenshots on desktop, Pixel 7 and iPhone 14."
+    },
+    {
+      "at": "2026-10-31T09:54:00Z",
+      "kind": "merge",
+      "text": "v1.9 is on the test build (1.12.0, #109): the veld soundscape per area and time of day, and pennywhistle, mbira, marimba and hand drums in the music. Full CI green; audio previews and spectrograms reviewed and sent to you."
     }
   ]
 }
