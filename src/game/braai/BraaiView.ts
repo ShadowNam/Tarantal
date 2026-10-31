@@ -24,6 +24,7 @@ import { voiceKey } from '../assets/AssetManifest';
 import type { AudioDirector } from '../audio/AudioDirector';
 import type { Rect } from '../ui/hudLayout';
 import { BRAAI_SHEET, BRAAI_SOUNDS, braaiVoiceGroup } from './braaiKeys';
+import type { BraaiTap } from './braaiTap';
 import { CHRISTMAS_SHEET, xmasKeyIn } from '../feesdae/christmasKeys';
 import { HALLOWEEN_SHEET } from '../feesdae/feesdaeAssets';
 import { NEWYEAR_SHEET } from '../feesdae/newyearKeys';
@@ -185,6 +186,8 @@ export interface BraaiHook {
   story: { lines: string[]; captions: string[]; shown: number; skipped: boolean };
   /** Oupa's story bubble while it shows (design px), else null. */
   bubble: Rect | null;
+  /** The last taps on the tally (design px) and what each did (braaiTap.ts). */
+  taps: BraaiTap[];
   decorations: string[];
   /** Phaser calls the last frame made (perf: ≤ 40). */
   calls: number;
@@ -324,6 +327,7 @@ export class BraaiView {
       danceAt: null,
       story: { lines: this.lines.map((l) => l.id), captions: [], shown: 0, skipped: false },
       bubble: null,
+      taps: [],
       decorations,
       calls: 0,
       textureMB: Math.round((textureBytes(scene.textures) / (1024 * 1024)) * 10) / 10,
@@ -483,6 +487,11 @@ export class BraaiView {
   /** Oupa's story starts at `ms` on the braai clock (after the count-up and any verdict). */
   startStory(ms: number): void {
     if (this.storyFrom === null) this.storyFrom = ms;
+  }
+
+  /** The whole story is out (told or skipped): a skip has nothing left to do. */
+  get storyDone(): boolean {
+    return this.hook.story.skipped || this.shown >= this.lines.length;
   }
 
   /** A tap or key: the whole story at once (one caption), the dance now if it is due. */

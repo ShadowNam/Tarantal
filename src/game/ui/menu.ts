@@ -34,6 +34,11 @@ export function setMenuInputGate(blocked: () => boolean): void {
   inputBlocked = blocked;
 }
 
+/** v1.11 (D-068): the same gate for other DOM listeners on a menu screen (the braai's skip). */
+export function menuInputBlocked(): boolean {
+  return inputBlocked();
+}
+
 export interface MenuItem {
   /** Also the key under hook.rects (e2e taps by id). */
   readonly id: string;

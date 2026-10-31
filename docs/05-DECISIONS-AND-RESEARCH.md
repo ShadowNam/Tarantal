@@ -3761,7 +3761,10 @@ hunt"). GDD §8.
   iPhone's insets); his bubble sits above his head; on 4:3 he and the fire are left out.
 - *Skip.* "A tap or key skips … as today": the tally had no skip, so the braai adds one — a tap
   that isn't on a button, or Esc (Enter and Space press the focused button, [Again] by default,
-  as before). It finishes the count-up and shows the rest of the story in one caption.
+  as before). It finishes the count-up and shows the rest of the story in one caption. Phaser's
+  own input is off in this game (all input is Pointer Events on the canvas), so the skip listens to
+  the DOM as Menu does (CI review: a Phaser `pointerup` listener never fired); each tap and the
+  branch it took (`button`, `skip`, `skip-ignored:blocked|done`) is in the hook's `braai.taps`.
 - *Share card.* An ordinary Daily's text card puts the braai round its score (`🔥 2 840 🌌`); a
   Feesdae Daily keeps its own frame. The card's prefix is unchanged (challenge links, e2e).
 - *Feesdae at the braai.* The special's framed slate is drawn as before; its hat (Christmas, New

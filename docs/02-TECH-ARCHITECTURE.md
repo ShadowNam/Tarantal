@@ -799,7 +799,8 @@ v1.11 (D-068), **Die Braai** (`src/game/braai/`), presentation only (no sim chan
   Lines start after the count-up and the verdict bark, one every `story.lineMs + gapMs` on the
   braai clock, in Oupa's bubble above his head (`braaiLayout.ts`, laid out against every tally
   rect), voiced through `AudioDirector.bark`. A tap off the buttons or Esc skips the count-up and
-  the story. `AudioDirector.setBraai` crossfades the area's music into the braai's bed (guitar on
+  the story (DOM Pointer Events like Menu — Phaser's input is off — through `braaiTap.ts`; the
+  last taps and their outcome in `hook.braai.taps`). `AudioDirector.setBraai` crossfades the area's music into the braai's bed (guitar on
   the music bus, fire and crickets on the ambience bus); mute, pause and visibility go through the
   same buses.
 - **Test flags (test hooks only):** `?braai=0` (the plain slate), `?braaiDance=1`, `?braaiAt=<ms>`.

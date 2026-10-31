@@ -21,7 +21,9 @@ import { NY_SOUNDS } from '../feesdae/newyearKeys';
 import { BarkBubble, sayBark } from '../ui/BarkBubble';
 import { powerupIcon } from '../ui/powerupIcons';
 import type { BarkTrigger } from '../../content/schemas';
-import { drawButton, fitText, Menu } from '../ui/menu';
+import { drawButton, fitText, Menu, menuInputBlocked } from '../ui/menu';
+import { clientToDesign } from '../input/screenButtons';
+import { classifyTap, recordTap } from '../braai/braaiTap';
 import { FONT } from '../view/Fx';
 import { fontPx, outline } from '../ui/textLook';
 import { braaiFlags, braaiReady } from '../braai/braaiChunk';
@@ -659,15 +661,30 @@ export class TallyScene extends Phaser.Scene {
       this.verdictBubble?.hide();
       view.skip(this.braaiClock());
     };
-    const buttons = at.buttons;
-    this.input.on(Phaser.Input.Events.POINTER_UP, (p: Phaser.Input.Pointer) => {
-      const w = this.cameras.main.getWorldPoint(p.x, p.y);
-      if (buttons.some((b) => w.x >= b.x && w.x <= b.x + b.w && w.y >= b.y && w.y <= b.y + b.h))
-        return;
-      skip();
-    });
+    // Phaser's own input is off in this game (main.ts: all input is Pointer Events on the canvas),
+    // so the skip listens to the DOM as Menu does: a press on the canvas, released anywhere, is a
+    // tap at the press's design point; a tap on a button drawn here stays the button's.
+    const canvas = this.game.canvas;
+    let down: { id: number; x: number; y: number } | null = null;
+    const onDown = (e: PointerEvent): void => {
+      const p = clientToDesign(canvas, e.clientX, e.clientY, designSize());
+      down = { id: e.pointerId, x: p.x, y: p.y };
+    };
+    const onUp = (e: PointerEvent): void => {
+      const d = down;
+      if (d === null || d.id !== e.pointerId) return;
+      down = null;
+      const outcome = classifyTap(d, at.buttons, {
+        blocked: menuInputBlocked(),
+        done: view.storyDone,
+      });
+      recordTap(view.hook.taps, { x: d.x, y: d.y, outcome });
+      if (outcome === 'skip') skip();
+    };
+    canvas.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointerup', onUp);
     const onKey = (e: KeyboardEvent): void => {
-      if (e.code === 'Escape') skip();
+      if (e.code === 'Escape' && !menuInputBlocked() && !view.storyDone) skip();
     };
     window.addEventListener('keydown', onKey);
     const hook = ctx.hook;
@@ -679,6 +696,8 @@ export class TallyScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.verdictBubble = null;
       window.removeEventListener('keydown', onKey);
+      canvas.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointerup', onUp);
       view.destroy();
       this.braai = null;
       this.scene.setVisible(true, 'Hunt');

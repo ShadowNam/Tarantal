@@ -119,11 +119,25 @@ test('a tap off the buttons skips the count-up and the story; [Menu] goes to the
   // A spot in the sky above the story bubble (no button there).
   const spot = { x: Math.max(40, (b.oupa?.x ?? 60) + 20), y: 30 };
   for (const r of Object.values(h.rects)) expect(overlaps({ ...spot, w: 1, h: 1 }, r)).toBe(false);
-  await tapAt(page, touch, spot.x, spot.y);
-  await page.waitForFunction(() => window.__TM__?.braai?.story.skipped === true, null, {
-    timeout: 30_000,
+  // Hold the braai clock at 0 first: on a slow runner the story could otherwise be all told
+  // before the tap lands, and a skip then has nothing to do (`skip-ignored:done`).
+  await page.evaluate(() => {
+    (window as { __TM_BRAAI_AT__?: number }).__TM_BRAAI_AT__ = 0;
   });
+  await tapAt(page, touch, spot.x, spot.y);
+  // The hook says what each tap did (button / skip / skip-ignored:<why>): print it on failure.
+  const skipped = await page
+    .waitForFunction(() => window.__TM__?.braai?.story.skipped === true, null, {
+      timeout: 30_000,
+    })
+    .then(() => true)
+    .catch(() => false);
   const s = await hook(page);
+  expect(
+    skipped,
+    `the tap at (${String(Math.round(spot.x))}, ${String(spot.y)}) did not skip; braai.taps = ${JSON.stringify(s.braai?.taps ?? null)}, story = ${JSON.stringify(s.braai?.story ?? null)}`,
+  ).toBe(true);
+  expect(s.braai?.taps.at(-1)?.outcome).toBe('skip');
   expect(s.braai?.story.shown).toBe(s.braai?.story.lines.length);
   // The count-up skipped to the hunt's own score (review: not the value mid-count).
   expect(s.tallyScore?.replace(/\D/g, '')).toBe(String(s.score));
