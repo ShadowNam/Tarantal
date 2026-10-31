@@ -1,20 +1,20 @@
 // v1.11 (D-068) Die Braai previews, on demand (not part of the regular suite):
 //   ART_PREVIEW=1 npx playwright test tests/e2e/art-preview-braai.spec.ts --project=desktop-chromium
-// One profile at a time (desktop, Pixel 7, iPhone 14 landscape); four boots per device, each a
+// One profile at a time (desktop, Pixel 7, iPhone 14 landscape); five boots per device, each a
 // short hunt (12 s of sim time, ≈ 2–3 min on software GL at ~5 ticks a second; waits by sim
 // ticks), each test well under 12 min. Writes docs/art-preview/compare/v111-braai-<shot>-<device>
 // .png (palette PNG ≤ 1600 px wide; close-ups 2–4× nearest-neighbour):
 //   daily, daily-story — an average Daily hunt's braai (a few shots at the flocks), Oupa's story
 //     bubble (the braai clock held at 9 s: the same fire and line every run), and share — the
 //     Daily's card with the braai round its score, rendered on the page;
-//   fire-standard — Oupa and the fire close up (Standard), kept for the compare below;
 //   dance — a perfect hunt's vastrap (?braaiDance=1), the clock held on a knee-up step;
 //   newyear — a Feesdae Daily (New Year, forced date) at the braai: the party hat on Oupa, the
 //     slate's own frame;
-//   fire-compare — Standard | HD, the same crop of Oupa and the fire (the HD boot: one for all).
+//   fire-standard, fire-compare — Oupa and the fire close up, Standard, then Standard | HD (a serial
+//     pair of tests, one boot each).
 // A held braai clock (?braaiAt or window.__TM_BRAAI_AT__) freezes the picture; a grab waits for a
 // fresh frame (the braai's frame counter moves) after each hold.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { blank, crop, decodePng, encodePng8, resize, type Rgba } from '../../tools/assets/image';
@@ -186,15 +186,25 @@ test('an average Daily at the braai: the story, Oupa and the fire, the share car
   const touch = isTouchProject(info);
   await boot(page, `${BASE}&today=2026-11-04&graphics=standard&braaiAt=${HOLD_MS}`);
   await huntToBraai(page, touch, 'daily', 6);
-  await page.waitForFunction(
-    (ms) => {
-      const b = window.__TM__?.braai;
-      // The bubble fades on real time: grab while the second line shows.
-      return b != null && b.story.shown >= 2 && b.bubble !== null && ms > 0;
-    },
-    HOLD_MS,
-    { timeout: 240_000 },
-  );
+  // The bubble shows and hides on the braai clock (held at HOLD_MS): the second line and its
+  // bubble stay on screen. Bounded, and a hard failure that says where the story stood.
+  const ready = await page
+    .waitForFunction(
+      () => {
+        const b = window.__TM__?.braai;
+        return b != null && b.story.shown >= 2 && b.bubble !== null;
+      },
+      null,
+      { timeout: 240_000 },
+    )
+    .then(() => true)
+    .catch(() => false);
+  if (!ready) {
+    const b = await page.evaluate(() => window.__TM__?.braai ?? null);
+    throw new Error(
+      `the story's second line is not on screen at braaiAt=${String(HOLD_MS)}: story = ${JSON.stringify(b?.story ?? null)}, bubble = ${JSON.stringify(b?.bubble ?? null)}`,
+    );
+  }
   const shot = decodePng(await page.locator('#game canvas').screenshot());
   save('daily', info, shot);
   const b = await page.evaluate(() => window.__TM__?.braai ?? null);
@@ -210,10 +220,6 @@ test('an average Daily at the braai: the story, Oupa and the fire, the share car
     h: fire.y + fire.h - top,
   });
   save('daily-story', info, story);
-  // Kept for the Standard | HD compare (the HD boot reads it back).
-  const c = await cut(page, shot, fire);
-  const n = Math.max(2, Math.min(4, Math.floor(800 / Math.max(1, c.width))));
-  save('fire-standard', info, scaled(c, n));
   // The Daily's share card: the braai round the score.
   await tapRect(page, touch, 'share');
   await page.waitForFunction(() => window.__TM__?.lastShare != null, null, { timeout: 60_000 });
@@ -277,32 +283,45 @@ test('a Feesdae Daily (New Year) at the braai', async ({ page }, info) => {
   save('newyear', info, await grab(page));
 });
 
-test('Standard | HD: Oupa and the fire (one HD boot)', async ({ page }, info) => {
-  const touch = isTouchProject(info);
-  await boot(page, `${BASE}&today=2026-11-04&graphics=hd&braaiAt=${HOLD_MS}`);
-  await huntToBraai(page, touch, 'daily', 6);
-  const b = await page.evaluate(() => window.__TM__?.braai ?? null);
-  expect(b?.sheet, 'the HD sheet fits on this map').toBe('hd');
-  const shot = await grab(page);
-  const c = await cut(page, shot, await fireCrop(page));
-  const n = Math.max(2, Math.min(4, Math.floor(800 / Math.max(1, c.width))));
-  const hd = scaled(c, n);
-  const stdFile = fileOf('fire-standard', info);
-  if (!existsSync(stdFile)) {
-    save('fire-hd', info, hd);
-    throw new Error('run the Daily test first: its Standard crop is missing');
+// Standard | HD: two tests in serial mode (each one boot, under ~12 min on software GL, lesson
+// 23): the Standard crop first, then the HD boot crops the same spot and writes the compare. The
+// serial group runs them in this order and skips the HD one if the Standard one failed.
+test.describe.serial('Standard | HD: Oupa and the fire', () => {
+  const STD = `${BASE}&graphics=standard&braaiAt=${String(HOLD_MS)}`;
+  const HD = `${BASE}&graphics=hd&braaiAt=${String(HOLD_MS)}`;
+
+  async function fireShot(page: Page, info: TestInfo, query: string): Promise<Rgba> {
+    await boot(page, query);
+    await huntToBraai(page, isTouchProject(info), 'start', 0);
+    const shot = await grab(page);
+    const c = await cut(page, shot, await fireCrop(page));
+    return scaled(c, Math.max(2, Math.min(4, Math.floor(800 / Math.max(1, c.width)))));
   }
-  const std = decodePng(readFileSync(stdFile));
-  const out = blank(std.width + hd.width + 12, Math.max(std.height, hd.height));
-  for (const [img, ox] of [
-    [std, 0],
-    [hd, std.width + 12],
-  ] as const)
-    for (let y = 0; y < img.height; y++)
-      for (let x = 0; x < img.width; x++) {
-        const si = (y * img.width + x) * 4;
-        const di = (y * out.width + x + ox) * 4;
-        for (let k = 0; k < 4; k++) out.data[di + k] = img.data[si + k] ?? 0;
-      }
-  save('fire-compare', info, out);
+
+  test('the Standard crop', async ({ page }, info) => {
+    const std = await fireShot(page, info, STD);
+    expect(await page.evaluate(() => window.__TM__?.braai?.sheet ?? null)).toBe('standard');
+    save('fire-standard', info, std);
+  });
+
+  test('the HD crop and the compare', async ({ page }, info) => {
+    const hd = await fireShot(page, info, HD);
+    expect(
+      await page.evaluate(() => window.__TM__?.braai?.sheet ?? null),
+      'the HD sheet fits on this map',
+    ).toBe('hd');
+    const std = decodePng(readFileSync(fileOf('fire-standard', info)));
+    const out = blank(std.width + hd.width + 12, Math.max(std.height, hd.height));
+    for (const [img, ox] of [
+      [std, 0],
+      [hd, std.width + 12],
+    ] as const)
+      for (let y = 0; y < img.height; y++)
+        for (let x = 0; x < img.width; x++) {
+          const si = (y * img.width + x) * 4;
+          const di = (y * out.width + x + ox) * 4;
+          for (let k = 0; k < 4; k++) out.data[di + k] = img.data[si + k] ?? 0;
+        }
+    save('fire-compare', info, out);
+  });
 });

@@ -83,6 +83,9 @@ export interface TallyData {
   readonly share: (extras: TallyExtras) => Promise<ShareOutcome>;
 }
 
+/** The story bubble's own timer is not used (the braai clock hides it): a day. */
+const STORY_BUBBLE_HELD_MS = 86_400_000;
+
 /** A text's on-screen box (design px). */
 function bounds(o: Phaser.GameObjects.Text): Rect {
   const b = o.getBounds();
@@ -95,6 +98,9 @@ export class TallyScene extends Phaser.Scene {
   private braai: BraaiView | null = null;
   /** The braai clock's zero (scene time). */
   private braaiT0 = 0;
+  /** Oupa's story bubble and when (braai clock ms) its line's time is up. */
+  private storyBubble: BarkBubble | null = null;
+  private storyHideAt: number | null = null;
   /** Oupa's verdict bubble (a braai skip hides it: the story takes its place at once). */
   private verdictBubble: BarkBubble | null = null;
 
@@ -191,7 +197,13 @@ export class TallyScene extends Phaser.Scene {
   override update(): void {
     const v = this.braai;
     if (v === null) return;
-    v.update(this.braaiClock());
+    const ms = this.braaiClock();
+    v.update(ms);
+    // Oupa's story bubble goes when its line's time on the braai clock is up.
+    if (this.storyHideAt !== null && ms >= this.storyHideAt) {
+      this.storyHideAt = null;
+      this.storyBubble?.hide();
+    }
     const hook = this.ctx.hook;
     if (hook) {
       hook.braaiMs += v.lastMs;
@@ -203,6 +215,8 @@ export class TallyScene extends Phaser.Scene {
     // A scene is reused: nothing of the last tally's (review 5).
     this.verdictBubble = null;
     this.braai = null;
+    this.storyBubble = null;
+    this.storyHideAt = null;
     const { width, height } = designSize();
     fitCamera(this.cameras.main);
     const r = data.result;
@@ -631,15 +645,19 @@ export class TallyScene extends Phaser.Scene {
     // Its slot comes from the braai's layout (above Oupa's head), once the view is built.
     let storySlot = slot;
     const lineMs = ctx.feel.braai.story.lineMs;
-    const tell = (voice: string | null, caption: string): void => {
+    // The bubble shows and hides on the braai clock (review 6: a held clock holds the line and
+    // its bubble, for the screenshots); only its short fade-in runs on scene time.
+    this.storyBubble = bubble;
+    const tell = (voice: string | null, caption: string, ms: number): void => {
       if (!oupaShows(ctx.prefs.oupa)) return;
       bubble.hide();
       bubble.show(
         caption,
         storySlot,
-        { bubbleMs: voice === null ? lineMs * 2 : lineMs, fadeMs: ctx.feel.barks.fadeMs },
+        { bubbleMs: STORY_BUBBLE_HELD_MS, fadeMs: ctx.feel.barks.fadeMs },
         this.time.now,
       );
+      this.storyHideAt = ms + (voice === null ? lineMs * 2 : lineMs);
       if (voice !== null && oupaSpeaks(ctx.prefs.oupa)) ctx.audio.bark(voice);
       const v = this.braai;
       if (v !== null) {

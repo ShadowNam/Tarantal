@@ -211,7 +211,7 @@ export interface BraaiSetup {
   /** The special day's id on a Feesdae Daily (its decorations join the fire), else null. */
   readonly special: string | null;
   /** Says a story line (the tally's bubble and Oupa's voice). */
-  readonly tell: (voiceKey: string | null, caption: string) => void;
+  readonly tell: (voiceKey: string | null, caption: string, ms: number) => void;
 }
 
 const SKY_TOP = 0x03050f;
@@ -516,7 +516,7 @@ export class BraaiView {
     // skipped over are logged as captions, unsaid.
     for (const l of rest) this.hook.story.captions.push(captionText(l));
     const closer = rest.at(-1);
-    if (closer !== undefined) this.s.tell(null, captionText(closer));
+    if (closer !== undefined) this.s.tell(null, captionText(closer), ms);
     if (this.danceDue && this.danceFrom === null) this.beginDance(ms);
   }
 
@@ -541,7 +541,7 @@ export class BraaiView {
         const caption = captionText(line);
         this.hook.story.shown = this.shown;
         this.hook.story.captions.push(caption);
-        this.s.tell(line.say, caption);
+        this.s.tell(line.say, caption, ms);
         if (this.shown === this.lines.length && this.danceDue && this.danceFrom === null)
           this.beginDance(ms);
       }
