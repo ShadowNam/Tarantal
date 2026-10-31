@@ -3670,8 +3670,8 @@ feeds"). GDD §11.3e.
   compare with Node (daily, the challenge links, the replays in hunt, maps, langloop, longrange)
   boot with `reenbui=content`: the real content on both sides, so a Reënbui that rolls is the same
   in Node. `?reenbui=1` forces it, `?reenbuiPhase=` holds a phase.
-- *Art in the late group, not a group of its own:* one 1× sheet (1024 × 490, PNG8,
-  ~2 MB on the GPU) shared by the four areas, listed only by their manifests, loaded in the
+- *Art in the late group, not a group of its own:* one 1× sheet (512 × 256 since the review's
+  memory fix below, PNG8, 0.5 MiB on the GPU) shared by the four areas, listed only by their manifests, loaded in the
   background after the first download and polled by the view (never waited for: the event plays
   the same undrawn). A `reenbui` group would have needed its own loader plumbing for one file; a
   per-area copy would have put it in four area chunks. Standard in HD (no HD twin): the soft rain,
@@ -3685,7 +3685,11 @@ feeds"). GDD §11.3e.
   a few glinting per frame, a sideways sway, and the first column rises where a flock in view
   forages (`placeColumns`' anchor). The golden replays were not re-recorded for that anchor: it
   fired at neither golden swarm, and in play it almost never did (competent bot: 0 of 20 forced
-  Okavango hunts — at the swarm's tick the flocks in view were flushing or gone).
+  Okavango hunts — at the swarm's tick the flocks in view were flushing or gone). The rain eases
+  to a faint drizzle in the swarm (alates fly when the rain lets up; the columns and birds stay
+  clear in the ×1.3 window) and stops with the easing; the rain sound fades into a patter
+  (`sfx/amb_reenbui_patter`). The sheet grew to 1024 × 490 (~1.9 MiB on the GPU), which tipped
+  the Okavango HD case over its budget (below).
 - *Review of #110 (the anchor and the streams):* the first column now rises at a flock in view
   that forages, settles or is coming down to land (where it lands), else where the flock nearest
   the view lands (`landingX`: the flight model read only), held inside the view, if that is within
@@ -3695,14 +3699,19 @@ feeds"). GDD §11.3e.
   the golden replays were re-recorded twice, each time only the cases that roll a Reënbui moving:
   for the streams all six (classic-41/81 and daily-42 Okavango, classic-82 Karoo,
   classic-91/daily-92 Kalahari); for the anchor five (all but daily-92, whose first column comes out
-  the same under both rules). The rain eases to a faint drizzle in the swarm (alates fly when the rain lets up;
-  the columns and birds stay clear in the ×1.3 window) and stops with the easing; the rain sound
-  fades into a patter (`sfx/amb_reenbui_patter`). The sheet grew to 1024 × 490 (~2 MB on the GPU,
-  still Standard in HD).
+  the same under both rules).
+- *Review of #110 (HD texture memory):* with the 1024 × 490 sheet the Okavango HD hunt with the
+  event measured 256.2 MB in CI (budget ≤ 256, not relaxed; the plain Okavango HD hunt 253.9). The
+  sheet is now 512 × 256 (524 288 bytes RGBA, from 2 007 040: −1.41 MiB, so ≈ 254.8 MB): every
+  frame cropped to its art, and the soft or repeating frames (the four column frames, both rain
+  tiles, the storm towers, the wet patch) authored at half size and drawn ×2 (`res` in the frame
+  table); the forks, puffs and mound stay full size. A unit test caps the sheet's GPU bytes
+  (`GPU_BYTES_CAP`, 0.5 MiB).
 - *Phones:* the rain is two screen-space containers of baked tiles (one move a frame), the columns
   one image each cycling four baked frames, the sky and the ground parts on alternate frames,
-  properties only on change: ≤ 40 Phaser calls a frame at the swarm's peak in the perf smoke's
-  20-ticks-a-frame regime (unit-tested); the sim's `step()` ~0.1 ms with 60 birds in the swarm.
+  properties only on change: ≤ 40 Phaser calls in every frame of the event in the perf smoke's
+  20-ticks-a-frame regime and at 60 fps (unit-tested; review of #110: the images are built hidden
+  as the sheet arrives, one group a frame, and the dim step takes what the frame leaves); the sim's `step()` ~0.1 ms with 60 birds in the swarm.
 - *Species note.* Termite alates (winged reproductives) leave the nest in swarms on warm, humid
   evenings after the first good summer rains, and birds, lizards and people feast on them ("rysmiere"
   in Afrikaans folk use; *Macrotermes* and harvester termites in the region).
