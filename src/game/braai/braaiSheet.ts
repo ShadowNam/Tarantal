@@ -53,7 +53,7 @@ export const DANCING = { w: 108, h: 216, ox: 54, oy: 212 } as const;
 /** A flame frame: the fire's base at the origin. */
 export const FLAME = { w: 56, h: 82, ox: 28, oy: 78 } as const;
 /** The hearth: the fire's base at the origin (stones round it, the grid above the coals). */
-export const HEARTH = { w: 150, h: 50, ox: 75, oy: 36 } as const;
+export const HEARTH = { w: 150, h: 62, ox: 75, oy: 36 } as const;
 /** Where the hand of the poking pose holds the poker, from Oupa's feet (design px). */
 export const POKE_HAND = { x: 56, y: -66 } as const;
 /** The poker: held at its origin, pointing right (rotated by the view toward the coals). */

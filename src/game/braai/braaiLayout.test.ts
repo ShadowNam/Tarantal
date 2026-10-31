@@ -4,7 +4,7 @@
 // left out rather than squeezed under the slate.
 import { describe, expect, it } from 'vitest';
 import { tallyBarkSlot, type Rect } from '../ui/hudLayout';
-import { braaiLayout, overlaps } from './braaiLayout';
+import { BOTTOM_MARGIN, braaiLayout, overlaps } from './braaiLayout';
 
 /** The tally's rects as TallyScene lays them out (design px). */
 function tally(
@@ -82,6 +82,12 @@ describe('braai layout (D-068)', () => {
     expect(overlaps(bubble, t.slate)).toBe(false);
     if (L.oupaRect !== null) expect(bubble.y + bubble.h).toBeLessThanOrEqual(L.oupaRect.y);
     for (const b of t.avoid) expect(overlaps(bubble, b)).toBe(false);
+    // Review 8: the whole pit and Oupa's feet stay ≥ BOTTOM_MARGIN inside the safe area.
+    for (const r of [L.oupaRect, L.fireRect])
+      if (r !== null)
+        expect(r.y + r.h, JSON.stringify(r)).toBeLessThanOrEqual(
+          t.safe.y + t.safe.h - BOTTOM_MARGIN + 0.01,
+        );
     // Feet on the ground: below the horizon line, inside the screen.
     expect(L.oupa?.y ?? 0).toBeGreaterThan(L.horizonY);
     expect(L.fire?.y).toBe(L.oupa?.y);

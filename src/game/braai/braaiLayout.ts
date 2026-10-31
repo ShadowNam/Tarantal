@@ -58,6 +58,10 @@ const GROUP_H = Math.max(DANCING.oy, SEATED.oy);
 /** The flames rise this far above the fire's base (art px). */
 const FIRE_UP = 86;
 const MAX_SCALE = 1.5;
+/** Art px drawn below Oupa's feet and the fire's base (the hearth's front stones). */
+const BELOW_FEET = Math.max(HEARTH.h - HEARTH.oy, SEATED.h - SEATED.oy);
+/** The lowest drawn pixel stays this far inside the safe area. */
+export const BOTTOM_MARGIN = 12;
 /** x per y of the Milky Way's band (its rotation −1.15 rad): 1 / tan(1.15). */
 const MILKY_RISE = 1 / Math.tan(1.15);
 const MIN_SCALE = 0.8;
@@ -74,7 +78,7 @@ function groupRects(feet: Point, s: number): { oupa: Rect; fire: Rect } {
       x: feet.x - Math.max(LEFT, DANCING.ox) * s,
       y: feet.y - GROUP_H * s,
       w: (Math.max(LEFT, DANCING.ox) + Math.max(SEATED.w - SEATED.ox, DANCING.w - DANCING.ox)) * s,
-      h: GROUP_H * s,
+      h: (GROUP_H + SEATED.h - SEATED.oy) * s,
     },
     fire: {
       x: fx - HEARTH.ox * s,
@@ -144,7 +148,10 @@ export function storySlot(i: BraaiLayoutIn, oupa: Rect | null, avoid: readonly R
 
 export function braaiLayout(i: BraaiLayoutIn): BraaiLayout {
   const { height, safe, panel, slot } = i;
-  const footY = safe.y + safe.h - 24;
+  // Review 8: the lowest drawn pixel (the hearth's front stones, below the fire's base) stays
+  // BOTTOM_MARGIN inside the safe area at every scale; the feet sit that much higher.
+  const footAt = (sc: number): number => safe.y + safe.h - BOTTOM_MARGIN - BELOW_FEET * sc;
+  const footY = footAt(1);
   const horizonY = Math.round(height * 0.6);
   const left = safe.x + GAP;
   const right = panel.x - GAP;
@@ -155,7 +162,7 @@ export function braaiLayout(i: BraaiLayoutIn): BraaiLayout {
   let oupa: Point | null = null;
   let rects: { oupa: Rect; fire: Rect } | null = null;
   for (; scale >= MIN_SCALE; scale *= 0.94) {
-    const feet = { x: left + LEFT * scale + (colW - GROUP_W * scale) / 2, y: footY };
+    const feet = { x: left + LEFT * scale + (colW - GROUP_W * scale) / 2, y: footAt(scale) };
     const r = groupRects(feet, scale);
     const inside = r.oupa.x >= safe.x && r.fire.x + r.fire.w <= right + GAP / 2;
     if (inside && !blockers.some((b) => overlaps(b, r.oupa) || overlaps(b, r.fire))) {
