@@ -7,7 +7,15 @@
 // The rates are boosted (?soundscapeBoost, test builds only) so a 20 s hunt shows them.
 import { expect, test, type Page } from '@playwright/test';
 import sc from '../../content/client/soundscape.json' with { type: 'json' };
-import { boot, collectErrors, hook, isTouchProject, startHunt, tapAt } from './helpers';
+import {
+  boot,
+  collectErrors,
+  hook,
+  isLandscape,
+  isTouchProject,
+  startHunt,
+  tapAt,
+} from './helpers';
 
 // The service worker would fetch the files itself (page.route and resource timing see less).
 test.use({ serviceWorkers: 'block' });
@@ -67,6 +75,7 @@ for (const [biome, layout, light, signature] of [
     page,
     browserName,
   }, info) => {
+    test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
     test.setTimeout(420_000);
     const errors = collectErrors(page);
     const touch = isTouchProject(info);
@@ -115,6 +124,7 @@ for (const [biome, layout, light, signature] of [
 
 test('nothing plays once the tab is hidden', async ({ page, browserName }, info) => {
   test.skip(browserName !== 'chromium', 'Chromium: Web Audio plays headless');
+  test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
   test.setTimeout(300_000);
   const touch = isTouchProject(info);
   await huntOn(page, touch, 'okavango-spring', 'sat');
@@ -174,6 +184,7 @@ async function startTiming(
 test('START is never blocked: soundscape files load only after the hunt has started', async ({
   page,
 }, info) => {
+  test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
   test.setTimeout(420_000);
   const touch = isTouchProject(info);
   // With the soundscape off nothing of it loads; then the same page, reloaded, with it on.
@@ -189,8 +200,9 @@ test('START is never blocked: soundscape files load only after the hunt has star
 test('the title plays its area too, calmer, after the first gesture', async ({
   page,
   browserName,
-}) => {
+}, info) => {
   test.skip(browserName !== 'chromium', 'Chromium: Web Audio plays headless');
+  test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
   test.setTimeout(300_000);
   await boot(page, `seed=7&graphics=standard&soundscapeBoost=${BOOST}`);
   // Nothing before a gesture.
