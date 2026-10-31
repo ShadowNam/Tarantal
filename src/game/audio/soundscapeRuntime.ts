@@ -11,7 +11,7 @@ import { TICKS_PER_SECOND } from '../../sim/clock';
 import type { SimEvent } from '../../sim/events';
 import type { ModeConfig } from '../../sim/types';
 import type { FinalSound } from '../assets/AssetManifest';
-import { loadBytes } from '../assets/finalLoader';
+import { fetchAssetIndex, loadBytes } from '../assets/finalLoader';
 import { loadVoiceIndex } from '../assets/voiceIndex';
 import type { AudioDirector } from './AudioDirector';
 import type { ForecastSim } from './forecastSim';
@@ -130,6 +130,10 @@ export class SoundscapeRuntime implements SoundscapeSink {
 
   private async fetchFiles(): Promise<void> {
     const format = this.audio.fileFormat();
+    // The same delivery switch as every sound (and the voice packs): no index, or an index
+    // without any audio, means nothing was delivered — the soundscape stays silent then.
+    const main = await fetchAssetIndex(FILE_TIMEOUT_MS);
+    if (main.index === null || Object.keys(main.index.audio).length === 0) return;
     const voice = await loadVoiceIndex();
     if (format === null || voice === null) {
       // A failure is forgotten: the next hunt tries again.
