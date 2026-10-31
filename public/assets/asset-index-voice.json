@@ -1,6 +1,258 @@
 {
   "version": 1,
   "audio": {
+    "sfx/amb_barking_gecko": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_barking_gecko.7e2e4061e2d4.ogg",
+        "bytes": 16270,
+        "hash": "7e2e4061e2d4"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_barking_gecko.5ce90bf35d42.mp3",
+        "bytes": 18000,
+        "hash": "5ce90bf35d42"
+      },
+      "loop": false,
+      "lufs": -24.2,
+      "peakDb": -1
+    },
+    "sfx/amb_cape_turtle_dove": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_cape_turtle_dove.f359f5a19cfe.ogg",
+        "bytes": 8874,
+        "hash": "f359f5a19cfe"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_cape_turtle_dove.69b72e7d6723.mp3",
+        "bytes": 9108,
+        "hash": "69b72e7d6723"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -2.5
+    },
+    "sfx/amb_cicada": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_cicada.665b0edde1d5.ogg",
+        "bytes": 33126,
+        "hash": "665b0edde1d5"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_cicada.a879da7a7d20.mp3",
+        "bytes": 47340,
+        "hash": "a879da7a7d20"
+      },
+      "loop": false,
+      "lufs": -16.2,
+      "peakDb": -1
+    },
+    "sfx/amb_fish_eagle": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_fish_eagle.740797e41cc7.ogg",
+        "bytes": 14417,
+        "hash": "740797e41cc7"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_fish_eagle.0701e45be9cb.mp3",
+        "bytes": 13752,
+        "hash": "0701e45be9cb"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -2.2
+    },
+    "sfx/amb_francolin": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_francolin.fa7fd3893eeb.ogg",
+        "bytes": 19310,
+        "hash": "fa7fd3893eeb"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_francolin.19b655edbb90.mp3",
+        "bytes": 19260,
+        "hash": "19b655edbb90"
+      },
+      "loop": false,
+      "lufs": -14.3,
+      "peakDb": -1
+    },
+    "sfx/amb_go_away_bird": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_go_away_bird.4246b05a2315.ogg",
+        "bytes": 15259,
+        "hash": "4246b05a2315"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_go_away_bird.95e9a06f109e.mp3",
+        "bytes": 13788,
+        "hash": "95e9a06f109e"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -1
+    },
+    "sfx/amb_hadeda": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_hadeda.c1ff4631e406.ogg",
+        "bytes": 25128,
+        "hash": "c1ff4631e406"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_hadeda.b31052e5e3c0.mp3",
+        "bytes": 27180,
+        "hash": "b31052e5e3c0"
+      },
+      "loop": false,
+      "lufs": -15.9,
+      "peakDb": -1
+    },
+    "sfx/amb_hippo": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_hippo.923d0571b307.ogg",
+        "bytes": 21305,
+        "hash": "923d0571b307"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_hippo.c29192ea03f1.mp3",
+        "bytes": 19224,
+        "hash": "c29192ea03f1"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -3.8
+    },
+    "sfx/amb_korhaan": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_korhaan.05cc0464b636.ogg",
+        "bytes": 20058,
+        "hash": "05cc0464b636"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_korhaan.8ff4b20b3a3a.mp3",
+        "bytes": 23832,
+        "hash": "8ff4b20b3a3a"
+      },
+      "loop": false,
+      "lufs": -17.9,
+      "peakDb": -1
+    },
+    "sfx/amb_laughing_dove": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_laughing_dove.bb10d331ee9b.ogg",
+        "bytes": 8997,
+        "hash": "bb10d331ee9b"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_laughing_dove.5523adf2ed8e.mp3",
+        "bytes": 8928,
+        "hash": "5523adf2ed8e"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -4.3
+    },
+    "sfx/amb_reed_frog": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_reed_frog.e801cc4e0e69.ogg",
+        "bytes": 13293,
+        "hash": "e801cc4e0e69"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_reed_frog.7cd871489ea2.mp3",
+        "bytes": 16380,
+        "hash": "7cd871489ea2"
+      },
+      "loop": false,
+      "lufs": -15.2,
+      "peakDb": -1
+    },
+    "sfx/amb_sheep": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_sheep.fb8e6c56d79b.ogg",
+        "bytes": 14457,
+        "hash": "fb8e6c56d79b"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_sheep.9fe924e369f9.mp3",
+        "bytes": 14760,
+        "hash": "9fe924e369f9"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -1.1
+    },
+    "sfx/amb_wind_gust": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_wind_gust.d1b78bbcbbd5.ogg",
+        "bytes": 30068,
+        "hash": "d1b78bbcbbd5"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_wind_gust.4923b41fab6a.mp3",
+        "bytes": 28836,
+        "hash": "4923b41fab6a"
+      },
+      "loop": false,
+      "lufs": -15.8,
+      "peakDb": -1
+    },
+    "sfx/amb_windpomp": {
+      "group": "soundscape",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/soundscape/audio/sfx/amb_windpomp.e71025be8c10.ogg",
+        "bytes": 22895,
+        "hash": "e71025be8c10"
+      },
+      "mp3": {
+        "path": "assets/soundscape/audio/sfx/amb_windpomp.875295864dd0.mp3",
+        "bytes": 19404,
+        "hash": "875295864dd0"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -1.8
+    },
     "voice/af/bark.ag_nee": {
       "group": "voice-af",
       "origin": "interim",

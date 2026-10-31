@@ -16,6 +16,8 @@ import { parseNotaboek } from '../src/content/notaboek';
 import { readdirSync, readFileSync } from 'node:fs';
 import { checkLanguage, checkLanguageSet } from '../src/content/i18nCheck';
 import { LANGUAGES } from '../src/i18n/i18n';
+import { checkSoundscape, parseSoundscape } from '../src/content/soundscape';
+import { SOUNDSCAPE_CALLS } from './audio/soundscape';
 
 const root = join(import.meta.dirname, '..');
 const strict = process.argv.includes('--strict');
@@ -162,6 +164,34 @@ for (const [gun, look] of Object.entries(feel.feel.guns.weapons))
         file: 'client/feel.json',
         message: `guns.weapons.${gun}.sfx.${event}: no sound "${sfx}" (src/game/audio/synth.ts SFX_IDS)`,
       });
+// v1.9 (D-066): the veld soundscape (client-only, presentation): every biome (the Harvest's too)
+// has one, every call has a sound (an interim render), every light it names is a preset, every
+// layout light has a factor in every profile, and penalty creatures' calls are far only.
+{
+  const file = 'client/soundscape.json';
+  fileNames.push(file);
+  const sc = parseSoundscape(JSON.parse(readFileSync(join(contentDir, file), 'utf8')));
+  if (!sc.ok) for (const message of sc.errors) errors.push({ file, message });
+  else {
+    const biomes = parsed.bundle.biomes;
+    for (const message of checkSoundscape(sc.soundscape, {
+      biomes: biomes.map((b) => b.id),
+      lights: Object.keys(feel.feel.lights),
+      layoutLights: [...new Set(biomes.flatMap((b) => b.layouts.map((l) => l.light)))],
+      bonusLights: [
+        ...new Set(
+          biomes.flatMap((b) =>
+            b.bonusMaps.flatMap((m) => (m.light === undefined ? [] : [m.light])),
+          ),
+        ),
+      ],
+      creatures: new Map(parsed.bundle.birds.creatures.map((c) => [c.id, c.kind])),
+      sounds: new Set(SOUNDSCAPE_CALLS.map((id) => `sfx/${id}`)),
+    }))
+      errors.push({ file, message });
+  }
+}
+
 // v1.0.1 (D-028 §2): the epoch lives only in meta/daily.json — no copy in game, tool or e2e code.
 const codeFiles = (dir: string): string[] =>
   readdirSync(join(root, dir), { withFileTypes: true }).flatMap((d) =>

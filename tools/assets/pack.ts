@@ -59,6 +59,7 @@ import {
 } from '../../src/game/feesdae/feesdaeAssets';
 import { CHRISTMAS_GROUP, CHRISTMAS_SHEET } from '../../src/game/feesdae/christmasAssets';
 import { NEWYEAR_GROUP, NEWYEAR_SHEET } from '../../src/game/feesdae/newyearAssets';
+import { SOUNDSCAPE_GROUP } from '../../src/game/audio/soundscapeKeys';
 import { DESERT_GROUP, MEERKAT_SHEET, SHEET_MASTER } from '../../src/game/assets/desertAssets';
 import type { ContentBundle } from '../../src/content/schemas';
 import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
@@ -875,6 +876,8 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       if (o.catalog.entries.get(key)?.group === CHRISTMAS_GROUP) group = CHRISTMAS_GROUP;
       // D-065: New Year's with "feesdae-newyear".
       if (o.catalog.entries.get(key)?.group === NEWYEAR_GROUP) group = NEWYEAR_GROUP;
+      // v1.9 (D-066): the soundscape's calls with "soundscape".
+      if (o.catalog.entries.get(key)?.group === SOUNDSCAPE_GROUP) group = SOUNDSCAPE_GROUP;
     } else if (parts[0] === 'voice' && parts.length === 3) {
       // v1.5 (D-041): audio/voice/<lang>/<bark key>.wav, one lazy pack per voice language.
       key = `voice/${parts[1]}/${parts[2]}`;

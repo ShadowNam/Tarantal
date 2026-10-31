@@ -7,7 +7,8 @@ import { readFileSync } from 'node:fs';
 import { parseDailyMeta } from '../src/content/daily';
 import { parseFeel } from '../src/content/feel';
 import { parseNotaboek } from '../src/content/notaboek';
-import type { ContentBundle, DailyMeta, Feel, Notaboek } from '../src/content/schemas';
+import type { ContentBundle, DailyMeta, Feel, Notaboek, Soundscape } from '../src/content/schemas';
+import { parseSoundscape } from '../src/content/soundscape';
 // v1.8b (D-062): hunts here may need the lazy sim systems (baboons, ostriches).
 import '../src/sim/lazySystemsRegister';
 
@@ -58,4 +59,13 @@ export function loadFeel(): Feel {
   const r = parseFeel(JSON.parse(readFileSync(join(root, 'content/client/feel.json'), 'utf8')));
   if (!r.ok) throw new Error(`client/feel.json is invalid: ${r.errors.join('; ')}`);
   return r.feel;
+}
+
+/** v1.9 (D-066): content/client/soundscape.json, validated (presentation only, not in the bundle). */
+export function loadSoundscape(): Soundscape {
+  const r = parseSoundscape(
+    JSON.parse(readFileSync(join(root, 'content/client/soundscape.json'), 'utf8')),
+  );
+  if (!r.ok) throw new Error(`client/soundscape.json is invalid: ${r.errors.join('; ')}`);
+  return r.soundscape;
 }
