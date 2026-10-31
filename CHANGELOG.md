@@ -8,8 +8,23 @@ Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (
 Decision record D-068. From the product owner's list of 24 Oct: "Die Braai: results told by Oupa at
 the fire, vastrap dance for a perfect hunt".
 
-- **Die Braai**: Classic and Daily hunts end at night at Oupa's fire under the Milky Way and the
-  Southern Cross. The chalk slate with every number and button stands in front, as before.
+- **Die Braai**: Classic and Daily hunts (and the Harvest) end at night at Oupa's fire under the
+  Milky Way and the Southern Cross, the area's skyline dark on the horizon and the bakkie parked
+  beside it. The chalk slate with every number and button stands in front, as before.
+- **Oupa tells the hunt**: after the count-up, two to four lines from the result — the bag, a new
+  best or rank up, a bird way out at the horizon, a whole flock, a Blikkies chain, the flying-ant
+  feast, a meerkat's scolding, a near miss on the record — the same result always telling the
+  same story. Voiced in English, Afrikaans and German (captions in all four languages). A tap off
+  the buttons or Esc skips it.
+- **Vastrap**: a perfect hunt (the top rank, or no miss with at least 10 birds) or a rank up gets
+  Oupa on his feet for a little vastrap with a concertina sting ("reduce motion" leaves it out).
+- **Sounds**: the hunt's music fades into the fire's crackle, crickets, a far fiery-necked nightjar
+  and a soft original guitar.
+- A Feesdae Daily keeps its framed slate and its decorations join the fire (Santa or party hat,
+  a present, a pumpkin lantern). The Daily's share card puts the braai round the score (🔥 … 🌌).
+- The Season Run's day end (the Padstal) and Oupa se Les keep their own screens.
+- Nothing new in the first download but strings and a little code: the braai's art, sounds and
+  voice lines are lazy groups fetched when a hunt starts; until they are in, the plain slate shows.
 - The Daily streak says "Streak: 1 day" (was "1 days").
 
 ## [1.13.0] — v1.10: Reënbui, the first rain and the flying ants (31 Oct 2026)

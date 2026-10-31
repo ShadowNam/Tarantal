@@ -3744,6 +3744,31 @@ hunt"). GDD §8.
   hunt carries it. Its HD twin is used only when the texture memory in use leaves room for it under
   the budget; otherwise (the Okavango Reënbui case) the Standard sheet shows. perf.spec measures
   that case at the tally.
+- *The story.* Openers by the bag (none, some, ≥ `story.manyBirds` = 15, the Harvest's crop), then
+  the hunt's moments in a fixed priority — a new best (one that beat an earlier best), a rank up,
+  a Ver bag (else a far-plane bag), whole flocks, a Blikkies chain of 3+, 3+ bags in the Reënbui
+  swarm, a meerkat scold, a nest scold, a near miss (within 90 % of the area's best) — at most
+  `story.maxLines − 2` (2) of them, then a closer (the dance, a Feesdae day, a poor hunt, else
+  "the coals are just right"). 18 phrases, each voiced without numbers (`braai.say.*`, 54 clips in
+  en/af/de) and captioned with them (`braai.*`): a small, fixed clip count whatever the numbers.
+  The story's strings and the 18 × 2 keys live in a lazy table (`src/i18n/braai/`, the braai's
+  chunk), not the first download's.
+- *A perfect hunt* is the top rank (Bosveld Legend), or every shot bagged with at least
+  `perfect.minBagged` (10) birds — rare enough to be a reward, reachable without the top score. It
+  or a rank up earns the vastrap (`danceMs` 3.6 s, four steps mirrored).
+- *Layout (lesson 25).* Oupa and the fire stand in the column left of the slate, sized to it
+  (`braaiLayout.ts`, unit-tested against every tally rect at 16:9, 20:9 and 19.5:9 with the
+  iPhone's insets); his bubble sits above his head; on 4:3 he and the fire are left out.
+- *Skip.* "A tap or key skips … as today": the tally had no skip, so the braai adds one — a tap
+  that isn't on a button, or Esc (Enter and Space press the focused button, [Again] by default,
+  as before). It finishes the count-up and shows the rest of the story in one caption.
+- *Share card.* An ordinary Daily's text card puts the braai round its score (`🔥 2 840 🌌`); a
+  Feesdae Daily keeps its own frame. The card's prefix is unchanged (challenge links, e2e).
+- *Feesdae at the braai.* The special's framed slate is drawn as before; its hat (Christmas, New
+  Year) goes on Oupa and a present (Christmas) or a pumpkin lantern (Halloween) beside the fire,
+  from the special's own sheet already in memory (no new texture). Nothing if it isn't in.
+- *Season Run.* The Padstal's day end is unchanged and gets no vignette: its layout fills the
+  screen and its own flow (the shop) follows at once.
 
 ## 3. Research notes (with sources)
 
