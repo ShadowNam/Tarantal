@@ -145,7 +145,13 @@ function usages(
     needles.push(new RegExp(`"id":\\s*"${key.split('/')[1] ?? ''}"`));
   } else if (kind === 'sound') {
     const [type, id = ''] = key.split('/');
-    if (type === 'sfx') {
+    if (type === 'sfx' && id.startsWith('amb_')) {
+      // v1.9 (D-066): a soundscape call, named as a call's sound in client/soundscape.json and
+      // played through the director's soundscape voice (AudioDirector.ambient).
+      const plays = [...i.sources].some(([, t]) => /\.ambient\(/.test(t));
+      if (!plays) return [];
+      needles.push(new RegExp(`"sound":\\s*"${key}"`));
+    } else if (type === 'sfx') {
       needles.push(new RegExp(`this\\.play\\('${id}'`));
       // v1.1 (D-032): a gun's own sounds are named in feel.json guns.weapons.<id>.sfx.
       needles.push(
