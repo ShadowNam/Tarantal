@@ -3660,8 +3660,14 @@ feeds"). GDD §11.3e.
   draws from `flockNoise`, so nothing else shifts) and its shot alert radius is ×0.7; the build-up
   makes every flock's radius ×1.15. Up to 2 extra flocks run in (inside maxFlocks and
   maxBirdsOnScreen), drawn from the `reenbui` stream.
-- *e2e:* the event is off under `?e2e` unless `?reenbui=1` forces it (lesson 17), so every existing
-  spec plays its seed as before.
+- *e2e:* `?reenbui=0` turns it off (lesson 17, like `?baboons=0`); `tests/e2e/helpers.ts` boot()
+  adds it unless a spec names `reenbui=`, and the direct `page.goto` boots carry it, so every
+  existing spec that pins a seed plays it as before. Nothing else changes the content: `?e2e` alone
+  keeps the real content hash (review of #110: an automatic switch-off under `?e2e` changed the
+  hash and broke the Daily seed, challenge links and the Node replay checks). The specs that
+  compare with Node (daily, the challenge links, the replays in hunt, maps, langloop, longrange)
+  boot with `reenbui=content`: the real content on both sides, so a Reënbui that rolls is the same
+  in Node. `?reenbui=1` forces it, `?reenbuiPhase=` holds a phase.
 - *Art in the late group, not a group of its own:* one 1× sheet (1024 × 416, 53 KB PNG8,
   ~1.7 MB on the GPU) shared by the four areas, listed only by their manifests, loaded in the
   background after the first download and polled by the view (never waited for: the event plays

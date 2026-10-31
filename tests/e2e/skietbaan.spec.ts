@@ -200,7 +200,7 @@ async function hold(page: Page, on: boolean): Promise<void> {
 
 /** Opens the Skietbaan's setup page from the admin list. */
 async function openRange(page: Page, touch: boolean, query = ''): Promise<void> {
-  await page.goto(`/?e2e=1&admin=1${query}`);
+  await page.goto(`/?e2e=1&reenbui=0&admin=1${query}`);
   await page.waitForFunction(() => window.__TM__?.admin?.view === 'list', null, {
     timeout: 90_000,
   });
@@ -418,7 +418,7 @@ test.describe('Skietbaan (training ground)', () => {
     const errors = collectErrors(page);
     const touch = isTouchProject(info);
     const name = device(info.project.name);
-    await page.goto('/?e2e=1&admin=1');
+    await page.goto('/?e2e=1&reenbui=0&admin=1');
     await page.waitForFunction(() => window.__TM__?.admin?.view === 'list', null, {
       timeout: 90_000,
     });
@@ -982,7 +982,7 @@ test.describe('Skietbaan (training ground)', () => {
   test('no Skietbaan without ?admin=1: no button, no chunk', async ({ page }, info) => {
     test.skip(!isLandscape(info), 'landscape profiles');
     const errors = collectErrors(page);
-    await page.goto('/?e2e=1');
+    await page.goto('/?e2e=1&reenbui=0');
     await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 90_000 });
     const h = await hook(page);
     expect(h.admin).toBeNull();

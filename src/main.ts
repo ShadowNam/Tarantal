@@ -1,10 +1,4 @@
-import {
-  BONUS_MAP_IDS,
-  REENBUI_PHASES,
-  WEEKDAY_IDS,
-  type Biome,
-  type ReenbuiPhase,
-} from './content/schemas';
+import { BONUS_MAP_IDS, WEEKDAY_IDS, type Biome } from './content/schemas';
 // Boot: save (settings + progress) → i18n → content (validated) → platform adapter →
 // placeholder assets → Phaser game with the flexible-width layout (Tech §5). Opens on the title
 // over the live panorama: one giant START HUNT, so the first shot is seconds away (GDD §16).
@@ -25,8 +19,7 @@ import {
   withMakalaniPreview,
   withBaboonRaid,
   withNoBaboons,
-  withNoReenbui,
-  withReenbuiPreview,
+  withReenbuiParams,
   withHarvestPreview,
   withNoPalms,
   withPlaneScales,
@@ -528,23 +521,10 @@ const raidPreview = testHooks ? params.get('baboonRaid') : null;
 const withRaid = raidPreview === null ? devSpook : withBaboonRaid(devSpook, raidPreview);
 // e2e only (v1.8b, D-062): ?baboons=0 — no baboon troops (specs that don't test them).
 const noTroops = testHooks && params.get('baboons') === '0' ? withNoBaboons(withRaid) : withRaid;
-// e2e/dev only (v1.10, D-067): ?reenbui=1 — a Reënbui in every hunt, its build-up 2 s in;
-// ?reenbuiPhase=buildup|drops|swarm|easing also holds that phase (after: all phases ½ s). Under ?e2e without ?reenbui=
-// there is none (lesson 17: every spec that pins a seed plays it as before).
-const reenbuiParam = testHooks ? params.get('reenbui') : null;
-const reenbuiHold = testHooks ? params.get('reenbuiPhase') : null;
-const holdPhase =
-  reenbuiHold === 'after'
-    ? 'after'
-    : (REENBUI_PHASES as readonly string[]).includes(reenbuiHold ?? '')
-      ? (reenbuiHold as ReenbuiPhase)
-      : null;
-const withRain =
-  reenbuiParam === '1' || holdPhase !== null
-    ? withReenbuiPreview(noTroops, holdPhase)
-    : reenbuiParam === '0' || (testHooks && params.has('e2e') && reenbuiParam === null)
-      ? withNoReenbui(noTroops)
-      : noTroops;
+// e2e/dev only (v1.10, D-067): ?reenbui=1 forces a Reënbui, ?reenbuiPhase= holds a phase,
+// ?reenbui=0 turns it off (specs that pin a seed, lesson 17). Nothing else changes the content:
+// `?e2e` alone keeps the real content hash (the Daily seed, challenge links, Node replays).
+const withRain = testHooks ? withReenbuiParams(noTroops, params) : noTroops;
 // e2e/dev only (v1.8c, D-063): ?harvestDuck=<seconds> (a struck worker stays down that long) and
 // ?harvestRush=1 (the rush's peak from the start), for the Harvest's screenshots.
 const duckParam = testHooks ? Number(params.get('harvestDuck') ?? NaN) : NaN;

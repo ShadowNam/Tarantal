@@ -49,7 +49,7 @@ test.describe('maps (v1.2)', () => {
     gate(info);
     test.setTimeout(300_000);
     const errors = collectErrors(page);
-    await boot(page, 'seed=7&huntSeconds=4&layout=fri&bonus=verder');
+    await boot(page, 'seed=7&huntSeconds=4&layout=fri&bonus=verder&reenbui=content');
     await startHunt(page, isTouchProject(info));
     let h = await hook(page);
     expect(h.map).toMatchObject({
@@ -90,7 +90,7 @@ test.describe('maps (v1.2)', () => {
     };
     const hash = loadContentHash();
     const withMap = challengeFor({ ...base, layout: 'thu', bonus: 'verder' }, hash);
-    await boot(page, `huntSeconds=3&c=${encodeChallenge(withMap)}`);
+    await boot(page, `huntSeconds=3&c=${encodeChallenge(withMap)}&reenbui=content`);
     await waitScene(page, 'challenge');
     await tapRect(page, touch, 'accept');
     await waitScene(page, 'hunt');
@@ -108,7 +108,7 @@ test.describe('maps (v1.2)', () => {
 
     const old = challengeFor(base, hash);
     expect('l' in old).toBe(false);
-    await boot(page, `huntSeconds=3&c=${encodeChallenge(old)}`);
+    await boot(page, `huntSeconds=3&c=${encodeChallenge(old)}&reenbui=content`);
     await waitScene(page, 'challenge');
     await tapRect(page, touch, 'accept');
     await waitScene(page, 'hunt');

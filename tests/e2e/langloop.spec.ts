@@ -162,7 +162,7 @@ test.describe('Die Langloop (v1.4)', () => {
     const touch = isTouchProject(info);
     const errors = collectErrors(page);
     await langloopSave(page);
-    await boot(page, `seed=38&today=${DAY.key}&bonus=dieVerste&huntSeconds=12`);
+    await boot(page, `seed=38&today=${DAY.key}&bonus=dieVerste&huntSeconds=12&reenbui=content`);
     await startHunt(page, touch);
     let h = await hook(page);
     expect(h.zoom.sight).toBe('scope_var');

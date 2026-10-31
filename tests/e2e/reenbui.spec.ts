@@ -6,11 +6,13 @@
 // - flocks feed at a column, and the columns are drawn on the canvas: real pixels at a column on a
 //   held frame, compared with the same frame with the columns hidden (lesson 14);
 // - a bag in the swarm window scores the Reënbui step (the hook's last awards);
-// - the specs that pin a seed don't meet the event: ?e2e without ?reenbui= has none, even on the
-//   Kalahari's overcast Wednesday that forces it (lesson 17).
+// - the specs that pin a seed don't meet the event: ?reenbui=0 (boot() adds it unless a spec names
+//   reenbui=) has none, even on the Kalahari's overcast Wednesday that forces it (lesson 17); and
+//   ?e2e alone (reenbui=content) keeps the game's content hash equal to Node's.
 // Shots are in-page pointer events with a fresh pointerId each (helpers.burstAtFlock).
 import { expect, test, type Page } from '@playwright/test';
 import { decodePng } from '../../tools/assets/image';
+import { loadContentHash } from '../../tools/testContent';
 import { reloadIfEmpty } from './feesdaeHelpers';
 import {
   boot,
@@ -264,13 +266,27 @@ test('a bag in the swarm window scores the Reënbui bonus', async ({ page }, inf
   expect(a[0]?.mult ?? 0).toBeGreaterThan(1);
 });
 
-test('specs that pin a seed never meet it: none under ?e2e without ?reenbui=, even on a forcing day', async ({
+test('?reenbui=0 has none, even on a forcing day; ?e2e alone keeps the real content (hash)', async ({
   page,
 }, info) => {
   test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
   test.setTimeout(300_000);
   const touch = isTouchProject(info);
-  await boot(page, 'biome=kalahari-summer&layout=wed&seed=11&graphics=standard&baboons=0');
+  // The real content: the game's content hash is Node's (the Daily seed, links and replays).
+  await boot(page, 'biome=kalahari-summer&layout=wed&seed=11&graphics=standard&reenbui=content');
+  const tools = await page.evaluate(
+    () =>
+      (window as unknown as { __TM_TOOLS__?: { contentHash: string } }).__TM_TOOLS__?.contentHash,
+  );
+  expect(tools).toBe(loadContentHash());
+  // And the overcast Wednesday forces it there.
+  await startHunt(page, touch);
+  await waitTicks(page, 30);
+  expect(await page.evaluate(() => (window as unknown as Hooked).__TM__?.reenbui ?? null)).not.toBe(
+    null,
+  );
+  // A spec that pins a seed turns it off with ?reenbui=0 (boot() adds it when a spec names none).
+  await boot(page, 'biome=kalahari-summer&layout=wed&seed=11&graphics=standard&reenbui=0');
   await startHunt(page, touch);
   await waitTicks(page, 30);
   expect(await page.evaluate(() => (window as unknown as Hooked).__TM__?.reenbui ?? null)).toBe(

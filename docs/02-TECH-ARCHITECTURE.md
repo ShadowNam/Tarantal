@@ -344,7 +344,9 @@ export interface Sim {
   phase, the columns and the bags; `FlockView.feeding` marks feeding flocks.
 - `step()` at the swarm's peak with 60 birds: ~0.1 ms (`tools/simPerf.test.ts`). Test flags
   (`src/game/devContent.ts`): `?reenbui=1` (every hunt, 2 s in), `?reenbuiPhase=<phase>` (held
-  600 s; `after`: all phases ½ s); under `?e2e` there is none unless `?reenbui=` is given.
+  600 s; `after`: all phases ½ s), `?reenbui=0` turns it off (e2e boot() adds it unless a spec
+  names `reenbui=`; specs that compare with Node use `reenbui=content`). `?e2e` alone never
+  changes the content or its hash (`withReenbuiParams`, unit-tested against `loadContentHash()`).
 - The view (`src/game/view/reenbui/ReenbuiView.ts`, lazy chunk loaded only for a hunt with one):
   baked rain tiles in two screen-space containers (one move a frame), storm towers on the sky
   layer, the chunked `LayerDimmer`, a small fork through the shared `FlashLimiter`, wet patches

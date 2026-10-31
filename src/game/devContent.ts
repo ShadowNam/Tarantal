@@ -347,8 +347,8 @@ export function withHarvestPreview(
 }
 
 /**
- * v1.10 (D-067, lesson 17) e2e only: no Reënbui on any map — `?e2e` without `?reenbui=`, so every
- * spec that pins a seed plays it as before.
+ * v1.10 (D-067, lesson 17) e2e only: no Reënbui on any map — `?reenbui=0`, for the specs that pin
+ * a seed (tests/e2e/helpers.ts boot() adds it unless a spec names `reenbui=`).
  */
 export function withNoReenbui(b: ContentBundle): ContentBundle {
   return { ...b, reenbui: { ...b.reenbui, areas: [] } };
@@ -387,4 +387,23 @@ export function withReenbuiPreview(
       phaseSeconds,
     },
   };
+}
+
+/**
+ * v1.10 (D-067): the content a test-hook build plays for the URL's Reënbui flags — `reenbui=1` or
+ * `reenbuiPhase=` the preview, `reenbui=0` none, anything else (no flag, `reenbui=content`) the
+ * bundle as it is: `?e2e` alone never changes the content or its hash (review of #110).
+ */
+export function withReenbuiParams(b: ContentBundle, params: URLSearchParams): ContentBundle {
+  const flag = params.get('reenbui');
+  const phase = params.get('reenbuiPhase');
+  const hold =
+    phase === 'after'
+      ? 'after'
+      : (REENBUI_PHASES as readonly (string | null)[]).includes(phase)
+        ? (phase as ReenbuiPhase)
+        : null;
+  if (flag === '1' || hold !== null) return withReenbuiPreview(b, hold);
+  if (flag === '0') return withNoReenbui(b);
+  return b;
 }
