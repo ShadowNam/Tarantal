@@ -3764,6 +3764,11 @@ hunt"). GDD §8.
 - *Layout (lesson 25).* Oupa and the fire stand in the column left of the slate, sized to it
   (`braaiLayout.ts`, unit-tested against every tally rect at 16:9, 20:9 and 19.5:9 with the
   iPhone's insets); his bubble sits above his head; on 4:3 he and the fire are left out.
+- *Perf (CI full lane, review):* the braai tally measured 0.43 ms a frame at 4× throttle with
+  only 7 Phaser calls a frame: telling a story line rendered its caption (a canvas Text with word
+  wrap) inside the per-frame update. Each caption's bubble is now prepared when the braai is built
+  (`captionPool.ts`, `BarkBubble.prepare`/`showPrepared`); telling a line only reveals it. The hook's
+  `braaiParts` (anim, story, sound) and the perf report show where the time goes.
 - *Skip.* "A tap or key skips … as today": the tally had no skip, so the braai adds one — a tap
   that isn't on a button, or Esc (Enter and Space press the focused button, [Again] by default,
   as before). It finishes the count-up and shows the rest of the story in one caption. Phaser's

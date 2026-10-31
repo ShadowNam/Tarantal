@@ -228,6 +228,9 @@ export class BraaiView {
   readonly hook: BraaiHook;
   /** ms the last update took (the tally adds it to hook.braaiMs). */
   lastMs = 0;
+  /** ms per part, summed over the updates (perf.spec prints them): the animation's setters, the
+   *  story (a line told: its bubble and voice), the sounds (the nightjar, the dance's sting). */
+  readonly partMs = { anim: 0, story: 0, sound: 0 };
   readonly layout: BraaiLayout;
   private readonly objects: Phaser.GameObjects.GameObject[] = [];
   private readonly k: number;
@@ -508,6 +511,11 @@ export class BraaiView {
     if (this.storyFrom === null) this.storyFrom = ms;
   }
 
+  /** Every caption this story can show (its lines'), for preparing the bubbles up front. */
+  captions(): string[] {
+    return this.lines.map((l) => captionText(l));
+  }
+
   /** The whole story is out (told or skipped): a skip has nothing left to do. */
   get storyDone(): boolean {
     return this.hook.story.skipped || this.shown >= this.lines.length;
@@ -529,9 +537,11 @@ export class BraaiView {
   }
 
   private beginDance(ms: number): void {
+    const s0 = performance.now();
     this.danceFrom = ms;
     this.hook.danceAt = ms;
     this.s.audio.playExtra(BRAAI_SOUNDS.vastrap, -0.3, () => 0);
+    this.partMs.sound += performance.now() - s0;
   }
 
   /** One frame at `ms` on the braai clock. */
@@ -545,22 +555,27 @@ export class BraaiView {
       const due = this.storyFrom + this.shown * (t.story.lineMs + t.story.gapMs);
       const line = this.lines[this.shown];
       if (ms >= due && line !== undefined) {
+        const s0 = performance.now();
         this.shown++;
         const caption = captionText(line);
         this.hook.story.shown = this.shown;
         this.hook.story.captions.push(caption);
         this.hook.story.at.push(ms);
         this.s.tell(line.say, caption, ms);
+        this.partMs.story += performance.now() - s0;
         if (this.shown === this.lines.length && this.danceDue && this.danceFrom === null)
           this.beginDance(ms);
       }
     }
     // A far nightjar now and then.
     if (ms >= this.nextNightjar) {
+      const s0 = performance.now();
       this.nextNightjar = ms + 14_000;
       this.s.audio.playExtra(BRAAI_SOUNDS.nightjar, 0.6, () => 0);
+      this.partMs.sound += performance.now() - s0;
     }
     // Two reused states (this frame's and the last), no allocation per frame (review 4).
+    const a0 = performance.now();
     this.opts.danceFrom = this.danceFrom;
     const st = animStateInto(
       ms,
@@ -569,6 +584,7 @@ export class BraaiView {
       this.last === this.stateA ? this.stateB : this.stateA,
     );
     calls += this.apply(st);
+    this.partMs.anim += performance.now() - a0;
     this.hook.calls = calls;
     this.lastMs = performance.now() - t0;
   }

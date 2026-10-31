@@ -24,6 +24,7 @@ import type { BarkTrigger } from '../../content/schemas';
 import { drawButton, fitText, Menu, menuInputBlocked } from '../ui/menu';
 import { clientToDesign } from '../input/screenButtons';
 import { classifyTap, recordTap } from '../braai/braaiTap';
+import { CaptionPool } from '../braai/captionPool';
 import { FONT } from '../view/Fx';
 import { fontPx, outline } from '../ui/textLook';
 import { braaiFlags, braaiReady } from '../braai/braaiChunk';
@@ -208,6 +209,7 @@ export class TallyScene extends Phaser.Scene {
     if (hook) {
       hook.braaiMs += v.lastMs;
       hook.braaiFrames++;
+      hook.braaiParts = v.partMs;
     }
   }
 
@@ -641,29 +643,34 @@ export class TallyScene extends Phaser.Scene {
     const ranks = ctx.content.scoring.ranks;
     const hv = data.harvest;
     const slot = tallyBarkSlot(at.safe, at.panel);
-    const bubble = new BarkBubble(this, ctx.feel.barks.fontPx);
     // Its slot comes from the braai's layout (above Oupa's head), once the view is built.
     let storySlot = slot;
     const lineMs = ctx.feel.braai.story.lineMs;
-    // The bubble shows and hides on the braai clock (review 6: a held clock holds the line and
-    // its bubble, for the screenshots); only its short fade-in runs on scene time.
-    this.storyBubble = bubble;
+    // One bubble per caption, prepared (text rendered and laid out) when the braai is built, so
+    // telling a line in the per-frame update is only a reveal (perf: a canvas Text render costs
+    // milliseconds at 4× throttle). The bubble shows and hides on the braai clock (review 6: a
+    // held clock holds the line and its bubble); only its short fade-in runs on scene time.
+    const pool = new CaptionPool((text) => {
+      const b = new BarkBubble(this, ctx.feel.barks.fontPx);
+      b.prepare(text, storySlot);
+      return b;
+    });
     const tell = (voice: string | null, caption: string, ms: number): void => {
       if (!oupaShows(ctx.prefs.oupa)) return;
-      bubble.hide();
-      bubble.show(
-        caption,
-        storySlot,
+      this.storyBubble?.hide();
+      const bubble = pool.take(caption);
+      bubble.showPrepared(
         { bubbleMs: STORY_BUBBLE_HELD_MS, fadeMs: ctx.feel.barks.fadeMs },
         this.time.now,
       );
+      this.storyBubble = bubble;
       this.storyHideAt = ms + (voice === null ? lineMs * 2 : lineMs);
       if (voice !== null && oupaSpeaks(ctx.prefs.oupa)) ctx.audio.bark(voice);
       const v = this.braai;
       if (v !== null) {
         v.hook.bubble = bubble.rect;
         bubble.onHidden = () => {
-          v.hook.bubble = null;
+          if (this.storyBubble === bubble) v.hook.bubble = null;
         };
       }
     };
@@ -705,6 +712,7 @@ export class TallyScene extends Phaser.Scene {
     });
     this.braai = view;
     storySlot = view.layout.storySlot;
+    if (oupaShows(ctx.prefs.oupa)) pool.prepare(view.captions());
     // The hunt under the braai draws nothing on screen: stop drawing it (it shows again when the
     // tally closes, for [Again]'s restart or the title).
     this.scene.setVisible(false, 'Hunt');

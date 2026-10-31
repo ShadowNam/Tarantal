@@ -1440,6 +1440,12 @@ test('perf: the braai tally at 4× CPU throttle (Pixel 7)', async ({ page, brows
     throttle: 4,
     braaiFrames: frames,
     braaiMsPerFrame: (h.braaiMs - first.braaiMs) / frames,
+    // Where the braai's frame time goes (ms per frame, by part).
+    braaiParts: {
+      anim: ((h.braaiParts?.anim ?? 0) - (first.braaiParts?.anim ?? 0)) / frames,
+      story: ((h.braaiParts?.story ?? 0) - (first.braaiParts?.story ?? 0)) / frames,
+      sound: ((h.braaiParts?.sound ?? 0) - (first.braaiParts?.sound ?? 0)) / frames,
+    },
     maxCallsPerFrame: calls,
     danced,
     storyShown: h.braai?.story.shown ?? 0,

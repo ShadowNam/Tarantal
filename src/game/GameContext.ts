@@ -542,6 +542,8 @@ export interface TestHook {
   /** v1.11 (D-068): ms the braai view took, summed over its frames (perf: per frame ≤ 0.3). */
   braaiMs: number;
   braaiFrames: number;
+  /** v1.11 (D-068, perf): the braai view's ms by part, summed over its frames (null: none yet). */
+  braaiParts: { anim: number; story: number; sound: number } | null;
   /** v1.11 (D-068): the braai's chunk and Standard sheet have arrived (seen from the hunt). */
   braaiLoaded: boolean;
   reenbuiParts: { rain: number; sky: number; ground: number; columns: number } | null;

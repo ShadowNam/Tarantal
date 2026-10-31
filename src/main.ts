@@ -454,6 +454,7 @@ const hook: TestHook = {
   braai: null,
   braaiMs: 0,
   braaiFrames: 0,
+  braaiParts: null,
   braaiLoaded: false,
   tallyScore: null,
   reenbuiParts: null,
