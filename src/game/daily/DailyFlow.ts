@@ -33,7 +33,7 @@ import {
   type ShareMessage,
   type ShareSpecial,
 } from '../../meta/share';
-import { feesdagById, todaysFeesdag, yearOfDay } from '../../meta/feesdae';
+import { feesdagById, shareYear, specialTallyLine, todaysFeesdag } from '../../meta/feesdae';
 import type { PlatformAdapter } from '../../platform/PlatformAdapter';
 import type { ShareOutcome } from '../../platform/share';
 import type { HuntResult, ModeConfig } from '../../sim/types';
@@ -379,19 +379,8 @@ export class DailyFlow {
           : {
               ...sp,
               nameKey,
-              // D-064: Christmas counts its presents found; Halloween its bats, owls, lanterns.
-              line:
-                fd.presentsTotal === undefined
-                  ? fill(t('feesdag.tally'), {
-                      bats: fd.bats,
-                      owls: fd.owls,
-                      lanterns: fd.lanterns,
-                      total: fd.lanternsTotal,
-                    })
-                  : fill(t('feesdag.presents_left'), {
-                      n: fd.presents ?? 0,
-                      total: fd.presentsTotal,
-                    }),
+              // Each special its own line (D-064 presents, D-065 the countdown's points).
+              line: specialTallyLine(fd, t),
             },
     };
   }
@@ -403,7 +392,7 @@ export class DailyFlow {
     return {
       title: fill(t('feesdag.share_title'), {
         name: tOr(special.nameKey, special.id),
-        year: yearOfDay(daily?.setup.day ?? this.deps.today()),
+        year: shareYear(special, daily?.setup.day ?? this.deps.today()),
       }),
       frame: special.shareFrame,
     };

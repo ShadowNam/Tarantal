@@ -759,9 +759,13 @@ function santaHat(scale: 'l' | 'm' | 's'): string {
 
 // --- Oupa ---------------------------------------------------------------------------------------
 
-/** Oupa's head: a sun-browned face, a full white beard and moustache, smiling eyes, a Santa hat.
+/** Oupa's head: a sun-browned face, a full white beard and moustache, smiling eyes, a Santa hat
+ *  (D-065: another special's hat instead, drawn by `hat` in the face's coordinates).
  *  (0, 0) = the middle of his face. */
-function oupaHead(): string {
+export function oupaHead(
+  hat: () => string = () =>
+    g({ transform: 'translate(-2 -26) rotate(-6) scale(0.92)' }, santaHat('l')),
+): string {
   const face = radial([
     [0, C.skinLit, 1],
     [0.7, C.skin, 1],
@@ -834,7 +838,7 @@ function oupaHead(): string {
     path(ellipseD(-20, 6, 5, 3), '#E87A6A', { opacity: 0.45 }),
     path(ellipseD(20, 6, 5, 3), '#E87A6A', { opacity: 0.45 }),
     // His Santa hat, a little back on his head.
-    g({ transform: 'translate(-2 -26) rotate(-6) scale(0.92)' }, santaHat('l')),
+    hat(),
   );
 }
 
@@ -844,7 +848,11 @@ function oupaHead(): string {
  * folds at the elbow and belt, a leather belt, khaki shorts with creases, sun-browned arms and
  * legs shaded round (knees, calves, knuckles), socks rolled over brown suede vellies, a Santa hat.
  */
-function oupa(): string {
+export function oupa(
+  head: () => string = () => oupaHead(),
+  /** D-065: something held in the waving hand (New Year's party blower), drawn under it. */
+  inHand: () => string = () => '',
+): string {
   const shirt = linear(
     [
       [0, C.khakiLit],
@@ -1161,9 +1169,10 @@ function oupa(): string {
       limb.url,
       1.8,
     ),
+    inHand(),
     hand(84, -348, 12),
     // His head and beard, the Santa hat on top.
-    g({ transform: 'translate(0 -292) scale(0.82)' }, oupaHead()),
+    g({ transform: 'translate(0 -292) scale(0.82)' }, head()),
   );
 }
 

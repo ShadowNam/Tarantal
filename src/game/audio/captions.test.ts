@@ -124,3 +124,21 @@ describe('v1.7 meerkat captions (D-044)', () => {
     expect(lines).toEqual([]);
   });
 });
+
+describe('New Year captions (D-065)', () => {
+  it('the sting is Auld Lang Syne; the countdown brings the fireworks; both have text', () => {
+    const sting = captionFor(ev({ type: 'feesdagStarted', feesdag: 'newyear' }));
+    const pops = captionFor(ev({ type: 'countdownStarted' }));
+    expect(sting).toBe('caption.ny_sting');
+    expect(pops).toBe('caption.firework_pop');
+    expect(en['caption.ny_sting']).toContain('Auld Lang Syne');
+    expect(en['caption.firework_pop']).toContain('fireworks');
+    // Halloween and Christmas keep theirs.
+    expect(captionFor(ev({ type: 'feesdagStarted', feesdag: 'halloween' }))).toBe(
+      'caption.spook_sting',
+    );
+    expect(captionFor(ev({ type: 'feesdagStarted', feesdag: 'christmas' }))).toBe(
+      'caption.xmas_sting',
+    );
+  });
+});

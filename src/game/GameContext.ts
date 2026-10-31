@@ -11,6 +11,7 @@ import type { TellHook } from './view/tell/TellView';
 import type { BaboonHook } from './view/baboon/BaboonView';
 import type { HarvestHook } from './view/harvest/HarvestView';
 import type { BaboonsView, HarvestView, PlaneId } from '../sim/types';
+import type { NewYearHook } from './feesdae/NuwejaarView';
 import type { NamibLifeHook } from './view/namib/NamibLifeView';
 import type { LoadStatus, SaveStore } from '../meta/save';
 import type { StorageStatus } from '../meta/storage';
@@ -302,6 +303,9 @@ export interface TestHook {
   verBirds: { id: number; x: number; y: number }[];
   /** D-049: hittable far-plane targets' body centres on the screen (design px), for aiming. */
   farBirds: { id: number; x: number; y: number }[];
+  /** D-065 (e2e): hittable target birds on screen (not the Ver), body centre in design px,
+   *  nearest plane first. */
+  targetBirds: { id: number; plane: string; x: number; y: number }[];
   /** v1.7b: each crate's item and the icon drawn on it (null = none). */
   crateSpots: {
     id: number;
@@ -522,6 +526,11 @@ export interface TestHook {
   /** D-064 (perf): ms the special day's view took (its update; the heat shimmer is counted in
    *  sceneryMs with the mirage), summed over the frames sceneryFrames counts. */
   feesdagMs: number;
+  /** D-065 (perf): ms of feesdagMs spent on New Year's ground dim (dimGround + stepDim). */
+  feesdagDimMs: number;
+  /** D-065 (perf): ms of feesdagMs spent on New Year's fireworks and on its stars. */
+  feesdagFxMs: number;
+  feesdagStarsMs: number;
   /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
    *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
   reloadFx: { chipIcons: (string | null)[]; bolts: number; oupaHand: boolean; autoReloads: number };
@@ -548,6 +557,13 @@ export interface TestHook {
   huntSeed: number | null;
   /** M7: the daily hunt running or just ended (null = not a daily). */
   daily: { key: string; number: number; seed: number; official: boolean } | null;
+  /** D-065: the HUD's notice lines' slots (the banner, the call-out), design px; null before a
+   *  hunt. In New Year's countdown they sit below it. */
+  notices: { banner: Rect; callout: Rect } | null;
+  /** D-065 (e2e): the last 20 score awards — tick, award, mult and the pipeline's steps. */
+  awards: { tick: number; award: number; mult: number; kinds: string[] }[];
+  /** D-065 (New Year): the HUD's countdown digit and its "×2" tag while they show (null else). */
+  countdown: { n: number; tag: string } | null;
   /** D-064: Oupa on the title on Christmas: drawn, or left out for lack of room (null: not yet,
    *  or no Christmas). */
   titleOupa: 'drawn' | 'nospace' | null;
@@ -586,6 +602,9 @@ export interface TestHook {
       crowns: { id: string; x: number; y: number; w: number; h: number }[];
     };
     heat?: number;
+    /** D-065 (New Year): the blue hour's wash, the stars and the fireworks drawn now (screen
+     *  design px), every burst's start tick this hunt (the ≤ 3 a second rule), the countdown. */
+    newYear?: NewYearHook;
   } | null;
   /** D-048: the special's group's sheet: delivered ('final') or the code-drawn stand-in. */
   feesdaeArt: 'final' | 'standin' | null;
@@ -604,6 +623,8 @@ export interface TestHook {
     /** D-048: the special day's frame on the slate (null on an ordinary tally). */
     frame?: string | null;
     title?: string;
+    /** D-065: the slate's greeting in its title row ("Happy New Year!"), New Year only. */
+    greeting?: string;
   } | null;
   /** M7: the last [Share] (outcome and the message sent). */
   lastShare: { outcome: string; text: string; url: string } | null;

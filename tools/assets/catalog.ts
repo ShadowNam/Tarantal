@@ -20,6 +20,13 @@ import {
   XMAS_SHEET_W,
   XMAS_SOUNDS,
 } from '../../src/game/feesdae/christmasAssets';
+import {
+  NEWYEAR_GROUP,
+  NEWYEAR_SHEET,
+  NY_SHEET_H,
+  NY_SHEET_W,
+  NY_SOUNDS,
+} from '../../src/game/feesdae/newyearAssets';
 import { specialLinesOf } from '../../src/game/audio/barks';
 import type { AssetKind } from '../../src/game/assets/AssetManifest';
 import {
@@ -170,6 +177,17 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   });
   for (const key of Object.values(XMAS_SOUNDS))
     entries.set(key, { key, kind: 'sound', group: CHRISTMAS_GROUP, biomes: everyBiome });
+  // D-065: New Year's sheet and sounds in a lazy group of their own (never with the others').
+  entries.set(NEWYEAR_SHEET, {
+    key: NEWYEAR_SHEET,
+    kind: 'texture',
+    group: NEWYEAR_GROUP,
+    biomes: everyBiome,
+    width: NY_SHEET_W,
+    height: NY_SHEET_H,
+  });
+  for (const key of Object.values(NY_SOUNDS))
+    entries.set(key, { key, kind: 'sound', group: NEWYEAR_GROUP, biomes: everyBiome });
   // v1.5 (D-041): Oupa's voice, one lazy pack per voice language (voice/<lang>/<bark key>): his
   // trigger lines (feel.json barks) and every secret's bark.
   // D-048: a special day's own lines go in a lazy group per language, loaded with that day.

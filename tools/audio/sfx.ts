@@ -782,6 +782,93 @@ const SFX: Readonly<Record<string, () => Buf>> = {
     );
     return fadeEnds(normalise(withReverb(out, SR, 0.2, 0.8, 0.7), 0.6), SR, 0.002, 0.08);
   },
+  // --- D-065: the New Year countdown (group "feesdae-newyear", lazy) -------------------------
+  ny_sting: () =>
+    // "Auld Lang Syne" (traditional tune; words Burns, 1788; public domain), its first line on
+    // the pennywhistle in D, gently swung over a walking bass.
+    kwela(
+      [
+        [69, 1],
+        [74, 1.5],
+        [74, 0.5],
+        [74, 1],
+        [78, 1],
+        [76, 1.5],
+        [74, 0.5],
+        [76, 1],
+        [78, 1],
+        [74, 1.5],
+        [74, 0.5],
+        [78, 1],
+        [81, 1],
+        [83, 3],
+      ],
+      [50, 57, 50, 55],
+      0.27,
+      false,
+    ),
+  ny_tally: () =>
+    // The same tune's first phrase, slower, coming home to D.
+    kwela(
+      [
+        [69, 1],
+        [74, 1.5],
+        [74, 0.5],
+        [74, 1],
+        [78, 1],
+        [76, 1.5],
+        [74, 0.5],
+        [76, 1],
+        [78, 0.5],
+        [76, 0.5],
+        [74, 3],
+      ],
+      [50, 57, 50],
+      0.32,
+      false,
+    ),
+  firework_pop: () => {
+    // A firework far off: a soft low thump and a faint crackle a moment later, all through a
+    // long, dull reverb (never loud: it sits under the hunt).
+    const r = rng(2027);
+    const out = buf(1.6, SR);
+    mix(out, shape(lowpass(noise(0.18, SR, r), SR, 320), SR, ad(0.004, 0.09)), 0, SR, 1);
+    mix(out, shape(osc('sine', glide(110, 60, 0.15), 0.2, SR), SR, ad(0.003, 0.08)), 0, SR, 0.6);
+    for (let k = 0; k < 14; k++) {
+      const at = 0.18 + r() * 0.5;
+      const len = 0.01 + r() * 0.02;
+      mix(
+        out,
+        shape(bandpass(noise(len, SR, r), SR, 1800 + r() * 2400, 1.2), SR, ad(0.001, len / 3)),
+        at,
+        SR,
+        0.12 + r() * 0.12,
+      );
+    }
+    return fadeEnds(normalise(withReverb(lowpass(out, SR, 2600), SR, 0.5, 1.2, 0.6), 0.32), SR);
+  },
+  countdown_tick: () => {
+    // A clock's tick for the countdown's last 3 s: a short woody click.
+    const out = buf(0.14, SR);
+    mix(
+      out,
+      bar(1760, 0.08, SR, [
+        [1, 1, 0.03],
+        [2.4, 0.4, 0.015],
+      ]),
+      0,
+      SR,
+      0.7,
+    );
+    mix(
+      out,
+      shape(bandpass(noise(0.02, SR, rng(31)), SR, 3000, 2), SR, ad(0.001, 0.006)),
+      0,
+      SR,
+      0.4,
+    );
+    return fadeEnds(normalise(out, 0.5), SR, 0.001, 0.02);
+  },
 };
 
 /**

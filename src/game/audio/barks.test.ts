@@ -386,3 +386,61 @@ describe('Christmas in the sun lines (D-064)', () => {
     expect(h.hunt([], frame(GAP * 2 + 2, T.idleSeconds * 60 + 1))?.trigger).toBe('idle');
   });
 });
+
+describe('New Year countdown lines (D-065)', () => {
+  const special = loadContent().feesdae.specials.find((f) => f.id === 'newyear');
+  if (special === undefined) throw new Error('no newyear');
+  const b = special.barks;
+  const started: SimEvent = { type: 'feesdagStarted', tick: 0, feesdag: 'newyear', lanterns: 0 };
+  const countdown: SimEvent = { type: 'countdownStarted', tick: 4800, endTick: 5400, mult: 2 };
+  const tenLeft = (nowMs: number): ReturnType<typeof frame> => ({
+    ...frame(nowMs, 4800),
+    ticksLeft: T.lastSeconds * 60,
+  });
+
+  it('the start line, then the countdown line as the ten-second call (not the usual one)', () => {
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0, b);
+    expect(d.hunt([started], frame(0))?.line).toBe(b.start);
+    // Inside the gap: the ten-second call goes out anyway, with New Year's own line.
+    const call = d.hunt([countdown], tenLeft(100));
+    expect(call?.trigger).toBe('feesdagCountdown');
+    expect(call?.line).toBe(b.countdown);
+    expect(call?.urgent).toBe(true);
+    expect(d.say('feesdagEnd', GAP * 3)?.line).toBe(b.end);
+  });
+
+  it('a big bag or a two-in-one in the countdown says the big-shot line; before it, no', () => {
+    const big: SimEvent = {
+      type: 'scoreAwarded',
+      tick: 4900,
+      birdId: 1,
+      points: 30,
+      mult: 4,
+      award: T.countdownShotAward,
+      breakdown: [],
+    };
+    const before = new BarkDirector(T, GAP);
+    before.startHunt(0, b);
+    expect(before.hunt([{ ...big, tick: 100 }], frame(GAP + 1))?.trigger).not.toBe('countdownShot');
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0, b);
+    d.hunt([countdown], tenLeft(0));
+    expect(d.hunt([big], frame(GAP + 1, 4900))?.line).toBe(b.countdownShot);
+    const two: SimEvent = {
+      type: 'bonusAwarded',
+      tick: 5000,
+      bonus: 'twoFlies',
+      base: 15,
+      award: 60,
+    };
+    expect(d.hunt([two], frame(GAP * 2 + 2 + 4000, 5000))?.line).toBe(b.countdownShot);
+  });
+
+  it('other days keep the usual ten-second call', () => {
+    const d = new BarkDirector(T, GAP);
+    const hb = loadContent().feesdae.specials.find((f) => f.id === 'christmas')?.barks ?? null;
+    d.startHunt(0, hb);
+    expect(d.hunt([], tenLeft(GAP + 1))?.trigger).toBe('lastSeconds');
+  });
+});

@@ -3,6 +3,30 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.11.2] — Feesdae: New Year countdown (31 Dec–1 Jan) (30 Oct 2026)
+
+Decision record D-065. The product owner picked it on 27 Oct from the Feesdae list of 24 Oct: "a
+countdown hunt with party hats, small fireworks on the horizon (never full-screen flashes), double
+points in the last 10 s; 31 Dec–1 Jan UTC." The third special on the Feesdae system (D-048), after
+Halloween's Spookjag and Christmas in the sun.
+
+- **New Year / Nuwejaar** on 31 Dec and 1 Jan (UTC): the Daily becomes the countdown for everyone
+  — the day's map at a warm dusk that turns to blue hour as the hunt goes on, the stars coming out,
+  the same seed and first-attempt rules; the title's Daily shows "New Year countdown!" with Oupa in
+  a party hat, a party blower in his hand.
+- **The countdown** (the twist, in the sim): in the last 10 s every award is doubled — bags and
+  bonuses, never penalties — on top of the Stampede (×4). A big "10 … 1" counts down on the HUD
+  with a "×2" tag by the score and a tick on the last 3 s.
+- **Fireworks** low over the far horizon: small bursts in gold, red, green and white, a few at a
+  time and more in the countdown, never more than 3 a second and never a large flash; fewer on the
+  low tier, and only a dim twinkle with "reduce flashes". Some guineafowl wear striped party hats.
+- Oupa's New Year lines (voiced in English, Afrikaans and German), "Auld Lang Syne" on the
+  pennywhistle at the start and on the tally, soft distant pops; captions for both.
+- The tally says **"Happy New Year!"** in a New Year frame (streamers, Oupa's head, a firework);
+  the share card is framed 🎊🥳 … 🎆🎊 and titled with the year that starts ("New Year 2027").
+- A special's date can now cover several days. New Year's art and sounds are their own lazy
+  download (Standard in HD); a Halloween or Christmas hunt never fetches them.
+
 ## [1.11.1] — Feesdae: Christmas in the sun (25 Dec) (30 Oct 2026)
 
 Decision record D-064. The product owner picked it on 27 Oct from the Feesdae list: "Christmas,

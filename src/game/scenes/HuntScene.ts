@@ -11,6 +11,7 @@ import * as Phaser from 'phaser';
 import type { Feesdag } from '../../content/schemas';
 import { feesdagById } from '../../meta/feesdae';
 import type { SpecialDayView } from '../feesdae/FeesdagView';
+import type { NewYearHook } from '../feesdae/NuwejaarView';
 import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
 import { artSummary } from '../assets/artSummary';
@@ -120,7 +121,7 @@ const feesdaeSheets = new Map<string, HTMLImageElement>();
 /** D-064: specials whose sheet a hunt has waited for once (a failed load isn't waited on again). */
 const feesdaeSheetTried = new Set<string>();
 /** D-064: the specials whose hunt waits (bounded) for their own listed sheet before it starts. */
-const WAIT_FOR_SHEET: readonly string[] = ['christmas'];
+const WAIT_FOR_SHEET: readonly string[] = ['christmas', 'newyear'];
 
 /** D-064: the Christmas view's e2e hook (its tinsel). */
 interface KersfeesHook {
@@ -517,6 +518,25 @@ export class HuntScene extends Phaser.Scene {
         setHeat: (h) => {
           world.heat = h;
         },
+        hooks: this.ctx.hook !== null,
+      });
+      this.birds.hats = this.spookView.hats;
+    } else if (special?.id === 'newyear' && feesdaeModule !== null) {
+      // D-065: the New Year countdown (blue hour, stars, fireworks on the horizon, party hats).
+      this.spookView = new feesdaeModule.NuwejaarSceneView({
+        scene: this,
+        parallax: this.parallax,
+        look: this.ctx.feel.feesdae.looks.newyear,
+        special,
+        planeScale: planeScales,
+        decorations: special.decorations,
+        sheet: feesdaeSheets.get(special.id) ?? null,
+        reduceFlashes: this.ctx.prefs.reduceFlashes,
+        lowTier: this.ctx.prefs.tier === 'low',
+        // e2e/screenshot builds only: `?fireworks=max` puts a burst in every slot (≤ 3 a second).
+        maxFireworks:
+          this.ctx.hook !== null &&
+          new URLSearchParams(window.location.search).get('fireworks') === 'max',
         hooks: this.ctx.hook !== null,
       });
       this.birds.hats = this.spookView.hats;
@@ -1875,6 +1895,9 @@ export class HuntScene extends Phaser.Scene {
       hook.harvest = null;
       hook.harvestMs = 0;
       hook.feesdagMs = 0;
+      hook.feesdagDimMs = 0;
+      hook.feesdagFxMs = 0;
+      hook.feesdagStarsMs = 0;
       hook.fruit = null;
       hook.hunts++;
     }
@@ -2014,7 +2037,17 @@ export class HuntScene extends Phaser.Scene {
     }
     const f0 = performance.now();
     this.spookView?.update(state.feesdag, runner.prev.feesdag, alpha, state.tick);
-    if (this.ctx.hook) this.ctx.hook.feesdagMs += performance.now() - f0;
+    if (this.ctx.hook) {
+      this.ctx.hook.feesdagMs += performance.now() - f0;
+      // D-065: the ground dim's share of it (New Year's view only).
+      const sv = this.spookView;
+      if (sv !== null && 'dimMs' in sv && typeof sv.dimMs === 'number')
+        this.ctx.hook.feesdagDimMs = sv.dimMs;
+      if (sv !== null && 'fxMs' in sv && typeof sv.fxMs === 'number')
+        this.ctx.hook.feesdagFxMs = sv.fxMs;
+      if (sv !== null && 'starsMs' in sv && typeof sv.starsMs === 'number')
+        this.ctx.hook.feesdagStarsMs = sv.starsMs;
+    }
     // Interpolated like the birds and the camera (a held frame keeps alpha 0: it holds).
     this.fruit?.update(state, width, state.tick - 1 + alpha);
     this.treeLife?.update(state, alpha);
@@ -2171,6 +2204,37 @@ export class HuntScene extends Phaser.Scene {
             ),
           y: b.y + (body?.oy ?? 0) * far.scale,
         }));
+      // D-065 (e2e): hittable target birds on screen at their body centre (design px), every
+      // plane but the Ver, nearest plane first — what a spec aims at (a flock's mean position can
+      // fall between its birds once it runs or flushes).
+      const planesNow = this.ctx.content.scoring.planes;
+      hook.targetBirds = state.birds
+        .filter((b) => b.hittable && b.kind === 'target' && b.plane !== 'ver')
+        .map((b) => {
+          const pl = planesNow[b.plane];
+          const c = this.ctx.content.birds.creatures.find((x) => x.id === b.creature);
+          const hb = c !== undefined && 'hitbox' in c ? c.hitbox.body : body;
+          return {
+            id: b.id,
+            plane: b.plane,
+            x:
+              width / 2 +
+              planeToDx(state.cameraX, pl.scrollFactor, b.x + (hb?.ox ?? 0) * pl.scale * b.facing),
+            y: b.y + (hb?.oy ?? 0) * pl.scale,
+          };
+        })
+        .filter((b) => b.x > 0 && b.x < width)
+        .sort((a, b) =>
+          a.plane === b.plane
+            ? a.id - b.id
+            : a.plane === 'near'
+              ? -1
+              : b.plane === 'near'
+                ? 1
+                : a.plane === 'mid'
+                  ? -1
+                  : 1,
+        );
       hook.flockSpots = state.flocks.map((f) => {
         const members = state.birds.filter((b) => b.flockId === f.id);
         const n = Math.max(1, members.length);
@@ -2270,6 +2334,10 @@ export class HuntScene extends Phaser.Scene {
                       : {}),
                     heat: this.world.heatOn() ? this.world.heat : 0,
                   }),
+              // D-065 (New Year): the blue hour, stars and fireworks as drawn now.
+              ...('newYear' in this.spookView && typeof this.spookView.newYear === 'function'
+                ? { newYear: (this.spookView as { newYear(): NewYearHook }).newYear() }
+                : {}),
             };
       hook.fruit =
         this.fruit === null

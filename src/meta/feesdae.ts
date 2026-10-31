@@ -3,14 +3,20 @@
 // game layer, or the e2e ?today= day); nothing here reads a clock. The special's id then goes
 // into the Daily's mode config, so its replays and challenge links carry it.
 import type { Feesdag, Feesdae } from '../content/schemas';
+import { fill, type I18nKey } from '../i18n/i18n';
+import type { HuntResult } from '../sim/types';
 import { civilFromDays } from './dailyCalendar';
 
 /** True when the special's date rule matches this UTC day. */
 export function onDay(special: Feesdag, day: number): boolean {
   const { month, day: d } = civilFromDays(day);
-  // Only fixed dates so far; a new kind of rule (a range) adds its case here.
+  return specialDays(special).some((r) => r.month === month && r.day === d);
+}
+
+/** Every month/day a special's date rule covers (a fixed day, or D-065's list of days). */
+export function specialDays(special: Feesdag): readonly { month: number; day: number }[] {
   const rule = special.date;
-  return rule.month === month && rule.day === d;
+  return rule.type === 'fixed' ? [{ month: rule.month, day: rule.day }] : rule.days;
 }
 
 /** The special of a UTC day (the first that matches), or null on an ordinary day. */
@@ -40,4 +46,30 @@ export function todaysFeesdag(
 /** The year of a UTC day (the share card's "Spookjag 2026"). */
 export function yearOfDay(day: number): number {
   return civilFromDays(day).year;
+}
+
+/** The share card's year of a special played on a UTC day: D-065's New Year shows the year that
+ *  starts (shareYearDays 1: 31 Dec 2026 → 2027). */
+export function shareYear(special: Feesdag | null, day: number): number {
+  return yearOfDay(day + (special?.shareYearDays ?? 0));
+}
+
+/**
+ * The special's own line on the tally (each special its own): Halloween's bats, owls and lanterns;
+ * Christmas's presents found (D-064); New Year's points in the countdown (D-065).
+ */
+export function specialTallyLine(
+  fd: NonNullable<HuntResult['feesdag']>,
+  t: (key: I18nKey) => string,
+): string {
+  if (fd.countdownPoints !== undefined)
+    return fill(t('feesdag.countdown_points'), { n: fd.countdownPoints });
+  if (fd.presentsTotal !== undefined)
+    return fill(t('feesdag.presents_left'), { n: fd.presents ?? 0, total: fd.presentsTotal });
+  return fill(t('feesdag.tally'), {
+    bats: fd.bats,
+    owls: fd.owls,
+    lanterns: fd.lanterns,
+    total: fd.lanternsTotal,
+  });
 }

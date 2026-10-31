@@ -2,6 +2,7 @@
 // the spotted eagle-owl is protected, and shooting every pumpkin lantern of the day pays once.
 // D-064: Christmas's rule (kersfees) uses the same things list: wrapped presents hidden at the
 // day's props, each opened when shot ('dark' = opened), all of them found paying once.
+// D-065: New Year's rule (nuwejaar) puts nothing up here: its countdown lives in the Sim.
 // Pure and deterministic: everything is drawn at hunt start or on spawn from the 'feesdag'
 // stream (no other system's sequence moves), and every number comes from feesdae.json.
 import type { Biome, Feesdag, Scoring, SpookjagTwist } from '../../content/schemas';
@@ -85,6 +86,8 @@ export interface SpookDeps {
 export function startSpookjag(d: SpookDeps): Spookjag {
   const { twist } = d;
   if (twist.rule === 'kersfees') return startKersfees({ ...d, twist });
+  // D-065: New Year's countdown puts nothing up (the Sim runs the countdown; no draws).
+  if (twist.rule === 'nuwejaar') return emptySpookjag(twist);
   const { rng, durationTicks } = d;
   const due: Due[] = [];
   const plan = (kind: 'bat' | 'owl', cfg: FlyerCfg): void => {
@@ -243,6 +246,21 @@ function startKersfees(
     swerveTicks: { bat: [1, 1], owl: [1, 1] },
     allOutPaid: false,
     nextId,
+  };
+}
+
+/** A special day with nothing to shoot of its own (D-065 New Year). */
+function emptySpookjag(twist: SpookTwist): Spookjag {
+  return {
+    twist,
+    due: [],
+    cursor: 0,
+    things: [],
+    lanternsTotal: 0,
+    presentsTotal: 0,
+    swerveTicks: { bat: [1, 1], owl: [1, 1] },
+    allOutPaid: false,
+    nextId: SPOOK_ID_BASE,
   };
 }
 

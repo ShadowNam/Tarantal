@@ -68,10 +68,12 @@ export interface ShareSpecial {
 }
 
 /** The emoji frame of each special's card (left, right): Halloween's moon, bats and a pumpkin;
- *  D-064 Christmas's tinsel, a present, Oupa in his Santa hat and the sun. */
+ *  D-064 Christmas's tinsel, a present, Oupa in his Santa hat and the sun; D-065 New Year's. */
 export const SHARE_FRAMES: Readonly<Record<string, readonly [string, string]>> = {
   halloween: ['🎃🦇', '🦇🌕'],
   christmas: ['✨🎁', '🎅☀️'],
+  // D-065: New Year's streamers, a party hat and a small firework.
+  newyear: ['🎊🥳', '🎆🎊'],
 };
 
 export interface ShareInput {

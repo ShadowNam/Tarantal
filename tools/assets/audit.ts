@@ -23,6 +23,7 @@ import type { Catalog } from './catalog';
 import { MEERKAT_SHEET, MEERKAT_SOUNDS } from '../../src/game/assets/desertAssets';
 import { HALLOWEEN_SHEET, SPOOK_SOUNDS } from '../../src/game/feesdae/feesdaeAssets';
 import { CHRISTMAS_SHEET, XMAS_SOUNDS } from '../../src/game/feesdae/christmasAssets';
+import { NEWYEAR_SHEET, NY_SOUNDS } from '../../src/game/feesdae/newyearAssets';
 
 export interface AuditRow {
   readonly key: string;
@@ -89,6 +90,8 @@ function usages(
   if (key === HALLOWEEN_SHEET) needles.push(/\bHALLOWEEN_SHEET\b/);
   // D-064: Christmas's sheet by its constant, a sound when played by name.
   if (key === CHRISTMAS_SHEET) needles.push(/\bCHRISTMAS_SHEET\b/);
+  // D-065: New Year's sheet by its constant.
+  if (key === NEWYEAR_SHEET) needles.push(/\bNEWYEAR_SHEET\b/);
   // v1.8 (D-050): the tin cans' sheet by its constant (CanView, the placeholder).
   if (key === CAN_SHEET) needles.push(/\bCAN_SHEET\b/);
   // 1.9.3 (D-056): the makalani nut sheet by its constant, and the palm textures
@@ -115,6 +118,12 @@ function usages(
     needles.push(new RegExp(`playXmasSound\\([^)]*'${xmasSound}'`));
     // The tally's carol phrase is played by its constant (TallyScene, outside the lazy chunk).
     needles.push(new RegExp(`XMAS_SOUNDS\\.${xmasSound}\\b`));
+  }
+  const nySound = Object.entries(NY_SOUNDS).find(([, k]) => k === key)?.[0];
+  if (nySound !== undefined) {
+    needles.push(new RegExp(`playNySound\\([^)]*'${nySound}'`));
+    // The tally's tune is played by its constant (TallyScene, outside the lazy chunk).
+    needles.push(new RegExp(`NY_SOUNDS\\.${nySound}\\b`));
   }
   const spookSound = Object.entries(SPOOK_SOUNDS).find(([, k]) => k === key)?.[0];
   if (spookSound !== undefined) needles.push(new RegExp(`playSpookSound\\([^)]*'${spookSound}'`));
@@ -155,7 +164,9 @@ function usages(
       needles.push(new RegExp(`"lines":\\s*\\[[^\\]]*"${line}"`));
       // D-048: a special day's own lines (feesdae.json barks).
       needles.push(
-        new RegExp(`"(start|bat|owl|lanternsOut|present|presentsFound|dry|end)":\\s*"${line}"`),
+        new RegExp(
+          `"(start|bat|owl|lanternsOut|present|presentsFound|dry|countdown|countdownShot|end)":\\s*"${line}"`,
+        ),
       );
       // v1.8b (D-062): Oupa's baboon lines (guide tables), voiced by HudScene's oupa(key).
       if (line.startsWith('guide\\.baboon\\.')) needles.push(/\bthis\.oupa\(/);

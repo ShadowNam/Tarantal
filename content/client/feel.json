@@ -799,6 +799,26 @@
         { "layer": "far_veld", "color": "#FFF0D2", "alpha": 0.18, "top": 470 }
       ]
     },
+    "nuwejaar_skemer": {
+      "$comment": "D-065 New Year countdown: a warm summer dusk at the end of the year, the whole scene graded — the low sun's warm light on the near plane, the mid plane dimmer, the far planes cool and violet in shadow, a rose-gold afterglow low on the horizon under a deepening blue sky. NuwejaarView takes it on to blue hour over the hunt (feesdae.looks.newyear.blueHour: the sky's wash and every plane's extra tint) and brings the stars out; the far animals take their plane's light; the fireworks stay small on the far horizon. Birds stay untinted (readability). No flashes.",
+      "tint": {
+        "sky": "#B8B4D8",
+        "far_ridge": "#76689A",
+        "ver_veld": "#8A7496",
+        "far_veld": "#987C92",
+        "mid": "#BC9488",
+        "near": "#D6A282",
+        "foreground": "#9A766C"
+      },
+      "haze": [
+        { "layer": "sky", "color": "#2C3A78", "alpha": 0.32, "top": 0, "bottom": 300 },
+        { "layer": "sky", "color": "#FFB070", "alpha": 0.3, "top": 420, "bottom": 580 },
+        { "layer": "far_ridge", "color": "#E8A890", "alpha": 0.14 },
+        { "layer": "far_veld", "color": "#3A3460", "alpha": 0.2, "top": 470 },
+        { "layer": "mid", "color": "#2E2A58", "alpha": 0.1, "top": 480 }
+      ],
+      "secretGlow": true
+    },
     "spookjag": {
       "$comment": "D-048 Halloween's Spookjag: a dark, cool dusk — a deep blue-purple sky, a dim cool ground, a faint violet afterglow on the horizon (no orange), so the moon, the lanterns' glow and the bats' silhouettes read. Birds stay untinted. The soft vignette is the special's look (feesdae.looks.halloween.vignette). No flashes.",
       "tint": {
@@ -932,6 +952,7 @@
     "bagStreak": 3,
     "missStreak": 4,
     "canChain": 3,
+    "countdownShotAward": 60,
     "idleSeconds": 8,
     "lastSeconds": 10,
     "lastSecondsLateSeconds": 0.5,
@@ -1168,6 +1189,17 @@
         "priority": 42,
         "cooldownMs": 30000,
         "lines": []
+      },
+      "feesdagCountdown": {
+        "$comment": "D-065 (New Year): the countdown's line, said as the ten-second call (it replaces lastSeconds' line on that day); countdownShot is a bag worth countdownShotAward or more, a two-in-one or a whole flock in the countdown (it outranks those lines).",
+        "priority": 55,
+        "cooldownMs": 0,
+        "lines": []
+      },
+      "countdownShot": {
+        "priority": 85,
+        "cooldownMs": 4000,
+        "lines": []
       }
     }
   },
@@ -1275,6 +1307,50 @@
           "inner": 0.55
         },
         "owlScale": 2.2
+      },
+      "newyear": {
+        "$comment": "D-065 New Year countdown: hatShare of the guineafowl wear small striped party hats (the witch and Santa hats' anchors and sizes); the sky deepens to blue hour and the stars come out over the hunt (sim time); small fireworks low over the far horizon — at most maxPerSecond bursts a second (the flash rule's 3), more in the countdown, fewer on the low tier, only a twinkle with reduce flashes; the HUD's countdown size.",
+        "hatShare": 0.3,
+        "hat": { "widthPerHeadR": 2.6, "tilt": 0.2 },
+        "blueHour": {
+          "color": "#1C2860",
+          "alpha": 0.5,
+          "bottom": 560,
+          "from": 0.1,
+          "to": 0.95,
+          "ground": {
+            "color": "#4A5AA8",
+            "layers": {
+              "far_ridge": 0.6,
+              "ver_veld": 0.55,
+              "far_veld": 0.5,
+              "mid": 0.4,
+              "near": 0.3,
+              "foreground": 0.35
+            }
+          }
+        },
+        "stars": { "count": 34, "y": [40, 360], "alpha": 0.85, "from": 0.25, "to": 0.85, "twinkleSeconds": 2.6 },
+        "fireworks": {
+          "y": [320, 450],
+          "maxPerSecond": 3,
+          "perSecond": 0.7,
+          "countdownPerSecond": 2.4,
+          "lowTierScale": 0.5,
+          "pool": 4,
+          "sparks": 16,
+          "radius": [52, 84],
+          "seconds": 1.5,
+          "rise": 80,
+          "alpha": 0.95,
+          "twinkleAlpha": 0.35,
+          "colours": ["#FFC832", "#FF3A2E", "#3CE05A", "#FFFFFF"],
+          "trail": 40,
+          "core": { "px": 30, "alpha": 0.8, "until": 0.16 },
+          "glitterFrom": 0.5,
+          "whiteEvery": 4
+        },
+        "countdown": { "fontPx": 150, "pulse": 0.18, "pulseSeconds": 0.25 }
       },
       "christmas": {
         "$comment": "D-064 Christmas in the sun: hatShare of the guineafowl wear tiny Santa hats (Halloween's witch-hat anchors and sizes); tinsel garlands and baubles hang on every listed tree the day's map has (the camelthorns, else the main tree; a prop, or a tree painted in a biome's layer art at u/y), at [dx, dy] px from it; the windpomp keeps one small garland; the glint walks the baubles on sim time (a soft swell, never a flash; off with reduce flashes); heat = the horizon shimmer's strength (off on the low tier and with reduced motion).",

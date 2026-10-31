@@ -4,11 +4,14 @@
 // specialVoiceGroup(lang, id) (src/game/audio/voiceLines.ts).
 import { CHRISTMAS_GROUP } from './christmasAssets';
 import { FEESDAE_GROUP } from './feesdaeAssets';
+import { NEWYEAR_GROUP } from './newyearKeys';
 
 export function specialAssetGroup(special: string): string {
   return special === 'halloween'
     ? FEESDAE_GROUP
     : special === 'christmas'
       ? CHRISTMAS_GROUP
-      : `${FEESDAE_GROUP}-${special}`;
+      : special === 'newyear'
+        ? NEWYEAR_GROUP
+        : `${FEESDAE_GROUP}-${special}`;
 }

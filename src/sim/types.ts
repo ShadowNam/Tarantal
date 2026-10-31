@@ -659,6 +659,9 @@ export interface FeesdagView {
   /** D-064 (Christmas): presents still shut, of the day's total (absent on Halloween). */
   readonly presentsClosed?: number;
   readonly presentsTotal?: number;
+  /** D-065 (New Year): the countdown's first tick (moves with bonus time), whether it runs and
+   *  its multiplier (absent on other specials). */
+  readonly countdown?: { readonly atTick: number; readonly active: boolean; readonly mult: number };
 }
 
 /** A paper target or (24 Oct update) a steel plate: a circle on its plane (plane px; r already
@@ -744,6 +747,8 @@ export interface HuntResult {
     /** D-064 (Christmas): presents opened, of the day's total (absent on Halloween). */
     readonly presents?: number;
     readonly presentsTotal?: number;
+    /** D-065 (New Year): points awarded in the countdown (absent on other specials). */
+    readonly countdownPoints?: number;
   };
   readonly biome: string;
   /** v1.2: the map played (null = the plain biome: Season Run, FTUE, old replays). */

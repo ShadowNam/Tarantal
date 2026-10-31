@@ -2,7 +2,7 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|christmas|blikkies|makalani|treelife|colony|namiblife|tells|baboons
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|christmas|newyear|blikkies|makalani|treelife|colony|namiblife|tells|baboons
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
 //                         range = the Skietbaan's steel plate (24 Oct update),
@@ -94,6 +94,8 @@ import {
 } from '../../src/game/feesdae/feesdaeAssets';
 import { CHRISTMAS_SHEET, XMAS_MASTER } from '../../src/game/feesdae/christmasAssets';
 import { renderChristmasSheet } from './christmas';
+import { NEWYEAR_SHEET, NY_MASTER } from '../../src/game/feesdae/newyearAssets';
+import { renderNewYearSheet } from './newyear';
 import { renderHalloweenSheet } from './halloween';
 import { CAN_MASTER, renderCanSheet } from './blikkies';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
@@ -656,6 +658,29 @@ if (wants('christmas')) {
       }),
     );
     console.log(`sprites/${CHRISTMAS_SHEET}`);
+  }
+}
+if (wants('newyear')) {
+  // D-065: the New Year countdown's sheet (party hats, Oupa in a party hat with a blower, the
+  // fireworks' spark, a star, streamers and a burst), drawn at 2× (layout:
+  // src/game/feesdae/newyearAssets.ts). Its group ("feesdae-newyear", lazy) comes from the catalog.
+  const png = join(src, 'sprites', `${NEWYEAR_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${NEWYEAR_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderNewYearSheet()));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({
+        origin: 'interim',
+        encode: 'png8',
+        master: NY_MASTER,
+        // D-065: Standard in HD from the start (no HD twin; the Okavango's HD headroom is ~2 MB).
+        hd: false,
+        originX: 0,
+        originY: 0,
+      }),
+    );
+    console.log(`sprites/${NEWYEAR_SHEET}`);
   }
 }
 if (wants('blikkies')) {

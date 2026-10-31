@@ -17,6 +17,7 @@ import { hazeBelowProps } from './hazeOrder';
 import { FaunaView, type FaunaOptions } from './FaunaView';
 import type { FaunaProbe } from '../GameContext';
 import { lightTint } from './lightTint';
+import { LayerDimmer } from './layerDimmer';
 import {
   CLOUD_DECKS,
   CLOUD_SPRITE_SCALE,
@@ -143,6 +144,10 @@ export class ParallaxView {
   private hdEpoch: number;
   /** D-054: the far animals, one view per layer that has herds. */
   private readonly fauna: FaunaView[] = [];
+  /** D-065: each herd view's layer id (dimLayers tints it with its layer). */
+  private readonly faunaLayer = new Map<FaunaView, string>();
+  /** D-065: the dim on top of the map light (made on first use). */
+  private dimmer: LayerDimmer | null = null;
   /** D-051: every prop with an HD texture (test hook: where it is, whether it shows HD). */
   private readonly hdArt: { readonly propId: string; readonly art: StaticArt }[] = [];
 
@@ -270,9 +275,16 @@ export class ParallaxView {
       if (fauna !== null && herds.length > 0) {
         const holder = scene.add.container(0, 0);
         root.add(holder);
-        this.fauna.push(
-          new FaunaView(scene, manifest, herds, coreWidth(layer.scrollFactor), holder, fauna),
+        const fv = new FaunaView(
+          scene,
+          manifest,
+          herds,
+          coreWidth(layer.scrollFactor),
+          holder,
+          fauna,
         );
+        this.fauna.push(fv);
+        this.faunaLayer.set(fv, layer.id);
       }
       const fruit = scene.add.container(0, 0);
       root.add(fruit);
@@ -755,6 +767,29 @@ export class ParallaxView {
         }
       }
     });
+  }
+
+  /**
+   * D-065: an extra tint on top of the map light, per layer id (New Year's dusk deepening to blue
+   * hour): every layer's art and props, and its far animals, take light × extra. Only layers whose
+   * tint changes are marked; stepDim applies one of them a frame (LayerDimmer); the HD refresh
+   * keeps it (it copies the tint the art shows).
+   */
+  dimLayers(extra: ReadonlyMap<string, number>): void {
+    this.dimmer ??= new LayerDimmer(
+      this.layers.map((l, i) => ({
+        id: l.id,
+        base: this.tints.get(l.id) ?? 0xffffff,
+        images: () => (this.statics[i] ?? []).map((a) => a.img),
+        fauna: this.fauna.filter((f) => this.faunaLayer.get(f) === l.id),
+      })),
+    );
+    this.dimmer.set(extra);
+  }
+
+  /** D-065: applies one changed layer of the pending dim (round robin; nothing when none). */
+  stepDim(): void {
+    this.dimmer?.step();
   }
 
   /** v1.7c (D-047): the map light's tint on a layer (0xFFFFFF without one). */

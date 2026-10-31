@@ -613,6 +613,78 @@
       "lufs": -16,
       "peakDb": -1.6
     },
+    "voice/af/bark.ny_bigshot": {
+      "group": "feesdae-voice-newyear-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-newyear-af/audio/voice/af-bark_ny_bigshot.e924c38bcd57.ogg",
+        "bytes": 16438,
+        "hash": "e924c38bcd57"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-newyear-af/audio/voice/af-bark_ny_bigshot.59e75c54bdf4.mp3",
+        "bytes": 18710,
+        "hash": "59e75c54bdf4"
+      },
+      "loop": false,
+      "lufs": -16.6,
+      "peakDb": -1
+    },
+    "voice/af/bark.ny_countdown": {
+      "group": "feesdae-voice-newyear-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-newyear-af/audio/voice/af-bark_ny_countdown.6bee43517f22.ogg",
+        "bytes": 32799,
+        "hash": "6bee43517f22"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-newyear-af/audio/voice/af-bark_ny_countdown.84516bf9a711.mp3",
+        "bytes": 42418,
+        "hash": "84516bf9a711"
+      },
+      "loop": false,
+      "lufs": -17.8,
+      "peakDb": -1
+    },
+    "voice/af/bark.ny_end": {
+      "group": "feesdae-voice-newyear-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-newyear-af/audio/voice/af-bark_ny_end.bc3a24868b7a.ogg",
+        "bytes": 25519,
+        "hash": "bc3a24868b7a"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-newyear-af/audio/voice/af-bark_ny_end.675af5f92b1e.mp3",
+        "bytes": 31431,
+        "hash": "675af5f92b1e"
+      },
+      "loop": false,
+      "lufs": -17.8,
+      "peakDb": -1
+    },
+    "voice/af/bark.ny_start": {
+      "group": "feesdae-voice-newyear-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-newyear-af/audio/voice/af-bark_ny_start.3be0c60392aa.ogg",
+        "bytes": 26699,
+        "hash": "3be0c60392aa"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-newyear-af/audio/voice/af-bark_ny_start.ecf455a0fb38.mp3",
+        "bytes": 33044,
+        "hash": "ecf455a0fb38"
+      },
+      "loop": false,
+      "lufs": -17.2,
+      "peakDb": -1
+    },
     "voice/af/bark.on_fire": {
       "group": "voice-af",
       "origin": "interim",
@@ -2017,6 +2089,78 @@
       "lufs": -16,
       "peakDb": -8
     },
+    "voice/de/bark.ny_bigshot": {
+      "group": "feesdae-voice-newyear-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-newyear-de/audio/voice/de-bark_ny_bigshot.55d1c1e286e8.ogg",
+        "bytes": 20770,
+        "hash": "55d1c1e286e8"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-newyear-de/audio/voice/de-bark_ny_bigshot.fed5ef59bf31.mp3",
+        "bytes": 22052,
+        "hash": "fed5ef59bf31"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.7
+    },
+    "voice/de/bark.ny_countdown": {
+      "group": "feesdae-voice-newyear-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-newyear-de/audio/voice/de-bark_ny_countdown.e5509e8fb5af.ogg",
+        "bytes": 33926,
+        "hash": "e5509e8fb5af"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-newyear-de/audio/voice/de-bark_ny_countdown.ba1881c4eecc.mp3",
+        "bytes": 38224,
+        "hash": "ba1881c4eecc"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.1
+    },
+    "voice/de/bark.ny_end": {
+      "group": "feesdae-voice-newyear-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-newyear-de/audio/voice/de-bark_ny_end.3358e10212e9.ogg",
+        "bytes": 27867,
+        "hash": "3358e10212e9"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-newyear-de/audio/voice/de-bark_ny_end.6929c9019219.mp3",
+        "bytes": 30814,
+        "hash": "6929c9019219"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -5.3
+    },
+    "voice/de/bark.ny_start": {
+      "group": "feesdae-voice-newyear-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-newyear-de/audio/voice/de-bark_ny_start.eef5bb2e80cf.ogg",
+        "bytes": 30121,
+        "hash": "eef5bb2e80cf"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-newyear-de/audio/voice/de-bark_ny_start.4d0fdda3879d.mp3",
+        "bytes": 33726,
+        "hash": "4d0fdda3879d"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -4.7
+    },
     "voice/de/bark.on_fire": {
       "group": "voice-de",
       "origin": "interim",
@@ -3419,6 +3563,78 @@
       },
       "loop": false,
       "lufs": -17.2,
+      "peakDb": -1
+    },
+    "voice/en/bark.ny_bigshot": {
+      "group": "feesdae-voice-newyear-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_bigshot.076f65cf71a8.ogg",
+        "bytes": 15641,
+        "hash": "076f65cf71a8"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_bigshot.bd3b622eb504.mp3",
+        "bytes": 18274,
+        "hash": "bd3b622eb504"
+      },
+      "loop": false,
+      "lufs": -16.5,
+      "peakDb": -1
+    },
+    "voice/en/bark.ny_countdown": {
+      "group": "feesdae-voice-newyear-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_countdown.50918378b1ac.ogg",
+        "bytes": 32715,
+        "hash": "50918378b1ac"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_countdown.a816df5ee1ed.mp3",
+        "bytes": 41137,
+        "hash": "a816df5ee1ed"
+      },
+      "loop": false,
+      "lufs": -18.2,
+      "peakDb": -1
+    },
+    "voice/en/bark.ny_end": {
+      "group": "feesdae-voice-newyear-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_end.de598fd542c0.ogg",
+        "bytes": 22746,
+        "hash": "de598fd542c0"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_end.45753de53198.mp3",
+        "bytes": 28631,
+        "hash": "45753de53198"
+      },
+      "loop": false,
+      "lufs": -18.6,
+      "peakDb": -1
+    },
+    "voice/en/bark.ny_start": {
+      "group": "feesdae-voice-newyear-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_start.f20faaddeb8e.ogg",
+        "bytes": 22526,
+        "hash": "f20faaddeb8e"
+      },
+      "mp3": {
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_start.fc791608ee0e.mp3",
+        "bytes": 26853,
+        "hash": "fc791608ee0e"
+      },
+      "loop": false,
+      "lufs": -17.7,
       "peakDb": -1
     },
     "voice/en/bark.on_fire": {

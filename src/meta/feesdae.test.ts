@@ -2,11 +2,19 @@
 // a special day, the share card's frame and title, and challenge links that carry the special.
 import { describe, expect, it } from 'vitest';
 import { loadContent, loadContentHash, loadDailyMeta } from '../../tools/testContent';
-import { translator } from '../i18n/i18n';
+import { isI18nKey, translator } from '../i18n/i18n';
 import { challengeFor, challengeHunt, decodeChallenge, encodeChallenge } from './challenge';
 import { dailyMode, dailySetup } from './daily';
 import { dayNumber, daysFromCivil } from './dailyCalendar';
-import { feesdagById, feesdagForDay, todaysFeesdag, yearOfDay } from './feesdae';
+import {
+  feesdagById,
+  feesdagForDay,
+  shareYear,
+  specialDays,
+  specialTallyLine,
+  todaysFeesdag,
+  yearOfDay,
+} from './feesdae';
 import { buildShareText, joinShare, type ShareInput } from './share';
 
 const content = loadContent();
@@ -37,8 +45,32 @@ describe('Feesdae calendar (UTC, D-048)', () => {
     expect(feesdagForDay(F, utc('2026-10-31T12:00:00Z'))?.id).toBe('halloween');
   });
 
+  it('31 Dec and 1 Jan are New Year (D-065): 30 Dec 23:59 no, 31 Dec 00:00 and 1 Jan 23:59 yes, 2 Jan no', () => {
+    expect(feesdagForDay(F, utc('2026-12-30T23:59:59Z'))).toBeNull();
+    expect(feesdagForDay(F, utc('2026-12-31T00:00:00Z'))?.id).toBe('newyear');
+    expect(feesdagForDay(F, utc('2026-12-31T23:59:59Z'))?.id).toBe('newyear');
+    expect(feesdagForDay(F, utc('2027-01-01T00:00:00Z'))?.id).toBe('newyear');
+    expect(feesdagForDay(F, utc('2027-01-01T23:59:59Z'))?.id).toBe('newyear');
+    expect(feesdagForDay(F, utc('2027-01-02T00:00:00Z'))).toBeNull();
+    // Halloween and Christmas keep their own days.
+    expect(feesdagForDay(F, utc('2026-10-31T12:00:00Z'))?.id).toBe('halloween');
+    expect(feesdagForDay(F, utc('2026-12-25T12:00:00Z'))?.id).toBe('christmas');
+    expect(feesdagForDay(F, utc('2026-12-26T12:00:00Z'))).toBeNull();
+  });
+
+  it("the share card names the year that starts on New Year, the day's own year otherwise", () => {
+    const ny = feesdagById(F, 'newyear');
+    expect(shareYear(ny, utc('2026-12-31T12:00:00Z'))).toBe(2027);
+    expect(shareYear(ny, utc('2027-01-01T12:00:00Z'))).toBe(2027);
+    expect(shareYear(feesdagById(F, 'halloween'), utc('2026-10-31T12:00:00Z'))).toBe(2026);
+    expect(shareYear(feesdagById(F, 'christmas'), utc('2026-12-25T12:00:00Z'))).toBe(2026);
+    expect(shareYear(null, utc('2026-12-31T12:00:00Z'))).toBe(2026);
+    expect(todaysFeesdag(F, daysFromCivil(2026, 10, 26), 'newyear')?.id).toBe('newyear');
+    expect(todaysFeesdag(F, daysFromCivil(2026, 12, 31), 'none')).toBeNull();
+  });
+
   it('no two specials share a date (content cross-check)', () => {
-    const dates = F.specials.map((f) => `${f.date.month}-${f.date.day}`);
+    const dates = F.specials.flatMap((f) => specialDays(f).map((d) => `${d.month}-${d.day}`));
     expect(new Set(dates).size).toBe(dates.length);
   });
 
@@ -140,5 +172,54 @@ describe('Christmas share card (D-064)', () => {
       text.startsWith('✨🎁 🐦 Tarantal Madness · Christmas in the sun 2026 · Daily #66'),
     ).toBe(true);
     expect(text).toContain('🎅☀️');
+  });
+});
+
+describe('New Year share card (D-065)', () => {
+  it('frames the card with streamers, a party hat and a firework, and names "New Year 2027"', () => {
+    const input: ShareInput = {
+      dailyNumber: 72,
+      biome: 'okavango-spring',
+      layout: 'thu',
+      score: 3664,
+      rank: 'bosveldjagter',
+      grid: '🟩🟨🟩🟩⬛',
+      wholeFlocks: 0,
+      url: '',
+      feesdag: { title: 'New Year 2027', frame: 'newyear' },
+    };
+    const text = joinShare(buildShareText(input, translator('en')));
+    expect(text.startsWith('🎊🥳 🐦 Tarantal Madness · New Year 2027 · Daily #72')).toBe(true);
+    expect(text).toContain('🎆🎊');
+    // The title the tally builds: the special's name and the year that starts.
+    const ny = feesdagById(F, 'newyear');
+    const day = daysFromCivil(2026, 12, 31);
+    const key = ny?.nameKey ?? '';
+    if (!isI18nKey(key)) throw new Error(`New Year's name key ${key} is not a string key`);
+    expect(`${translator('en').text(key)} ${shareYear(ny, day)}`).toBe('New Year 2027');
+    expect(`${translator('af').text(key)} ${shareYear(ny, day)}`).toBe('Nuwejaar 2027');
+  });
+});
+
+describe('the tally line of each special (D-048, D-064, D-065)', () => {
+  const enT = translator('en');
+  const afT = translator('af');
+  const en = (k: Parameters<typeof enT.text>[0]): string => enT.text(k);
+  const af = (k: Parameters<typeof afT.text>[0]): string => afT.text(k);
+  const base = { id: 'x', bats: 2, owls: 1, lanterns: 3, lanternsTotal: 4 };
+  it('Halloween counts bats, owls and lanterns', () => {
+    expect(specialTallyLine({ ...base, id: 'halloween' }, en)).toBe(
+      'Bats 2 · Owls 1 · Lanterns 3/4',
+    );
+  });
+  it('Christmas counts the presents found', () => {
+    const fd = { ...base, id: 'christmas', bats: 0, owls: 0, lanterns: 0, lanternsTotal: 0 };
+    expect(specialTallyLine({ ...fd, presents: 2, presentsTotal: 3 }, en)).toBe('Presents 2/3');
+  });
+  it('New Year shows the points scored in the countdown, never the Spookjag line', () => {
+    const fd = { id: 'newyear', bats: 0, owls: 0, lanterns: 0, lanternsTotal: 0 };
+    expect(specialTallyLine({ ...fd, countdownPoints: 840 }, en)).toBe('Countdown: 840 points');
+    expect(specialTallyLine({ ...fd, countdownPoints: 0 }, af)).toBe('Aftelling: 0 punte');
+    expect(specialTallyLine({ ...fd, countdownPoints: 12 }, en)).not.toMatch(/Bats|Lanterns/);
   });
 });

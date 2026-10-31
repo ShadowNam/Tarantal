@@ -8,6 +8,7 @@
 // sighting ever). A separate scene so camera shake never moves it. Fed each frame by HuntScene
 // with the latest snapshot and that frame's events.
 import { xmasKeyIn } from '../feesdae/christmasKeys';
+import { NY_SOUNDS, nyKeyIn, nySheetIn } from '../feesdae/newyearKeys';
 import { redDotIds, redDotUp } from '../view/redDot';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
@@ -124,6 +125,18 @@ export class HudScene extends Phaser.Scene {
   private drawTotal = 1;
   private reload!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
+  /** D-065 (New Year): the big countdown "10 … 1" and the "×2" tag beside the score. */
+  private countdown!: Phaser.GameObjects.Text;
+  private countdownTag!: Phaser.GameObjects.Text;
+  private countdownN = 0;
+  private countdownScale = -1;
+  private countdownTop = -1;
+  /** D-065: the y the notice lines start below while the countdown shows (null otherwise). */
+  private noticesBelow: number | null = null;
+  /** D-065: the banner's line (its centre y) while the countdown shows, else null. */
+  private bannerLineY: number | null = null;
+  /** The last second the tick sounded for (a relayout redraws without ticking again). */
+  private countdownTicked = 0;
   private pops: Pop[] = [];
   /** The sim tick the HUD last drew (pops are born and age on it). */
   private popTick = 0;
@@ -270,6 +283,11 @@ export class HudScene extends Phaser.Scene {
         : null;
     this.reload = text(56, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.banner = text(84, '#FFD25A').setOrigin(0.5).setVisible(false);
+    // D-065: New Year's countdown (its size: feel.json feesdae.looks.newyear; text size scales it).
+    this.countdown = text(this.ctx.feel.feesdae.looks.newyear.countdown.fontPx, '#FFE48A')
+      .setOrigin(0.5, 0)
+      .setVisible(false);
+    this.countdownTag = text(44, '#FFD25A').setOrigin(1, 0.5).setVisible(false);
     this.gadgetPanel = new BakedDrawing(this, 'hud.gadget');
     this.zoomPanel = new BakedDrawing(this, 'hud.zoom');
     this.zoomText = text(40, '#F3EAD3', false).setOrigin(0.5).setVisible(false);
@@ -628,6 +646,8 @@ export class HudScene extends Phaser.Scene {
       this.ctx.prefs.leftHanded,
     );
     this.layoutNow = l;
+    // D-065: the countdown re-places itself on the next frame.
+    this.countdownN = -1;
     this.placeStamp();
     this.season?.relayout(l, width, height);
     const hook = this.ctx.hook;
@@ -713,6 +733,99 @@ export class HudScene extends Phaser.Scene {
    * row and the belt (mirrored when left-handed): never over the belt, the reload hint, the
    * gadget or the items, on desktop and on phones.
    */
+  /**
+   * D-065 (New Year): in the countdown, a big "10 … 1" at the top centre — below the pause button
+   * and the Season Run's charm row, so it covers no HUD element — with a short pulse on each new
+   * second (sim time), the "×2" tag left of the score, and a tick on the last 3 s. The banner
+   * moves below it while it shows. Hidden on every other hunt and at 0.
+   */
+  private drawCountdown(s: SimState, l: HudLayout): void {
+    const cd = s.feesdag?.countdown;
+    const tps = TICKS_PER_SECOND;
+    const n = cd?.active === true && s.ticksLeft > 0 ? Math.ceil(s.ticksLeft / tps) : 0;
+    const hook = this.ctx.hook;
+    const look = this.ctx.feel.feesdae.looks.newyear.countdown;
+    // Under the charm row, and under a pickup card while one is up (it shares the top centre).
+    const card = this.pickupCard?.shown ?? null;
+    const top = Math.max(
+      l.charms.y + l.charms.h + 12,
+      card === null ? 0 : card.rect.y + card.rect.h + 12,
+    );
+    const changed = n !== this.countdownN || top !== this.countdownTop;
+    if (changed) {
+      const on = n > 0;
+      if (n !== this.countdownN) {
+        this.countdown.setVisible(on);
+        this.countdownTag.setVisible(on);
+        if (on) {
+          this.countdown.setText(fill(t('feesdag.countdown_n'), { n }));
+          this.countdownTag.setText(fill(t('feesdag.countdown_mul'), { mult: cd?.mult ?? 2 }));
+          if (n <= 3 && n !== this.countdownTicked) {
+            this.countdownTicked = n;
+            this.ctx.audio.playExtra(NY_SOUNDS.tick, 0, () => 0);
+          }
+        } else this.countdownTicked = 0;
+      }
+      this.countdownN = n;
+      this.countdownTop = top;
+      this.countdown.setPosition(l.safe.x + l.safe.w / 2, top);
+      this.countdownTag.setPosition(l.score.x - 18, l.score.y + l.score.h / 2);
+      // The notices (banner, call-out) go below it while it shows: never on top of it.
+      this.noticesBelow = on ? top + this.countdown.height * (1 + look.pulse) + 16 : null;
+      this.placeNotices(l);
+      if (hook) {
+        if (on) {
+          // Its rect at the pulse's largest, so the checks hold through every frame.
+          this.countdown.setScale(1 + look.pulse);
+          this.countdownScale = -1;
+          const b = this.countdown.getBounds();
+          const g = this.countdownTag.getBounds();
+          hook.rects['countdown'] = { x: b.x, y: b.y, w: b.width, h: b.height };
+          hook.rects['countdownTag'] = { x: g.x, y: g.y, w: g.width, h: g.height };
+        } else {
+          delete hook.rects['countdown'];
+          delete hook.rects['countdownTag'];
+        }
+        hook.countdown = on ? { n, tag: this.countdownTag.text } : null;
+      }
+    }
+    if (n === 0) return;
+    // The pulse: a little larger as each second starts, back by pulseSeconds (sim time). The
+    // text grows from its top centre, so it never moves up into the rects above it.
+    const into = tps - (s.ticksLeft % tps === 0 ? tps : s.ticksLeft % tps);
+    const k = Math.max(0, 1 - into / (look.pulseSeconds * tps));
+    const scale = Math.round((1 + look.pulse * k) * 100) / 100;
+    if (scale !== this.countdownScale) {
+      this.countdownScale = scale;
+      this.countdown.setScale(scale);
+    }
+  }
+
+  /**
+   * D-065: where the notice lines go — the banner (bonuses, secrets) and the call-out (a
+   * protected creature's first sighting: "Go-away bird — don't shoot!"). Normally at their fixed
+   * heights; in New Year's countdown below it (the call-out first, the line the player must act
+   * on, in the open sky above the horizon; the banner on the line under it). The hook gets each line's slot (full safe width, one line high) for the overlap checks.
+   */
+  private placeNotices(l: HudLayout): void {
+    const below = this.noticesBelow;
+    const bannerH = Math.max(this.banner.height, 84);
+    const calloutH = Math.max(this.callout.height, 48);
+    // In the countdown the call-out (the line the player must act on: "don't shoot!") takes the
+    // first line under it, in the open sky above the horizon; the banner goes on the line below.
+    const calloutY = below === null ? l.safe.y + 290 : below + calloutH / 2;
+    const bannerY = below === null ? l.safe.y + 180 : calloutY + calloutH / 2 + 12 + bannerH / 2;
+    this.bannerLineY = below === null ? null : bannerY;
+    if (this.banner.visible && below !== null && this.banner.y < bannerY) this.banner.setY(bannerY);
+    if (this.callout.y !== calloutY) this.callout.setY(calloutY);
+    const hook = this.ctx.hook;
+    if (hook)
+      hook.notices = {
+        banner: { x: l.safe.x, y: bannerY - bannerH / 2, w: l.safe.w, h: bannerH },
+        callout: { x: l.safe.x, y: calloutY - calloutH / 2, w: l.safe.w, h: calloutH },
+      };
+  }
+
   private placeStamp(): void {
     const l = this.layoutNow;
     if (this.buildStamp === null || l === null) return;
@@ -753,6 +866,19 @@ export class HudScene extends Phaser.Scene {
     const firstPickup = this.rangeOn ? null : this.pickups(s, events, l);
     this.updateBarks(s, events, now, l, firstPickup);
     const banner: string[] = [];
+    // D-065 (e2e): the last score awards with their pipeline steps (the countdown's ×2).
+    const hook = this.ctx.hook;
+    if (hook)
+      for (const e of events)
+        if (e.type === 'scoreAwarded') {
+          hook.awards.push({
+            tick: e.tick,
+            award: e.award,
+            mult: e.mult,
+            kinds: e.breakdown.map((b) => b.kind),
+          });
+          if (hook.awards.length > 20) hook.awards.shift();
+        }
     for (const e of events) {
       if (e.type === 'secretTriggered' && e.propId === FAMILIEFOTO_SECRET) {
         // v1.7 (D-044): the Familiefoto has its own banner and line (the familiefoto event).
@@ -802,6 +928,12 @@ export class HudScene extends Phaser.Scene {
         // sheet or its stand-in already).
         if (e.feesdag === 'christmas') {
           const key = xmasKeyIn(this.textures);
+          if (key !== null) this.bubble?.setPortrait({ key, frame: 'oupa_head' });
+        }
+        // D-065: on New Year his face in his party hat (the delivered sheet only: the stand-in
+        // has just the fireworks' spark).
+        if (e.feesdag === 'newyear' && nySheetIn(this.textures)) {
+          const key = nyKeyIn(this.textures);
           if (key !== null) this.bubble?.setPortrait({ key, frame: 'oupa_head' });
         }
       } else if (e.type === 'lanternsOut') {
@@ -967,6 +1099,7 @@ export class HudScene extends Phaser.Scene {
       this.timer.setColor(timerColor);
     }
     this.score.setText(formatScore(s.score));
+    this.drawCountdown(s, l);
 
     // Frenzy meter: progress toward the next tier; punch-scale on tier up.
     const tiers = this.ctx.content.scoring.frenzyTiers;
@@ -1617,7 +1750,14 @@ export class HudScene extends Phaser.Scene {
           ? lay.safe.y + 180
           : harvestBarsRects(lay).repair.y + harvestBarsRects(lay).repair.h + 56;
     if (lay !== null)
-      this.banner.setY(card === null ? top : Math.max(top, card.rect.y + card.rect.h + 56));
+      this.banner.setY(
+        Math.max(
+          card === null ? top : Math.max(top, card.rect.y + card.rect.h + 56),
+          // D-065: below New Year's countdown while it shows.
+          // D-065: under the call-out's line, below New Year's countdown, while it shows.
+          this.bannerLineY ?? 0,
+        ),
+      );
     // Long banners (crate + hint, bonus time + bark) shrink to fit between the HUD corners.
     const l = this.layoutNow;
     const room =
