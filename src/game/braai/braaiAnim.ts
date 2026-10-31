@@ -60,10 +60,24 @@ export interface AnimOptions {
 }
 
 /** What the braai shows at `ms` on its clock. Pure: the same ms, the same picture. */
-export function animState(ms: number, t: Tuning, o: AnimOptions): AnimState {
-  const flame = Math.floor(ms / t.fire.flameFrameMs) % 4;
-  const spark = o.reducedMotion ? 0 : Math.floor(ms / t.fire.sparkFrameMs) % 3;
-  const glow = o.reduceFlashes
+/** A reusable state the view writes into each frame (no allocation per frame). */
+export type MutableAnimState = { -readonly [K in keyof AnimState]: AnimState[K] };
+
+export function newAnimState(): MutableAnimState {
+  return { flame: 0, spark: 0, glow: 5, pose: 'sit_idle', flip: false, hop: false };
+}
+
+/** What the braai shows at `ms` on its clock, written into `out`. Pure: the same ms, the same
+ *  picture. */
+export function animStateInto(
+  ms: number,
+  t: Tuning,
+  o: AnimOptions,
+  out: MutableAnimState,
+): MutableAnimState {
+  out.flame = Math.floor(ms / t.fire.flameFrameMs) % 4;
+  out.spark = o.reducedMotion ? 0 : Math.floor(ms / t.fire.sparkFrameMs) % 3;
+  out.glow = o.reduceFlashes
     ? 5
     : Math.round(5 + 5 * Math.sin((2 * Math.PI * ms) / t.fire.glowPulseMs));
   if (
@@ -73,21 +87,23 @@ export function animState(ms: number, t: Tuning, o: AnimOptions): AnimState {
     ms < o.danceFrom + t.danceMs
   ) {
     const k = Math.floor((ms - o.danceFrom) / t.danceFrameMs) % 4;
-    return {
-      flame,
-      spark,
-      glow,
-      pose: k % 2 === 0 ? 'dance_a' : 'dance_b',
-      flip: k >= 2,
-      hop: k % 2 === 0,
-    };
+    out.pose = k % 2 === 0 ? 'dance_a' : 'dance_b';
+    out.flip = k >= 2;
+    out.hop = k % 2 === 0;
+    return out;
   }
   const cycle = t.idle.idleEveryMs + t.idle.poseMs;
   const c = Math.floor(ms / cycle);
   const within = ms - c * cycle;
-  const pose: Pose =
-    within < t.idle.idleEveryMs ? 'sit_idle' : c % 2 === 0 ? 'sit_sip' : 'sit_poke';
-  return { flame, spark, glow, pose, flip: false, hop: false };
+  out.pose = within < t.idle.idleEveryMs ? 'sit_idle' : c % 2 === 0 ? 'sit_sip' : 'sit_poke';
+  out.flip = false;
+  out.hop = false;
+  return out;
+}
+
+/** animStateInto into a new object (the tests). */
+export function animState(ms: number, t: Tuning, o: AnimOptions): AnimState {
+  return animStateInto(ms, t, o, newAnimState());
 }
 
 /** What applyAnim sets (a Phaser image, or a stub in the tests). */

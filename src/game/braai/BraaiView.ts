@@ -41,7 +41,9 @@ import {
 } from './braaiSheet';
 import { braaiLayout, type BraaiLayout, type BraaiLayoutIn } from './braaiLayout';
 import {
-  animState,
+  animStateInto,
+  newAnimState,
+  type AnimTargets,
   applyAnim,
   captionText,
   GLOW_BASE,
@@ -235,6 +237,14 @@ export class BraaiView {
   private readonly pokerImg: Phaser.GameObjects.Image | null = null;
   private readonly hatImg: Phaser.GameObjects.Image | null = null;
   private last: AnimState | null = null;
+  private readonly stateA = newAnimState();
+  private readonly stateB = newAnimState();
+  private readonly opts: {
+    reducedMotion: boolean;
+    reduceFlashes: boolean;
+    danceFrom: number | null;
+  };
+  private animTargets: AnimTargets | null = null;
   private readonly lines: readonly StoryLine[];
   private storyFrom: number | null = null;
   private shown = 0;
@@ -244,6 +254,7 @@ export class BraaiView {
   private destroyed = false;
 
   constructor(private readonly s: BraaiSetup) {
+    this.opts = { reducedMotion: s.reducedMotion, reduceFlashes: s.reduceFlashes, danceFrom: null };
     const { scene } = s;
     const t0 = performance.now();
     this.layout = braaiLayout(s.layoutIn);
@@ -540,11 +551,14 @@ export class BraaiView {
       this.nextNightjar = ms + 14_000;
       this.s.audio.playExtra(BRAAI_SOUNDS.nightjar, 0.6, () => 0);
     }
-    const st = animState(ms, t, {
-      reducedMotion: this.s.reducedMotion,
-      reduceFlashes: this.s.reduceFlashes,
-      danceFrom: this.danceFrom,
-    });
+    // Two reused states (this frame's and the last), no allocation per frame (review 4).
+    this.opts.danceFrom = this.danceFrom;
+    const st = animStateInto(
+      ms,
+      t,
+      this.opts,
+      this.last === this.stateA ? this.stateB : this.stateA,
+    );
     calls += this.apply(st);
     this.hook.calls = calls;
     this.lastMs = performance.now() - t0;
@@ -552,8 +566,20 @@ export class BraaiView {
 
   /** Applies a state, setting only what changed; returns the Phaser calls made. */
   private apply(st: AnimState): number {
+    const n = applyAnim(this.last, st, this.targets());
+    this.hook.pose = st.pose;
+    this.hook.dancing = !st.pose.startsWith('sit_');
+    this.hook.flame = st.flame;
+    this.hook.spark = st.spark;
+    this.last = st;
+    return n;
+  }
+
+  /** What the animation sets: built once (after the images exist), then reused. */
+  private targets(): AnimTargets {
+    if (this.animTargets !== null) return this.animTargets;
     const L = this.layout;
-    const n = applyAnim(this.last, st, {
+    this.animTargets = {
       flame: this.flameImg,
       spark: this.sparkImg,
       glow: this.glowImg,
@@ -563,13 +589,8 @@ export class BraaiView {
       oupaY: L.oupa?.y ?? 0,
       scale: L.scale,
       glowPulse: this.s.tuning.fire.glowPulse,
-    });
-    this.hook.pose = st.pose;
-    this.hook.dancing = !st.pose.startsWith('sit_');
-    this.hook.flame = st.flame;
-    this.hook.spark = st.spark;
-    this.last = st;
-    return n;
+    };
+    return this.animTargets;
   }
 
   /** The texture usage the e2e memory case reads (after the sheet was added). */

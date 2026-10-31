@@ -6,7 +6,9 @@ import { describe, expect, it } from 'vitest';
 import { loadFeel } from '../../../tools/testContent';
 import {
   animState,
+  animStateInto,
   applyAnim,
+  newAnimState,
   captionScale,
   captionText,
   type AnimSprite,
@@ -63,6 +65,23 @@ describe('braai view (D-068)', () => {
   it('≤ 40 calls a frame at 60 fps and at 4× throttle, the dance included', () => {
     for (const dt of [16.7, 333, 1000 / 30])
       expect(run(dt, 60_000, 3000), `dt ${dt}`).toBeLessThanOrEqual(10);
+  });
+
+  it('writes each frame into a reused state (no allocation per frame, review 4)', () => {
+    const a = newAnimState();
+    const b = newAnimState();
+    const o = { reducedMotion: false, reduceFlashes: false, danceFrom: 500 };
+    let last: AnimState | null = null;
+    for (let ms = 0; ms < 5000; ms += 16.7) {
+      const into = last === a ? b : a;
+      const st = animStateInto(ms, tuning, o, into);
+      expect(st).toBe(into);
+      expect(st).toEqual(animState(ms, tuning, o));
+      calls = 0;
+      applyAnim(last, st, targets);
+      expect(calls).toBeLessThanOrEqual(10);
+      last = st;
+    }
   });
 
   it('a held clock makes no calls', () => {
