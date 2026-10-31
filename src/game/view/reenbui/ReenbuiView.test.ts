@@ -1,7 +1,9 @@
 // v1.10 (D-067, perf lessons 32–34): Reënbui's view with stub images that count every setter — a
 // proxy for perf.spec's "Reënbui view ms per frame" at 4× throttle (≈ 7 µs a Phaser call, so a
-// 0.3 ms budget is ≈ 40 calls a frame). At the swarm's peak, in the smoke's regime (~20 sim ticks
-// a frame) and at 60 fps; a frame whose tick has not moved does nothing; the lightning forks go
+// 0.3 ms budget is ≈ 40 calls a frame). Every frame of the event stays within it, in the smoke's
+// regime (~20 sim ticks a frame) and at 60 fps: the pools are built one a frame as the sheet
+// arrives and the dim step takes what the frame leaves; a frame whose tick has not moved does
+// nothing; the lightning forks go
 // through the shared flash limiter (≥ ½ s apart, dimmer with "reduce flashes", none with "reduce
 // motion"); the columns stand on their plane's ground band.
 import { describe, expect, it } from 'vitest';
@@ -17,6 +19,8 @@ const count = (name: string): void => {
   calls.set(name, (calls.get(name) ?? 0) + 1);
 };
 const total = (): number => [...calls.values()].reduce((a, b) => a + b, 0);
+/** Images and containers made (counted apart from the setters: a pool is built once). */
+let made = 0;
 
 function stub(): Record<string, unknown> {
   const img: Record<string, unknown> = { scaleX: 1, scaleY: 1, list: [] as unknown[] };
@@ -81,16 +85,27 @@ function makeView(
     dimLayers: (m: ReadonlyMap<string, number>) => {
       dimmer.set(m);
     },
-    stepDim: () => {
-      dimmer.step();
+    stepDim: (budget?: number) => {
+      dimmer.step(budget);
     },
   } as unknown as ParallaxView;
   const frame = { customPivot: false, pivotX: 0, pivotY: 0 };
+  // One texture object, as Phaser's texture manager keeps one per key.
+  const tex = { getSourceImage: () => ({ width: 1024 }), has: () => true, get: () => frame };
   const scene = {
-    add: { image: () => stub(), container: () => stub() },
+    add: {
+      image: () => {
+        made++;
+        return stub();
+      },
+      container: () => {
+        made++;
+        return stub();
+      },
+    },
     textures: {
       exists: (k: string) => k === REENBUI_SHEET,
-      get: () => ({ getSourceImage: () => ({ width: 1024 }), has: () => true, get: () => frame }),
+      get: () => tex,
     },
   };
   let clock = 0;
@@ -156,19 +171,41 @@ function run(view: ReenbuiView, from: number, to: number, step: number): number[
 }
 
 describe('ReenbuiView (D-067, lessons 32–34)', () => {
-  it('stays within ~40 Phaser calls a frame at the swarm peak, 20 ticks a frame and at 60 fps', () => {
+  it('stays within ~40 Phaser calls in every frame, 20 ticks a frame and at 60 fps', () => {
     const v = makeView();
-    // The whole event once (pools made, dim ramped), then the peak measured.
-    run(v, 500, 1400, 20);
+    // The whole event, every frame from the sheet's arrival: ≤ 40 calls in each.
+    const all20 = run(v, 500, 2400, 20);
+    expect(Math.max(...all20)).toBeLessThanOrEqual(40);
     const peak20 = run(v, 1400, 2000, 20);
     const peak1 = run(v, 1400, 1700, 1);
     expect(Math.max(...peak20)).toBeLessThanOrEqual(40);
     expect(peak20.reduce((a, b) => a + b, 0) / peak20.length).toBeLessThanOrEqual(16);
     expect(peak1.reduce((a, b) => a + b, 0) / peak1.length).toBeLessThanOrEqual(10);
-    // The build-up and easing (towers rolling, dim stepping, chunked): still bounded.
-    const v2 = makeView();
-    const ramp = run(v2, 560, 2400, 20);
-    expect(Math.max(...ramp)).toBeLessThanOrEqual(80);
+    // The same at 60 fps through the build-up, drops and easing.
+    const v1 = makeView();
+    expect(Math.max(...run(v1, 560, 2400, 1))).toBeLessThanOrEqual(40);
+  });
+
+  it('builds its pools when the sheet arrives, one a frame, not in the frames of the event', () => {
+    const v = makeView();
+    made = 0;
+    v.update(state(500), 1920);
+    // The first pool (the far rain grid: a container and its images), hidden.
+    expect(made).toBeGreaterThanOrEqual(1 + 15);
+    expect(v.hook?.rainFar).toBe(0);
+    run(v, 501, 560, 1);
+    made = 0;
+    // The build-up, the first drops (with the dim stepping) and the swarm: nothing made but
+    // the columns, one a frame.
+    const perFrame: number[] = [];
+    for (let t = 560; t < 1300; t += 20) {
+      const m0 = made;
+      v.update(state(t), 1920);
+      perFrame.push(made - m0);
+    }
+    expect(Math.max(...perFrame)).toBeLessThanOrEqual(2);
+    expect(made).toBe(2 * COLUMNS.length);
+    expect(v.hook?.columns).toHaveLength(COLUMNS.length);
   });
 
   it('does nothing on a frame whose tick has not moved (a held hunt)', () => {

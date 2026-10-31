@@ -788,8 +788,9 @@ export class ParallaxView {
   }
 
   /** D-065: applies one changed layer of the pending dim (round robin; nothing when none). */
-  stepDim(): void {
-    this.dimmer?.step();
+  /** `budget`: at most this many setTint calls (LayerDimmer's DIM_BUDGET by default). */
+  stepDim(budget?: number): void {
+    this.dimmer?.step(budget);
   }
 
   /** v1.7c (D-047): the map light's tint on a layer (0xFFFFFF without one). */

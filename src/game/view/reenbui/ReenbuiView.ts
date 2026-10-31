@@ -75,8 +75,11 @@ const WET = { near: 5, mid: 4, scale: 3.4, alpha: 0.7, dryTicks: 8 * TICKS_PER_S
 /** Dust puffs of the first drops: pool size, ticks per frame. */
 const PUFFS = 6;
 const PUFF_TICKS = 5;
+/** Phaser calls a frame (≈ 0.3 ms at 4× throttle, perf.spec): the dim step gets what the rest
+ *  of the frame leaves of it. */
+const FRAME_CALLS = 40;
 /** Lightning forks: ticks shown, the gap between forks (ticks), the first one in. */
-const FORK = { show: 8, every: 200, first: 70, alpha: 0.95, reducedAlpha: 0.35 };
+const FORK = { show: 8, every: 200, first: 70, alpha: 0.95, reducedAlpha: 0.35, scale: 1.3 };
 
 /** e2e: one alate column as drawn. */
 export interface ReenbuiColumnHook {
@@ -169,7 +172,7 @@ export class ReenbuiView {
   private rainShown = { far: false, near: false };
   private readonly clouds: Img[] = [];
   private cloudBase: number | null = null;
-  private readonly wet: { s: Img; layer: LayerNode }[] = [];
+  private readonly wet: { s: Img; layer: LayerNode; i: number; n: number }[] = [];
   private readonly puffs: { s: Img; layer: LayerNode; born: number }[] = [];
   private readonly cols = new Map<number, { col: Img; mound: Img; layer: LayerNode }>();
   private fork: Img | null = null;
@@ -178,6 +181,13 @@ export class ReenbuiView {
   private forks = 0;
   private forksRefused = 0;
   private dimStep = 0;
+  /** Phaser calls made this frame (counted by the helpers below). */
+  private used = 0;
+  /** Pools still to build (one a frame, hidden) once the sheet is in. */
+  private warmLeft = ['rainFar', 'rainNear', 'clouds', 'puffs', 'wet', 'fork'];
+  /** The wet patches are laid out round the view once the event starts (not where the camera
+   *  was when they were built). */
+  private wetLaidOut = false;
   private hookCols: ReenbuiColumnHook[] = [];
   private lastTick = -1;
   private columnsHidden = false;
@@ -217,6 +227,8 @@ export class ReenbuiView {
     }
     this.k = k;
     this.sheet = tex;
+    // A later sheet (another resolution) rescales what is built.
+    if (this.rainFar !== null) this.rescale();
     return true;
   }
 
@@ -227,8 +239,12 @@ export class ReenbuiView {
     layer: LayerNode | null = null,
   ): Img {
     const img = this.o.scene.add.image(0, 0, REENBUI_SHEET, frame).setVisible(false).setAlpha(0);
+    this.used += 2;
     const tint = layer === null ? 0xffffff : this.o.parallax.layerTint(layer.id);
-    if (tint !== 0xffffff) img.setTint(tint);
+    if (tint !== 0xffffff) {
+      img.setTint(tint);
+      this.used++;
+    }
     parent.add(img);
     return { img, shown: false, alpha: 0, frame, x: 0, y: 0 };
   }
@@ -237,6 +253,7 @@ export class ReenbuiView {
     if (on === s.shown) return;
     s.img.setVisible(on);
     s.shown = on;
+    this.used++;
   }
 
   private alpha(s: Img, a: number): void {
@@ -244,12 +261,14 @@ export class ReenbuiView {
     if (v === s.alpha) return;
     s.img.setAlpha(v);
     s.alpha = v;
+    this.used++;
   }
 
   private frameOf(s: Img, f: string): void {
     if (f === s.frame) return;
     s.img.setFrame(f);
     s.frame = f;
+    this.used++;
   }
 
   private place(s: Img, x: number, y: number): void {
@@ -257,6 +276,12 @@ export class ReenbuiView {
     s.img.setPosition(x, y);
     s.x = x;
     s.y = y;
+    this.used++;
+  }
+
+  private scale(s: Img, x: number, y = x): void {
+    s.img.setScale(x, y);
+    this.used++;
   }
 
   private planeLayer(plane: PlaneId): LayerNode | undefined {
@@ -270,65 +295,100 @@ export class ReenbuiView {
 
   // --- the rain ------------------------------------------------------------------------------
 
-  private makeRain(): void {
-    const grid = (which: 'far' | 'near'): Phaser.GameObjects.Container => {
-      const r = RAIN[which];
-      const c = this.o.scene.add.container(0, 0).setVisible(false).setAlpha(0);
-      const w = RAIN_TILE.w * r.scale;
-      const h = RAIN_TILE.h * r.scale;
-      const cols = Math.ceil(MAX_SCREEN_WIDTH / w) + 1;
-      const rows = Math.ceil(SCREEN_H / h) + 1;
-      for (let y = 0; y < rows; y++)
-        for (let x = 0; x < cols; x++) {
-          const img = this.o.scene.add.image(x * w, y * h, REENBUI_SHEET, `rain_${which}`);
-          img.setScale(r.scale / this.k);
-          c.add(img);
-        }
-      this.o.screen.add(c);
-      return c;
-    };
-    this.rainFar = grid('far');
-    this.rainNear = grid('near');
+  // --- the pools, built hidden before the event ------------------------------------------------
+
+  /** Builds the next pool (one a frame, hidden), so no frame of the event makes images. */
+  private warm(width: number): void {
+    const next = this.warmLeft.shift();
+    if (next === 'rainFar') this.rainFar = this.rainGrid('far');
+    else if (next === 'rainNear') this.rainNear = this.rainGrid('near');
+    else if (next === 'clouds') this.makeClouds();
+    else if (next === 'puffs') this.makePuffs();
+    else if (next === 'wet') this.makeWet(width);
+    else if (next === 'fork') this.makeFork();
   }
 
-  /** Rain alpha per layer for the phase (0 = none). */
-  private rainLevels(v: SimReenbui, t: number): { far: number; near: number } {
-    if (v.withStorm || t < v.dropsTick || t >= v.endTick) return { far: 0, near: 0 };
+  /** A new sheet resolution: every scale set from `k` again. */
+  private rescale(): void {
+    this.rainFar?.setScale(RAIN.far.scale / this.k);
+    this.rainNear?.setScale(RAIN.near.scale / this.k);
+    for (const s of this.clouds) this.scale(s, CLOUDS.scale / this.k);
+    if (this.fork !== null) this.scale(this.fork, FORK.scale / this.k);
+    for (const p of this.puffs) this.scale(p.s, this.puffScale(p.layer));
+    for (const [i, w] of this.wet.entries()) {
+      const sc = this.wetScale(w.layer);
+      this.scale(w.s, sc * (0.8 + hash01(i * 13 + w.n) * 0.5), sc);
+    }
+    for (const e of this.cols.values()) {
+      const sc = this.columnScale(e.layer);
+      this.scale(e.mound, sc * MOUND_SCALE);
+      this.scale(e.col, sc);
+    }
+  }
+
+  /** One rain grid, hidden: laid out in sheet texels and scaled as one container (one setScale a
+   *  grid, not one an image). */
+  private rainGrid(which: 'far' | 'near'): Phaser.GameObjects.Container {
+    const r = RAIN[which];
+    const c = this.o.scene.add.container(0, 0).setVisible(false).setAlpha(0);
+    const cols = Math.ceil(MAX_SCREEN_WIDTH / (RAIN_TILE.w * r.scale)) + 1;
+    const rows = Math.ceil(SCREEN_H / (RAIN_TILE.h * r.scale)) + 1;
+    // Tile size in texels at k texels a design px.
+    const w = RAIN_TILE.w * this.k;
+    const h = RAIN_TILE.h * this.k;
+    for (let y = 0; y < rows; y++)
+      for (let x = 0; x < cols; x++)
+        c.add(this.o.scene.add.image(x * w, y * h, REENBUI_SHEET, `rain_${which}`));
+    c.setScale(r.scale / this.k);
+    this.used += 3;
+    this.o.screen.add(c);
+    return c;
+  }
+
+  /** Rain alpha for one layer at the phase (0 = none). */
+  private rainLevel(which: 'far' | 'near', v: SimReenbui, t: number): number {
+    if (v.withStorm || t < v.dropsTick || t >= v.endTick) return 0;
     const drops = ramp(t, v.dropsTick, v.swarmTick - v.dropsTick);
     const swarm = ramp(t, v.swarmTick, TICKS_PER_SECOND * 2);
     const stop = 1 - ramp(t, v.easingTick, RAIN_STOP_TICKS);
-    return {
-      far: (RAIN.far.alpha * drops * (1 - swarm) + DRIZZLE * swarm) * stop,
-      near: RAIN.near.alpha * drops * (1 - swarm) * stop,
-    };
+    return which === 'far'
+      ? (RAIN.far.alpha * drops * (1 - swarm) + DRIZZLE * swarm) * stop
+      : RAIN.near.alpha * drops * (1 - swarm) * stop;
   }
 
   private updateRain(v: SimReenbui, t: number): void {
-    const lv = this.rainLevels(v, t);
-    if ((lv.far > 0 || lv.near > 0) && this.rainFar === null) this.makeRain();
-    const set = (which: 'far' | 'near', c: Phaser.GameObjects.Container | null): void => {
-      if (c === null) return;
-      const a = q(lv[which]);
-      const on = a > 0;
-      if (on !== this.rainShown[which]) {
-        c.setVisible(on);
-        this.rainShown[which] = on;
-      }
-      if (a !== this.rainAlpha[which]) {
-        c.setAlpha(a);
-        this.rainAlpha[which] = a;
-      }
-      if (!on) return;
-      const r = RAIN[which];
-      const h = RAIN_TILE.h * r.scale;
-      const w = RAIN_TILE.w * r.scale;
-      const fall = (t / TICKS_PER_SECOND) * r.speed * (this.o.reducedMotion ? CALM_RAIN : 1);
-      const y = (fall % h) - h;
-      const x = ((((RAIN_SLANT * fall) % w) + w) % w) - w;
-      c.setPosition(x, y);
-    };
-    set('far', this.rainFar);
-    set('near', this.rainNear);
+    this.setRain('far', this.rainFar, v, t);
+    this.setRain('near', this.rainNear, v, t);
+  }
+
+  private setRain(
+    which: 'far' | 'near',
+    c: Phaser.GameObjects.Container | null,
+    v: SimReenbui,
+    t: number,
+  ): void {
+    if (c === null) return;
+    const a = q(this.rainLevel(which, v, t));
+    const on = a > 0;
+    if (on !== this.rainShown[which]) {
+      c.setVisible(on);
+      this.rainShown[which] = on;
+      this.used++;
+    }
+    if (a !== this.rainAlpha[which]) {
+      c.setAlpha(a);
+      this.rainAlpha[which] = a;
+      this.used++;
+    }
+    if (!on) return;
+    const r = RAIN[which];
+    const h = RAIN_TILE.h * r.scale;
+    const w = RAIN_TILE.w * r.scale;
+    const fall = (t / TICKS_PER_SECOND) * r.speed * (this.o.reducedMotion ? CALM_RAIN : 1);
+    const y = (fall % h) - h;
+    const x = ((((RAIN_SLANT * fall) % w) + w) % w) - w;
+    c.setPosition(x, y);
+    this.used++;
   }
 
   // --- the sky: towers, dim, forks -------------------------------------------------------------
@@ -341,13 +401,6 @@ export class ReenbuiView {
       ? 0
       : ramp(t, v.buildupTick, v.dropsTick - v.buildupTick) *
         (1 - ramp(t, v.easingTick, v.endTick - v.easingTick + TICKS_PER_SECOND * 2));
-    if (roll > 0 && this.clouds.length === 0)
-      for (let i = 0; i < CLOUDS.count; i++) {
-        const s = this.image(i % 2 === 0 ? 'cloud_a' : 'cloud_b', sky.fixtures, sky);
-        s.img.setScale(CLOUDS.scale / this.k);
-        if (i === 2) s.img.setFlipX(true);
-        this.clouds.push(s);
-      }
     if (roll > 0 && this.cloudBase === null) this.cloudBase = this.centreOf(sky, width);
     if (roll <= 0) this.cloudBase = null;
     for (let i = 0; i < this.clouds.length; i++) {
@@ -376,7 +429,6 @@ export class ReenbuiView {
       this.o.parallax.layers.forEach((l, i) => tints.set(l.id, mix(i === 0 ? DIM_SKY : DIM_LAND)));
       this.o.parallax.dimLayers(tints);
     }
-    this.o.parallax.stepDim();
     this.updateFork(v, t, sky, width);
   }
 
@@ -398,16 +450,35 @@ export class ReenbuiView {
       else this.forksRefused++;
     }
     this.forkOn = n !== null;
-    if (this.fork === null && n === null) return;
-    this.fork ??= this.image('fork_a', sky.fixtures);
     const f = this.fork;
+    if (f === null) return;
     this.show(f, lit);
     if (!lit || n === null) return;
     this.frameOf(f, n % 2 === 0 ? 'fork_a' : 'fork_b');
     const base = this.cloudBase ?? this.centreOf(sky, width);
     this.place(f, Math.round(base + (hash01(n + 17) * 2 - 1) * CLOUDS.spread), CLOUDS.baseY - 8);
-    if (f.img.scaleX !== 1.3 / this.k) f.img.setScale(1.3 / this.k);
     this.alpha(f, this.o.reduceFlashes() ? FORK.reducedAlpha : FORK.alpha);
+  }
+
+  private makeClouds(): void {
+    const sky = this.o.parallax.layers[0];
+    if (sky === undefined) return;
+    for (let i = 0; i < CLOUDS.count; i++) {
+      const s = this.image(i % 2 === 0 ? 'cloud_a' : 'cloud_b', sky.fixtures, sky);
+      this.scale(s, CLOUDS.scale / this.k);
+      if (i === 2) {
+        s.img.setFlipX(true);
+        this.used++;
+      }
+      this.clouds.push(s);
+    }
+  }
+
+  private makeFork(): void {
+    const sky = this.o.parallax.layers[0];
+    if (sky === undefined) return;
+    this.fork = this.image('fork_a', sky.fixtures);
+    this.scale(this.fork, FORK.scale / this.k);
   }
 
   // --- the ground: wet patches, puffs ------------------------------------------------------------
@@ -416,14 +487,17 @@ export class ReenbuiView {
     const wetness =
       ramp(t, v.dropsTick, v.swarmTick - v.dropsTick + TICKS_PER_SECOND) *
       (1 - ramp(t, v.endTick, WET.dryTicks));
-    if (wetness > 0 && this.wet.length === 0) this.makeWet(width);
+    // Laid out round the view as the event starts (a frame with nothing else on the ground).
+    if (!this.wetLaidOut && wetness === 0) {
+      this.layOutWet(width);
+      this.wetLaidOut = true;
+    }
     for (const w of this.wet) {
       this.show(w.s, wetness > 0);
       if (wetness > 0) this.alpha(w.s, wetness * WET.alpha);
     }
     // The first drops' puffs (not with the storm: its rain was already falling).
     const puffing = !v.withStorm && t >= v.dropsTick && t < v.swarmTick + TICKS_PER_SECOND;
-    if (puffing && this.puffs.length === 0) this.makePuffs();
     for (let i = 0; i < this.puffs.length; i++) {
       const p = this.puffs[i];
       if (p === undefined) continue;
@@ -450,24 +524,40 @@ export class ReenbuiView {
     }
   }
 
+  private wetScale(layer: LayerNode): number {
+    return (WET.scale * this.o.planeScale[layer.plane ?? 'near']) / this.k;
+  }
+
   private makeWet(width: number): void {
     for (const plane of ['near', 'mid'] as const) {
       const layer = this.planeLayer(plane);
-      const band = this.o.groundY[plane];
-      if (layer === undefined || band === undefined) continue;
+      if (layer === undefined || this.o.groundY[plane] === undefined) continue;
       const n = WET[plane];
-      const sc = (WET.scale * this.o.planeScale[plane]) / this.k;
-      const cx = this.centreOf(layer, width);
+      const sc = this.wetScale(layer);
       for (let i = 0; i < n; i++) {
         const s = this.image('wet', layer.fixtures, layer);
-        s.img.setScale(sc * (0.8 + hash01(i * 13 + n) * 0.5), sc);
-        const span = (MAX_SCREEN_WIDTH * 1.4) / (layer.root.scaleX || 1);
-        const x = cx + ((i + 0.5) / n - 0.5) * span + (hash01(i * 7) - 0.5) * 200;
-        const y = band[0] + (0.3 + hash01(i * 3 + 1) * 0.5) * (band[1] - band[0]);
-        this.place(s, Math.round(x), Math.round(y));
-        this.wet.push({ s, layer });
+        this.scale(s, sc * (0.8 + hash01(i * 13 + n) * 0.5), sc);
+        this.wet.push({ s, layer, i, n });
       }
     }
+    this.layOutWet(width);
+  }
+
+  /** Spreads the patches over the ground bands round the view now. */
+  private layOutWet(width: number): void {
+    for (const w of this.wet) {
+      const band = this.o.groundY[w.layer.plane ?? 'near'];
+      if (band === undefined) continue;
+      const cx = this.centreOf(w.layer, width);
+      const span = (MAX_SCREEN_WIDTH * 1.4) / (w.layer.root.scaleX || 1);
+      const x = cx + ((w.i + 0.5) / w.n - 0.5) * span + (hash01(w.i * 7) - 0.5) * 200;
+      const y = band[0] + (0.3 + hash01(w.i * 3 + 1) * 0.5) * (band[1] - band[0]);
+      this.place(w.s, Math.round(x), Math.round(y));
+    }
+  }
+
+  private puffScale(layer: LayerNode): number {
+    return (1.4 * this.o.planeScale[layer.plane ?? 'near']) / this.k;
   }
 
   private makePuffs(): void {
@@ -476,14 +566,18 @@ export class ReenbuiView {
       const layer = this.planeLayer(plane);
       if (layer === undefined) continue;
       const s = this.image(puffFrame(0), layer.fixtures, layer);
-      s.img.setScale((1.4 * this.o.planeScale[plane]) / this.k);
-      s.img.setAlpha(0.9);
-      s.alpha = 0.9;
+      this.scale(s, this.puffScale(layer));
+      this.alpha(s, 0.9);
       this.puffs.push({ s, layer, born: -1 });
     }
   }
 
   // --- the alate columns -----------------------------------------------------------------------
+
+  private columnScale(layer: LayerNode): number {
+    const plane = layer.plane ?? 'mid';
+    return this.o.planeScale[plane] / this.o.planeScale.mid / this.k;
+  }
 
   private updateColumns(v: SimReenbui, t: number, width: number): void {
     const level =
@@ -492,16 +586,19 @@ export class ReenbuiView {
     const step = Math.floor((t - v.swarmTick) / COLUMN_TICKS);
     const frame = columnFrame(step);
     const hooks: ReenbuiColumnHook[] | null = this.o.hooks ? [] : null;
+    // At most one new column a frame (they rise over COLUMN_RISE_TICKS: a frame late is unseen).
+    let made = false;
     for (const c of v.columns) {
       let e = this.cols.get(c.id);
       if (e === undefined) {
         const layer = this.planeLayer(c.plane);
-        if (layer === undefined) continue;
-        const sc = this.o.planeScale[c.plane] / this.o.planeScale.mid / this.k;
+        if (layer === undefined || made) continue;
+        made = true;
+        const sc = this.columnScale(layer);
         const mound = this.image('mound', layer.fixtures, layer);
-        mound.img.setScale(sc * MOUND_SCALE);
+        this.scale(mound, sc * MOUND_SCALE);
         const col = this.image(columnFrame(0), layer.fixtures, layer);
-        col.img.setScale(sc);
+        this.scale(col, sc);
         this.place(mound, c.x, c.y);
         this.place(col, c.x, c.y);
         e = { col, mound, layer };
@@ -552,6 +649,7 @@ export class ReenbuiView {
   update(state: SimState, width: number): void {
     const t0 = this.o.now();
     const v = state.reenbui;
+    this.used = 0;
     if (v === null || !this.sheetReady()) {
       this.lastMs = this.o.now() - t0;
       if (this.o.hooks)
@@ -579,7 +677,10 @@ export class ReenbuiView {
     this.lastTick = t;
     this.frames++;
     const active = t >= v.buildupTick - 1 && t < v.endTick + WET.dryTicks;
-    if (moved && (active || this.dimStep !== 0 || this.rainShown.far || this.rainShown.near)) {
+    // The pools are built first, one a frame (that frame draws nothing else; with a sheet in
+    // before the event, as usual, it is a frame before the build-up).
+    if (this.warmLeft.length > 0) this.warm(width);
+    else if (moved && (active || this.dimStep !== 0 || this.rainShown.far || this.rainShown.near)) {
       let a = this.o.now();
       this.updateRain(v, t);
       let b = this.o.now();
@@ -597,6 +698,9 @@ export class ReenbuiView {
       this.updateColumns(v, t, width);
       b = this.o.now();
       this.partMs.columns += b - a;
+      // The dim gets what is left of the frame's calls (it goes on next frame where it stopped).
+      const left = FRAME_CALLS - this.used;
+      if (left > 0) this.o.parallax.stepDim(left);
     }
     this.lastMs = this.o.now() - t0;
     if (this.o.hooks)
