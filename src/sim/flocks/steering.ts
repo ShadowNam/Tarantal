@@ -64,9 +64,11 @@ function updateGoal(f: Flock, p: FlockParams, rng: RandomStream, cx: number): vo
   f.goalTicks--;
   if (f.goalTicks > 0) return;
   f.goalTicks = Math.max(1, drawTicks(rng, p.forageGoalTicks));
-  const wander = p.forageWanderPx * f.ratio;
+  // v1.10 Reënbui (D-067): a feeding flock forages round its alate column (the same draws).
+  const feeding = f.feedX !== undefined;
+  const wander = (feeding ? (f.feedSpreadPx ?? 0) : p.forageWanderPx) * f.ratio;
   const margin = p.spawnSpreadPx * f.ratio;
-  const home = Math.min(f.coreWidth - margin, Math.max(margin, f.homeX));
+  const home = Math.min(f.coreWidth - margin, Math.max(margin, f.feedX ?? f.homeX));
   f.goalX = home + rng.range(-wander, wander);
   f.goalY = rng.range(f.groundY[0], f.groundY[1]);
 }
@@ -84,6 +86,12 @@ function groundSpeed(f: Flock, b: Bird, p: FlockParams): number {
     default:
       return m.walk;
   }
+}
+
+/** v1.10 Reënbui (D-067): a feeding flock's walkers still far from their column hurry there. */
+function feedHurry(f: Flock, b: Bird): boolean {
+  if (f.feedX === undefined || b.phase !== 'walk' || f.state !== 'forage') return false;
+  return Math.abs(b.x - f.feedX) > (f.feedHurryPx ?? Infinity) * f.ratio;
 }
 
 function steerGround(f: Flock, p: FlockParams, rng: RandomStream): void {
@@ -160,7 +168,7 @@ function steerGround(f: Flock, p: FlockParams, rng: RandomStream): void {
       ty += sin((2 * Math.PI * f.stateTicks) / p.zigPeriodTicks + m.zigPhase) * p.zigWeight;
     }
     const tl = len(tx, ty);
-    const speed = groundSpeed(f, b, p);
+    const speed = feedHurry(f, b) ? m.run * (f.feedHurryMul ?? 1) : groundSpeed(f, b, p);
     const wantX = tl > 1e-6 ? (tx / tl) * speed : 0;
     const wantY = tl > 1e-6 ? (ty / tl) * speed * DEPTH_SPEED : 0;
     next.push({ vx: m.vx + (wantX - m.vx) * p.turnRate, vy: m.vy + (wantY - m.vy) * p.turnRate });
@@ -222,4 +230,37 @@ function fly(
     m.landTicks = Math.max(1, drawTicks(rng, p.landRunTicks));
     enter(b, 'land');
   }
+}
+
+/**
+ * v1.10 (D-067): where a flock will be on the ground — for a bird on the ground (walking,
+ * running, landing) where it is; for one in the air, the x where its flight puts it down: the
+ * flap left at fly·cos θ, then the glide at glide·cos θ sinking at glideSinkPxPerSec from cruise
+ * height to its landing y. Read only: it draws nothing (the wind is left out).
+ */
+export function landingX(f: Flock, p: FlockParams): number {
+  if (f.members.length === 0) return f.homeX;
+  const sink = Math.max(1e-6, p.glideSinkPerTick * f.ratio);
+  let sum = 0;
+  for (const b of f.members) {
+    const m = b.fm;
+    if (m === null || isGrounded(b)) {
+      sum += b.x;
+      continue;
+    }
+    const glideAcross = f.dir * m.glide * cos(m.angle);
+    if (b.phase === 'glide') {
+      sum += b.x + glideAcross * Math.max(0, (m.landY - b.y) / sink);
+      continue;
+    }
+    const flyAcross = f.dir * m.fly * cos(m.angle) * Math.max(0, m.flapTicks);
+    const fromY = Math.min(b.y, m.cruiseY);
+    sum += b.x + flyAcross + glideAcross * Math.max(0, (m.landY - fromY) / sink);
+  }
+  return sum / f.members.length;
+}
+
+/** True when every bird of a flushed flock is on its way down or back on the ground. */
+export function comingDown(f: Flock): boolean {
+  return f.members.length > 0 && f.members.every((b) => b.phase !== 'launch' && b.phase !== 'flap');
 }

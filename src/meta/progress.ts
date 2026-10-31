@@ -63,6 +63,8 @@ function metricValue(m: NotaboekMetric, log: HuntLog): number {
       return log.secretsFound.includes(FAMILIEFOTO_SECRET) ? 1 : 0;
     case 'canChain':
       return log.canChain ?? 0;
+    case 'reenbuiBags':
+      return log.reenbuiBags ?? 0;
   }
 }
 

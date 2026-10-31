@@ -155,7 +155,7 @@ test.describe('long range (v1.3)', () => {
     const goldens = JSON.parse(
       readFileSync(join(ROOT, 'src', 'sim', 'replay', 'golden', 'replays.json'), 'utf8'),
     ) as GoldenReplay[];
-    await boot(page, `today=${TODAY}`);
+    await boot(page, `today=${TODAY}&reenbui=content`);
     for (const name of [
       'classic-71-karoo-nogverder-tweetwee-iron-competent-pointer',
       'classic-72-karoo-dieverste-tweetwee-scope-aim-touch',
@@ -224,7 +224,7 @@ test.describe('long range (v1.3)', () => {
     const touch = isTouchProject(info);
     const errors = collectErrors(page);
     await rifleSave(page, 'scope_small');
-    await boot(page, `seed=42&today=${TODAY}&bonus=nogVerder&huntSeconds=14`);
+    await boot(page, `seed=42&today=${TODAY}&bonus=nogVerder&huntSeconds=14&reenbui=content`);
     await startHunt(page, touch);
     let h = await hook(page);
     expect(h.zoom.sight).toBe('scope_small');

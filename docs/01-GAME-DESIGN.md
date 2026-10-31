@@ -111,7 +111,7 @@ mult   = 1 + behaviourAdd                                         // "Maal" star
 for each charm in slot order, left → right:                       // order MATTERS (Balatro-style)
     for each matching effect in that charm, in listed order:
         addMult → mult += x        mulMult → mult ×= x
-mult  ×= weaponScoreMul × frenzyMul × stampedeMul × countdownMul   // system multipliers, always last
+mult  ×= weaponScoreMul × frenzyMul × stampedeMul × countdownMul × reenbuiMul  // system, always last
 award  = round(points × mult)
 ```
 
@@ -129,6 +129,9 @@ award  = round(points × mult)
   1 everywhere else. It is the last system multiplier (after the Stampede's, before a Boss Rule's)
   and it **stacks** with the Stampede, so those 10 s are ×4. It multiplies every award — bags and
   event bonuses alike — and never a penalty.
+- **`reenbuiMul`** (D-067) is the Reënbui swarm's ×1.3 (§11.3e), 1 outside the swarm window. It comes
+  after the Countdown's (before a Boss Rule's), stacks with the Frenzy and the Stampede, and
+  multiplies **bags only** (event bonuses and penalties are unchanged).
 
 ## 6. The Flock — signature mechanic
 
@@ -773,6 +776,50 @@ Namibian carvers turn into key rings and ornaments (sources: D-056).
   mother (en/af/de voiced, nl text).
 - **Bird Book:** "Bobbejaan · chacma baboon" with its rule (seen once a raider came down).
 - **Modes:** Classic, the Daily, the Season Run, the bonus maps; not the Skietbaan or Oupa se Les.
+
+### 11.3e Reënbui: the first rain and the flying ants (1.13.0, D-067)
+The summer moment everyone in Southern Africa knows: a thunderstorm rolls in, the first fat drops
+hit the dust, the smell of rain, and flying ants (alates, the winged termites) pour out of the
+ground in columns while every bird comes down to feast. A **world event** in the sim, on its own
+stream `reenbui`, at most **once a hunt**; every number in `content/reenbui.json`.
+- **Where (chance a hunt):** the Kalahari (summer) **45 %**, the Okavango (spring) **35 %**,
+  Namibië **15 %**, the Karoo (autumn) **5 %**. Never the winter Bushveld; never the Harvest (the
+  mielie harvest is late autumn, after the rains; its 30-second hunt has its own intro and rush).
+- **Weekday layouts:** `calm` days (Monday, Sunday) never have it; the **overcast Wednesday** of the
+  Kalahari and the Okavango always has it (layout `reenbui: "force"`); other days roll the chance.
+- **Modes:** Classic, the Daily (not on a special day: Feesdae keep their own twist), and the
+  Season Run's plain and omen hunts (not its boss hunts: the boss is that hunt's show). Not Oupa se
+  Les, the Skietbaan or the Harvest. Not tied to omens: it is its own weather, with two meetings:
+  - **The Kalahari omen** (`heat_then_storm`): there is no second storm. When the event rolls in an
+    omen hunt, its swarm rises the moment the Donderstorm breaks (the heat haze was the build-up,
+    the storm's first rain the drops); the storm's rain, lightning and run-not-fly rule go on as
+    before, and the swarm thins after its 15 s while the storm rains on.
+  - **The Okavango sun-showers:** the showers stop for the Reënbui (any spell that would overlap it,
+    from the build-up to the end of the easing, is dropped): its rain is that stretch's rain.
+- **Phases** (in sim ticks; `?reenbui=1` forces it early, `?reenbuiPhase=` holds one):
+  1. **Build-up** (6 s): towering clouds roll in, the light dims a little, wind gusts, distant
+     thunder; every flock is a little jumpier (shot alert radius ×1.15).
+  2. **First drops** (3 s): fat drops, dust puffs, the ground darkens where it rains.
+  3. **The alate swarm** (15 s): 2–4 columns of flying ants rise from the ground on the mid and far
+     planes, in and near the view; the first rises where a flock in view forages, settles or comes
+     down to land, else at the view's edge nearest where a flock lands within feeding reach (sim
+     camera only, never the device's screen). Flocks within reach of a column (mid-plane 900 px) walk to it and
+     feed there, **calmer** (shot alert radius ×0.7: a shot near them still alerts, flushes and runs
+     work as always); up to **2 extra flocks** run in to the columns (inside the map's
+     maxFlocks and maxBirdsOnScreen). **Every bag scores ×1.3** in this window ("Flying ants! Every
+     bag ×1.3"): a system multiplier after the Countdown (§5.3), stacked with the Frenzy and the
+     Stampede by the normal rules. (×1.5 was the first draft; the feeding alone lifts a hunt with the
+     swarm ~+8 %, so ×1.3 keeps it at ~+10 %: `docs/balance/v1.10-reenbui.md`.)
+  4. **The rain eases** (4 s): the swarm thins, the flocks go back to their own foraging, the sky
+     clears and the wet ground fades back.
+- **Look:** storm clouds and a small, local lightning fork far off in the clouds (never a full-screen
+  flash; the shared flash limiter, "reduce flashes" and "reduce motion" hold); baked rain strips;
+  shimmering alate columns; birds pecking at the columns. **Sound:** thunder rolling in, rain on a
+  sinkdak and on the dust, the swarm's soft buzz, excited birds; the soundscape's own calls go quiet
+  from the build-up to the end of the rain. Oupa: "Smell that rain?!" ("Ruik jy die reën?!") and two
+  more lines.
+- **Notaboek:** "Fees in die reën": bag 10 during one Reënbui swarm. **Bird Book:** a note on the
+  alates (flying termites) after the first Reënbui.
 
 ### 11.5 Day-of-week maps and bonus map Verder (v1.2, D-033)
 

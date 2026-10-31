@@ -58,7 +58,7 @@ test('title and both Settings pages and privacy', async ({ page }, info) => {
   // default 90 s timed out on loaded runners (CI pixel7 2/2 and locally).
   test.setTimeout(180_000);
   const touch = isTouchProject(info);
-  await boot(page, `today=${EPOCH}&seed=42&stamp=0`);
+  await boot(page, `today=${EPOCH}&seed=42&stamp=0&reenbui=0`);
   await page.waitForFunction(() => window.__TM__?.rects['settings'] !== undefined);
   await herdsDrawn(page);
   await settled(page);
@@ -84,7 +84,7 @@ test('title and both Settings pages and privacy', async ({ page }, info) => {
 
 test('hunt held at a fixed tick', async ({ page }, info) => {
   baselineProfile(info);
-  await boot(page, `today=${EPOCH}&seed=42&holdAt=300&stamp=0`);
+  await boot(page, `today=${EPOCH}&seed=42&holdAt=300&stamp=0&reenbui=0`);
   await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
     timeout: 60_000,
   });
@@ -111,7 +111,7 @@ test('hunt held at a fixed tick', async ({ page }, info) => {
 
 test('tally after a short hunt', async ({ page }, info) => {
   baselineProfile(info);
-  await boot(page, `today=${EPOCH}&seed=42&huntSeconds=2&stamp=0`);
+  await boot(page, `today=${EPOCH}&seed=42&huntSeconds=2&stamp=0&reenbui=0`);
   await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
     timeout: 60_000,
   });
@@ -128,7 +128,7 @@ test('Padstal', async ({ page }, info) => {
   baselineProfile(info);
   test.setTimeout(180_000);
   const touch = isTouchProject(info);
-  await boot(page, `today=${EPOCH}&seed=4&huntSeconds=1&quotaMul=0&doppies=1&stamp=0`);
+  await boot(page, `today=${EPOCH}&seed=4&huntSeconds=1&quotaMul=0&doppies=1&stamp=0&reenbui=0`);
   await page.waitForFunction(() => window.__TM__?.rects['seasonRun'] !== undefined);
   await tapRect(page, touch, 'seasonRun');
   await page.waitForFunction(() => window.__TM__?.run?.view === 'intro', null, { timeout: 60_000 });

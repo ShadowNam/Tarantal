@@ -43,11 +43,14 @@ export function shotThreats(
   radiusMidPx: number,
   geo: PlaneGeometry,
   baggedFlockIds: ReadonlySet<number>,
+  /** v1.10 (D-067): a per-flock radius factor (Reënbui: jumpier in the build-up, calmer while
+   *  feeding); absent = 1. */
+  radiusMul?: (f: Flock) => number,
 ): FlockThreat[] {
   const out: FlockThreat[] = [];
   for (const f of flocks) {
     const centre = planeCentreX(cameraX, geo[f.plane].scrollFactor);
-    const r = radiusOnPlane(radiusMidPx, f.plane, geo);
+    const r = radiusOnPlane(radiusMidPx, f.plane, geo) * (radiusMul?.(f) ?? 1);
     let sum = 0;
     let n = 0;
     if (r > 0) {

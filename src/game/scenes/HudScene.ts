@@ -1058,6 +1058,9 @@ export class HudScene extends Phaser.Scene {
       else if (e.type === 'reloadStarted' && e.auto === true && this.ctx.hook)
         this.ctx.hook.reloadFx.autoReloads++;
       else if (e.type === 'stampedeStarted') this.showBanner(t('hud.stampede'));
+      // v1.10 (D-067): the alates rise — every bag scores more until the rain eases.
+      else if (e.type === 'alatesSwarm')
+        this.showBanner(fill(t('hud.reenbui_swarm'), { mult: formatMult(e.mult) }));
       else if (e.type === 'flockStateChanged' && e.to === 'flush')
         this.flushedFlocks.add(e.flockId);
       else if (e.type === 'flockRemoved') this.flushedFlocks.delete(e.flockId);
@@ -1710,6 +1713,10 @@ export class HudScene extends Phaser.Scene {
     });
     // 1.9.2 (D-055): the ten-second call wins over a first pickup's line on the same frame.
     if (picked !== null && (bark === null || picked.urgent === true)) bark = picked;
+    if (this.ctx.hook) {
+      const last = this.ctx.barks.lastSaidAt;
+      this.ctx.hook.barkClock = { now, last: Number.isFinite(last) ? last : null };
+    }
     if (bark !== null)
       sayBark(
         this.ctx,

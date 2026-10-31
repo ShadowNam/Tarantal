@@ -78,7 +78,7 @@ import {
 import type { BonusId, FlockCause, SimEvent, ThreatSource } from './events';
 import { centroid, flockParams, flockView, removeMembers, type Flock } from './flocks/Flock';
 import { applyThreat, forceState, tickFsm, type Transition } from './flocks/fsm';
-import { moveFlock } from './flocks/steering';
+import { comingDown, landingX, moveFlock } from './flocks/steering';
 import {
   reactionTargets,
   shotThreats,
@@ -111,7 +111,7 @@ import {
   type Secret,
 } from './props/secrets';
 import { sin } from './detmath';
-import { createRng } from './rng';
+import { createRng, type RandomStream } from './rng';
 import { twoFliesBonus, wholeFlockBonus } from './scoring/bonuses';
 import { dropTier, frenzyMul, frenzyTier, nextStreak } from './scoring/frenzy';
 import { scoreBag, scoreEventBonus } from './scoring/pipeline';
@@ -192,6 +192,8 @@ import {
 import type { TellSystem } from './tells/system';
 import type { BaboonSystem } from './baboons/system';
 import { registeredLazySystems } from './lazySystems';
+import { overlapsReenbui, planReenbui, type ColumnPlaneGeo } from './reenbui/reenbui';
+import { createReenbuiSystem, type ReenbuiSystem } from './reenbui/system';
 import type { OstrichSystem } from './ostriches/system';
 
 export { FAMILIEFOTO_SECRET };
@@ -1097,6 +1099,77 @@ export function createSim(config: SimConfig): Sim {
       t += last + omenRng.range(showers.everySeconds[0], showers.everySeconds[1]);
     }
   }
+  // v1.10 (D-067): Reënbui, from its own stream; in a Kalahari omen hunt its swarm rises with
+  // the Donderstorm, and the Okavango's sun-shower spells that would overlap it are dropped.
+  const reenbuiPlan =
+    ranged || setup.tutorial !== null
+      ? null
+      : planReenbui(
+          content.reenbui,
+          {
+            biome: biome.id,
+            mode: mode.id,
+            seasonKind: season?.kind ?? null,
+            feesdag: setup.feesdag !== null,
+            weather: setup.map.weather,
+            layoutRule: setup.map.layout?.reenbui,
+          },
+          durationTicks,
+          stormTick,
+          rng.stream('reenbui'),
+        );
+  if (reenbuiPlan !== null) {
+    for (let i = rainSpells.length - 1; i >= 0; i--) {
+      const r = rainSpells[i];
+      if (r !== undefined && overlapsReenbui(reenbuiPlan, r.from, r.to)) rainSpells.splice(i, 1);
+    }
+  }
+  const reenbuiPlanes: ColumnPlaneGeo[] = [];
+  for (const plane of ['mid', 'far'] as const) {
+    const groundY = biome.lanes[plane]?.groundY;
+    if (groundY === undefined || !biome.layers.some((l) => l.plane === plane)) continue;
+    const g = planeGeo[plane];
+    reenbuiPlanes.push({
+      plane,
+      scrollFactor: g.scrollFactor,
+      ratio: g.ratio,
+      coreWidth: coreWidth(g.scrollFactor),
+      groundY,
+    });
+  }
+  const reenbui: ReenbuiSystem | null =
+    reenbuiPlan === null
+      ? null
+      : createReenbuiSystem(content.reenbui, reenbuiPlan, rng.stream('reenbui'), {
+          tick: () => tick,
+          cameraX: () => cameraX,
+          flocks: () => flocks,
+          landingX: (f) => landingX(f, fParams),
+          comingDown,
+          planes: reenbuiPlanes,
+          emit: (e) => {
+            emit(e);
+          },
+          spawnFlock: (plane, x, size, dir) => {
+            if (flocks.filter((f) => f.members.length > 0).length >= biome.pacing.maxFlocks)
+              return false;
+            const own = rng.stream('reenbui');
+            const f = director.spawnFlockAt(
+              { ...directorContext(), flocks, nextFlockId: () => nextFlockId++ },
+              plane,
+              x,
+              size,
+              own,
+            );
+            if (f === null) return false;
+            addFlocks([f], own);
+            // In at a run toward the columns, away from a "threat" behind them (every draw from
+            // the event's own stream).
+            const behind = content.reenbui.extraFlocks.runFromPx * planeGeo[plane].ratio;
+            emitTransition(f, forceState(f, 'run', x - dir * behind, 'event', fParams, own));
+            return true;
+          },
+        });
   const raining = (): boolean => rainSpells.some((r) => tick >= r.from && tick < r.to);
   let wasRaining = false;
   const glare =
@@ -1231,10 +1304,12 @@ export function createSim(config: SimConfig): Sim {
       emitTransition(t.flock, forceState(t.flock, effect, t.x, cause, fParams, flockRng));
   }
 
-  function addFlocks(added: readonly Flock[]): void {
+  /** `own`: the stream of the system that brought the flocks in (Reënbui's extra flocks draw
+   *  their twist and Stampede state from `reenbui`, never a shared stream); else the usual ones. */
+  function addFlocks(added: readonly Flock[], own: RandomStream | null = null): void {
     for (const f of added) {
       // Biome twist (Bushveld): some flocks run instead of taking wing (own stream, D-025).
-      if (runChance > 0) f.runsOnly = twistRng.chance(runChance);
+      if (runChance > 0) f.runsOnly = (own ?? twistRng).chance(runChance);
       // Kalahari storm: in the rain every flock runs (GDD §11 "rain makes flocks run not fly").
       if (stormActive()) f.runsOnly = true;
       flocks.push(f);
@@ -1249,7 +1324,7 @@ export function createSim(config: SimConfig): Sim {
         state: f.state,
         x: c.x,
       });
-      if (stampedeActive()) stampede(f);
+      if (stampedeActive()) stampede(f, own ?? flockRng);
     }
   }
 
@@ -1263,12 +1338,9 @@ export function createSim(config: SimConfig): Sim {
 
   /** GDD §8 mass run/flush: the flock runs (or flushes) toward the screen centre, so the
    *  Stampede crosses the player's view instead of fleeing out of it. */
-  function stampede(f: Flock): void {
+  function stampede(f: Flock, r: RandomStream = flockRng): void {
     if (stampedeFlockState === null) return;
-    emitTransition(
-      f,
-      forceState(f, stampedeFlockState, towardCentre(f), 'stampede', fParams, flockRng),
-    );
+    emitTransition(f, forceState(f, stampedeFlockState, towardCentre(f), 'stampede', fParams, r));
   }
 
   function spawnFlocks(): void {
@@ -2248,6 +2320,7 @@ export function createSim(config: SimConfig): Sim {
             frenzyMul: fMul,
             stampedeMul: stampedeMul(),
             countdownMul: countdownMul(),
+            ...(reenbui === null ? {} : { reenbuiMul: reenbui.scoreMul() }),
             ...(groundZero ? { ruleMul: 0 } : {}),
           },
           bag?.modifiers ?? [],
@@ -2265,6 +2338,7 @@ export function createSim(config: SimConfig): Sim {
         });
       }
       stats.bagged++;
+      if (!ranged) reenbui?.bagged();
       stats.baggedByPlane[bird.plane]++;
       if (behaviour === 'flying') stats.wingShots++;
       if (c.kind === 'boss') bossesBagged++;
@@ -2364,7 +2438,15 @@ export function createSim(config: SimConfig): Sim {
         (layerId) =>
           tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
       );
-    const near = shotThreats(flocks, impacts, shotCx, radius, planeGeo, baggedFlockIds);
+    const near = shotThreats(
+      flocks,
+      impacts,
+      shotCx,
+      radius,
+      planeGeo,
+      baggedFlockIds,
+      reenbui === null ? undefined : (f) => reenbui.alertMul(f),
+    );
     threaten(near, radius > 0 ? 'shot' : 'silentBag');
     // v1.4 (D-038): a very loud gun alerts every other flock too (unless a charm or the rain
     // silenced the shot to nothing).
@@ -3477,6 +3559,7 @@ export function createSim(config: SimConfig): Sim {
     tells?.step();
     baboons?.step();
     harvest?.step();
+    reenbui?.step();
 
     if (ranged) rangeStep();
     else {
@@ -3661,6 +3744,7 @@ export function createSim(config: SimConfig): Sim {
         tells: tells?.view() ?? [],
         baboons: baboons?.view() ?? null,
         harvest: harvest?.view() ?? null,
+        reenbui: reenbui?.view() ?? null,
         powerups: powerups.map(powerupView),
         wind: windView(wind),
         dustDevils: dustDevils.map(dustDevilView),

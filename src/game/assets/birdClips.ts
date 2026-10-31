@@ -14,6 +14,8 @@ export function clipFor(
   tick: number,
   /** Ticks per walk/peck spell (feel.json juice.forageSpellTicks). */
   spellTicks: number,
+  /** v1.10 (D-067): its flock feeds at a Reënbui column (two spells in three are pecks). */
+  feeding = false,
 ): BirdClip {
   switch (motion) {
     case 'flyover':
@@ -32,7 +34,9 @@ export function clipFor(
     case 'flock':
       switch (phase) {
         case 'walk':
-          // Every third spell is a peck spell, staggered by bird id.
+          // Every third spell is a peck spell, staggered by bird id (feeding: two in three).
+          if (feeding)
+            return (Math.floor(tick / spellTicks) + id) % 3 !== 0 ? 'peck' : 'forage_walk';
           return (Math.floor(tick / spellTicks) + id) % 3 === 0 ? 'peck' : 'forage_walk';
         case 'alert':
           return 'alert';

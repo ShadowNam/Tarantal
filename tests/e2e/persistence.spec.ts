@@ -14,7 +14,7 @@ function onlyDesktopAndIphone(info: TestInfo): void {
 }
 
 async function ready(page: Page, query = ''): Promise<void> {
-  await page.goto(`/?e2e=1&seed=7${query}`);
+  await page.goto(`/?e2e=1&reenbui=0&seed=7${query}`);
   await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 60_000 });
   await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
     timeout: 60_000,

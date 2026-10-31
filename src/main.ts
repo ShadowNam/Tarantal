@@ -19,6 +19,7 @@ import {
   withMakalaniPreview,
   withBaboonRaid,
   withNoBaboons,
+  withReenbuiParams,
   withHarvestPreview,
   withNoPalms,
   withPlaneScales,
@@ -359,6 +360,7 @@ const hook: TestHook = {
   pops: { shown: 0, created: 0 },
   bark: null,
   barks: [],
+  barkClock: null,
   flockLog: [],
   result: null,
   firstShotAtMs: null,
@@ -445,6 +447,10 @@ const hook: TestHook = {
   harvestFlyovers: [],
   harvest: null,
   harvestMs: 0,
+  reenbui: null,
+  reenbuiDraw: null,
+  reenbuiMs: 0,
+  reenbuiParts: null,
   reloadFx: { chipIcons: [], bolts: 0, oupaHand: false, autoReloads: 0 },
   mirage: false,
   sceneryMs: 0,
@@ -516,16 +522,20 @@ const raidPreview = testHooks ? params.get('baboonRaid') : null;
 const withRaid = raidPreview === null ? devSpook : withBaboonRaid(devSpook, raidPreview);
 // e2e only (v1.8b, D-062): ?baboons=0 — no baboon troops (specs that don't test them).
 const noTroops = testHooks && params.get('baboons') === '0' ? withNoBaboons(withRaid) : withRaid;
+// e2e/dev only (v1.10, D-067): ?reenbui=1 forces a Reënbui, ?reenbuiPhase= holds a phase,
+// ?reenbui=0 turns it off (specs that pin a seed, lesson 17). Nothing else changes the content:
+// `?e2e` alone keeps the real content hash (the Daily seed, challenge links, Node replays).
+const withRain = testHooks ? withReenbuiParams(noTroops, params) : noTroops;
 // e2e/dev only (v1.8c, D-063): ?harvestDuck=<seconds> (a struck worker stays down that long) and
 // ?harvestRush=1 (the rush's peak from the start), for the Harvest's screenshots.
 const duckParam = testHooks ? Number(params.get('harvestDuck') ?? NaN) : NaN;
 const rushParam = testHooks && params.get('harvestRush') === '1';
 const devBundle =
   Number.isFinite(duckParam) && duckParam > 0
-    ? withHarvestPreview(noTroops, { duckSeconds: duckParam, rush: rushParam })
+    ? withHarvestPreview(withRain, { duckSeconds: duckParam, rush: rushParam })
     : rushParam
-      ? withHarvestPreview(noTroops, { rush: true })
-      : noTroops;
+      ? withHarvestPreview(withRain, { rush: true })
+      : withRain;
 // D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
 let adminSave: AdminSave | null = adminOn ? loadAdminSave() : null;
 const adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];

@@ -1,6 +1,7 @@
 // v1.9 (D-066): the soundscape's file load — the title tries once (titleLoadDelayMs after start),
 // a failed voice index is retried only by the next hunt's load(), never every frame, and a
-// browser that plays neither Ogg nor MP3 fetches nothing.
+// browser that plays neither Ogg nor MP3 fetches nothing. v1.10 (D-067): a Reënbui hunt's
+// sounds are released when the next hunt in the same area has none.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import type { AudioDirector } from './AudioDirector';
@@ -19,11 +20,11 @@ vi.mock('../assets/voiceIndex', () => ({
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
-function runtime(format: 'ogg' | 'mp3' | null) {
+function runtime(format: 'ogg' | 'mp3' | null, setSoundscapeKeys = vi.fn()) {
   const audio = {
     fileFormat: () => format,
     addRecorded: vi.fn(),
-    setSoundscapeKeys: vi.fn(),
+    setSoundscapeKeys,
     ambient: () => 'played',
     ambientPlaying: 0,
   } as unknown as AudioDirector;
@@ -68,5 +69,47 @@ describe('SoundscapeRuntime file load (v1.9, D-066)', () => {
     await rt.load();
     expect(fetchAssetIndex).not.toHaveBeenCalled();
     expect(loadVoiceIndex).not.toHaveBeenCalled();
+  });
+});
+
+describe('SoundscapeRuntime Reënbui sounds (v1.10, D-067)', () => {
+  it("a Reënbui hunt then a plain hunt in the same area: only the area's calls stay decoded", () => {
+    const keys = vi.fn<(k: readonly string[]) => void>();
+    const rt = runtime('ogg', keys);
+    const area = 'okavango-spring';
+    const scene = (seed: number) => {
+      rt.setScene({
+        area,
+        lights: [],
+        mapLights: [],
+        title: false,
+        hunt: { seed, mode: { id: 'classic' } },
+        startTick: 0,
+      });
+    };
+    const own = rt.sc.reenbui.cues.flatMap((c) => {
+      const call = rt.sc.calls[c.call];
+      return call === undefined ? [] : [call.sound];
+    });
+    expect(own.length).toBeGreaterThan(0);
+    scene(1);
+    const areaKeys = keys.mock.calls.at(-1)?.[0] ?? [];
+    expect(areaKeys.length).toBeGreaterThan(0);
+    expect(areaKeys.some((k) => own.includes(k))).toBe(false);
+    // The Reënbui hunt: its sounds are decoded with the area's.
+    const timing = {
+      buildupTick: 600,
+      dropsTick: 900,
+      swarmTick: 1200,
+      easingTick: 2400,
+      endTick: 3000,
+      withStorm: false,
+    };
+    rt.frame(10, [], [], 0, timing);
+    expect(keys.mock.calls.at(-1)?.[0]).toEqual(expect.arrayContaining([...areaKeys, ...own]));
+    // The next hunt, same area, no Reënbui: the event's sounds are released.
+    scene(2);
+    rt.frame(10, [], [], 0, null);
+    expect([...(keys.mock.calls.at(-1)?.[0] ?? [])].sort()).toEqual([...areaKeys].sort());
   });
 });

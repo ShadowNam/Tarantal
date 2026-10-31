@@ -28,6 +28,18 @@ describe('bird clips (M10)', () => {
     expect(at(1)).not.toEqual(at(0));
   });
 
+  it('D-067: a flock feeding at a Reënbui column pecks two spells in three', () => {
+    let pecks = 0;
+    let plain = 0;
+    for (let tick = 0; tick < 300; tick += 10) {
+      if (clipFor('flock', 'walk', 4, tick, 10, true) === 'peck') pecks++;
+      if (clipFor('flock', 'walk', 4, tick, 10) === 'peck') plain++;
+    }
+    expect(pecks).toBe(20);
+    expect(plain).toBe(10);
+    expect(clipFor('flock', 'run', 4, 0, 10, true)).toBe('run');
+  });
+
   it('every fallback chain ends, and a missing clip falls back along it', () => {
     for (const c of BIRD_CLIPS) expect(resolveClip(c, () => false)).toBeNull();
     const only = (have: readonly BirdClip[]) => (c: BirdClip) => have.includes(c);

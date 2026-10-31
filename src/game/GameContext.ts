@@ -10,7 +10,8 @@ import type { TreeLifeHook } from './view/tree/TreeLifeView';
 import type { TellHook } from './view/tell/TellView';
 import type { BaboonHook } from './view/baboon/BaboonView';
 import type { HarvestHook } from './view/harvest/HarvestView';
-import type { BaboonsView, HarvestView, PlaneId } from '../sim/types';
+import type { ReenbuiHook } from './view/reenbui/ReenbuiView';
+import type { BaboonsView, HarvestView, PlaneId, ReenbuiView as ReenbuiState } from '../sim/types';
 import type { NewYearHook } from './feesdae/NuwejaarView';
 import type { NamibLifeHook } from './view/namib/NamibLifeView';
 import type { LoadStatus, SaveStore } from '../meta/save';
@@ -229,6 +230,8 @@ export interface TestHook {
     y: number;
     /** v1.3: the flock's plane (Ver flocks for the long-range checks). */
     plane: string;
+    /** v1.10 (D-067): feeding at a Reënbui column. */
+    feeding?: boolean;
   }[];
   /** v1.0.1 (D-028 §4): score pops shown this page, and pop objects made (pooled: stays small). */
   pops: { shown: number; created: number };
@@ -236,6 +239,9 @@ export interface TestHook {
    *  he has said on this page, oldest first (capped). */
   bark: { line: string; text: string; x: number; y: number; w: number; h: number } | null;
   barks: string[];
+  /** v1.10 (review of #110): Oupa's gap clock in a hunt — the HUD's ms now and when his last line
+   *  went out (null before any), so a spec can wait for the gap before an action that barks. */
+  barkClock: { now: number; last: number | null } | null;
   result: HuntResult | null;
   /** performance.now() when the first shot of the page was fired (ms since navigation start). */
   firstShotAtMs: number | null;
@@ -524,6 +530,13 @@ export interface TestHook {
     bystanderPenalty: number;
   } | null;
   harvestMs: number;
+  /** v1.10 (D-067): this hunt's Reënbui from the snapshot (null: none), what its view drew this
+   *  frame (null: no view, or the chunk not in yet), the ms its view took summed over the frames
+   *  sceneryFrames counts (perf.spec: per scenery frame), and those ms by part. */
+  reenbui: ReenbuiState | null;
+  reenbuiDraw: ReenbuiHook | null;
+  reenbuiMs: number;
+  reenbuiParts: { rain: number; sky: number; ground: number; columns: number } | null;
   /** D-064 (perf): ms the special day's view took (its update; the heat shimmer is counted in
    *  sceneryMs with the mirage), summed over the frames sceneryFrames counts. */
   feesdagMs: number;

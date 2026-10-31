@@ -66,7 +66,9 @@ export type StreamName =
   // v1.8b (D-062): baboon troops (their make-up, idle moves, raids, how long they stay away).
   | 'baboons'
   // v1.8c (D-063): the Harvest's warthogs and piglets.
-  | 'harvest';
+  | 'harvest'
+  // v1.10 (D-067): Reënbui (whether it comes, when, its columns and the extra flocks).
+  | 'reenbui';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {

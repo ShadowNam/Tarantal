@@ -703,6 +703,31 @@ delivered under `sfx/harvest_*`): the wire snapping, a warthog's grunt, a piglet
 of a bagged one, the workers' hammering, the crop warning's two soft beeps and a four-note harvest
 jingle when the fence is whole. Oupa's Harvest lines (`guide.harvest.*`): en/af/de voiced, nl text.
 
+### 5.5 Reënbui: the storm, the rain and the alate columns (1.13.0, D-067)
+Interim at the D-035 bar, soft weather in gradients and layered tones (no ink on vapour). **One
+sheet** (`reenbui/sheet`, 512 × 256 at 1×, the late group, Standard in HD: 0.5 MiB on the GPU,
+inside the Okavango's HD headroom; each frame cropped to its art, the columns, rain tiles, towers
+and wet patch authored at half size and drawn ×2): two rain tiles that repeat across the screen (fine far streaks;
+fat near drops with a bright head; each streak drawn at its wrapped copies, so no seam), the alate
+column's four rising frames, the mound, the first drops' dust puff (four frames), a wet-ground
+patch, two storm towers (dark flat bases, lit billowing tops; one with an anvil) and two small
+lightning forks. **The columns are the heart of it** (review of #110: at first they were faint
+specks): drawn at mid-plane size (shown 1:1 on the mid plane, ~430 px tall, rising well above the
+birds into the sky; by plane scale on the far one), a warm haze densest at the mound and fading
+high up, leaning a little downwind; the alates are 3–5 px across at the mid plane, a dark body
+and two long cream wings, many low down and a quarter of them near the top; a different few catch
+the light in gold in every frame (the shimmer), and the column sways a few px sideways as it loops.
+The first column rises where a flock in view forages, so the guineafowl feed right at it.
+**In the game:** the towers roll in from the sides over the build-up and out after the rain; the
+land dims a little (sky to a blue-grey, the land to a cool grey, six steps each way, chunked); a
+small fork flickers far off under the towers every ~3.3 s (never a screen flash: the shared
+limiter, dimmer with "reduce flashes", none with "reduce motion"); the first drops are heavy, with
+dust puffs and the ground darkening in patches; **as the alates rise the rain eases to a drizzle**
+(the fine far streaks only, faint — termite alates fly when the rain lets up, and the columns and
+the birds stay clear in the ×1.3 window), and it stops as the easing starts; the wet ground dries
+over 8 s after. With the Kalahari Donderstorm only the columns and the wet ground are the event's:
+the storm's own gloom, rain and lightning do the rest.
+
 ## 6. HUD and UI
 
 **Materials:** weathered wood signs (`#8B5A2B`), cream enamel with blue rim (`#F3EAD3` / `#2D5DA8`),
@@ -922,6 +947,19 @@ Karoo mostly kwela with a light marimba. All phrases are original, built from ea
 replaces it (`docs/06-ASSET-DELIVERY.md` §5 lists the keys); own recordings or public-domain ones
 with their source written down, never NonCommercial library or xeno-canto files. `npm run
 audio:preview` renders a 20 s mix per area with its spectrogram for review (`docs/audio-preview/`).
+
+### 10.3 Reënbui's sounds (1.13.0, D-067)
+The first summer storm in sound: **thunder** rolling in far off (a soft crackle, then a low,
+rolling rumble), **the first fat drops** on a sinkdak and on the dust (metallic ticks with a ring,
+soft pats, closer and closer together), **the rain** (a steady hiss full of ticks on the iron roof)
+easing off as the alates rise into **a sparse patter**, the swarm's **soft buzz** (a warm drone of small wings with a flutter) and the
+**excited birds** at the feast (guineafowl "kek-kek" chatter, quick small-bird chirps). Interim
+synths (`tools/audio/soundscape.ts`, mono 32 kHz, `sfx/amb_reenbui_*`, the lazy `soundscape`
+group); recordings wanted (docs/06). The soundscape's own calls go quiet from just before the
+build-up until 1.5 s after the rain has eased: the event's cues are the veld's sound then.
+**Oupa:** "Smell that rain?!" / "Ruik jy die reën?!" at the first drops, "Flying ants! Every bird is
+coming down to feast!" / "Rysmiere! Al die voëls kom fees!" when the alates rise, "There goes the
+rain. By Sunday the veld will be green." when it eases (en/af/de interim TTS, nl text).
 
 ## 11. Special days (Feesdae, D-048)
 

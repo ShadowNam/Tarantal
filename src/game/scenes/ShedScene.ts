@@ -571,6 +571,12 @@ export class ShedScene extends Phaser.Scene {
         seen: book.creatures.includes('bobbejaan'),
         sub: fill(g0('rule'), { n: this.ctx.content.birds.baboons.hit.hitsToBag }),
       },
+      // v1.10 (D-067): the alates (flying termites), seen once a Reënbui swarm rose.
+      {
+        label: guideString(getLanguage(), 'guide.reenbui.book') ?? '',
+        seen: book.creatures.includes('rysmier'),
+        sub: guideString(getLanguage(), 'guide.reenbui.note') ?? '',
+      },
       // v1.4 B: a locked area pack keeps its secrets to itself until it is unlocked.
       ...this.ctx.content.biomes
         .filter((b) =>

@@ -5,11 +5,13 @@
 //   mult   = 1 + behaviourAdd
 //   for each modifier in order (charms in slot order, effects in listed order):
 //       addMult → mult += x        mulMult → mult ×= x
-//   mult  ×= weaponScoreMul × frenzyMul × stampedeMul × countdownMul
+//   mult  ×= weaponScoreMul × frenzyMul × stampedeMul × countdownMul × reenbuiMul
 //                                          (system multipliers, always last; then a Boss Rule's)
 //   award  = round(points × mult)
 // D-065: countdownMul is New Year's "Countdown ×2" (1 outside its last 10 s); it stacks with
 // the Stampede's, so the last 10 s of a New Year Daily are ×4.
+// D-067: reenbuiMul is the Reënbui swarm's (content reenbui.scoreMul while the alates fly; 1
+// otherwise), bags only.
 
 export interface BagContext {
   /** Plane base points, or the creature's baseOverride. */
@@ -22,6 +24,8 @@ export interface BagContext {
   readonly stampedeMul: number;
   /** D-065: New Year's countdown (1 outside it, and on every other day). */
   readonly countdownMul?: number;
+  /** D-067: the Reënbui swarm window's multiplier (1 outside it). */
+  readonly reenbuiMul?: number;
   /** A Boss Rule's multiplier, after everything (Ou Grys: ground shots ×0). Default 1. */
   readonly ruleMul?: number;
 }
@@ -44,6 +48,7 @@ export type BreakdownKind =
   | 'frenzy'
   | 'stampede'
   | 'countdown'
+  | 'reenbui'
   | 'bossRule';
 
 export interface BreakdownStep {
@@ -102,6 +107,11 @@ export function scoreBag(ctx: BagContext, modifiers: readonly Modifier[]): BagSc
   if (countdownMul !== 1) {
     mult *= countdownMul;
     push('countdown', 'countdown', countdownMul);
+  }
+  const reenbuiMul = ctx.reenbuiMul ?? 1;
+  if (reenbuiMul !== 1) {
+    mult *= reenbuiMul;
+    push('reenbui', 'reenbui', reenbuiMul);
   }
   const ruleMul = ctx.ruleMul ?? 1;
   if (ruleMul !== 1) {

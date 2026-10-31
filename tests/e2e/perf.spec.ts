@@ -586,6 +586,178 @@ test('perf: a New Year countdown hunt at 4× CPU throttle, fireworks at their mo
   expect(errors).toEqual([]);
 });
 
+// v1.10 (D-067): a Reënbui in HD on the heaviest map — the Okavango (252.9 MB with the New Year
+// special; ~3 MB left) — reached from the title, the swarm held (?reenbuiPhase=swarm): the event's
+// sheet is 1× and Standard in HD (512 × 256 px, 0.5 MiB on the GPU), no HD Reënbui texture, no
+// other area's HD layers. ≤ 256 MB asserted.
+test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'the Pixel 7 profile (medium tier)',
+  );
+  test.setTimeout(400_000);
+  await emulateCores(page);
+  await boot(
+    page,
+    'biome=okavango-spring&layout=none&seed=3&huntSeconds=60&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm',
+  );
+  await startHunt(page, isTouchProject(info));
+  await page.waitForFunction(
+    () => {
+      const tm = window.__TM__;
+      const fauna = (tm?.graphics.bounds ?? []).filter((b) => b.key.startsWith('fauna/'));
+      return (
+        tm?.biome === 'okavango-spring' &&
+        tm.reenbui?.phase === 'swarm' &&
+        tm.reenbuiDraw?.sheet === true &&
+        tm.graphics.hdTextures > 0 &&
+        fauna.length > 0 &&
+        fauna.every((b) => b.hd)
+      );
+    },
+    null,
+    { timeout: 240_000 },
+  );
+  const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
+  await page
+    .waitForFunction(
+      (from) => {
+        const tm = window.__TM__;
+        if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
+        return !tm.textureTop.some(
+          (t) =>
+            t.key.includes('/hd/') &&
+            t.key.includes('layer/') &&
+            !t.key.includes('layer/okavango/'),
+        );
+      },
+      r0,
+      { timeout: 90_000 },
+    )
+    .catch(() => undefined);
+  await page.waitForTimeout(4000);
+  const h = await hook(page);
+  const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
+  console.log(`[perf] reenbui (okavango) HD texture memory (title → hunt) ${mb} MB`);
+  await info.attach('hd-memory-reenbui-okavango.json', {
+    body: JSON.stringify({ biome: 'okavango-spring', textureMB: mb, top: h.textureTop }, null, 1),
+    contentType: 'application/json',
+  });
+  const others = h.textureTop.filter(
+    (t) => t.key.includes('/hd/') && t.key.includes('layer/') && !t.key.includes('layer/okavango/'),
+  );
+  expect(others, "another area's HD layers on the GPU").toEqual([]);
+  expect(
+    h.textureTop.filter((t) => t.key.includes('reenbui') && t.key.includes('hd')),
+    'an HD Reënbui texture on the GPU',
+  ).toEqual([]);
+  expect(mb, 'reenbui (okavango): texture memory (MB) with HD').toBeLessThanOrEqual(256);
+});
+
+// v1.10 (D-067): Reënbui's swarm held at its peak (?reenbuiPhase=swarm: the rain, the columns,
+// the dimmed land, the feeding flocks) on the Pixel 7 profile at 4× CPU throttle, medium tier.
+// The event's view on its own timer (reenbuiMs per scenery frame over the swarm, with its parts
+// reported), ≤ 0.3 ms, and the frame within the smoke's budget. The sim's step at the swarm's peak
+// is a unit test (tools/simPerf.test.ts).
+test('perf: a Reënbui swarm at its peak at 4× CPU throttle (Pixel 7)', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await emulateCores(page);
+  await page.addInitScript(() => {
+    const key = 'tm.e2e.save.v1';
+    if (localStorage.getItem(key) === null)
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          v: 1,
+          settings: { quality: 'medium' },
+          ftue: { done: true, skipped: false, step: '' },
+        }),
+      );
+  });
+  await boot(
+    page,
+    'biome=kalahari-summer&layout=none&seed=3&huntSeconds=30&graphics=standard&baboons=0&reenbui=1&reenbuiPhase=swarm',
+  );
+  await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
+    timeout: 60_000,
+  });
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await tapRect(page, touch, 'start');
+  await page.waitForFunction(
+    () => {
+      const tm = window.__TM__;
+      return (
+        tm?.reenbui?.phase === 'swarm' &&
+        tm.reenbuiDraw?.sheet === true &&
+        tm.reenbuiDraw.columns.length > 0
+      );
+    },
+    null,
+    { timeout: 180_000 },
+  );
+  const first = await hook(page);
+  let maxColumns = 0;
+  let rain = 0;
+  for (let i = 0; i < 200 && !(await hook(page)).over; i++) {
+    const h = await hook(page);
+    maxColumns = Math.max(
+      maxColumns,
+      (h.reenbuiDraw?.columns ?? []).filter((c) => c.visible).length,
+    );
+    // The swarm's drizzle (fine far streaks only).
+    rain = Math.max(rain, h.reenbuiDraw?.rainFar ?? 0);
+    await waitTicks(page, 60);
+  }
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const real = stats(h.frameTimes.slice(30));
+  const cpu = stats(h.cpuFrameMs.slice(30));
+  const frames = Math.max(1, h.sceneryFrames - first.sceneryFrames);
+  const part = (k: 'rain' | 'sky' | 'ground' | 'columns'): number =>
+    ((h.reenbuiParts?.[k] ?? 0) - (first.reenbuiParts?.[k] ?? 0)) / frames;
+  const report = {
+    project: info.project.name,
+    tier: h.quality.tier,
+    throttle: 4,
+    maxColumnsShown: maxColumns,
+    rainAlpha: rain,
+    reenbuiMsPerFrame: (h.reenbuiMs - first.reenbuiMs) / frames,
+    reenbuiParts: {
+      rain: part('rain'),
+      sky: part('sky'),
+      ground: part('ground'),
+      columns: part('columns'),
+    },
+    realFrameMs: real,
+    cpuFrameMs: cpu,
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf.json'), JSON.stringify(report, null, 2));
+  expect(maxColumns, 'alate columns drawn on screen').toBeGreaterThan(0);
+  expect(rain, 'the rain drawn').toBeGreaterThan(0);
+  expect(cpu.n).toBeGreaterThan(30);
+  expect(report.reenbuiMsPerFrame, 'Reënbui view ms per frame, 4× throttle').toBeLessThanOrEqual(
+    0.3,
+  );
+  expect(cpu.avg, 'CPU cost per frame (ms), the Reënbui swarm, 4× throttle').toBeLessThanOrEqual(
+    BUDGET_MS,
+  );
+  expect(errors).toEqual([]);
+});
+
 // v1.8c (D-063): the Harvest's rush at its peak (?harvestRush=1: the peak rate from the start) on
 // the Pixel 7 profile at 4× CPU throttle: the warthogs, piglets, workers and the fence drawn, the
 // Harvest view on its own timer (harvestMs per scenery frame), the frame within the other maps'

@@ -208,8 +208,9 @@ describe('voice packs (v1.5, D-041)', () => {
     // 44 lines in v1.5; v1.6b adds Oupa Laai's bark, v1.7 the meerkats' scold and Familiefoto,
     // D-048 the Spookjag's five; v1.8 (D-050) the two Blikkies lines; 1.9.3 (D-056) the makalani;
     // v1.8b (D-062) the baboons' ten; v1.8c (D-063) the Harvest's six; D-064 Christmas's five;
-    // D-065 New Year's four.
-    expect(LINES.length).toBe(80);
+    // D-065 New Year's four; v1.10 (D-067) Reënbui's three.
+    expect(LINES.length).toBe(83);
+    expect(LINES).toContain('bark.reenbui_swarm');
     expect(LINES).toContain('guide.baboon.raid_moon');
     expect(LINES).toContain('bark.makalani');
     expect(LINES).toContain('bark.oupa_laai');

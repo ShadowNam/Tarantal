@@ -15,7 +15,7 @@ async function huntWithHerds(
   graphics: string,
 ): Promise<FaunaProbe[]> {
   await page.goto(
-    `/?e2e=1&biome=${biome}&layout=none&feesdag=none&seed=3&huntSeconds=120&ftue=0&graphics=${graphics}`,
+    `/?e2e=1&reenbui=0&biome=${biome}&layout=none&feesdag=none&seed=3&huntSeconds=120&ftue=0&graphics=${graphics}`,
   );
   await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 120_000 });
   await startHunt(page, isTouchProject(info));

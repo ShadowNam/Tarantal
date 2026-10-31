@@ -379,12 +379,29 @@ after a hunt has started, never in the first download; the game decodes only the
 | `amb_korhaan` | A korhaan's rasping "kraak-kraak" | Kalahari, Namibië | ≤ 1.7 s |
 | `amb_francolin` | A francolin's harsh, accelerating dawn call | Bushveld, Harvest | ≤ 1.8 s |
 | `amb_go_away_bird` | A grey go-away-bird's nasal "kweh" far off (far only) | Bushveld | ≤ 1.4 s |
+| `amb_reenbui_thunder` | v1.10 Reënbui (D-067): distant thunder rolling in (a crackle, then a low rolling rumble) | Reënbui areas | ≤ 4.6 s |
+| `amb_reenbui_drops` | The first fat drops on a corrugated-iron roof (sinkdak) and on dust, closer and closer together | Reënbui areas | ≤ 3.2 s |
+| `amb_reenbui_rain` | Rain on a sinkdak and the dust, in soft, easing off at the end | Reënbui areas | ≤ 6 s |
+| `amb_reenbui_patter` | The swarm's drizzle: a sparse patter of drops on the sinkdak and the dust | Reënbui areas | ≤ 6.5 s |
+| `amb_reenbui_buzz` | A swarm of flying termites: a soft, warm buzz of small wings | Reënbui areas | ≤ 6.2 s |
+| `amb_reenbui_birds` | Excited birds at the feast: guineafowl chatter, quick small-bird chirps | Reënbui areas | ≤ 2.6 s |
 
 A recording longer than the table's length also needs its `lengthMs` raised in
 `content/client/soundscape.json` (the voice is held that long; `npm test` checks the interim ones).
 How often each plays, how loud and how far is content (`soundscape.json`), not the recording.
 Record your own, or use public-domain recordings with the source written down; most library and
 xeno-canto recordings are NonCommercial and can't be used.
+
+**Reënbui (v1.10, D-067; art bible §5.5).** One interim sheet, `sprites/reenbui/sheet.png`
+(512 × 256 at 1×, the late group, `hd: false`: Standard in HD; layout, crops and frame names in
+`src/game/view/reenbui/reenbuiSheet.ts`; frames with `res` 0.5 are drawn at half size and shown
+×2): `rain_far` and `rain_near` (256 × 192 tiles shown, 128 × 96 on the sheet, that must
+repeat seamlessly, top-left origin), `col_0`…`col_3` (the alate column's rising loop, 92 × 432 shown at mid-plane size,
+46 × 216 on the sheet, foot at 44, 426; frame 3 leads back into frame 0; alates 3–5 px across shown, a few glinting per frame), `mound`, `puff_0`…`puff_3`, `wet`,
+`cloud_a`, `cloud_b` (storm towers, base at the bottom centre) and `fork_a`, `fork_b` (small far
+lightning, top centre). A delivery keeps the size and the frame boxes (or updates the table and
+`reenbuiKeys.ts`) and stays ≤ 0.5 MiB on the GPU (`GPU_BYTES_CAP`: the Okavango's HD headroom). The six
+`sfx/amb_reenbui_*` sounds are in the soundscape table above.
 
 **Desert group (v1.7, D-044).** The meerkat colonies' sheet `desert/meerkats` and their four
 sounds (`sfx/meerkat_chirp`, `sfx/meerkat_alarm`, `sfx/meerkat_dig`, `sfx/camera_click`) are

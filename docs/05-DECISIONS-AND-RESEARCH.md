@@ -3636,6 +3636,88 @@ golden or content hash moved.
   [Wikipedia — Ptenopus](https://en.wikipedia.org/wiki/Ptenopus) ·
   [Wikipedia — Grey go-away-bird](https://en.wikipedia.org/wiki/Grey_go-away-bird)
 
+**D-067 1.13.0 v1.10: Reënbui — the first rain and the flying ants (31 Oct 2026):** from the
+product owner's list of 24 Oct ("Reënbui: summer storm, first rain, flying ants, every flock
+feeds"). GDD §11.3e.
+- *A world event of its own, not a biome `events` entry.* Its chance roll, start and column spots
+  come from its own stream `reenbui` (never shared), so the `events` stream (and every other
+  event's time) is unchanged on every map: only hunts where it rolls replay differently. Golden
+  replays re-recorded for that reason. Content: `content/reenbui.json` (phases, factors, per-area
+  chance with cross-references to the biomes), layouts `reenbui: force | none`.
+- *Where:* the Kalahari 45 %, the Okavango 35 %, Namibië 15 %, the Karoo 5 % (the season fits:
+  the first summer storms; the Okavango's spring is the end of the dry season, the Karoo's autumn
+  late rains are rare). Never the winter Bushveld; not the Harvest (late autumn, after the rains).
+  `calm` days never; overcast Wednesday in the Kalahari and the Okavango always.
+- *Not tied to omens*, but it meets them: in a Kalahari omen hunt the swarm rises when the
+  Donderstorm breaks (no second storm, no own build-up or drops); in an Okavango omen hunt the
+  sun-shower spells overlapping the event are dropped.
+- *Scoring:* `reenbuiMul` ×1.3 on bags in the swarm window, a system multiplier after the
+  Countdown's (GDD §5.3), so it stacks with the Frenzy and the Stampede; event bonuses unchanged.
+  ×1.5 (the brief's example) put a hunt with the swarm at +12 %: most of the lift is the feeding
+  itself, so ×1.3 (+7.8 … +10.5 % with it; every area's average +0.5 … +4.5 %, 500 seeds,
+  `docs/balance/v1.10-reenbui.md`).
+- *Flocks:* within reach of a column, a forage or settle flock's goal is the column (the same
+  draws from `flockNoise`, so nothing else shifts) and its shot alert radius is ×0.7; the build-up
+  makes every flock's radius ×1.15. Up to 2 extra flocks run in (inside maxFlocks and
+  maxBirdsOnScreen): every draw for them (size, twist, run state, Stampede state) comes from the
+  `reenbui` stream, and the "threat" they run from sits `extraFlocks.runFromPx` behind them
+  (content; review of #110 — they had drawn their run and twist from `flocks`/`twist`).
+- *e2e:* `?reenbui=0` turns it off (lesson 17, like `?baboons=0`); `tests/e2e/helpers.ts` boot()
+  adds it unless a spec names `reenbui=`, and the direct `page.goto` boots carry it, so every
+  existing spec that pins a seed plays it as before. Nothing else changes the content: `?e2e` alone
+  keeps the real content hash (review of #110: an automatic switch-off under `?e2e` changed the
+  hash and broke the Daily seed, challenge links and the Node replay checks). The specs that
+  compare with Node (daily, the challenge links, the replays in hunt, maps, langloop, longrange)
+  boot with `reenbui=content`: the real content on both sides, so a Reënbui that rolls is the same
+  in Node. `?reenbui=1` forces it, `?reenbuiPhase=` holds a phase.
+- *Art in the late group, not a group of its own:* one 1× sheet (512 × 256 since the review's
+  memory fix below, PNG8, 0.5 MiB on the GPU) shared by the four areas, listed only by their manifests, loaded in the
+  background after the first download and polled by the view (never waited for: the event plays
+  the same undrawn). A `reenbui` group would have needed its own loader plumbing for one file; a
+  per-area copy would have put it in four area chunks. Standard in HD (no HD twin): the soft rain,
+  vapour and the mid/far columns gain nothing at 2×, and the Okavango's HD hunt has ~3 MB left.
+- *Sounds in the soundscape's lazy group:* the six interim synths (`sfx/amb_reenbui_*`, ~29 s
+  mono) are soundscape calls the director never schedules by itself; the soundscape runtime plays
+  them as the event's cues on sim time and decodes them only for a hunt with a Reënbui. The
+  soundscape makes room by reading the sim's own phase ticks from the snapshot (lesson 36).
+- *Review of #110 (the look):* the columns were faint specks at phone size. They are now drawn at
+  mid-plane size (~430 px tall there, by plane scale on the far one), alates 3–5 px across with
+  a few glinting per frame, a sideways sway, and the first column rises where a flock in view
+  forages (`placeColumns`' anchor). The golden replays were not re-recorded for that anchor: it
+  fired at neither golden swarm, and in play it almost never did (competent bot: 0 of 20 forced
+  Okavango hunts — at the swarm's tick the flocks in view were flushing or gone). The rain eases
+  to a faint drizzle in the swarm (alates fly when the rain lets up; the columns and birds stay
+  clear in the ×1.3 window) and stops with the easing; the rain sound fades into a patter
+  (`sfx/amb_reenbui_patter`). The sheet grew to 1024 × 490 (~1.9 MiB on the GPU), which tipped
+  the Okavango HD case over its budget (below).
+- *Review of #110 (the anchor and the streams):* the first column now rises at a flock in view
+  that forages, settles or is coming down to land (where it lands), else where the flock nearest
+  the view lands (`landingX`: the flight model read only), held inside the view, if that is within
+  feeding reach — sim camera and content only, never a device viewport; it draws nothing.
+  Competent bot, 20 forced hunts: anchored in 14 (Okavango), 14 (Kalahari), 15 (Karoo); the rest
+  had no flock within reach of the view. With the extra flocks' draws moved to `reenbui` (above),
+  the golden replays were re-recorded twice, each time only the cases that roll a Reënbui moving:
+  for the streams all six (classic-41/81 and daily-42 Okavango, classic-82 Karoo,
+  classic-91/daily-92 Kalahari); for the anchor five (all but daily-92, whose first column comes out
+  the same under both rules).
+- *Review of #110 (HD texture memory):* with the 1024 × 490 sheet the Okavango HD hunt with the
+  event measured 256.2 MB in CI (budget ≤ 256, not relaxed; the plain Okavango HD hunt 253.9). The
+  sheet is now 512 × 256 (524 288 bytes RGBA, from 2 007 040: −1.41 MiB, so ≈ 254.8 MB): every
+  frame cropped to its art, and the soft or repeating frames (the four column frames, both rain
+  tiles, the storm towers, the wet patch) authored at half size and drawn ×2 (`res` in the frame
+  table); the forks, puffs and mound stay full size. A unit test caps the sheet's GPU bytes
+  (`GPU_BYTES_CAP`, 0.5 MiB).
+- *Phones:* the rain is two screen-space containers of baked tiles (one move a frame), the columns
+  one image each cycling four baked frames, the sky and the ground parts on alternate frames,
+  properties only on change: ≤ 40 Phaser calls in every frame of the event in the perf smoke's
+  20-ticks-a-frame regime and at 60 fps (unit-tested; review of #110: the images are built hidden
+  as the sheet arrives, one group a frame, and the dim step takes what the frame leaves); the sim's `step()` ~0.1 ms with 60 birds in the swarm.
+- *Species note.* Termite alates (winged reproductives) leave the nest in swarms on warm, humid
+  evenings after the first good summer rains, and birds, lizards and people feast on them ("rysmiere"
+  in Afrikaans folk use; *Macrotermes* and harvester termites in the region).
+  Sources: [Wikipedia — Termite](https://en.wikipedia.org/wiki/Termite) ·
+  [Wikipedia — Alate](https://en.wikipedia.org/wiki/Alate)
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

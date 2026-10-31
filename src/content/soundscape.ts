@@ -62,6 +62,33 @@ export const SoundscapeSchema = obj({
         warns: id.optional(),
       }),
     ),
+    /** v1.10 (D-067): Reënbui makes room — every call is quiet from quietBeforeMs before its
+     *  build-up until quietAfterMs after the rain has eased — and plays its own cues (calls
+     *  above), timed from each phase's start on sim time. */
+    reenbui: obj({
+      quietBeforeMs: nonNeg,
+      quietAfterMs: nonNeg,
+      /** Its voices at once (the soundscape's are quiet then). */
+      maxVoices: posInt.max(4),
+      /** A cue more than this late (a slow frame, a held hunt) is skipped. */
+      lateMs: pos,
+      cues: z
+        .array(
+          obj({
+            call: id,
+            phase: z.enum(['buildup', 'drops', 'swarm', 'easing']),
+            /** First play, from the phase's start; then every everyMs (0 = once) in the phase. */
+            atMs: nonNeg,
+            everyMs: nonNeg,
+            levelDb: z.number().max(0),
+            distance: soundscapeDistance,
+            /** Plays when the swarm rose with the Kalahari storm too (its own thunder and rain
+             *  don't: the storm has them). */
+            withStorm: z.boolean(),
+          }),
+        )
+        .min(1),
+    }),
     areas: z.record(
       id,
       z
@@ -154,6 +181,10 @@ export function checkSoundscape(sc: Soundscape, refs: SoundscapeRefs): string[] 
         errors.push(`${at}: ${e.call} sounds like a penalty creature: far only`);
       if (sc.profiles[e.profile] === undefined) errors.push(`${at}: no profile ${e.profile}`);
     });
+  sc.reenbui.cues.forEach((c, i) => {
+    used.add(c.call);
+    if (sc.calls[c.call] === undefined) errors.push(`reenbui.cues[${i}]: no call ${c.call}`);
+  });
   for (const id of Object.keys(sc.calls))
     if (!used.has(id)) errors.push(`calls.${id}: no area plays it`);
   return errors;

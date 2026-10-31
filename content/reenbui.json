@@ -1,0 +1,19 @@
+{
+  "$comment": "Reënbui (GDD §11.3e, D-067): the first summer rain and the flying ants. A world event of its own (stream `reenbui`), at most once a hunt, by a chance per area; a layout's `reenbui` forces or forbids it, a calm day never has it. Px are design px at the mid plane (D-049), times in seconds. In a Kalahari omen hunt the swarm rises when the Donderstorm breaks (no build-up or drops of its own); in an Okavango omen hunt the sun-shower spells that would overlap it are dropped. columns.planes: a plane listed twice is twice as likely.",
+  "version": 1,
+  "phaseSeconds": { "buildup": 6, "drops": 3, "swarm": 15, "easing": 4 },
+  "window": [0.2, 0.5],
+  "endMarginSeconds": 4,
+  "areas": [
+    { "biome": "kalahari-summer", "chance": 0.45 },
+    { "biome": "okavango-spring", "chance": 0.35 },
+    { "biome": "namibie", "chance": 0.15 },
+    { "biome": "karoo-autumn", "chance": 0.05 }
+  ],
+  "modes": ["classic", "daily", "seasonHunt"],
+  "buildupAlertRadiusMul": 1.15,
+  "scoreMul": 1.3,
+  "columns": { "count": [2, 4], "planes": ["mid", "mid", "far"], "spreadPx": 760, "minGapPx": 420 },
+  "feeding": { "reachPx": 900, "spreadPx": 70, "alertRadiusMul": 0.7, "hurryBeyondPx": 160, "hurrySpeedMul": 0.8 },
+  "extraFlocks": { "max": 2, "size": [3, 6], "everySeconds": 4, "fromPx": 1100, "runFromPx": 60 }
+}

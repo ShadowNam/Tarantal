@@ -14,7 +14,7 @@ function collectErrors(page: Page): string[] {
 test('boots the game (landscape) or shows the rotate card (portrait)', async ({ page }, info) => {
   const orientation = info.project.metadata['orientation'] as 'landscape' | 'portrait';
   const errors = collectErrors(page);
-  await page.goto('/?e2e=1&debug=1');
+  await page.goto('/?e2e=1&reenbui=0&debug=1');
 
   const canvas = page.locator('#game canvas');
   await expect(canvas).toHaveCount(1);
@@ -61,7 +61,7 @@ test('fullscreen button: never on iPhone (no element Fullscreen API) — Add to 
     ),
     'one desktop and the iPhone',
   );
-  await page.goto('/?e2e=1');
+  await page.goto('/?e2e=1&reenbui=0');
   await page.waitForFunction(() => window.__TM__?.ready === true);
   const button = page.locator('[data-action="fullscreen"]');
   const banner = page.locator('#install-banner');

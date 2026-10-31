@@ -707,6 +707,7 @@
       "id": "wed",
       "light": "overcast",
       "weather": "default",
+      "reenbui": "force",
       "$comment": "Overcast: the old windpomp sign stands by the dead camelthorn; birds run more than they fly.",
       "props": [
         {
