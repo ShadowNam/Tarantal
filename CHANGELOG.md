@@ -3,6 +3,24 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.12.0] — v1.9: the veld soundscape and local music (31 Oct 2026)
+
+Decision record D-066. From the product owner's list of 24 Oct: "Veld soundscape per area and time
+of day, plus marimba, mbira and drum layers."
+
+- **The veld sounds alive**: over each area's ambience, the birds, insects and weather of that
+  place at that time of day — Cape turtle doves and laughing doves everywhere, hadedas far off at
+  dawn and dusk, cicadas in the heat; the fish eagle, reed frogs at dusk and a distant hippo on the
+  Okavango; wind, a windpomp and sheep in the Karoo; barking geckos and a korhaan in the Kalahari
+  and Namibië; francolins at dawn and a go-away-bird far off in the Bushveld. Near, mid and far
+  calls, spread across the screen; the title plays the area too, more calmly.
+- The hadeda, fish eagle and kwêvoël only ever call far off in the soundscape, and fall silent
+  before and while the real one appears: its own call stays your warning.
+- **Local music**: a pennywhistle over an mbira in the calm music, a marimba joining as the flocks
+  run, hand drums in the Stampede — each area with its own colour.
+- The soundscape is a small download of its own after the hunt starts; nothing new in the first
+  download but a few lines of code. Effects volume, mute and pause apply.
+
 ## [1.11.2] — Feesdae: New Year countdown (31 Dec–1 Jan) (30 Oct 2026)
 
 Decision record D-065. The product owner picked it on 27 Oct from the Feesdae list of 24 Oct: "a

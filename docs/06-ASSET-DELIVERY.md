@@ -263,7 +263,10 @@ hadeda call, UI clicks) needs a key in the game first: ask the developer for it.
 `kalahari-summer`): `audio/music/<biome>/calm.wav`, `build.wav` and `stampede.wav`, plus
 `audio/ambience/<biome>.wav`. **Calm** plays at the title and in quiet stretches, **build** when a
 flock runs or flushes or the Frenzy reaches ×2, and **stampede** in the Stampede. A missing stem
-falls back to the next calmer one. Music ducks −6 dB under Oupa.
+falls back to the next calmer one. Music ducks −6 dB under Oupa. v1.9 (D-066): the interim stems
+carry Southern African parts — a pennywhistle lead over an mbira ostinato (calm), a marimba line
+(build) and hand drums over the kit (Stampede), each area with its own colour (art bible §10);
+a delivery keeps that idea in the same keys and tempo.
 
 **Voices** (v1.5, D-041; art bible §10.1). Oupa speaks English, Afrikaans and German; the
 player picks the voice language in Settings. **One folder per voice language:**
@@ -352,6 +355,36 @@ feel.json (`content:validate` checks the key exists); the audit then lists its v
 at or under 3 MB gzip in total (v1.x plan; `npm run size` hard budget 5 MB), and every other
 biome's chunk at or under 1.5 MB (`npm run size -- --strict` fails above it). Three 60 s stems at Vorbis q2 come to about 2 MB.
 The other biomes' audio loads when that biome is first played.
+
+**The veld soundscape (v1.9, D-066; art bible §10.2).** Each area plays one-shot calls of its
+birds, insects and weather over its ambience bed. 14 keys wait for recordings, each now an
+interim synth from `tools/audio/soundscape.ts` (`npm run audio:interim -- --only soundscape`):
+deliver `audio/sfx/<key>.wav` (mono is fine, about the length given, a clean start and a short
+natural tail, no music or other species in it). They load in their own lazy group, `soundscape`,
+after a hunt has started, never in the first download; the game decodes only the area's calls.
+
+| Key (`audio/sfx/<key>.wav`) | The call | Areas | Length |
+|---|---|---|---|
+| `amb_cape_turtle_dove` | Cape turtle dove's hoarse "work-HAR-der", said 2–3 times | all | ≤ 2.1 s |
+| `amb_laughing_dove` | Laughing dove's soft bubbling coo, rising and falling | all | ≤ 2.1 s |
+| `amb_hadeda` | Hadedas far off: the loud "haa-haa-haa" of a flyover (played far only) | all | ≤ 2.6 s |
+| `amb_cicada` | A cicada's shrill buzz rising in the heat, then cutting off | Bushveld, Kalahari, Namibië, Harvest | ≤ 3.7 s |
+| `amb_fish_eagle` | African fish eagle's ringing "weee-ah, hyo-hyo-hyo" (far only) | Okavango | ≤ 2.6 s |
+| `amb_reed_frog` | Painted reed frogs' tinkling chorus at dusk | Okavango | ≤ 1.9 s |
+| `amb_hippo` | A distant hippo's wheezing grunt series | Okavango | ≤ 2.3 s |
+| `amb_wind_gust` | A gust through dry grass | Karoo | ≤ 3.4 s |
+| `amb_windpomp` | A windpomp's creaking rod and a soft clank of the head | Karoo | ≤ 2.3 s |
+| `amb_sheep` | A sheep bleating far off | Karoo | ≤ 1.3 s |
+| `amb_barking_gecko` | Barking geckos' clicking "tck-tck-tck" at dusk | Kalahari, Namibië | ≤ 1.5 s |
+| `amb_korhaan` | A korhaan's rasping "kraak-kraak" | Kalahari, Namibië | ≤ 1.7 s |
+| `amb_francolin` | A francolin's harsh, accelerating dawn call | Bushveld, Harvest | ≤ 1.8 s |
+| `amb_go_away_bird` | A grey go-away-bird's nasal "kweh" far off (far only) | Bushveld | ≤ 1.4 s |
+
+A recording longer than the table's length also needs its `lengthMs` raised in
+`content/client/soundscape.json` (the voice is held that long; `npm test` checks the interim ones).
+How often each plays, how loud and how far is content (`soundscape.json`), not the recording.
+Record your own, or use public-domain recordings with the source written down; most library and
+xeno-canto recordings are NonCommercial and can't be used.
 
 **Desert group (v1.7, D-044).** The meerkat colonies' sheet `desert/meerkats` and their four
 sounds (`sfx/meerkat_chirp`, `sfx/meerkat_alarm`, `sfx/meerkat_dig`, `sfx/camera_click`) are

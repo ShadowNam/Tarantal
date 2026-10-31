@@ -3588,6 +3588,54 @@ double points in the last 10 s; 31 Dec–1 Jan UTC."
   lines (en/af/de interim TTS; nl speaks Afrikaans). The ten-second call on New Year is the
   countdown's own line.
 
+**D-066 1.12.0 v1.9: the veld soundscape and local music (31 Oct 2026):** from the product owner's
+list of 24 Oct ("five more ideas to keep the African feel"): "Veld soundscape per area and time of
+day, plus marimba, mbira and drum layers." Presentation only: nothing in `src/sim/` changed, no
+golden or content hash moved.
+- *Soundscape.* Per area, one-shot calls over the ambience bed (art bible §10.2, Tech §7.1), in
+  `content/client/soundscape.json`: a rate, level and distance per call, a time-of-day profile
+  with a factor for each layout light; hazes add distance, a special day's light falls back to
+  the map's. 14 interim synths (`sfx/amb_*`, tools/audio/soundscape.ts) wait for recordings.
+  Scheduled on sim ticks by a pure `SoundscapeDirector` with its own presentation-only generators
+  (one per area entry: the same schedule at any frame rate); ≤ 2 voices, ≥ 1.4 s between starts
+  and late calls skipped hold by construction (unit-tested at the maximum rate over 5 000 frames
+  of 20 ticks, the perf smoke's regime). The director's soundscape voice is the lowest priority:
+  it never takes one of the 4 voices kept for the game.
+- *Warnings stay clear.* The hadeda, fish eagle and kwêvoël calls are far only and quiet from 5 s
+  before the creature's world event until 2 s after it has left. The sim exposes no schedule and
+  must not change for this, so the game re-runs the sim's own pure schedule functions on the hunt's
+  seed and mode, read-only (`warningForecast.ts`), checked against every event the real sim emits.
+- *One lazy group, `soundscape`* (≈ 270 KB Ogg / 280 KB MP3 for all 14 calls), rather than per
+  area: most calls are heard in several areas, one download covers the session, and the
+  director decodes only the area on screen's calls (as music). Its index entries live in the
+  lazy audio half (`asset-index-voice.json`), its code in a lazy chunk imported after the first
+  gesture, its schema in `src/content/soundscape.ts` (in schemas.ts the lazy chunk split that
+  module's chunk: +1 KB gzip in the first download). The files load when a hunt starts, or 8 s
+  after the first gesture on the title (which then plays its area at half rate); START never
+  waits. First download: +0.9 KB gzip of glue code (the director's voice, HuntScene's calls), no
+  asset, no content.
+- *Music.* The interim stems gain a pennywhistle lead over an mbira ostinato (calm), a marimba
+  3-3-2 line (build) and djembe/ngoma hand drums over the kit (Stampede), with an area colour
+  (Okavango and Bushveld marimba-forward; Kalahari and Namibië drum-and-mbira, drums from the
+  build; Karoo kwela with a light marimba). Same keys, tempo, three stems and crossfade: no 4th
+  stem was needed. Karoo's stems are in the first download, so its shaker was thinned to keep
+  them from growing: they shrank (MP3 382 → 358 KB). Every area within ±3 % of its old size.
+  Seams and −16 LUFS (±1 LU) under −1 dBTP are unit-tested. Original material only.
+- *Review.* `npm run audio:preview` renders a 20 s mix per area with a labelled spectrogram
+  (docs/audio-preview/; the preview doubles the call rates so 20 s shows more of each set).
+- *Species notes.* Cape turtle (ring-necked) dove: the "work-harder" / "how's father" call, all
+  day across Southern Africa; laughing dove: a soft, bubbling "oo-oo-oo-oo"; hadeda ibis: the loud
+  "haa-haa-haa" in flight, mostly at dawn and dusk; African fish eagle: a ringing "weee-ah,
+  hyo-hyo-hyo", head thrown back; painted reed frogs: a tinkling, whistle-like chorus at dusk;
+  barking geckos (*Ptenopus*): clicking choruses from burrows at dusk in the Kalahari and Namib;
+  francolins and spurfowl call harshly at first light; grey go-away-bird: the nasal "kweh".
+  Sources: [Wikipedia — Ring-necked dove](https://en.wikipedia.org/wiki/Ring-necked_dove) ·
+  [Wikipedia — Hadada ibis](https://en.wikipedia.org/wiki/Hadada_ibis) ·
+  [Wikipedia — African fish eagle](https://en.wikipedia.org/wiki/African_fish_eagle) ·
+  [Wikipedia — Painted reed frog](https://en.wikipedia.org/wiki/Painted_reed_frog) ·
+  [Wikipedia — Ptenopus](https://en.wikipedia.org/wiki/Ptenopus) ·
+  [Wikipedia — Grey go-away-bird](https://en.wikipedia.org/wiki/Grey_go-away-bird)
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
