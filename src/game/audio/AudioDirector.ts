@@ -433,6 +433,18 @@ export class AudioDirector {
     this.voiceSrc = null;
   }
 
+  /** v1.11 (D-068): stops the line Oupa is saying now (a skipped braai story's verdict) and
+   *  drops one waiting for its recording. */
+  stopBark(): void {
+    this.waiting = null;
+    try {
+      this.voiceSrc?.stop();
+    } catch {
+      // Already ended.
+    }
+    this.voiceSrc = null;
+  }
+
   get oupaVoiceOn(): boolean {
     return this.oupaVoice;
   }

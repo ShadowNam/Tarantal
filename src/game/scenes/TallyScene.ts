@@ -181,7 +181,9 @@ export class TallyScene extends Phaser.Scene {
    */
   private braaiClock(): number {
     const real = this.time.now - this.braaiT0;
-    const page = (window as { __TM_BRAAI_AT__?: number }).__TM_BRAAI_AT__;
+    // Holds are test-build only (review 5): the page's hold is read only behind the test hooks.
+    const page =
+      this.ctx.hook === null ? undefined : (window as { __TM_BRAAI_AT__?: number }).__TM_BRAAI_AT__;
     const at = typeof page === 'number' ? page : braaiFlags().at;
     return at === null ? real : Math.min(real, at);
   }
@@ -198,6 +200,9 @@ export class TallyScene extends Phaser.Scene {
   }
 
   create(data: TallyData): void {
+    // A scene is reused: nothing of the last tally's (review 5).
+    this.verdictBubble = null;
+    this.braai = null;
     const { width, height } = designSize();
     fitCamera(this.cameras.main);
     const r = data.result;
@@ -687,7 +692,12 @@ export class TallyScene extends Phaser.Scene {
     this.scene.setVisible(false, 'Hunt');
     const skip = (): void => {
       if (at.countUp?.isPlaying() === true) at.countUp.complete();
-      this.verdictBubble?.hide();
+      if (this.verdictBubble !== null) {
+        this.verdictBubble.hide();
+        // Its voice goes with it (review 5): the story's closer takes the bubble at once.
+        ctx.audio.stopBark();
+        this.verdictBubble = null;
+      }
       view.skip(this.braaiClock());
     };
     // Phaser's own input is off in this game (main.ts: all input is Pointer Events on the canvas),
