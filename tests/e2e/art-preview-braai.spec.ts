@@ -5,7 +5,7 @@
 // ticks), each test well under 12 min. Writes docs/art-preview/compare/v111-braai-<shot>-<device>
 // .png (palette PNG ≤ 1600 px wide; close-ups 2–4× nearest-neighbour):
 //   daily, daily-story — an average Daily hunt's braai (a few shots at the flocks), Oupa's story
-//     bubble (the braai clock held at 6 s: the same fire and line every run), and share — the
+//     bubble (the braai clock held at 9 s: the same fire and line every run), and share — the
 //     Daily's card with the braai round its score, rendered on the page;
 //   fire-standard — Oupa and the fire close up (Standard), kept for the compare below;
 //   dance — a perfect hunt's vastrap (?braaiDance=1), the clock held on a knee-up step;
@@ -26,8 +26,9 @@ const PROFILES = ['desktop-chromium', 'pixel7-landscape', 'iphone14-landscape'];
 /** The device name of a project (a local Chromium stand-in for WebKit keeps the device's). */
 const device = (name: string): string => name.replace(/-chromium-fallback$/, '');
 const BASE = 'seed=42&omen=0&palms=0&baboons=0&layout=none&huntSeconds=12&holdAt=20';
-/** The braai clock the compare and story shots hold (two story lines are out by then). */
-const HOLD_MS = 6000;
+/** The braai clock the compare and story shots hold: two story lines are out by then even after
+ *  Oupa's verdict (the story starts ≈ 4.1 s in, a line every 3.65 s). */
+const HOLD_MS = 9000;
 
 type Rect = { x: number; y: number; w: number; h: number };
 
@@ -188,16 +189,16 @@ test('an average Daily at the braai: the story, Oupa and the fire, the share car
   await page.waitForFunction(
     (ms) => {
       const b = window.__TM__?.braai;
-      return b != null && b.story.shown >= 2 && ms > 0;
+      // The bubble fades on real time: grab while the second line shows.
+      return b != null && b.story.shown >= 2 && b.bubble !== null && ms > 0;
     },
     HOLD_MS,
     { timeout: 240_000 },
   );
-  const shot = await grab(page);
+  const shot = decodePng(await page.locator('#game canvas').screenshot());
   save('daily', info, shot);
   const b = await page.evaluate(() => window.__TM__?.braai ?? null);
   expect(b?.sheet).toBe('standard');
-  expect(b?.bubble, 'the story bubble shows (the clock is held mid-line)').not.toBeNull();
   const bubble = b?.bubble ?? null;
   const fire = await fireCrop(page);
   // The story bubble and Oupa (the bubble sits above his head).

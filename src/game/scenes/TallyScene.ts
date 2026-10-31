@@ -85,6 +85,8 @@ export class TallyScene extends Phaser.Scene {
   private braai: BraaiView | null = null;
   /** The braai clock's zero (scene time). */
   private braaiT0 = 0;
+  /** Oupa's verdict bubble (a braai skip hides it: the story takes its place at once). */
+  private verdictBubble: BarkBubble | null = null;
 
   constructor(ctx: GameContext) {
     super({ key: 'Tally' });
@@ -158,6 +160,7 @@ export class TallyScene extends Phaser.Scene {
     const bark = this.ctx.barks.say(trigger, now);
     if (bark === null) return false;
     const bubble = new BarkBubble(this, this.ctx.feel.barks.fontPx);
+    this.verdictBubble = bubble;
     sayBark(this.ctx, bubble, bark.line, tallyBarkSlot(at.safe, at.panel), now);
     return oupaShows(this.ctx.prefs.oupa);
   }
@@ -274,6 +277,9 @@ export class TallyScene extends Phaser.Scene {
       },
       onComplete: () => {
         this.ctx.audio.setTallyCounting(false);
+        // The final score (v1.11: a skip completes the count-up without a last onUpdate).
+        score.setText(formatScore(r.score));
+        if (this.ctx.hook) this.ctx.hook.tallyScore = score.text;
         // D-028 §3: Oupa's verdict once the count-up is done (never over it, art bible §10).
         const said = this.verdictBark(data, {
           safe: {
@@ -546,13 +552,13 @@ export class TallyScene extends Phaser.Scene {
       };
     }
     if (braaiMod !== null) {
-      const rects = this.ctx.hook?.rects ?? {
-        ...frameRects,
+      // What this slate drew (as the hook's rects): the buttons, then the frame's pieces.
+      const buttons: Rect[] = [
         again,
-        menu: menuR,
-        seasonRun: season,
-        share: shareR,
-      };
+        menuR,
+        ...(harvestShare ? [] : [season]),
+        ...(shareMsg === null ? [] : [shareR]),
+      ];
       this.buildBraai(braaiMod, data, {
         safe: {
           x: safe.left,
@@ -562,7 +568,8 @@ export class TallyScene extends Phaser.Scene {
         },
         panel: { x: px, y: py, w: panelW, h: panelH },
         slate: { x: px - 14, y: py - 14, w: panelW + 28, h: panelH + 28 },
-        avoid: Object.values(rects),
+        buttons,
+        avoid: [...buttons, ...Object.values(frameRects)],
         countUp,
       });
     }
@@ -577,6 +584,9 @@ export class TallyScene extends Phaser.Scene {
       safe: Rect;
       panel: Rect;
       slate: Rect;
+      /** The buttons (a tap on one never skips). */
+      buttons: Rect[];
+      /** Every rect Oupa and the fire keep clear of. */
       avoid: Rect[];
       countUp: Phaser.Tweens.Tween | null;
     },
@@ -646,9 +656,10 @@ export class TallyScene extends Phaser.Scene {
     this.scene.setVisible(false, 'Hunt');
     const skip = (): void => {
       if (at.countUp?.isPlaying() === true) at.countUp.complete();
+      this.verdictBubble?.hide();
       view.skip(this.braaiClock());
     };
-    const buttons = at.avoid;
+    const buttons = at.buttons;
     this.input.on(Phaser.Input.Events.POINTER_UP, (p: Phaser.Input.Pointer) => {
       const w = this.cameras.main.getWorldPoint(p.x, p.y);
       if (buttons.some((b) => w.x >= b.x && w.x <= b.x + b.w && w.y >= b.y && w.y <= b.y + b.h))
@@ -666,6 +677,7 @@ export class TallyScene extends Phaser.Scene {
       hook.textureTop = view.textureTop();
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.verdictBubble = null;
       window.removeEventListener('keydown', onKey);
       view.destroy();
       this.braai = null;

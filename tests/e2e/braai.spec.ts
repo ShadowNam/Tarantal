@@ -125,6 +125,8 @@ test('a tap off the buttons skips the count-up and the story; [Menu] goes to the
   });
   const s = await hook(page);
   expect(s.braai?.story.shown).toBe(s.braai?.story.lines.length);
+  // The count-up skipped to the hunt's own score (review: not the value mid-count).
+  expect(s.tallyScore?.replace(/\D/g, '')).toBe(String(s.score));
   expect(s.scene).toBe('tally');
   await tapRect(page, touch, 'menu');
   await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
@@ -154,16 +156,20 @@ test('reduce motion: a perfect hunt does not dance; the sparks stay still', asyn
   await huntToBraai(page, isTouchProject(info));
   const h = await hook(page);
   expect(h.braai?.dance).toBe(true);
-  // Through the whole story and past the dance's slot: never dancing, the sparks on one frame.
+  // The dance's slot comes with the closer line (danceAt is set even with reduce motion); from
+  // then on, for longer than the dance lasts, Oupa never stands up and the sparks stay still.
+  await page.waitForFunction(() => window.__TM__?.braai?.danceAt != null, null, {
+    timeout: 120_000,
+  });
   const seen = await page.evaluate(async () => {
     const out = { dancing: false, sparks: new Set<number>() };
-    for (let i = 0; i < 400; i++) {
+    const t0 = performance.now();
+    for (let i = 0; i < 2000 && performance.now() - t0 < 5000; i++) {
       await new Promise((r) => requestAnimationFrame(r));
       const b = window.__TM__?.braai;
       if (b == null) break;
       out.dancing ||= b.dancing;
       out.sparks.add(b.spark);
-      if (b.story.shown >= b.story.lines.length && i > 200) break;
     }
     return { dancing: out.dancing, sparks: [...out.sparks] };
   });

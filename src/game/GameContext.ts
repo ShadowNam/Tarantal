@@ -644,6 +644,8 @@ export interface TestHook {
   hudTag: string | null;
   /** v1.8c review: the tally's count-up, rows, stamp and news are all in (a screenshot waits). */
   tallyDone: boolean;
+  /** v1.11: the score the slate shows once its count-up is done (or skipped). */
+  tallyScore: string | null;
   tally: {
     tag: string | null;
     compare: string | null;
