@@ -88,6 +88,9 @@ const DEFAULT_GUN_SFX: GunSfx = { shot: 'shot', shellLoaded: 'shell', reloadFini
 const isSfx = (id: string | undefined): id is SfxId =>
   id !== undefined && (SFX_IDS as readonly string[]).includes(id);
 
+/** v1.11 (D-068): the mixer's id for the braai's bed. */
+const BRAAI_SET = 'braai';
+
 export class AudioDirector {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
@@ -97,6 +100,8 @@ export class AudioDirector {
   /** Between the music mixer and the music bus: the bark duck. */
   private duck: GainNode | null = null;
   private mixer: MusicMixer | null = null;
+  /** v1.11 (D-068): the braai's bed keys while the braai tally shows (null: the area's music). */
+  private braai: { readonly music: string; readonly ambience: string } | null = null;
   private noise: AudioBuffer | null = null;
   private voices = 0;
   private hidden = false;
@@ -442,8 +447,33 @@ export class AudioDirector {
     return this.mixer?.state ?? null;
   }
 
+  /**
+   * v1.11 (D-068): the braai's bed in place of the area's music — `music` (the soft guitar) on the
+   * music bus, `ambience` (the fire and the crickets) on the ambience bus, crossfaded like a biome
+   * change; null puts the area's music back. Until both recordings are in, the area's music plays.
+   */
+  setBraai(keys: { readonly music: string; readonly ambience: string } | null): void {
+    this.braai = keys;
+    this.refreshMusic();
+  }
+
+  /** v1.11 (D-068): the braai's bed is what plays now (test hook). */
+  get braaiPlaying(): boolean {
+    return this.mixer?.state?.id === BRAAI_SET;
+  }
+
   private refreshMusic(): void {
     const mixer = this.mixer;
+    const braai = this.braai;
+    if (mixer !== null && braai !== null) {
+      const music = this.buffers.get(braai.music);
+      const ambience = this.buffers.get(braai.ambience);
+      if (music !== undefined && ambience !== undefined) {
+        mixer.setStem('calm');
+        mixer.play(BRAAI_SET, { stems: { calm: music }, ambience });
+        return;
+      }
+    }
     const id = this.biome;
     if (mixer === null || id === null) return;
     const stems: Partial<Record<Stem, AudioBuffer>> = {};

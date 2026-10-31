@@ -16,10 +16,13 @@ export const BRAAI_SHEET_H = 432;
 
 /** Sounds through the AudioDirector (recordings from the lazy group; silent until they arrive). */
 export const BRAAI_SOUNDS = {
+  /** The bed: the fire's crackle and the crickets, a seamless loop (the ambience bus). */
   fire: 'sfx/braai_fire',
-  crickets: 'sfx/braai_crickets',
-  nightjar: 'sfx/braai_nightjar',
+  /** A soft original guitar loop under the story (the music bus). */
   guitar: 'sfx/braai_guitar',
+  /** A far fiery-necked nightjar ("Good Lord, deliver us"), now and then. */
+  nightjar: 'sfx/braai_nightjar',
+  /** The vastrap's concertina sting. */
   vastrap: 'sfx/braai_vastrap',
 } as const;
 export type BraaiSound = keyof typeof BRAAI_SOUNDS;
