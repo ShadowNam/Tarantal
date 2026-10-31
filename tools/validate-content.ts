@@ -233,7 +233,16 @@ for (const f of readdirSync(i18nDir).filter((x) => /^[a-z]{2}\.json$/.test(x) &&
 // D-045: the Project overview's (src/i18n/project/) — the same rules: every language has every
 // key of <dir>/en.json, no language is missing, and the keys are named <dir>.*. D-058: android/ is
 // the Pages download page for the Android test app (tools/android-page.ts), never in the game.
-for (const lazyDir of ['range', 'project', 'graphics', 'guide', 'admin', 'privacy', 'android']) {
+for (const lazyDir of [
+  'range',
+  'project',
+  'graphics',
+  'guide',
+  'admin',
+  'privacy',
+  'android',
+  'braai',
+]) {
   const dir = join(i18nDir, lazyDir);
   const read = (f: string): Record<string, unknown> =>
     JSON.parse(readFileSync(join(dir, f), 'utf8')) as Record<string, unknown>;

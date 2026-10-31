@@ -124,6 +124,36 @@
     "stampMs": 220,
     "newsDelayMs": 300
   },
+  "braai": {
+    "$comment": "v1.11 Die Braai (GDD §8, D-068): the tally's night setting at Oupa's fire. perfect: a perfect hunt is the top rank, or no miss (every shot bagged) with at least minBagged birds; it (or a rank up) earns the vastrap (danceMs, a frame every danceFrameMs). story: after the count-up Oupa tells the hunt in at most maxLines lines (an opener, the best moments, a closer), each shown lineMs with gapMs between; manyBirds splits the opener's buckets; a hunt within nearRecordFrac of the area's best (not a new one) is a near miss. fire: the flames' baked frames every flameFrameMs, the sparks' every sparkFrameMs, the glow's slow pulse (glowPulseMs, ± glowPulse alpha; steady with reduce flashes). idle: Oupa sips his coffee and pokes the coals in turn, one every idleEveryMs, held poseMs. hd: the HD sheet is used only while the texture memory in use plus its own stays within budgetMiB − headroomMiB. horizons: the dark skyline per area (style hills|dunes|flat|ridge, trees acacia|palm|baobab|none); unknown areas use default.",
+    "perfect": { "minBagged": 10 },
+    "story": {
+      "maxLines": 4,
+      "lineMs": 3200,
+      "gapMs": 450,
+      "manyBirds": 15,
+      "nearRecordFrac": 0.9
+    },
+    "danceMs": 3600,
+    "danceFrameMs": 200,
+    "fire": {
+      "flameFrameMs": 110,
+      "sparkFrameMs": 150,
+      "glowPulseMs": 1600,
+      "glowPulse": 0.12
+    },
+    "idle": { "idleEveryMs": 4200, "poseMs": 1700 },
+    "hd": { "budgetMiB": 256, "headroomMiB": 6 },
+    "horizons": {
+      "default": { "style": "hills", "trees": "acacia" },
+      "karoo-autumn": { "style": "ridge", "trees": "none" },
+      "kalahari-summer": { "style": "dunes", "trees": "acacia" },
+      "okavango-spring": { "style": "flat", "trees": "palm" },
+      "bushveld-winter": { "style": "hills", "trees": "baobab" },
+      "namibie": { "style": "ridge", "trees": "acacia" },
+      "oes": { "style": "hills", "trees": "acacia" }
+    }
+  },
   "hud": {
     "marginPx": 28,
     "beltTapMinPx": 64,
