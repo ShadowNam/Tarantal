@@ -98,6 +98,14 @@ describe('BarkDirector (v1.0.1, D-028 §3)', () => {
     expect(d.hunt([], frame(GAP + 1))).toBeNull();
   });
 
+  it('lastSaidAt is when the last line went out (the e2e gap clock), -Infinity before any', () => {
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0);
+    expect(d.lastSaidAt).toBe(-Infinity);
+    expect(d.hunt([{ type: 'reenbuiRain', tick: 100 }], frame(1234))).not.toBeNull();
+    expect(d.lastSaidAt).toBe(1234);
+  });
+
   it('v1.10 (D-067): Reënbui — the first drops, the swarm (held over the gap), the rain easing', () => {
     const d = new BarkDirector(T, GAP);
     d.startHunt(0);

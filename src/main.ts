@@ -360,6 +360,7 @@ const hook: TestHook = {
   pops: { shown: 0, created: 0 },
   bark: null,
   barks: [],
+  barkClock: null,
   flockLog: [],
   result: null,
   firstShotAtMs: null,

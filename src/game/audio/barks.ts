@@ -64,6 +64,11 @@ export interface Bark {
 
 export class BarkDirector {
   private lastAt = -Infinity;
+
+  /** When the last line went out (the gap clock's ms; -Infinity before any): e2e waits on it. */
+  get lastSaidAt(): number {
+    return this.lastAt;
+  }
   private readonly lastByTrigger = new Map<BarkTrigger, number>();
   private readonly nextLine = new Map<BarkTrigger, number>();
   // Per hunt.

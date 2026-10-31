@@ -239,6 +239,9 @@ export interface TestHook {
    *  he has said on this page, oldest first (capped). */
   bark: { line: string; text: string; x: number; y: number; w: number; h: number } | null;
   barks: string[];
+  /** v1.10 (review of #110): Oupa's gap clock in a hunt — the HUD's ms now and when his last line
+   *  went out (null before any), so a spec can wait for the gap before an action that barks. */
+  barkClock: { now: number; last: number | null } | null;
   result: HuntResult | null;
   /** performance.now() when the first shot of the page was fired (ms since navigation start). */
   firstShotAtMs: number | null;

@@ -1713,6 +1713,10 @@ export class HudScene extends Phaser.Scene {
     });
     // 1.9.2 (D-055): the ten-second call wins over a first pickup's line on the same frame.
     if (picked !== null && (bark === null || picked.urgent === true)) bark = picked;
+    if (this.ctx.hook) {
+      const last = this.ctx.barks.lastSaidAt;
+      this.ctx.hook.barkClock = { now, last: Number.isFinite(last) ? last : null };
+    }
     if (bark !== null)
       sayBark(
         this.ctx,
