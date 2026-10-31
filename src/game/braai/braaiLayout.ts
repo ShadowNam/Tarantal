@@ -41,6 +41,8 @@ export interface BraaiLayout {
   /** Oupa (seated and dancing) and the fire with its flames (null when left out). */
   readonly oupaRect: Rect | null;
   readonly fireRect: Rect | null;
+  /** Oupa's story bubble: just above his head when he shows (else the tally's bubble slot). */
+  readonly storySlot: Rect;
 }
 
 /** The fire's base is this far right of Oupa's feet (art px). */
@@ -77,6 +79,15 @@ function groupRects(feet: Point, s: number): { oupa: Rect; fire: Rect } {
       h: (FIRE_UP + HEARTH.h - HEARTH.oy) * s,
     },
   };
+}
+
+/** The story bubble above Oupa's head, inside the column; the tally's slot if that won't fit. */
+function storySlot(i: BraaiLayoutIn, oupa: Rect | null, avoid: readonly Rect[]): Rect {
+  const slot = i.slot;
+  if (oupa === null || slot.x + slot.w > i.panel.x) return slot;
+  const y = Math.max(slot.y, oupa.y - slot.h - 8);
+  const r = { ...slot, y };
+  return avoid.some((b) => overlaps(b, r)) ? slot : r;
 }
 
 export function braaiLayout(i: BraaiLayoutIn): BraaiLayout {
@@ -117,5 +128,6 @@ export function braaiLayout(i: BraaiLayoutIn): BraaiLayout {
     milky: { x: width * 0.5, y: height * 0.3, rotation: -0.38, scaleX: (width * 1.3) / 720 },
     oupaRect: rects?.oupa ?? null,
     fireRect: rects?.fire ?? null,
+    storySlot: storySlot(i, rects?.oupa ?? null, blockers.slice(2)),
   };
 }

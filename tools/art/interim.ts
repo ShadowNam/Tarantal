@@ -98,7 +98,7 @@ import { NEWYEAR_SHEET, NY_MASTER } from '../../src/game/feesdae/newyearAssets';
 import { renderNewYearSheet } from './newyear';
 import { REENBUI_SHEET } from '../../src/game/view/reenbui/reenbuiKeys';
 import { renderReenbuiSheet } from './reenbui';
-import { BRAAI_GROUP, BRAAI_SHEET } from '../../src/game/braai/braaiKeys';
+import { BRAAI_SHEET } from '../../src/game/braai/braaiKeys';
 import { renderBraaiSheet } from './braai';
 import { renderHalloweenSheet } from './halloween';
 import { CAN_MASTER, renderCanSheet } from './blikkies';
@@ -712,7 +712,7 @@ if (wants('reenbui') && !hdOnly) {
 }
 if (wants('braai') && !hdOnly) {
   // v1.11 (D-068): Die Braai's sheet (Oupa in his camp chair and dancing, the fire, the sky pieces,
-  // the bakkie) as a 2× master in its own lazy group: the pack serves it at 1× (Standard) and the
+  // the bakkie) as a 2× master in its own lazy group (the catalog's `braai`): the pack serves it at 1× (Standard) and the
   // master as its HD twin (braai-hd). Layout: src/game/braai/braaiSheet.ts.
   const png = join(src, 'sprites', `${BRAAI_SHEET}.png`);
   if (!oursFile(png)) console.warn(`skip sprites/${BRAAI_SHEET}: a human delivery is there`);
@@ -726,7 +726,6 @@ if (wants('braai') && !hdOnly) {
         master: 2,
         originX: 0,
         originY: 0,
-        group: BRAAI_GROUP,
       }),
     );
     rmSync(join(hdSrc, 'sprites', `${BRAAI_SHEET}.png`), { force: true });

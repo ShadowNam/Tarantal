@@ -591,13 +591,15 @@ export class TallyScene extends Phaser.Scene {
     const hv = data.harvest;
     const slot = tallyBarkSlot(at.safe, at.panel);
     const bubble = new BarkBubble(this, ctx.feel.barks.fontPx);
+    // Its slot comes from the braai's layout (above Oupa's head), once the view is built.
+    let storySlot = slot;
     const lineMs = ctx.feel.braai.story.lineMs;
     const tell = (voice: string | null, caption: string): void => {
       if (!oupaShows(ctx.prefs.oupa)) return;
       bubble.hide();
       bubble.show(
         caption,
-        slot,
+        storySlot,
         { bubbleMs: voice === null ? lineMs * 2 : lineMs, fadeMs: ctx.feel.barks.fadeMs },
         this.time.now,
       );
@@ -631,6 +633,7 @@ export class TallyScene extends Phaser.Scene {
       tell,
     });
     this.braai = view;
+    storySlot = view.layout.storySlot;
     // The hunt under the braai draws nothing on screen: stop drawing it (it shows again when the
     // tally closes, for [Again]'s restart or the title).
     this.scene.setVisible(false, 'Hunt');

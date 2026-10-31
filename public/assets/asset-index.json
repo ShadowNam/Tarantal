@@ -29,6 +29,19 @@
       "width": 256,
       "height": 64
     },
+    "braai/sheet": {
+      "group": "braai",
+      "origin": "interim",
+      "file": {
+        "path": "assets/braai/img/braai_sheet.e9ce7e3b0547.png",
+        "bytes": 33293,
+        "hash": "e9ce7e3b0547"
+      },
+      "width": 512,
+      "height": 432,
+      "originX": 0,
+      "originY": 0
+    },
     "bushveld/aloe_a": {
       "group": "bushveld-winter",
       "origin": "interim",

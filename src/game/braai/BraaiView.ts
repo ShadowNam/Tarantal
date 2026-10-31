@@ -13,11 +13,6 @@
 // own braai clock (BraaiClock: held by the e2e hold, so a held frame shows the same picture).
 import * as Phaser from 'phaser';
 import type { Feel } from '../../content/schemas';
-import { fill, getLanguage, tOr, type Language } from '../../i18n/i18n';
-import af from '../../i18n/braai/af.json';
-import de from '../../i18n/braai/de.json';
-import en from '../../i18n/braai/en.json';
-import nl from '../../i18n/braai/nl.json';
 import type { FinalSound } from '../assets/AssetManifest';
 import type { AssetIndex } from '../assets/assetIndex';
 import { fetchAssetIndex, loadBytes, loadImage } from '../assets/finalLoader';
@@ -27,7 +22,6 @@ import { largestTextures, textureBytes } from '../assets/textureBytes';
 import { loadVoiceIndex } from '../assets/voiceIndex';
 import { voiceKey } from '../assets/AssetManifest';
 import type { AudioDirector } from '../audio/AudioDirector';
-import { formatScore } from '../ui/format';
 import type { Rect } from '../ui/hudLayout';
 import { BRAAI_SHEET, BRAAI_SOUNDS, braaiVoiceGroup } from './braaiKeys';
 import {
@@ -43,15 +37,17 @@ import {
 } from './braaiSheet';
 import { braaiLayout, type BraaiLayout, type BraaiLayoutIn } from './braaiLayout';
 import {
-  earnsDance,
-  STORY_LINE_IDS,
-  sayKey,
-  tellStory,
-  type StoryInput,
-  type StoryLine,
-} from './story';
+  animState,
+  applyAnim,
+  captionText,
+  GLOW_BASE,
+  type AnimState,
+  type Pose,
+} from './braaiAnim';
+import { earnsDance, tellStory, type StoryInput, type StoryLine } from './story';
 
 export { braaiLayout } from './braaiLayout';
+export { animState, applyAnim, captionText, STORY_SAY_KEYS } from './braaiAnim';
 export { tellStory, earnsDance, isPerfectHunt } from './story';
 
 type Tuning = Feel['braai'];
@@ -158,80 +154,6 @@ export function resetBraaiFiles(): void {
   voiceLoads.clear();
 }
 
-// --- captions ------------------------------------------------------------------------------------
-
-const TABLES: Readonly<Record<Language, Readonly<Record<string, string>>>> = { en, af, de, nl };
-
-/** A story line's caption in `lang`, its numbers filled in. */
-export function captionText(line: StoryLine, lang: Language = getLanguage()): string {
-  const text = TABLES[lang][line.caption] ?? TABLES.en[line.caption] ?? '';
-  const v = line.vars;
-  return fill(text, {
-    ...(v.n === undefined ? {} : { n: v.n }),
-    ...(v.crop === undefined ? {} : { crop: v.crop }),
-    ...(v.score === undefined ? {} : { score: formatScore(v.score) }),
-    ...(v.gap === undefined ? {} : { gap: formatScore(v.gap) }),
-    ...(v.rank === undefined ? {} : { rank: tOr(`rank.${v.rank}`, v.rank) }),
-  });
-}
-
-/** Every voiced story key (for the voice tool and the tests). */
-export const STORY_SAY_KEYS: readonly string[] = STORY_LINE_IDS.map(sayKey);
-
-// --- animation (pure) -----------------------------------------------------------------------------
-
-export type Pose = 'sit_idle' | 'sit_sip' | 'sit_poke' | 'dance_a' | 'dance_b';
-
-export interface AnimState {
-  readonly flame: number;
-  readonly spark: number;
-  /** The glow's pulse step, 0 … 10 (5 = its base). */
-  readonly glow: number;
-  readonly pose: Pose;
-  /** The dance's mirrored step (the other foot). */
-  readonly flip: boolean;
-  /** The dance's hop (a few px up on the knee-up frames). */
-  readonly hop: boolean;
-}
-
-export interface AnimOptions {
-  readonly reducedMotion: boolean;
-  readonly reduceFlashes: boolean;
-  /** When the dance starts on the braai clock (null: no dance). */
-  readonly danceFrom: number | null;
-}
-
-/** What the braai shows at `ms` on its clock. Pure: the same ms, the same picture. */
-export function animState(ms: number, t: Tuning, o: AnimOptions): AnimState {
-  const flame = Math.floor(ms / t.fire.flameFrameMs) % 4;
-  const spark = o.reducedMotion ? 0 : Math.floor(ms / t.fire.sparkFrameMs) % 3;
-  const glow = o.reduceFlashes
-    ? 5
-    : Math.round(5 + 5 * Math.sin((2 * Math.PI * ms) / t.fire.glowPulseMs));
-  if (
-    !o.reducedMotion &&
-    o.danceFrom !== null &&
-    ms >= o.danceFrom &&
-    ms < o.danceFrom + t.danceMs
-  ) {
-    const k = Math.floor((ms - o.danceFrom) / t.danceFrameMs) % 4;
-    return {
-      flame,
-      spark,
-      glow,
-      pose: k % 2 === 0 ? 'dance_a' : 'dance_b',
-      flip: k >= 2,
-      hop: k % 2 === 0,
-    };
-  }
-  const cycle = t.idle.idleEveryMs + t.idle.poseMs;
-  const c = Math.floor(ms / cycle);
-  const within = ms - c * cycle;
-  const pose: Pose =
-    within < t.idle.idleEveryMs ? 'sit_idle' : c % 2 === 0 ? 'sit_sip' : 'sit_poke';
-  return { flame, spark, glow, pose, flip: false, hop: false };
-}
-
 // --- the view -------------------------------------------------------------------------------------
 
 /** What the e2e hook shows of the braai (design px rects). */
@@ -279,8 +201,6 @@ const LAND = 0x05060a;
 const GROUND = 0x0b0a0c;
 /** Behind everything the tally draws (the slate, the buttons, the bubble). */
 const DEPTH = -10;
-/** The glow's alpha at its base step; the pulse adds ± tuning.fire.glowPulse. */
-const GLOW_BASE = 0.75;
 
 export class BraaiView {
   readonly hook: BraaiHook;
@@ -601,49 +521,20 @@ export class BraaiView {
 
   /** Applies a state, setting only what changed; returns the Phaser calls made. */
   private apply(st: AnimState): number {
-    const p = this.last;
-    let n = 0;
-    if (p?.flame !== st.flame && this.flameImg !== null) {
-      this.flameImg.setFrame(flameFrame(st.flame), false, false);
-      n++;
-    }
-    if (p?.spark !== st.spark && this.sparkImg !== null) {
-      this.sparkImg.setFrame(sparkFrame(st.spark), false, false);
-      n++;
-    }
-    if (p?.glow !== st.glow && this.glowImg !== null) {
-      this.glowImg.setAlpha(GLOW_BASE + ((st.glow - 5) / 5) * this.s.tuning.fire.glowPulse);
-      n++;
-    }
-    const oupa = this.oupaImg;
     const L = this.layout;
-    if (
-      oupa !== null &&
-      L.oupa !== null &&
-      (p?.pose !== st.pose || p.flip !== st.flip || p.hop !== st.hop)
-    ) {
-      const f = this.frames.get(st.pose);
-      if (p?.pose !== st.pose && f !== undefined) {
-        oupa.setFrame(st.pose, false, false);
-        oupa.setOrigin(f.ox / f.w, f.oy / f.h);
-        n += 2;
-      }
-      oupa.setFlipX(st.flip);
-      oupa.setY(L.oupa.y - (st.hop ? 8 * L.scale : 0));
-      n += 2;
-      const poke = st.pose === 'sit_poke';
-      if ((p?.pose === 'sit_poke') !== poke) {
-        this.pokerImg?.setVisible(poke);
-        n++;
-      }
-      const sitting = st.pose.startsWith('sit_');
-      if (this.hatImg !== null && (p === null || p.pose.startsWith('sit_') !== sitting)) {
-        this.hatImg.setVisible(sitting);
-        n++;
-      }
-      this.hook.pose = st.pose;
-      this.hook.dancing = !sitting;
-    }
+    const n = applyAnim(this.last, st, {
+      flame: this.flameImg,
+      spark: this.sparkImg,
+      glow: this.glowImg,
+      oupa: L.oupa === null ? null : this.oupaImg,
+      poker: this.pokerImg,
+      hat: this.hatImg,
+      oupaY: L.oupa?.y ?? 0,
+      scale: L.scale,
+      glowPulse: this.s.tuning.fire.glowPulse,
+    });
+    this.hook.pose = st.pose;
+    this.hook.dancing = !st.pose.startsWith('sit_');
     this.hook.flame = st.flame;
     this.hook.spark = st.spark;
     this.last = st;
