@@ -9397,68 +9397,68 @@
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/bushveld-winter/audio/music/bushveld-winter-build.8b28d8c2278a.ogg",
-        "bytes": 71631,
-        "hash": "8b28d8c2278a"
+        "path": "assets/bushveld-winter/audio/music/bushveld-winter-build.65f2a949743e.ogg",
+        "bytes": 75056,
+        "hash": "65f2a949743e"
       },
       "mp3": {
-        "path": "assets/bushveld-winter/audio/music/bushveld-winter-build.a6a3dcc4b7a4.mp3",
-        "bytes": 134978,
-        "hash": "a6a3dcc4b7a4"
+        "path": "assets/bushveld-winter/audio/music/bushveld-winter-build.3869a25ca335.mp3",
+        "bytes": 128310,
+        "hash": "3869a25ca335"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -7.8
+      "peakDb": -6.9
     },
     "music/bushveld-winter/calm": {
       "group": "bushveld-winter",
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/bushveld-winter/audio/music/bushveld-winter-calm.6d0126930a93.ogg",
-        "bytes": 58327,
-        "hash": "6d0126930a93"
+        "path": "assets/bushveld-winter/audio/music/bushveld-winter-calm.21b63b17eb3f.ogg",
+        "bytes": 62615,
+        "hash": "21b63b17eb3f"
       },
       "mp3": {
-        "path": "assets/bushveld-winter/audio/music/bushveld-winter-calm.bace79e78f5b.mp3",
-        "bytes": 129993,
-        "hash": "bace79e78f5b"
+        "path": "assets/bushveld-winter/audio/music/bushveld-winter-calm.28fa9aa6b821.mp3",
+        "bytes": 137733,
+        "hash": "28fa9aa6b821"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -8
+      "peakDb": -6.3
     },
     "music/bushveld-winter/stampede": {
       "group": "bushveld-winter",
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/bushveld-winter/audio/music/bushveld-winter-stampede.c192e7abc22c.ogg",
-        "bytes": 81299,
-        "hash": "c192e7abc22c"
+        "path": "assets/bushveld-winter/audio/music/bushveld-winter-stampede.2537e05e9275.ogg",
+        "bytes": 81887,
+        "hash": "2537e05e9275"
       },
       "mp3": {
-        "path": "assets/bushveld-winter/audio/music/bushveld-winter-stampede.7988216029de.mp3",
-        "bytes": 119943,
-        "hash": "7988216029de"
+        "path": "assets/bushveld-winter/audio/music/bushveld-winter-stampede.92d7fecc9674.mp3",
+        "bytes": 118816,
+        "hash": "92d7fecc9674"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -8
+      "peakDb": -7
     },
     "music/kalahari-summer/build": {
       "group": "kalahari-summer",
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/kalahari-summer/audio/music/kalahari-summer-build.1ae80c175104.ogg",
-        "bytes": 70884,
-        "hash": "1ae80c175104"
+        "path": "assets/kalahari-summer/audio/music/kalahari-summer-build.02f42024037f.ogg",
+        "bytes": 75346,
+        "hash": "02f42024037f"
       },
       "mp3": {
-        "path": "assets/kalahari-summer/audio/music/kalahari-summer-build.9cee9b176f6b.mp3",
-        "bytes": 135995,
-        "hash": "9cee9b176f6b"
+        "path": "assets/kalahari-summer/audio/music/kalahari-summer-build.a7e785e89465.mp3",
+        "bytes": 125683,
+        "hash": "a7e785e89465"
       },
       "loop": true,
       "lufs": -16,
@@ -9469,198 +9469,198 @@
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/kalahari-summer/audio/music/kalahari-summer-calm.685be259709d.ogg",
-        "bytes": 53556,
-        "hash": "685be259709d"
+        "path": "assets/kalahari-summer/audio/music/kalahari-summer-calm.5e2f1c5b0511.ogg",
+        "bytes": 64296,
+        "hash": "5e2f1c5b0511"
       },
       "mp3": {
-        "path": "assets/kalahari-summer/audio/music/kalahari-summer-calm.92efd38bc8fb.mp3",
-        "bytes": 126325,
-        "hash": "92efd38bc8fb"
+        "path": "assets/kalahari-summer/audio/music/kalahari-summer-calm.6ea8c7b53f80.mp3",
+        "bytes": 137202,
+        "hash": "6ea8c7b53f80"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -8.9
+      "peakDb": -8.7
     },
     "music/kalahari-summer/stampede": {
       "group": "kalahari-summer",
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/kalahari-summer/audio/music/kalahari-summer-stampede.8d6c1bbf86a8.ogg",
-        "bytes": 81572,
-        "hash": "8d6c1bbf86a8"
+        "path": "assets/kalahari-summer/audio/music/kalahari-summer-stampede.36d592c07c18.ogg",
+        "bytes": 82454,
+        "hash": "36d592c07c18"
       },
       "mp3": {
-        "path": "assets/kalahari-summer/audio/music/kalahari-summer-stampede.f445d0a1c590.mp3",
-        "bytes": 118462,
-        "hash": "f445d0a1c590"
+        "path": "assets/kalahari-summer/audio/music/kalahari-summer-stampede.1bba0918d236.mp3",
+        "bytes": 117126,
+        "hash": "1bba0918d236"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -7.7
+      "peakDb": -7.4
     },
     "music/karoo-autumn/build": {
       "group": "karoo-autumn",
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/karoo-autumn/audio/music/karoo-autumn-build.531763276c75.ogg",
-        "bytes": 78138,
-        "hash": "531763276c75"
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-build.997cd6c3210f.ogg",
+        "bytes": 77654,
+        "hash": "997cd6c3210f"
       },
       "mp3": {
-        "path": "assets/karoo-autumn/audio/music/karoo-autumn-build.f75724646391.mp3",
-        "bytes": 127607,
-        "hash": "f75724646391"
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-build.a78465c490bb.mp3",
+        "bytes": 119861,
+        "hash": "a78465c490bb"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -3.6
+      "peakDb": -5.8
     },
     "music/karoo-autumn/calm": {
       "group": "karoo-autumn",
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/karoo-autumn/audio/music/karoo-autumn-calm.449257d3579e.ogg",
-        "bytes": 75970,
-        "hash": "449257d3579e"
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-calm.2731343879d6.ogg",
+        "bytes": 74893,
+        "hash": "2731343879d6"
       },
       "mp3": {
-        "path": "assets/karoo-autumn/audio/music/karoo-autumn-calm.68cf92bc6f2b.mp3",
-        "bytes": 130245,
-        "hash": "68cf92bc6f2b"
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-calm.ec272bff81da.mp3",
+        "bytes": 125803,
+        "hash": "ec272bff81da"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -1.1
+      "peakDb": -6.2
     },
     "music/karoo-autumn/stampede": {
       "group": "karoo-autumn",
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/karoo-autumn/audio/music/karoo-autumn-stampede.2dfd097c4825.ogg",
-        "bytes": 85256,
-        "hash": "2dfd097c4825"
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-stampede.43083c286faa.ogg",
+        "bytes": 82567,
+        "hash": "43083c286faa"
       },
       "mp3": {
-        "path": "assets/karoo-autumn/audio/music/karoo-autumn-stampede.9614ed31befe.mp3",
-        "bytes": 133618,
-        "hash": "9614ed31befe"
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-stampede.4b3fd565e330.mp3",
+        "bytes": 121167,
+        "hash": "4b3fd565e330"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -3.3
+      "peakDb": -4.6
     },
     "music/namibie/build": {
       "group": "namibie",
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/namibie/audio/music/namibie-build.6c7536ec5ba7.ogg",
-        "bytes": 75132,
-        "hash": "6c7536ec5ba7"
+        "path": "assets/namibie/audio/music/namibie-build.d21395f03d82.ogg",
+        "bytes": 74543,
+        "hash": "d21395f03d82"
       },
       "mp3": {
-        "path": "assets/namibie/audio/music/namibie-build.e56fefade8f2.mp3",
-        "bytes": 132662,
-        "hash": "e56fefade8f2"
+        "path": "assets/namibie/audio/music/namibie-build.33999e77bcb2.mp3",
+        "bytes": 124209,
+        "hash": "33999e77bcb2"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -7.8
+      "peakDb": -5.2
     },
     "music/namibie/calm": {
       "group": "namibie",
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/namibie/audio/music/namibie-calm.8cf8d5f5e3d8.ogg",
-        "bytes": 51011,
-        "hash": "8cf8d5f5e3d8"
+        "path": "assets/namibie/audio/music/namibie-calm.3eb8e32550c6.ogg",
+        "bytes": 62061,
+        "hash": "3eb8e32550c6"
       },
       "mp3": {
-        "path": "assets/namibie/audio/music/namibie-calm.78266ab634a1.mp3",
-        "bytes": 126152,
-        "hash": "78266ab634a1"
+        "path": "assets/namibie/audio/music/namibie-calm.64697afef2e7.mp3",
+        "bytes": 134576,
+        "hash": "64697afef2e7"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -8.7
+      "peakDb": -7.5
     },
     "music/namibie/stampede": {
       "group": "namibie",
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/namibie/audio/music/namibie-stampede.bb1c7921f82f.ogg",
-        "bytes": 82674,
-        "hash": "bb1c7921f82f"
+        "path": "assets/namibie/audio/music/namibie-stampede.54d2e1e8d015.ogg",
+        "bytes": 82326,
+        "hash": "54d2e1e8d015"
       },
       "mp3": {
-        "path": "assets/namibie/audio/music/namibie-stampede.2b58ed59cb66.mp3",
-        "bytes": 114815,
-        "hash": "2b58ed59cb66"
+        "path": "assets/namibie/audio/music/namibie-stampede.d2be46a203bc.mp3",
+        "bytes": 114708,
+        "hash": "d2be46a203bc"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -8.3
+      "peakDb": -7.4
     },
     "music/okavango-spring/build": {
       "group": "okavango-spring",
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/okavango-spring/audio/music/okavango-spring-build.5891b4e886a2.ogg",
-        "bytes": 77005,
-        "hash": "5891b4e886a2"
+        "path": "assets/okavango-spring/audio/music/okavango-spring-build.e6e0e2774041.ogg",
+        "bytes": 75896,
+        "hash": "e6e0e2774041"
       },
       "mp3": {
-        "path": "assets/okavango-spring/audio/music/okavango-spring-build.6cf763715c6f.mp3",
-        "bytes": 125179,
-        "hash": "6cf763715c6f"
+        "path": "assets/okavango-spring/audio/music/okavango-spring-build.95f979a4c3f0.mp3",
+        "bytes": 123128,
+        "hash": "95f979a4c3f0"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -3.5
+      "peakDb": -7.3
     },
     "music/okavango-spring/calm": {
       "group": "okavango-spring",
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/okavango-spring/audio/music/okavango-spring-calm.7726ec2fe33a.ogg",
-        "bytes": 75551,
-        "hash": "7726ec2fe33a"
+        "path": "assets/okavango-spring/audio/music/okavango-spring-calm.0dfed1fd36a2.ogg",
+        "bytes": 71135,
+        "hash": "0dfed1fd36a2"
       },
       "mp3": {
-        "path": "assets/okavango-spring/audio/music/okavango-spring-calm.92df9468437e.mp3",
-        "bytes": 130531,
-        "hash": "92df9468437e"
+        "path": "assets/okavango-spring/audio/music/okavango-spring-calm.422b63f19ea7.mp3",
+        "bytes": 129228,
+        "hash": "422b63f19ea7"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -3.8
+      "peakDb": -6.8
     },
     "music/okavango-spring/stampede": {
       "group": "okavango-spring",
       "origin": "interim",
       "kind": "music",
       "ogg": {
-        "path": "assets/okavango-spring/audio/music/okavango-spring-stampede.6da1b4a28679.ogg",
-        "bytes": 84548,
-        "hash": "6da1b4a28679"
+        "path": "assets/okavango-spring/audio/music/okavango-spring-stampede.39aadec730b6.ogg",
+        "bytes": 82290,
+        "hash": "39aadec730b6"
       },
       "mp3": {
-        "path": "assets/okavango-spring/audio/music/okavango-spring-stampede.e662f9b5fa66.mp3",
-        "bytes": 129168,
-        "hash": "e662f9b5fa66"
+        "path": "assets/okavango-spring/audio/music/okavango-spring-stampede.5ed0e161b6be.mp3",
+        "bytes": 117271,
+        "hash": "5ed0e161b6be"
       },
       "loop": true,
       "lufs": -16,
-      "peakDb": -3.5
+      "peakDb": -6
     },
     "sfx/alarm": {
       "group": "common",
