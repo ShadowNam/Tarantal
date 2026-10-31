@@ -67,6 +67,8 @@ import type { NamibLifeView } from '../view/namib/NamibLifeView';
 import type { TellView } from '../view/tell/TellView';
 import type { BaboonView } from '../view/baboon/BaboonView';
 import type { ReenbuiView } from '../view/reenbui/ReenbuiView';
+import { requestBraai } from '../braai/braaiChunk';
+import { StoryFactsLog } from '../braai/storyFacts';
 import type { HarvestView } from '../view/harvest/HarvestView';
 import type { HarvestTally } from './TallyScene';
 import { playPotjieSound } from '../view/potjieSounds';
@@ -244,6 +246,8 @@ export class HuntScene extends Phaser.Scene {
   /** M7: Classic/Daily/challenge setup (null for the FTUE and Season Run hunts). */
   private plan: HuntPlan | null = null;
   private shareLog: ShareLogger | null = null;
+  /** v1.11 (D-068): what Oupa's braai story needs beyond the result (Ver bags, scolds…). */
+  private storyFacts: StoryFactsLog | null = null;
   /** v1.7b (D-046): power-ups and crate guns picked up this hunt (the tally lists them). */
   private usedPowerups: string[] = [];
   /** The pause between the hunt's end and the tally, on the wall clock (see afterRealMs). */
@@ -293,6 +297,7 @@ export class HuntScene extends Phaser.Scene {
     this.ftue = null;
     this.plan = null;
     this.shareLog = null;
+    this.storyFacts = null;
     this.usedPowerups = [];
     this.pausedByMenu = false;
     this.ctx.menuPaused = false;
@@ -1798,6 +1803,13 @@ export class HuntScene extends Phaser.Scene {
       this.shareLog = createShareLogger(this.ctx.dailyMeta.grid);
     }
     if (range === null) this.ctx.admin?.played(seed, sim.snapshot().weapon.id);
+    // v1.11 (D-068): a hunt that ends at the braai (Classic, the Daily, the Harvest) counts the
+    // story's facts and asks for the braai's lazy chunk and files now, so they are in by the tally
+    // (never waited for: the tally shows the plain slate until they are).
+    if (range === null && (modeId === 'classic' || modeId === 'daily' || modeId === 'harvest')) {
+      this.storyFacts = new StoryFactsLog();
+      requestBraai(this.ctx.audio, this.ctx.graphics.hd);
+    }
     // v1.10 (D-067): Reënbui's view, only for a hunt that has one (its chunk loads in the
     // background: the hunt never waits for it, lesson 19).
     this.loadReenbui(sim.snapshot().reenbui !== null);
@@ -2073,6 +2085,7 @@ export class HuntScene extends Phaser.Scene {
     this.rumble(state.stampedeActive && !runner.over, now, width);
     this.logger?.add(events);
     this.shareLog?.add(events);
+    this.storyFacts?.add(events);
     for (const e of events) {
       const id =
         e.type === 'powerupStarted'
@@ -2958,6 +2971,11 @@ export class HuntScene extends Phaser.Scene {
     // The bonus-map unlock first: a Notaboek challenge counts it (v1.3: Nog Verder → the .22).
     const bonus = this.recordBonus(result);
     const verder = bonus.line;
+    // v1.11 (D-068): the area's best before this hunt (the braai story's near miss).
+    const bestBefore =
+      this.modeId === 'harvest'
+        ? this.ctx.save.data.harvest.best
+        : (this.ctx.save.data.bests[result.biome]?.score ?? null);
     const outcome = this.recordProgress(
       result,
       plan === null || this.ctx.daily.ranked(plan),
@@ -2995,6 +3013,9 @@ export class HuntScene extends Phaser.Scene {
         ftue,
         extras,
         ...(harvest === null ? {} : { harvest }),
+        ...(this.storyFacts === null
+          ? {}
+          : { braai: { facts: this.storyFacts.facts(), bestBefore, biome: result.biome } }),
         share: (x) => this.ctx.daily.share(x),
         again: (pointerType) => {
           this.afterBreak(() => {
