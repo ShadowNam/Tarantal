@@ -604,6 +604,13 @@ export class TallyScene extends Phaser.Scene {
         this.time.now,
       );
       if (voice !== null && oupaSpeaks(ctx.prefs.oupa)) ctx.audio.bark(voice);
+      const v = this.braai;
+      if (v !== null) {
+        v.hook.bubble = bubble.rect;
+        bubble.onHidden = () => {
+          v.hook.bubble = null;
+        };
+      }
     };
     this.braaiT0 = this.time.now;
     const view = new m.BraaiView({

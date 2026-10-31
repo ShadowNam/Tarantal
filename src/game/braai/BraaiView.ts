@@ -169,7 +169,11 @@ export interface BraaiHook {
   dancing: boolean;
   /** The dance is due this tally (a perfect hunt, a rank up, or ?braaiDance=1). */
   dance: boolean;
+  /** When the dance started on the braai clock (null: not yet). */
+  danceAt: number | null;
   story: { lines: string[]; captions: string[]; shown: number; skipped: boolean };
+  /** Oupa's story bubble while it shows (design px), else null. */
+  bubble: Rect | null;
   decorations: string[];
   /** Phaser calls the last frame made (perf: ≤ 40). */
   calls: number;
@@ -306,7 +310,9 @@ export class BraaiView {
       pose: 'sit_idle',
       dancing: false,
       dance: this.danceDue,
+      danceAt: null,
       story: { lines: this.lines.map((l) => l.id), captions: [], shown: 0, skipped: false },
+      bubble: null,
       decorations,
       calls: 0,
       textureMB: Math.round((textureBytes(scene.textures) / (1024 * 1024)) * 10) / 10,
@@ -481,6 +487,7 @@ export class BraaiView {
 
   private beginDance(ms: number): void {
     this.danceFrom = ms;
+    this.hook.danceAt = ms;
     this.s.audio.playExtra(BRAAI_SOUNDS.vastrap, -0.3, () => 0);
   }
 
