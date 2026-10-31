@@ -7,7 +7,11 @@ import { tallyBarkSlot, type Rect } from '../ui/hudLayout';
 import { braaiLayout, overlaps } from './braaiLayout';
 
 /** The tally's rects as TallyScene lays them out (design px). */
-function tally(width: number, inset: { l: number; r: number; t: number; b: number }) {
+function tally(
+  width: number,
+  inset: { l: number; r: number; t: number; b: number },
+  withShare = true,
+) {
   const height = 1080;
   const safe: Rect = {
     x: inset.l,
@@ -30,8 +34,19 @@ function tally(width: number, inset: { l: number; r: number; t: number; b: numbe
   // present on the right): the braai must keep clear of them too.
   const head = { x: slate.x - 40, y: slate.y + 40, w: 90, h: 110 };
   const present = { x: slate.x + slate.w - 50, y: slate.y + slate.h - 160, w: 100, h: 100 };
-  const avoid = [again, season, menu, share, head, present];
-  return { width, height, safe, panel, slate, slot: tallyBarkSlot(safe, panel), avoid };
+  const avoid = [again, season, menu, ...(withShare ? [share] : []), head, present];
+  // The slate's content, as TallyScene measures it (the title first).
+  const title = { x: px + panelW / 2 - 270, y: py + 30, w: 540, h: 70 };
+  const score = { x: px + panelW / 2 - 190, y: py + 110, w: 380, h: 100 };
+  const rows = {
+    x: px + 60,
+    y: py + 232,
+    w: panelW - 120,
+    h: 11 * Math.min(52, (panelH - 480) / 12) + 8,
+  };
+  const stamp = { x: px + 60, y: py + panelH - 262, w: panelW - 120, h: 130 };
+  const content = [title, score, rows, stamp];
+  return { width, height, safe, panel, slate, slot: tallyBarkSlot(safe, panel), avoid, content };
 }
 
 const inside = (r: Rect, s: Rect): boolean =>
@@ -90,6 +105,34 @@ describe('braai layout (D-068)', () => {
     expect(L.oupaRect).toBeNull();
     expect(L.horizonY).toBeGreaterThan(0);
   });
+
+  it.each([
+    ['16:10', 1728, true],
+    ['16:10 without [Share]', 1728, false],
+    ['4:3', 1440, true],
+    ['4:3 without [Share]', 1440, false],
+  ] as const)(
+    '%s: the story bubble keeps clear of every drawn button and the slate content (review 3)',
+    (_, w, share) => {
+      const t = tally(w, { l: 0, r: 0, t: 0, b: 0 }, share);
+      const L = braaiLayout({
+        width: t.width,
+        height: t.height,
+        safe: t.safe,
+        panel: t.slate,
+        slot: t.slot,
+        avoid: t.avoid,
+        content: t.content,
+      });
+      const b = L.storySlot;
+      expect(inside(b, t.safe), JSON.stringify(b)).toBe(true);
+      for (const r of [...t.avoid, ...t.content])
+        expect(overlaps(b, r), `bubble ${JSON.stringify(b)} over ${JSON.stringify(r)}`).toBe(false);
+      expect(b.w).toBeGreaterThanOrEqual(190);
+      expect(b.h).toBeGreaterThanOrEqual(80);
+      if (L.oupaRect !== null) expect(overlaps(b, L.oupaRect)).toBe(false);
+    },
+  );
 
   it('a rect in the way pushes them smaller or out, never over it', () => {
     const t = tally(1920, { l: 0, r: 0, t: 0, b: 0 });

@@ -83,6 +83,12 @@ export interface TallyData {
   readonly share: (extras: TallyExtras) => Promise<ShareOutcome>;
 }
 
+/** A text's on-screen box (design px). */
+function bounds(o: Phaser.GameObjects.Text): Rect {
+  const b = o.getBounds();
+  return { x: b.x, y: b.y, w: b.width, h: b.height };
+}
+
 export class TallyScene extends Phaser.Scene {
   private readonly ctx: GameContext;
   /** v1.11 (D-068): the braai behind the slate (null: the plain slate). */
@@ -262,6 +268,10 @@ export class TallyScene extends Phaser.Scene {
     const score = this.add
       .text(px + panelW / 2, py + 160, '0', chalk(96, '#F3EAD3', false))
       .setOrigin(0.5);
+    // v1.11 (D-068): the score's box at its final value (the braai's bubble keeps clear of it).
+    score.setText(formatScore(r.score));
+    const scoreBox = bounds(score);
+    score.setText('0');
     // No Oupa bark over the count-up (art bible §10). The count ticks as it climbs (GDD §17).
     const pace = this.ctx.feel.tally;
     this.ctx.audio.setTallyCounting(true);
@@ -574,6 +584,12 @@ export class TallyScene extends Phaser.Scene {
         slate: { x: px - 14, y: py - 14, w: panelW + 28, h: panelH + 28 },
         buttons,
         avoid: [...buttons, ...Object.values(frameRects)],
+        content: [
+          bounds(title),
+          scoreBox,
+          { x: px + 60, y: py + 232, w: panelW - 120, h: rows.length * rowH + 8 },
+          { x: px + 60, y: py + panelH - 262, w: panelW - 120, h: 130 },
+        ],
         countUp,
       });
     }
@@ -592,6 +608,8 @@ export class TallyScene extends Phaser.Scene {
       buttons: Rect[];
       /** Every rect Oupa and the fire keep clear of. */
       avoid: Rect[];
+      /** The slate's content (the title first): Oupa's bubble keeps clear of it. */
+      content: Rect[];
       countUp: Phaser.Tweens.Tween | null;
     },
   ): void {
@@ -631,7 +649,15 @@ export class TallyScene extends Phaser.Scene {
       scene: this,
       audio: ctx.audio,
       tuning: ctx.feel.braai,
-      layoutIn: { width, height, safe: at.safe, panel: at.slate, slot, avoid: at.avoid },
+      layoutIn: {
+        width,
+        height,
+        safe: at.safe,
+        panel: at.slate,
+        slot,
+        avoid: at.avoid,
+        content: at.content,
+      },
       biome: braai.biome,
       story: {
         result: r,

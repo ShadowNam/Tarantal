@@ -18,6 +18,8 @@ export interface BraaiLayoutIn {
   readonly slot: Rect;
   /** Every other rect on the tally (buttons, tag, toast, the special frame's pieces). */
   readonly avoid: readonly Rect[];
+  /** The slate's own content the story bubble keeps clear of (title, score, rows, stamp, news). */
+  readonly content?: readonly Rect[];
 }
 
 export interface Point {
@@ -83,13 +85,61 @@ function groupRects(feet: Point, s: number): { oupa: Rect; fire: Rect } {
   };
 }
 
-/** The story bubble above Oupa's head, inside the column; the tally's slot if that won't fit. */
-function storySlot(i: BraaiLayoutIn, oupa: Rect | null, avoid: readonly Rect[]): Rect {
-  const slot = i.slot;
-  if (oupa === null || slot.x + slot.w > i.panel.x) return slot;
-  const y = Math.max(slot.y, oupa.y - slot.h - 8);
-  const r = { ...slot, y };
-  return avoid.some((b) => overlaps(b, r)) ? slot : r;
+/** The story bubble's smallest useful size (its name row and two lines of text). */
+const BUBBLE_MIN = { w: 240, h: 100 } as const;
+/** Its tallest (above Oupa in the column). */
+const BUBBLE_MAX_H = 200;
+
+/**
+ * Oupa's story bubble, laid out against every rect (lessons 25/31): the first of these that keeps
+ * clear of the buttons and frame pieces (`avoid`) and the slate's content — above Oupa in the left
+ * column; the tally's own bark slot; the slate's top-right corner beside the title (below [Share]
+ * when it is there); the top-left corner (below the tag). If none is clear of the content, the
+ * first clear of the buttons; the tally's slot as the last resort.
+ */
+export function storySlot(i: BraaiLayoutIn, oupa: Rect | null, avoid: readonly Rect[]): Rect {
+  const { slot, panel, safe } = i;
+  const content = i.content ?? [];
+  const gap = 10;
+  const cands: Rect[] = [];
+  if (oupa !== null) {
+    const x = safe.x + 16;
+    const w = Math.min(400, panel.x - 16 - x);
+    const bottom = oupa.y - 8;
+    const h = Math.min(BUBBLE_MAX_H, bottom - (safe.y + 16));
+    if (w >= BUBBLE_MIN.w && h >= BUBBLE_MIN.h) cands.push({ x, y: bottom - h, w, h });
+  }
+  cands.push(slot);
+  // The slate's top corners: from the title's edge to the slate's, from the top (or below a
+  // button or tag there) down to the first content below.
+  const inner = { x: panel.x + 14, y: panel.y + 14, w: panel.w - 28, h: panel.h - 28 };
+  const title = content[0];
+  for (const side of ['right', 'left'] as const) {
+    const x0 =
+      side === 'right'
+        ? (title === undefined ? inner.x + inner.w / 2 : title.x + title.w) + gap
+        : inner.x + gap;
+    const x1 =
+      side === 'right'
+        ? inner.x + inner.w - gap
+        : (title === undefined ? inner.x + inner.w / 2 : title.x) - gap;
+    let y0 = inner.y + gap;
+    for (const b of avoid)
+      if (b.x < x1 && b.x + b.w > x0 && b.y < y0 + BUBBLE_MIN.h && b.y + b.h > y0)
+        y0 = Math.max(y0, b.y + b.h + gap);
+    let y1 = Math.min(inner.y + inner.h, y0 + 150);
+    for (const c of content.slice(1))
+      if (c.x < x1 && c.x + c.w > x0 && c.y >= y0) y1 = Math.min(y1, c.y - gap);
+    cands.push({ x: x0, y: y0, w: Math.min(400, x1 - x0), h: y1 - y0 });
+  }
+  const ok = (r: Rect): boolean =>
+    r.w >= BUBBLE_MIN.w * 0.8 &&
+    r.h >= BUBBLE_MIN.h * 0.8 &&
+    r.x >= safe.x &&
+    r.y >= safe.y &&
+    r.x + r.w <= safe.x + safe.w &&
+    !avoid.some((b) => overlaps(b, r));
+  return cands.find((r) => ok(r) && !content.some((c) => overlaps(c, r))) ?? cands.find(ok) ?? slot;
 }
 
 export function braaiLayout(i: BraaiLayoutIn): BraaiLayout {
@@ -131,6 +181,6 @@ export function braaiLayout(i: BraaiLayoutIn): BraaiLayout {
     milky: { x: skyX, y: height * 0.4, rotation: -1.15, scaleX: (height * 1.2) / 720 },
     oupaRect: rects?.oupa ?? null,
     fireRect: rects?.fire ?? null,
-    storySlot: storySlot(i, rects?.oupa ?? null, blockers.slice(2)),
+    storySlot: storySlot(i, rects?.oupa ?? null, i.avoid),
   };
 }
