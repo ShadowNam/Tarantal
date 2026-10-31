@@ -14,7 +14,7 @@ import { loadContent, loadFeel } from '../../../tools/testContent';
 import type { ParallaxView } from '../view/ParallaxView';
 import { DIM_BUDGET, LayerDimmer, type DimLayer } from '../view/layerDimmer';
 import { NEWYEAR_SHEET } from './newyearKeys';
-import { NuwejaarSceneView } from './NuwejaarView';
+import { BurstSpacer, burstInSlot, NuwejaarSceneView } from './NuwejaarView';
 import { FW_STRIPS } from './fireworkMath';
 import type { FeesdagView as FeesdagState } from '../../sim/types';
 
@@ -259,5 +259,34 @@ describe('New Year view per-frame cost (D-065 perf)', () => {
     // At most DIM_BUDGET images (then the layer's herds) in any frame, never the whole map.
     expect(peak).toBeLessThanOrEqual(DIM_BUDGET + 7);
     console.log(`[ny dim proxy] ${JSON.stringify({ total, peak, changes: ground.changes })}`);
+  });
+
+  it('never more than 3 bursts start in any second (the flash rule, by construction)', () => {
+    const fw = loadFeel().feesdae.looks.newyear.fireworks;
+    for (const rate of [fw.maxPerSecond, fw.countdownPerSecond, fw.perSecond]) {
+      const spacer = new BurstSpacer(fw.maxPerSecond);
+      const starts: number[] = [];
+      for (let slot = 0; slot < 5000; slot++) {
+        const plan = burstInSlot(slot, fw, rate);
+        if (plan === null || !spacer.allows(plan.start)) continue;
+        spacer.record(plan.start);
+        starts.push(plan.start);
+      }
+      expect(starts.length).toBeGreaterThan(500);
+      for (let i = 3; i < starts.length; i++)
+        expect(
+          (starts[i] ?? 0) - (starts[i - 3] ?? 0),
+          `rate ${rate}, start ${i}`,
+        ).toBeGreaterThanOrEqual(60);
+    }
+  });
+
+  it('the view itself keeps the rule at max rate, 20 ticks a frame', () => {
+    const view = makeView();
+    for (let t = 0; t < 5400; t += 20) view.update(STATE, undefined, 0, t);
+    const starts = view.newYear().starts;
+    expect(starts.length).toBeGreaterThan(50);
+    for (let i = 3; i < starts.length; i++)
+      expect((starts[i] ?? 0) - (starts[i - 3] ?? 0)).toBeGreaterThanOrEqual(60);
   });
 });

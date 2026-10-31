@@ -263,6 +263,30 @@ export function burstInSlot(
   };
 }
 
+/**
+ * The flash rule by construction (≤ maxPerSecond bursts start in any second): a burst may start
+ * only if it starts at least TICKS_PER_SECOND after the start maxPerSecond launches back. Pure:
+ * it sees the starts in launch order (they rise with the slots) and keeps only the last few.
+ */
+export class BurstSpacer {
+  private readonly recent: number[] = [];
+
+  constructor(private readonly perSecond: number) {}
+
+  /** Whether a burst starting at `start` keeps every second to ≤ perSecond starts. */
+  allows(start: number): boolean {
+    const n = Math.max(1, Math.floor(this.perSecond));
+    if (this.recent.length < n) return true;
+    return start - (this.recent[this.recent.length - n] ?? -Infinity) >= TICKS_PER_SECOND;
+  }
+
+  /** A burst started at `start` (call only for bursts that really launch). */
+  record(start: number): void {
+    this.recent.push(start);
+    if (this.recent.length > 8) this.recent.shift();
+  }
+}
+
 interface Burst {
   /** The baked burst (fireworkMath.ts): one image showing its colour's strip (its sparks, the
    *  white ones, the core and the fade baked in), the frame shown now; reduce flashes: the
@@ -360,6 +384,8 @@ export class NuwejaarSceneView {
   private starAlpha = -1;
   private hidden = false;
   private readonly starts: number[] = [];
+  /** ≤ maxPerSecond burst starts in any second, by construction. */
+  private readonly spacer: BurstSpacer;
   /** Pops to play (screen x), gathered in update and played in handle (it has the audio). */
   private readonly pops: number[] = [];
   /** The rifle zoom the world is drawn at (1 = no sight up). */
@@ -374,6 +400,7 @@ export class NuwejaarSceneView {
     this.reduceFlashes = d.reduceFlashes;
     this.lowTier = d.lowTier;
     this.maxFireworks = d.maxFireworks === true;
+    this.spacer = new BurstSpacer(d.look.fireworks.maxPerSecond);
     this.lastSeconds =
       d.special.twist.rule === 'nuwejaar' ? d.special.twist.countdown.lastSeconds : 0;
     this.key = ensureNyTexture(d.scene, d.sheet);
@@ -615,11 +642,12 @@ export class NuwejaarSceneView {
     const sky = this.parallax.layer(SKY);
     for (let s = this.lastSlot + 1; s <= slot; s++) {
       const plan = burstInSlot(s, fw, rate);
-      if (plan === null) continue;
+      if (plan === null || !this.spacer.allows(plan.start)) continue;
       const free = this.bursts.find(
         (b) => b.plan === null || tick - b.plan.start >= durTicks + riseTicks,
       );
       if (free === undefined) continue;
+      this.spacer.record(plan.start);
       free.plan = plan;
       free.popped = false;
       // Fixed on the sky where the view is now (it stays put as the view pans).

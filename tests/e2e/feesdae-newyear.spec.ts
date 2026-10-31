@@ -151,7 +151,8 @@ test.describe('Feesdae: New Year countdown (D-065)', () => {
 
     // A burst on the canvas: with the delivered sheet (its baked frames), hold a frame that shows
     // one well drawn (alpha ≥ 0.3, read and held in the same in-page check), grab it with the
-    // fireworks shown and hidden at that held tick. Bounded: up to 6 bursts; a hard failure if no
+    // fireworks shown and hidden at that held tick. Bounded: up to 6 bursts within 900 sim ticks
+    // (each wait ≤ 30 s), so a failing try stays short; a hard failure, with the numbers, if no
     // burst's pixels are ever there.
     await nySheetIn(page);
     await page.waitForFunction(() => window.__TM__?.spook?.final === true, null, {
@@ -160,8 +161,13 @@ test.describe('Feesdae: New Year countdown (D-065)', () => {
     const grab = async (): Promise<Rgba> =>
       decodePng(await page.locator('#game canvas').screenshot());
     let best = 0;
+    let tries = 0;
     let shot: { on: Rgba; off: Rgba } | null = null;
+    const from = await page.evaluate(() => window.__TM__?.tick ?? 0);
     for (let attempt = 0; attempt < 6 && best <= 12; attempt++) {
+      const now = await page.evaluate(() => window.__TM__?.tick ?? 0);
+      if (now - from > 900) break;
+      tries++;
       const held = await page.waitForFunction(
         () => {
           const g = window.__TM__;
@@ -176,7 +182,7 @@ test.describe('Feesdae: New Year countdown (D-065)', () => {
           return b;
         },
         null,
-        { timeout: 120_000, polling: 'raf' },
+        { timeout: 30_000, polling: 'raf' },
       );
       const burst = (await held.jsonValue()) as {
         x: number;
@@ -203,12 +209,15 @@ test.describe('Feesdae: New Year countdown (D-065)', () => {
       if (best <= 12) {
         const t0 = await page.evaluate(() => window.__TM__?.tick ?? 0);
         await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 20, t0, {
-          timeout: 60_000,
+          timeout: 30_000,
         });
       }
     }
     // Some sparks really drawn round it (a burst is a ring of small sparks, not a disc).
-    expect(best, 'a burst’s sparks drawn on the canvas').toBeGreaterThan(12);
+    expect(
+      best,
+      `a burst’s sparks drawn on the canvas: best ${best} px changed over ${tries} bursts`,
+    ).toBeGreaterThan(12);
     // No large flash: the whole frame is barely brighter with the fireworks than without.
     if (shot !== null) expect(luminance(shot.on) - luminance(shot.off)).toBeLessThan(4);
 
@@ -289,7 +298,10 @@ test.describe('Feesdae: New Year countdown (D-065)', () => {
     const starts = h.spook?.newYear?.starts ?? [];
     expect(starts.length).toBeGreaterThan(3);
     for (let i = 3; i < starts.length; i++)
-      expect((starts[i] ?? 0) - (starts[i - 3] ?? 0)).toBeGreaterThanOrEqual(60);
+      expect(
+        (starts[i] ?? 0) - (starts[i - 3] ?? 0),
+        `bursts ${i - 3}…${i} start at ${starts.slice(i - 3, i + 1).join(', ')}`,
+      ).toBeGreaterThanOrEqual(60);
 
     await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, {
       timeout: 300_000,
