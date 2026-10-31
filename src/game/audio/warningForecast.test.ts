@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import { createSim } from '../../sim/Sim';
 import type { ModeConfig } from '../../sim/types';
+import { FORECAST_SIM } from './forecastSim';
 import { forecastWarnings, WarningQuiet } from './warningForecast';
 
 const content = loadContent();
@@ -62,7 +63,7 @@ const cases: [string, number, ModeConfig][] = [
 describe('forecastWarnings (D-066)', () => {
   it.each(cases)('%s: every emitted penalty-creature event was forecast', (_, seed, mode) => {
     const got = emitted(seed, mode);
-    const want = forecastWarnings(content, seed, mode, WARNED);
+    const want = forecastWarnings(content, seed, mode, WARNED, FORECAST_SIM);
     expect(got.length).toBeGreaterThan(0);
     for (const e of got)
       expect(
@@ -72,7 +73,7 @@ describe('forecastWarnings (D-066)', () => {
   });
 
   it('the Skietbaan forecasts nothing', () => {
-    expect(forecastWarnings(content, 1, { id: 'range' }, WARNED)).toEqual([]);
+    expect(forecastWarnings(content, 1, { id: 'range' }, WARNED, FORECAST_SIM)).toEqual([]);
   });
 });
 

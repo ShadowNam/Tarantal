@@ -1,6 +1,85 @@
-// v1.9 (D-066): parses content/client/soundscape.json and checks its cross-references (the
-// content tool and the lazy soundscape chunk; never in the sim bundle or its hash). Pure: no I/O.
-import { SoundscapeSchema, type Soundscape } from './schemas';
+// v1.9 (D-066): the schema of content/client/soundscape.json (the veld soundscape, Tech §7.1, art
+// bible §10.2: one-shot calls over each area's ambience bed; presentation only, never in the sim
+// bundle or its hash), its parser and its cross-reference checks. It lives here rather than in
+// schemas.ts because only the lazy soundscape chunk and the tools use it: importing schemas.ts
+// from that chunk split schemas.ts's chunk and grew the first download (~1 KB gzip). schemas.ts
+// re-exports the type. Same conventions as schemas.ts (strict objects, `$comment` allowed).
+import { z } from 'zod';
+
+function obj<T extends z.ZodRawShape>(shape: T) {
+  return z.strictObject({ $comment: z.string().optional(), ...shape });
+}
+const id = z.string().regex(/^[a-z][a-zA-Z0-9_-]*$/, 'ids are lower-case ascii');
+const nonNegInt = z.number().int().nonnegative();
+const posInt = z.number().int().positive();
+const nonNeg = z.number().nonnegative();
+const pos = z.number().positive();
+const fraction = z.number().min(0).max(1);
+const version = z.literal(1);
+
+const soundscapeDistance = z.enum(['near', 'mid', 'far']);
+export const SoundscapeSchema = obj({
+    version,
+    /** Soundscape voices at once (they never take one of the game's). */
+    maxVoices: posInt.max(4),
+    /** Voices of the AudioDirector's 16 a call must leave free for shots, bags and warnings. */
+    reserveVoices: posInt.max(12),
+    /** ± fraction of a call's mean gap drawn per call (0.45 = 55 %…145 %). */
+    jitter: fraction,
+    /** Ms between any two call starts (by construction in the scheduler). */
+    minGapMs: nonNeg,
+    /** A call more than this late (a slow frame, a held hunt) is skipped, not played late. */
+    lateMs: pos,
+    /** The title's rate factor (calmer than a hunt). */
+    titleRateMul: fraction,
+    /** No call of a warned creature from this long before its world event… */
+    quietBeforeEventMs: nonNeg,
+    /** …until this long after the creature has left. */
+    quietAfterEventMs: nonNeg,
+    /** The title's schedule seed (no hunt seed there). */
+    titleSeed: nonNegInt,
+    /** On the title, the soundscape's files load this long after the first gesture if no hunt
+     *  has started (a hunt start loads them at once; never before START). */
+    titleLoadDelayMs: nonNeg,
+    /** Light whose factors apply when neither a layout light nor a special day's map has one. */
+    defaultLight: id,
+    /** dB added under a bonus map's haze light (further back sounds further away). */
+    hazeDb: z.record(id, z.number().max(0)),
+    distances: z.record(
+      soundscapeDistance,
+      obj({ levelDb: z.number().max(0), lowpassHz: nonNeg }),
+    ),
+    /** Time-of-day factor per layout light, by profile name. */
+    profiles: z.record(id, z.record(id, nonNeg)),
+    calls: z.record(
+      id,
+      obj({
+        /** The sound key (sfx/amb_<id>), interim from tools/audio/soundscape.ts. */
+        sound: z.string().regex(/^sfx\/amb_[a-z0-9_]+$/, 'soundscape sounds are sfx/amb_<id>'),
+        /** How long a voice is held (sim ms), ≥ the sound's length. */
+        lengthMs: posInt,
+        /** A penalty creature this call sounds like (birds.json id): far only, quiet around it. */
+        warns: id.optional(),
+      }),
+    ),
+    areas: z.record(
+      id,
+      z
+        .array(
+          obj({
+            call: id,
+            weight: pos,
+            perMinute: pos.max(20),
+            levelDb: z.number().max(0),
+            distance: soundscapeDistance,
+            profile: id,
+          }),
+        )
+        .min(1),
+    ),
+  });
+export type Soundscape = z.infer<typeof SoundscapeSchema>;
+
 
 export type SoundscapeResult =
   | { readonly ok: true; readonly soundscape: Soundscape }

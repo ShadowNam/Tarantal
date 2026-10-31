@@ -98,14 +98,19 @@ describe('SoundscapeDirector (D-066)', () => {
       }
       return out;
     };
-    const one = timeline(a, 1);
-    const twenty = timeline(b, 20);
+    // Within a long frame calls are offered in weight order: compare by due tick.
+    const byTick = (l: string[]): string[] =>
+      [...l].sort(
+        (x, y) => Number(x.split('@')[1]?.split(':')[0]) - Number(y.split('@')[1]?.split(':')[0]),
+      );
+    const one = byTick(timeline(a, 1));
+    const twenty = byTick(timeline(b, 20));
     expect(one.length).toBeGreaterThan(5);
     expect(twenty).toEqual(one);
     // Another seed is another schedule.
     const c = new SoundscapeDirector(sc, true);
     c.start(scene('okavango-spring', 'dusk', { seed: 43 }));
-    expect(timeline(c, 1)).not.toEqual(one);
+    expect(byTick(timeline(c, 1))).not.toEqual(one);
   });
 
   it('rates follow the time of day: reed frogs at dusk, cicadas in the heat', () => {

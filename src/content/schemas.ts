@@ -3030,70 +3030,7 @@ export const DailyMetaSchema = obj({
 });
 export type DailyMeta = z.infer<typeof DailyMetaSchema>;
 
-// v1.9 (D-066) client/soundscape.json — the veld soundscape (Tech §7.1, art bible §10.2): one-shot
-// calls over each area's ambience bed, presentation only (never in the sim bundle or its hash).
-// Only the lazy soundscape chunk and the tools use it: built in a pure call so a bundle that
-// never reads it drops it (the first download stays as it was).
-const soundscapeDistance = z.enum(['near', 'mid', 'far']);
-export const SoundscapeSchema = /* @__PURE__ */ (() =>
-  obj({
-    version,
-    /** Soundscape voices at once (they never take one of the game's). */
-    maxVoices: posInt.max(4),
-    /** Voices of the AudioDirector's 16 a call must leave free for shots, bags and warnings. */
-    reserveVoices: posInt.max(12),
-    /** ± fraction of a call's mean gap drawn per call (0.45 = 55 %…145 %). */
-    jitter: fraction,
-    /** Ms between any two call starts (by construction in the scheduler). */
-    minGapMs: nonNeg,
-    /** A call more than this late (a slow frame, a held hunt) is skipped, not played late. */
-    lateMs: pos,
-    /** The title's rate factor (calmer than a hunt). */
-    titleRateMul: fraction,
-    /** No call of a warned creature from this long before its world event… */
-    quietBeforeEventMs: nonNeg,
-    /** …until this long after the creature has left. */
-    quietAfterEventMs: nonNeg,
-    /** The title's schedule seed (no hunt seed there). */
-    titleSeed: nonNegInt,
-    /** On the title, the soundscape's files load this long after the first gesture if no hunt
-     *  has started (a hunt start loads them at once; never before START). */
-    titleLoadDelayMs: nonNeg,
-    /** Light whose factors apply when neither a layout light nor a special day's map has one. */
-    defaultLight: id,
-    /** dB added under a bonus map's haze light (further back sounds further away). */
-    hazeDb: z.record(id, z.number().max(0)),
-    distances: z.record(
-      soundscapeDistance,
-      obj({ levelDb: z.number().max(0), lowpassHz: nonNeg }),
-    ),
-    /** Time-of-day factor per layout light, by profile name. */
-    profiles: z.record(id, z.record(id, nonNeg)),
-    calls: z.record(
-      id,
-      obj({
-        /** The sound key (sfx/amb_<id>), interim from tools/audio/soundscape.ts. */
-        sound: z.string().regex(/^sfx\/amb_[a-z0-9_]+$/, 'soundscape sounds are sfx/amb_<id>'),
-        /** How long a voice is held (sim ms), ≥ the sound's length. */
-        lengthMs: posInt,
-        /** A penalty creature this call sounds like (birds.json id): far only, quiet around it. */
-        warns: id.optional(),
-      }),
-    ),
-    areas: z.record(
-      id,
-      z
-        .array(
-          obj({
-            call: id,
-            weight: pos,
-            perMinute: pos.max(20),
-            levelDb: z.number().max(0),
-            distance: soundscapeDistance,
-            profile: id,
-          }),
-        )
-        .min(1),
-    ),
-  }))();
-export type Soundscape = z.infer<typeof SoundscapeSchema>;
+// v1.9 (D-066) client/soundscape.json — the veld soundscape: its schema lives in ./soundscape.ts
+// (only the lazy soundscape chunk and the tools load it; here it would split this module's chunk
+// and grow the first download). The type is re-exported for everyone else.
+export type { Soundscape } from './soundscape';

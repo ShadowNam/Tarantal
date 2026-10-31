@@ -8,7 +8,6 @@
 // late is skipped, and a call that `warns` a penalty creature stays quiet around its event.
 // Allocation-free per step: every array is sized when the director is made.
 import type { Soundscape } from '../../content/schemas';
-import { fnv1a32 } from '../../sim/rng';
 import { TICKS_PER_SECOND } from '../../sim/clock';
 
 export type Distance = 'near' | 'mid' | 'far';
@@ -86,16 +85,25 @@ const MAX_DUE_PER_STEP = 32;
 
 const msToTicks = (ms: number): number => (ms * TICKS_PER_SECOND) / 1000;
 
-/** mulberry32 (presentation only; the sim has its own streams). */
-function generator(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+/** FNV-1a of the scene (its own copy: importing the sim's rng module from this lazy chunk split
+ *  that module out of the first download's chunk). */
+function hash(text: string, seed: number): number {
+  let h = (0x811c9dc5 ^ seed) >>> 0;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+/** One step of mulberry32 on state[i] (presentation only; the sim has its own streams). */
+function draw(state: Uint32Array, i: number): number {
+  const a = ((state[i] ?? 0) + 0x6d2b79f5) >>> 0;
+  state[i] = a;
+  let t = a;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
 
 /**
@@ -110,7 +118,7 @@ export function resolveSoundscapeLight(
 ): { light: string; hazeDb: number } {
   const profiles = Object.values(sc.profiles);
   const timeOfDay = (l: string): boolean => profiles.every((p) => p[l] !== undefined);
-  const light = lights.find(timeOfDay) ?? mapLights.find(timeOfDay) ?? (sc.defaultLight);
+  const light = lights.find(timeOfDay) ?? mapLights.find(timeOfDay) ?? sc.defaultLight;
   let hazeDb = 0;
   for (const l of lights) hazeDb += sc.hazeDb[l] ?? 0;
   return { light, hazeDb };
@@ -125,7 +133,9 @@ export class SoundscapeDirector {
   private readonly voiceEnd: Float64Array;
   private count = 0;
   private entries: Soundscape['areas'][string] = [];
-  private rand: () => number = generator(0);
+  /** One generator per area entry: each call's timeline is independent of the others' (and so
+   *  of the order a long frame handles them in). */
+  private readonly rng: Uint32Array;
   private lastStart = -Infinity;
   private readonly minGap: number;
   private readonly late: number;
@@ -164,6 +174,7 @@ export class SoundscapeDirector {
     this.mean = new Float64Array(this.cap);
     this.order = new Int32Array(this.cap);
     this.voiceEnd = new Float64Array(sc.maxVoices);
+    this.rng = new Uint32Array(this.cap);
     this.minGap = msToTicks(sc.minGapMs);
     this.late = msToTicks(sc.lateMs);
     this.log = withLog ? [] : null;
@@ -179,9 +190,8 @@ export class SoundscapeDirector {
     const sc = this.sc;
     this.entries = sc.areas[scene.area] ?? [];
     this.count = Math.min(this.cap, this.entries.length);
-    this.rand = generator(
-      fnv1a32(`${scene.area}|${scene.light}|${scene.title ? 'title' : 'hunt'}`, scene.seed >>> 0),
-    );
+    const base = `${scene.area}|${scene.light}|${scene.title ? 'title' : 'hunt'}`;
+    for (let i = 0; i < this.count; i++) this.rng[i] = hash(`${base}|${i}`, scene.seed >>> 0);
     this.lastStart = -Infinity;
     this.voiceEnd.fill(-Infinity);
     for (const k of Object.keys(this.counts) as CallOutcome[]) this.counts[k] = 0;
@@ -193,7 +203,7 @@ export class SoundscapeDirector {
       const perMinute = (e?.perMinute ?? 0) * factor * rateMul;
       this.mean[i] = perMinute > 0 ? (60 * TICKS_PER_SECOND) / perMinute : Infinity;
       // The first call of each kind somewhere inside its first mean gap.
-      this.next[i] = scene.startTick + this.rand() * (this.mean[i] ?? Infinity);
+      this.next[i] = scene.startTick + draw(this.rng, i) * (this.mean[i] ?? Infinity);
     }
     // Higher weight first; ties keep content order.
     for (let i = 0; i < this.count; i++) this.order[i] = i;
@@ -211,7 +221,7 @@ export class SoundscapeDirector {
   /** The gap to the next call of entry i: its mean ± jitter (≥ 1 tick). */
   private gap(i: number): number {
     const j = this.sc.jitter;
-    return Math.max(1, (this.mean[i] ?? Infinity) * (1 + j * (2 * this.rand() - 1)));
+    return Math.max(1, (this.mean[i] ?? Infinity) * (1 + j * (2 * draw(this.rng, i) - 1)));
   }
 
   /**
@@ -225,7 +235,7 @@ export class SoundscapeDirector {
       for (let n = 0; n < MAX_DUE_PER_STEP && (this.next[i] ?? Infinity) <= tick; n++) {
         const due = this.next[i] ?? 0;
         // Every draw happens whatever the outcome: the timeline never depends on the sink.
-        const pan = this.rand() * 2 - 1;
+        const pan = draw(this.rng, i) * 2 - 1;
         this.next[i] = due + this.gap(i);
         this.offer(i, due, tick, pan, sink);
         offered++;
