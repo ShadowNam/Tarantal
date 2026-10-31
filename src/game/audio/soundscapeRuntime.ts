@@ -189,6 +189,9 @@ export class SoundscapeRuntime implements SoundscapeSink {
       });
       this.areaSounds = [...new Set(sounds)];
       this.audio.setSoundscapeKeys(this.areaSounds);
+    } else if (this.reenbui !== null) {
+      // Same area after a Reënbui hunt: release the event's sounds (only the area's stay decoded).
+      this.audio.setSoundscapeKeys(this.areaSounds);
     }
     // A new scene: no Reënbui until a hunt's snapshot says so (frame()).
     this.reenbui = null;
