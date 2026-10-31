@@ -759,6 +759,35 @@ Notaboek, cosmetics), Padstal (farm-stall shop with hand-painted price boards), 
 **Fonts (open licences, self-hosted, subset):** display — *Bangers* (onomatopoeia); body —
 *Baloo 2* 600/800 (all UI text). Shipped in M10 (`public/fonts/`, D-027). Verify glyphs for Afrikaans (ê ë ô ï û ʼn) and German (ä ö ü ß).
 
+
+### 6.1 Die Braai: the tally at Oupa's fire (1.14.0, D-068)
+
+The Bakkie Tally's night setting (GDD §8). The slate stays in front; the braai is drawn behind and
+around it, warm and quiet, with respect for the braai as a South African gathering: Oupa is the
+host at his own fire, never a joke.
+- *Sky:* a clear southern night, a deep blue gradient (`#03050F` at the top to `#2A3456` at the
+  horizon), stars of every brightness (a few tinted blue-white or warm), the Milky Way rising
+  steeply through the right column with its dark dust lanes, the Southern Cross in it (Gacrux
+  orange at the top, Acrux at the foot, Mimosa left, Delta right, faint Epsilon). Drawn in code
+  and from small soft tiles (no full-screen image: texture memory, lesson 29).
+- *Horizon:* the area just hunted, dark against the sky — the Karoo's ridges, the Kalahari's dunes
+  and acacias, the Okavango's flat line and palms, the Bushveld's hills and baobabs.
+- *The fire:* a ring of stones, glowing coals through the ash, a blackened grid with a blue enamel
+  coffee pot on its edge, four flame frames of layered tongues (deep red outside, orange, a pale
+  yellow core), embers rising, a warm glow on the ground (steady with "reduce flashes").
+- *Oupa (D-064's figure by firelight):* lit warm from the fire on his right, cool from the sky on
+  his left; his khaki bush hat, shirt and shorts, socks over vellies; side on in a canvas camp chair
+  facing the fire. At rest with his enamel mug on his knee (steam curling), a sip, leaning to poke
+  the coals. **Vastrap** for a perfect hunt or a rank up: up on his feet, a knee up with his hat
+  raised high, then a stamp with his knees bent and his hands out, mirrored for the other foot
+  ("reduce motion" leaves it out). His story is told in his bubble above his head.
+- *The bakkie:* a generic pickup in silhouette on the right (no brand), a cool rim of sky light on
+  its roof, a glint of firelight on its tail.
+- *A Feesdae Daily's touch:* Christmas's Santa hat and a present by the fire, New Year's party hat,
+  Halloween's pumpkin lantern — from the special's own sheet, beside its framed slate.
+- *Sheet:* `braai/sheet`, a 2× master (1024 × 864) packed at 1× with its HD twin; soft and repeating
+  frames at half or quarter size (docs/06).
+
 ## 7. FX
 Feather bursts (palette-tinted per variant), dust puffs, muzzle flash + smoke, shell ejection,
 pellet impact puffs on ground/props, Voorlaaier smoke cloud, corn-kernel spray, BZZZT shockwave rings,
@@ -961,6 +990,21 @@ build-up until 1.5 s after the rain has eased: the event's cues are the veld's s
 coming down to feast!" / "Rysmiere! Al die voëls kom fees!" when the alates rise, "There goes the
 rain. By Sunday the veld will be green." when it eases (en/af/de interim TTS, nl text).
 
+
+### 10.4 Die Braai's sounds and Oupa's story (1.14.0, D-068)
+
+When the braai tally opens the area's music fades out into the night: a wood fire's soft roar and
+crackle with field crickets (one seamless loop on the ambience bus) and a soft fingerpicked
+nylon-string figure (an original four bars, G–Em–C–D at 72 bpm, on the music bus). Now and then a
+far fiery-necked nightjar calls ("Good Lord, deliver us": two clear whistles, then a quavering
+phrase falling away, through a long night reverb). Oupa's vastrap comes with a short concertina
+oom-pa sting (an original phrase). All interim and made in code (`tools/audio/braai.ts`); muted,
+paused and silenced on a hidden tab like every sound.
+**Oupa's story:** 18 voiced phrases (an opener for the bag, the hunt's best moments, a closer)
+per voice language — 54 clips in en/af/de (Dutch text speaks Afrikaans), made with the same
+interim voice pipeline as his other lines (§10.1); the numbers are only in the caption, never
+spoken, so the clips stay few. Example: "Jislaaik, what a bag! The pickup's full!" (caption:
+"Jislaaik, 14 birds! The pickup's full!").
 ## 11. Special days (Feesdae, D-048)
 
 A special day dresses the day's map; it never swaps the biome art. Each special's art and sounds

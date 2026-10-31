@@ -259,12 +259,15 @@ fact + a joke. Completing pages unlocks cosmetics. Collection is a quiet, strong
   moments in a fixed order of priority (a new best or rank up, a Ver/Die Verste bag, a whole flock,
   a Blikkies chain, a Reënbui swarm bag, a meerkat or nest scold, a near miss on the record), then
   a closer; the same result always tells the same story. Voiced phrases only; the numbers are in
-  the caption. A **perfect hunt** (the top rank, or no miss with at least
+  the caption; Oupa's bubble sits above his head. A **perfect hunt** (the top rank, or no miss with at least
   `feel.braai.perfect.minBagged` birds) or a rank up earns a short **vastrap** from Oupa with a
-  concertina sting. A tap anywhere but a button, or Space, skips the count-up and the story. The
+  concertina sting. A tap anywhere but a button, or Esc, skips the count-up and the story. The
   Season Run's day end (the Padstal) stays as it is, and Oupa se Les keeps the plain slate. If the
   braai's lazy files haven't arrived the slate shows as before; nothing waits for them. "Reduce
   motion" stills the sparks and skips the dance; "reduce flashes" keeps the fire's glow steady.
+  On 4:3 there is no room beside the slate: the sky, the horizon and the bakkie show, Oupa and the
+  fire are left out and his story goes to the slate's bubble corner. The Daily's share card puts
+  the braai round the score: `🔥 2 840 🌌`.
 
 ## 9. Combos
 
