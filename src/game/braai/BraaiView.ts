@@ -24,6 +24,9 @@ import { voiceKey } from '../assets/AssetManifest';
 import type { AudioDirector } from '../audio/AudioDirector';
 import type { Rect } from '../ui/hudLayout';
 import { BRAAI_SHEET, BRAAI_SOUNDS, braaiVoiceGroup } from './braaiKeys';
+import { CHRISTMAS_SHEET, xmasKeyIn } from '../feesdae/christmasKeys';
+import { HALLOWEEN_SHEET } from '../feesdae/feesdaeAssets';
+import { NEWYEAR_SHEET } from '../feesdae/newyearKeys';
 import {
   braaiFrames,
   braaiTexelsPerPx,
@@ -86,6 +89,15 @@ async function loadSounds(
  * index without audio loads no sound and no voice. A failed file is tried again next hunt.
  */
 export function loadBraaiAssets(audio: AudioDirector, hd: boolean): void {
+  const lang = audio.voiceLanguage;
+  // Everything asked for is in (or on its way): no index fetch for this hunt.
+  if (
+    standardLoad !== null &&
+    (!hd || hdLoad !== null) &&
+    soundLoad !== null &&
+    voiceLoads.has(lang)
+  )
+    return;
   const index = fetchAssetIndex(FILE_TIMEOUT_MS).then((r) => r.index);
   standardLoad ??= index.then(async (ix) => {
     const e = ix?.images[BRAAI_SHEET];
@@ -122,7 +134,6 @@ export function loadBraaiAssets(audio: AudioDirector, hd: boolean): void {
     });
     if (want.length === 0 || !(await loadSounds(audio, want, format))) soundLoad = null;
   });
-  const lang = audio.voiceLanguage;
   if (!voiceLoads.has(lang))
     voiceLoads.set(
       lang,
@@ -443,12 +454,14 @@ export class BraaiView {
       out.push(`${key}:${frame}`);
       return img;
     };
+    // The special's sheet as its hunt left it in the texture manager (never loaded here).
     const sheet =
       special === 'christmas'
-        ? 'feesdae/christmas'
+        ? (xmasKeyIn(scene.textures) ?? CHRISTMAS_SHEET)
         : special === 'newyear'
-          ? 'feesdae/newyear'
-          : 'feesdae/halloween';
+          ? NEWYEAR_SHEET
+          : HALLOWEEN_SHEET;
+
     let hat: Phaser.GameObjects.Image | null = null;
     if (special === 'christmas' || special === 'newyear') {
       hat = add(sheet, 'hat_m', L.oupa.x + 4 * sc, L.oupa.y - 150 * sc, 34 * sc);

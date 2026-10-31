@@ -645,7 +645,7 @@ export class TallyScene extends Phaser.Scene {
     // tally closes, for [Again]'s restart or the title).
     this.scene.setVisible(false, 'Hunt');
     const skip = (): void => {
-      at.countUp?.complete();
+      if (at.countUp?.isPlaying() === true) at.countUp.complete();
       view.skip(this.braaiClock());
     };
     const buttons = at.avoid;
