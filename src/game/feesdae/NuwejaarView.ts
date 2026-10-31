@@ -9,7 +9,7 @@
 // Part of the lazy feesdae chunk; the art is the "feesdae-newyear" group's sheet (Standard in
 // HD); until it arrives a tiny stand-in (the spark and the star only) keeps the fireworks and
 // stars, and no hats are drawn.
-import * as Phaser from 'phaser';
+import type * as Phaser from 'phaser';
 import type { Feesdag, NewYearLook } from '../../content/schemas';
 import type { SimEvent } from '../../sim/events';
 import type { FeesdagView as FeesdagState, PlaneId } from '../../sim/types';
@@ -45,6 +45,15 @@ const TICKS_PER_SECOND = 60;
 const SKY = 'sky';
 
 const ORIGINS = new Map(nyFrames().map((f) => [f.name, f]));
+/** Phaser.BlendModes.NORMAL and ADD (the numbers, so the module needs no Phaser at run time). */
+const BLEND_NORMAL = 0;
+const BLEND_ADD = 1;
+/** One turn of a sine in 64 steps (the stars' twinkle: no Math.sin per star per frame). */
+const SINE64 = Float32Array.from({ length: 64 }, (_, i) => Math.sin((i / 64) * Math.PI * 2));
+/** Per spark, precomputed when its burst starts: speed k, cos and sin of its ray, white (0/1). */
+const SPARK_FIELDS = 4;
+/** A spark's rotation is set again only when it turns more than this (radians, ~2°). */
+const TURN_EPS = 0.035;
 
 /** Sets an image's origin from the frame table (the streak's head is its origin). */
 function originOf(img: Phaser.GameObjects.Image, frame: 'spark' | 'streak'): void {
@@ -247,6 +256,12 @@ export function burstInSlot(
 
 interface Burst {
   readonly sparks: Phaser.GameObjects.Image[];
+  /** SPARK_FIELDS numbers per spark for the plan now (filled once, at launch). */
+  readonly consts: Float32Array;
+  /** Per spark: the rotation, x scale and alpha last set (setters only on change). */
+  readonly last: Float32Array;
+  /** The sparks' y scale last set (one for the burst). */
+  lastSy: number;
   readonly rocket: Phaser.GameObjects.Image;
   /** The small bright core at the centre as it opens. */
   readonly core: Phaser.GameObjects.Image;
@@ -317,6 +332,9 @@ export class NuwejaarSceneView {
   private last: FeesdagState | null = null;
   private lastSlot = -1;
   private washAlpha = -1;
+  /** The tick (and hide state) the stars and fireworks were last drawn for. */
+  private drawnTick = -1;
+  private drawnHidden = false;
   /** D-065: each layer's extra blue-hour tint now (dimGround). */
   private readonly groundTint = new Map<string, number>();
   private starAlpha = -1;
@@ -372,7 +390,7 @@ export class NuwejaarSceneView {
         // Streaks along their rays (glowing: added light), or plain dots that only twinkle with
         // "reduce flashes".
         const frame = this.reduceFlashes ? 'spark' : 'streak';
-        const blend = this.reduceFlashes ? Phaser.BlendModes.NORMAL : Phaser.BlendModes.ADD;
+        const blend = this.reduceFlashes ? BLEND_NORMAL : BLEND_ADD;
         const sparks: Phaser.GameObjects.Image[] = [];
         for (let i = 0; i < fw.sparks; i++) {
           const img = d.scene.add
@@ -392,7 +410,18 @@ export class NuwejaarSceneView {
           .setBlendMode(blend);
         sky.fixtures.add(rocket);
         sky.fixtures.add(core);
-        this.bursts.push({ sparks, rocket, core, plan: null, x: 0, popped: false, shown: false });
+        this.bursts.push({
+          sparks,
+          consts: new Float32Array(fw.sparks * SPARK_FIELDS),
+          last: new Float32Array(fw.sparks * 3),
+          lastSy: Number.NaN,
+          rocket,
+          core,
+          plan: null,
+          x: 0,
+          popped: false,
+          shown: false,
+        });
       }
     }
     if (d.hooks === true)
@@ -477,9 +506,13 @@ export class NuwejaarSceneView {
     const st = this.look.stars;
     const sa = this.hidden ? 0 : st.alpha * ramp(p, st.from, st.to);
     this.starAlpha = sa;
+    // Nothing below moves unless the sim tick (or a hide) moved: a held or repeated frame is free.
+    if (tick === this.drawnTick && this.hidden === this.drawnHidden) return;
+    this.drawnTick = tick;
+    this.drawnHidden = this.hidden;
     const per = st.twinkleSeconds * TICKS_PER_SECOND;
     for (const s of this.stars) {
-      const tw = 0.65 + 0.35 * Math.sin(((tick / per + s.phase) % 1) * Math.PI * 2);
+      const tw = 0.65 + 0.35 * (SINE64[Math.floor(((tick / per + s.phase) % 1) * 64) & 63] ?? 0);
       const a = Math.round(sa * s.bright * tw * 50) / 50;
       if (s.img.alpha !== a) s.img.setAlpha(a);
       const vis = a > 0;
@@ -526,6 +559,7 @@ export class NuwejaarSceneView {
       if (free === undefined) continue;
       free.plan = plan;
       free.popped = false;
+      this.launch(free, plan);
       // Fixed on the sky where the view is now (it stays put as the view pans).
       const k = sky?.root.scaleX ?? 1;
       const half = designSize().width / 2;
@@ -604,33 +638,69 @@ export class NuwejaarSceneView {
     } else if (b.core.visible) b.core.setVisible(false);
     // The sparks: each on its own ray at its own speed, fast out then slowing (a streak that
     // shortens as it slows), drifting down, fading; in the second half they fall faster and
-    // flicker like glitter. Every whiteEvery-th spark is white.
+    // flicker like glitter. Their constants were worked out at launch (launch()); per frame only
+    // arithmetic, and each setter only when its value changed.
     const out = 1 - (1 - t) * (1 - t) * (1 - t);
     const speedNow = 3 * (1 - t) * (1 - t);
     const glitter = t > fw.glitterFrom;
     const gt = glitter ? (t - fw.glitterFrom) / (1 - fw.glitterFrom) : 0;
     const flick = Math.floor(tick / 3);
+    const fall = 0.3 * t * t + 0.5 * gt * gt;
+    const trailK = fw.trail / 34;
+    const a0 = Math.round(fw.alpha * (1 - t) ** 1.2 * 64) / 64;
+    const sy = Math.round((1.3 - 0.5 * t) * 32) / 32;
+    const c = b.consts;
+    const last = b.last;
     for (let i = 0; i < n; i++) {
       const s = b.sparks[i];
       if (s === undefined) continue;
-      const k = 0.55 + 0.45 * hash01(i * 31 + plan.slot, 8);
-      const ang = (i / n) * Math.PI * 2 + plan.slot * 0.37 + (hash01(i, plan.slot) - 0.5) * 0.3;
+      const o = i * SPARK_FIELDS;
+      const k = c[o] ?? 1;
+      const cos = c[o + 1] ?? 1;
+      const sin = c[o + 2] ?? 0;
       const r = plan.radius * k * out;
-      const drop = plan.radius * (0.3 * t * t + 0.5 * gt * gt) * k;
       if (!s.visible) {
-        const white = (i + plan.slot) % fw.whiteEvery === 0;
-        s.setVisible(true).setTint(white ? 0xffffff : plan.colour);
+        s.setVisible(true).setTint((c[o + 3] ?? 0) > 0 ? 0xffffff : plan.colour);
+        last[i * 3] = Number.NaN;
+        last[i * 3 + 1] = Number.NaN;
+        last[i * 3 + 2] = Number.NaN;
       }
+      s.setPosition(b.x + cos * r, plan.y + sin * r + plan.radius * fall * k);
       // Along its ray while it flies; turning downward as it falls.
-      const dx = Math.cos(ang) * speedNow;
-      const dy = Math.sin(ang) * speedNow + 0.6 * t;
-      const len = Math.min(1, Math.hypot(dx, dy) / 3) * (fw.trail / 34) * k + 0.25;
-      let a = fw.alpha * (1 - t) ** 1.2;
-      if (glitter && hash01(flick + i * 7, plan.slot) < 0.35) a *= 0.25;
-      s.setPosition(b.x + Math.cos(ang) * r, plan.y + Math.sin(ang) * r + drop)
-        .setRotation(Math.atan2(dy, dx))
-        .setScale(len * sc, (1.3 - 0.5 * t) * sc)
-        .setAlpha(a);
+      const dx = cos * speedNow;
+      const dy = sin * speedNow + 0.6 * t;
+      const rot = last[i * 3] ?? 0;
+      const turn = Math.atan2(dy, dx);
+      if (!(Math.abs(turn - rot) < TURN_EPS)) {
+        s.rotation = turn;
+        last[i * 3] = turn;
+      }
+      const len =
+        Math.round((Math.min(1, Math.sqrt(dx * dx + dy * dy) / 3) * trailK * k + 0.25) * 32) / 32;
+      if (len !== last[i * 3 + 1] || sy !== b.lastSy) {
+        s.setScale(len * sc, sy * sc);
+        last[i * 3 + 1] = len;
+      }
+      const a = glitter && hash01(flick + i * 7, plan.slot) < 0.35 ? a0 * 0.25 : a0;
+      if (a !== last[i * 3 + 2]) {
+        s.alpha = a;
+        last[i * 3 + 2] = a;
+      }
+    }
+    b.lastSy = sy;
+  }
+
+  /** A burst starts: each spark's speed, ray (cos, sin) and colour, worked out once. */
+  private launch(b: Burst, plan: BurstPlan): void {
+    const fw = this.look.fireworks;
+    const n = b.sparks.length;
+    for (let i = 0; i < n; i++) {
+      const o = i * SPARK_FIELDS;
+      const ang = (i / n) * Math.PI * 2 + plan.slot * 0.37 + (hash01(i, plan.slot) - 0.5) * 0.3;
+      b.consts[o] = 0.55 + 0.45 * hash01(i * 31 + plan.slot, 8);
+      b.consts[o + 1] = Math.cos(ang);
+      b.consts[o + 2] = Math.sin(ang);
+      b.consts[o + 3] = (i + plan.slot) % fw.whiteEvery === 0 ? 1 : 0;
     }
   }
 
