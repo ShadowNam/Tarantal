@@ -778,7 +778,7 @@ host at his own fire, never a joke.
 - *Oupa (D-064's figure by firelight):* lit warm from the fire on his right, cool from the sky on
   his left; his khaki bush hat, shirt and shorts, socks over vellies; side on in a canvas camp chair
   facing the fire. At rest with his enamel mug on his knee (steam curling), a sip, leaning to poke
-  the coals. **Vastrap** for a perfect hunt or a rank up: up on his feet, a knee up with his hat
+  the coals. **Vastrap** for a perfect hunt or a rank up: up on his feet, his hat on, a knee up with his hand
   raised high, then a stamp with his knees bent and his hands out, mirrored for the other foot
   ("reduce motion" leaves it out). His story is told in his bubble above his head.
 - *The bakkie:* a generic pickup in silhouette on the right (no brand), a cool rim of sky light on

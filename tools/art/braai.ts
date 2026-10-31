@@ -574,12 +574,13 @@ function seated(pose: SeatPose): string {
 
 type DanceStep = 'a' | 'b';
 
-/** Oupa dancing the vastrap, feet at (0, 0) in Oupa units: a: his left knee up and his hat raised
- *  high; b: the stamp, knees bent, both hands out. */
+/** Oupa dancing the vastrap, feet at (0, 0) in Oupa units, his bush hat on (review 7): a: his
+ *  left knee up and his right hand raised high, waving; b: the stamp, knees bent, both hands out. */
 function dancing(step: DanceStep): string {
   const p = paints();
   const parts: string[] = [defs(p.skin, p.khaki, p.sock, p.suede, p.hat, p.face, p.beard)];
-  const shoulders = step === 'a' ? -300 : -284;
+  // The hat's crown stays ≥ 8 px inside the frame's top (DANCING.oy, lesson 12).
+  const shoulders = step === 'a' ? -292 : -284;
   const belt = shoulders + 108;
   if (step === 'a') {
     parts.push(leg(p, [16, belt], [20, belt + 82], [24, 0], 1));
@@ -589,13 +590,10 @@ function dancing(step: DanceStep): string {
     parts.push(leg(p, [18, belt], [36, belt + 84], [40, 0], 1));
   }
   parts.push(torso(p, shoulders, belt, step === 'a' ? -4 : 0));
-  parts.push(g({ transform: `translate(0 ${shoulders - 40})` }, head(p, step === 'b', true)));
+  parts.push(g({ transform: `translate(0 ${shoulders - 40})` }, head(p, true, true)));
   if (step === 'a') {
-    // Right hand high with his hat in it, the left on his hip.
+    // Right hand high, waving (his hat stays on), the left on his hip.
     parts.push(arm(p, [40, shoulders + 14], [66, shoulders - 26], [70, shoulders - 84], -10));
-    parts.push(
-      g({ transform: `translate(72 ${shoulders - 104}) rotate(16) scale(0.9)` }, bushHat(p)),
-    );
     parts.push(arm(p, [-40, shoulders + 14], [-66, shoulders + 54], [-36, belt - 8], 30));
   } else {
     parts.push(arm(p, [40, shoulders + 14], [72, shoulders + 44], [92, shoulders + 12], -40));

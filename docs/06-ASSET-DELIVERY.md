@@ -408,8 +408,8 @@ one sheet `sprites/braai/sheet.png` (a 2× master, 1024 × 864; the pack serves 
 and the master as its HD twin `braai-hd`; the catalog's lazy group `braai`; layout, crops, origins
 and `res` in `src/game/braai/braaiSheet.ts`, packed by its skyline packer): `sit_idle`, `sit_sip`,
 `sit_poke` (Oupa side on in his camp chair facing right, feet at 60, 178 of 128 × 182), `poker`
-(held at its left end, pointing right), `dance_a`, `dance_b` (standing, 108 × 200, feet at the
-bottom centre: the game mirrors them), `flame_0`…`flame_3` (base at 28, 78), `hearth` (stones,
+(held at its left end, pointing right), `dance_a`, `dance_b` (standing with his bush hat on, 108 × 216, feet at
+the bottom centre: the game mirrors them), `flame_0`…`flame_3` (base at 28, 78), `hearth` (stones,
 coals, grid and coffee pot; the fire's base at 75, 36), `glow` (shown additively), `spark_0`…
 `spark_2` (embers rising: frame 2 leads back to 0), `stars` (a 192 × 192 tile that must wrap),
 `milky`, `cross` (the Southern Cross), `bakkie` (a generic pickup in silhouette, no brand). Frames

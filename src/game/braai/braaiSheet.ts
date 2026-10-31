@@ -49,7 +49,7 @@ export interface BraaiFrameRect extends FrameSpec {
 /** Oupa seated: his feet at the origin, the chair's back legs behind him (design px). */
 export const SEATED = { w: 128, h: 182, ox: 60, oy: 178 } as const;
 /** Oupa dancing: centred on his feet (the frames mirror round the origin). */
-export const DANCING = { w: 108, h: 200, ox: 54, oy: 196 } as const;
+export const DANCING = { w: 108, h: 216, ox: 54, oy: 212 } as const;
 /** A flame frame: the fire's base at the origin. */
 export const FLAME = { w: 56, h: 82, ox: 28, oy: 78 } as const;
 /** The hearth: the fire's base at the origin (stones round it, the grid above the coals). */
