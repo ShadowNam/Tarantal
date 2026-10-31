@@ -111,7 +111,7 @@ mult   = 1 + behaviourAdd                                         // "Maal" star
 for each charm in slot order, left → right:                       // order MATTERS (Balatro-style)
     for each matching effect in that charm, in listed order:
         addMult → mult += x        mulMult → mult ×= x
-mult  ×= weaponScoreMul × frenzyMul × stampedeMul × countdownMul   // system multipliers, always last
+mult  ×= weaponScoreMul × frenzyMul × stampedeMul × countdownMul × reenbuiMul  // system, always last
 award  = round(points × mult)
 ```
 
@@ -129,6 +129,9 @@ award  = round(points × mult)
   1 everywhere else. It is the last system multiplier (after the Stampede's, before a Boss Rule's)
   and it **stacks** with the Stampede, so those 10 s are ×4. It multiplies every award — bags and
   event bonuses alike — and never a penalty.
+- **`reenbuiMul`** (D-067) is the Reënbui swarm's ×1.3 (§11.3e), 1 outside the swarm window. It comes
+  after the Countdown's (before a Boss Rule's), stacks with the Frenzy and the Stampede, and
+  multiplies **bags only** (event bonuses and penalties are unchanged).
 
 ## 6. The Flock — signature mechanic
 
@@ -801,8 +804,10 @@ stream `reenbui`, at most **once a hunt**; every number in `content/reenbui.json
      planes, in and near the view. Flocks within reach of a column (mid-plane 900 px) walk to it and
      feed there, **calmer** (shot alert radius ×0.7: a shot near them still alerts, flushes and runs
      work as always); up to **2 extra flocks** run in to the columns (inside the map's
-     maxFlocks and maxBirdsOnScreen). **Every bag scores ×1.5** in this window: a system multiplier
-     after the Countdown (§5.3), stacked with the Frenzy and the Stampede by the normal rules.
+     maxFlocks and maxBirdsOnScreen). **Every bag scores ×1.3** in this window ("Flying ants! Every
+     bag ×1.3"): a system multiplier after the Countdown (§5.3), stacked with the Frenzy and the
+     Stampede by the normal rules. (×1.5 was the first draft; the feeding alone lifts a hunt with the
+     swarm ~+8 %, so ×1.3 keeps it at ~+10 %: `docs/balance/v1.10-reenbui.md`.)
   4. **The rain eases** (4 s): the swarm thins, the flocks go back to their own foraging, the sky
      clears and the wet ground fades back.
 - **Look:** storm clouds and a small, local lightning fork far off in the clouds (never a full-screen

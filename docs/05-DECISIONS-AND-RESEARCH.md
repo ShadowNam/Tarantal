@@ -3651,8 +3651,11 @@ feeds"). GDD §11.3e.
 - *Not tied to omens*, but it meets them: in a Kalahari omen hunt the swarm rises when the
   Donderstorm breaks (no second storm, no own build-up or drops); in an Okavango omen hunt the
   sun-shower spells overlapping the event are dropped.
-- *Scoring:* `reenbuiMul` ×1.5 on bags in the swarm window, a system multiplier after the
+- *Scoring:* `reenbuiMul` ×1.3 on bags in the swarm window, a system multiplier after the
   Countdown's (GDD §5.3), so it stacks with the Frenzy and the Stampede; event bonuses unchanged.
+  ×1.5 (the brief's example) put a hunt with the swarm at +12 %: most of the lift is the feeding
+  itself, so ×1.3 (+7.8 … +10.5 % with it; every area's average +0.5 … +4.5 %, 500 seeds,
+  `docs/balance/v1.10-reenbui.md`).
 - *Flocks:* within reach of a column, a forage or settle flock's goal is the column (the same
   draws from `flockNoise`, so nothing else shifts) and its shot alert radius is ×0.7; the build-up
   makes every flock's radius ×1.15. Up to 2 extra flocks run in (inside maxFlocks and
