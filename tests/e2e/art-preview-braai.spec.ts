@@ -5,7 +5,7 @@
 // ticks), each test well under 12 min. Writes docs/art-preview/compare/v111-braai-<shot>-<device>
 // .png (palette PNG ≤ 1600 px wide; close-ups 2–4× nearest-neighbour):
 //   daily, daily-story — an average Daily hunt's braai (a few shots at the flocks), Oupa's story
-//     bubble (the braai clock held at 9 s: the same fire and line every run), and share — the
+//     bubble (the braai clock held once line 1 is out, so line 2 and its bubble stay), and share — the
 //     Daily's card with the braai round its score, rendered on the page;
 //   dance — a perfect hunt's vastrap (?braaiDance=1), the clock held on a knee-up step;
 //   newyear — a Feesdae Daily (New Year, forced date) at the braai: the party hat on Oupa, the
@@ -18,6 +18,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { blank, crop, decodePng, encodePng8, resize, type Rgba } from '../../tools/assets/image';
+import feel from '../../content/client/feel.json' with { type: 'json' };
 import { release } from './christmasHelpers';
 import { boot, isTouchProject, tapRect } from './helpers';
 
@@ -26,8 +27,7 @@ const PROFILES = ['desktop-chromium', 'pixel7-landscape', 'iphone14-landscape'];
 /** The device name of a project (a local Chromium stand-in for WebKit keeps the device's). */
 const device = (name: string): string => name.replace(/-chromium-fallback$/, '');
 const BASE = 'seed=42&omen=0&palms=0&baboons=0&layout=none&huntSeconds=12&holdAt=20';
-/** The braai clock the compare and story shots hold: two story lines are out by then even after
- *  Oupa's verdict (the story starts ≈ 4.1 s in, a line every 3.65 s). */
+/** The braai clock the New Year and Standard | HD shots hold at (any steady picture will do). */
 const HOLD_MS = 9000;
 
 type Rect = { x: number; y: number; w: number; h: number };
@@ -184,25 +184,37 @@ test('an average Daily at the braai: the story, Oupa and the fire, the share car
   page,
 }, info) => {
   const touch = isTouchProject(info);
-  await boot(page, `${BASE}&today=2026-11-04&graphics=standard&braaiAt=${HOLD_MS}`);
+  // No hold at boot: the story starts after the count-up, a tween on Phaser's capped frame time
+  // (tens of seconds at ~1 fps on software GL), while the braai clock keeps real time — a clock
+  // held from boot stopped before the story began. Instead, the moment line 1 is told (in-page,
+  // on that frame) the clock is held at line 1's time + one line + gap + 200 ms: line 2 comes
+  // out, and it and its bubble stay on screen (the bubble hides on the braai clock).
+  await boot(page, `${BASE}&today=2026-11-04&graphics=standard`);
   await huntToBraai(page, touch, 'daily', 6);
-  // The bubble shows and hides on the braai clock (held at HOLD_MS): the second line and its
-  // bubble stay on screen. Bounded, and a hard failure that says where the story stood.
+  const pace = feel.braai.story;
   const ready = await page
     .waitForFunction(
-      () => {
+      (step) => {
         const b = window.__TM__?.braai;
-        return b != null && b.story.shown >= 2 && b.bubble !== null;
+        if (b == null) return false;
+        const w = window as { __TM_BRAAI_AT__?: number };
+        const first = b.story.at[0];
+        if (w.__TM_BRAAI_AT__ === undefined && first !== undefined)
+          w.__TM_BRAAI_AT__ = first + step;
+        return b.story.shown >= 2 && b.bubble !== null;
       },
-      null,
-      { timeout: 240_000 },
+      pace.lineMs + pace.gapMs + 200,
+      { timeout: 300_000, polling: 'raf' },
     )
     .then(() => true)
     .catch(() => false);
   if (!ready) {
-    const b = await page.evaluate(() => window.__TM__?.braai ?? null);
+    const b = await page.evaluate(() => ({
+      braai: window.__TM__?.braai ?? null,
+      hold: (window as { __TM_BRAAI_AT__?: number }).__TM_BRAAI_AT__ ?? null,
+    }));
     throw new Error(
-      `the story's second line is not on screen at braaiAt=${String(HOLD_MS)}: story = ${JSON.stringify(b?.story ?? null)}, bubble = ${JSON.stringify(b?.bubble ?? null)}`,
+      `the story's second line is not on screen: hold = ${String(b.hold)}, story = ${JSON.stringify(b.braai?.story ?? null)}, bubble = ${JSON.stringify(b.braai?.bubble ?? null)}`,
     );
   }
   const shot = decodePng(await page.locator('#game canvas').screenshot());

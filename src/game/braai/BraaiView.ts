@@ -185,7 +185,9 @@ export interface BraaiHook {
   dance: boolean;
   /** When the dance started on the braai clock (null: not yet). */
   danceAt: number | null;
-  story: { lines: string[]; captions: string[]; shown: number; skipped: boolean };
+  /** `at`: the braai clock (ms) each line was told at (test hook: the screenshot spec holds the
+   *  clock from there, as the count-up's tween runs on Phaser's capped frame time). */
+  story: { lines: string[]; captions: string[]; shown: number; skipped: boolean; at: number[] };
   /** Oupa's story bubble while it shows (design px), else null. */
   bubble: Rect | null;
   /** The last taps on the tally (design px) and what each did (braaiTap.ts). */
@@ -336,7 +338,13 @@ export class BraaiView {
       dancing: false,
       dance: this.danceDue,
       danceAt: null,
-      story: { lines: this.lines.map((l) => l.id), captions: [], shown: 0, skipped: false },
+      story: {
+        lines: this.lines.map((l) => l.id),
+        captions: [],
+        shown: 0,
+        skipped: false,
+        at: [],
+      },
       bubble: null,
       taps: [],
       decorations,
@@ -541,6 +549,7 @@ export class BraaiView {
         const caption = captionText(line);
         this.hook.story.shown = this.shown;
         this.hook.story.captions.push(caption);
+        this.hook.story.at.push(ms);
         this.s.tell(line.say, caption, ms);
         if (this.shown === this.lines.length && this.danceDue && this.danceFrom === null)
           this.beginDance(ms);
