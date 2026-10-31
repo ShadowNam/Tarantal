@@ -230,6 +230,8 @@ export interface TestHook {
     y: number;
     /** v1.3: the flock's plane (Ver flocks for the long-range checks). */
     plane: string;
+    /** v1.10 (D-067): feeding at a Reënbui column. */
+    feeding?: boolean;
   }[];
   /** v1.0.1 (D-028 §4): score pops shown this page, and pop objects made (pooled: stays small). */
   pops: { shown: number; created: number };

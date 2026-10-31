@@ -121,6 +121,8 @@ export interface ReenbuiViewOptions {
   readonly reducedMotion: boolean;
   readonly now: () => number;
   readonly hooks: boolean;
+  /** e2e only: the columns hidden (a before/after pixel check on a held frame). */
+  readonly hideColumns?: () => boolean;
 }
 
 interface Img {
@@ -169,6 +171,7 @@ export class ReenbuiView {
   private dimStep = 0;
   private hookCols: ReenbuiColumnHook[] = [];
   private lastTick = -1;
+  private columnsHidden = false;
   /** Milliseconds the last update took, and its parts (perf.spec: reenbuiMs). */
   lastMs = 0;
   readonly partMs = { rain: 0, sky: 0, ground: 0, columns: 0 };
@@ -490,7 +493,7 @@ export class ReenbuiView {
       }
       // Hidden off screen (each layer pans on its own).
       const sx = e.layer.root.x + c.x * e.layer.root.scaleX;
-      const on = level > 0 && sx > -CULL_PX && sx < width + CULL_PX;
+      const on = !this.columnsHidden && level > 0 && sx > -CULL_PX && sx < width + CULL_PX;
       this.show(e.col, on);
       this.show(e.mound, on);
       if (on) {
@@ -548,8 +551,11 @@ export class ReenbuiView {
       return;
     }
     const t = state.tick;
-    // Nothing moves on a frame whose tick has not moved (a held or paused hunt).
-    const moved = t !== this.lastTick;
+    // Nothing moves on a frame whose tick has not moved (a held or paused hunt), unless the e2e
+    // switch that hides the columns changed.
+    const hide = this.o.hideColumns?.() === true;
+    const moved = t !== this.lastTick || hide !== this.columnsHidden;
+    this.columnsHidden = hide;
     this.lastTick = t;
     this.frames++;
     const active = t >= v.buildupTick - 1 && t < v.endTick + WET.dryTicks;

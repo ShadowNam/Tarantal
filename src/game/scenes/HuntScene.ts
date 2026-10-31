@@ -2349,7 +2349,16 @@ export class HuntScene extends Phaser.Scene {
         const n = Math.max(1, members.length);
         const x = members.reduce((t, b) => t + this.parallax.screenX(b.plane, b.x), 0) / n;
         const y = members.reduce((t, b) => t + b.y, 0) / n;
-        return { id: f.id, state: f.state, alive: f.alive, x, y, plane: f.plane };
+        return {
+          id: f.id,
+          state: f.state,
+          alive: f.alive,
+          x,
+          y,
+          plane: f.plane,
+          // v1.10 (D-067): feeding at a Reënbui column.
+          ...(f.feeding === true ? { feeding: true } : {}),
+        };
       });
       hook.secretSpots = state.secrets.flatMap((sec) => {
         const layer = this.parallax.layer(sec.layerId);
@@ -2629,6 +2638,12 @@ export class HuntScene extends Phaser.Scene {
           reducedMotion: this.ctx.reducedMotion,
           now: () => performance.now(),
           hooks: this.ctx.hook !== null,
+          ...(this.ctx.hook === null
+            ? {}
+            : {
+                hideColumns: () =>
+                  (window as { __TM_REENBUI_HIDE__?: boolean }).__TM_REENBUI_HIDE__ === true,
+              }),
         });
       })
       .catch(() => {
