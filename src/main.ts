@@ -529,13 +529,16 @@ const withRaid = raidPreview === null ? devSpook : withBaboonRaid(devSpook, raid
 // e2e only (v1.8b, D-062): ?baboons=0 — no baboon troops (specs that don't test them).
 const noTroops = testHooks && params.get('baboons') === '0' ? withNoBaboons(withRaid) : withRaid;
 // e2e/dev only (v1.10, D-067): ?reenbui=1 — a Reënbui in every hunt, its build-up 2 s in;
-// ?reenbuiPhase=buildup|drops|swarm|easing also holds that phase. Under ?e2e without ?reenbui=
+// ?reenbuiPhase=buildup|drops|swarm|easing also holds that phase (after: all phases ½ s). Under ?e2e without ?reenbui=
 // there is none (lesson 17: every spec that pins a seed plays it as before).
 const reenbuiParam = testHooks ? params.get('reenbui') : null;
 const reenbuiHold = testHooks ? params.get('reenbuiPhase') : null;
-const holdPhase = (REENBUI_PHASES as readonly string[]).includes(reenbuiHold ?? '')
-  ? (reenbuiHold as ReenbuiPhase)
-  : null;
+const holdPhase =
+  reenbuiHold === 'after'
+    ? 'after'
+    : (REENBUI_PHASES as readonly string[]).includes(reenbuiHold ?? '')
+      ? (reenbuiHold as ReenbuiPhase)
+      : null;
 const withRain =
   reenbuiParam === '1' || holdPhase !== null
     ? withReenbuiPreview(noTroops, holdPhase)

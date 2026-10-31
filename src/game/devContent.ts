@@ -357,18 +357,20 @@ export function withNoReenbui(b: ContentBundle): ContentBundle {
 /**
  * v1.10 (D-067) e2e/dev only: `?reenbui=1` — a Reënbui in every hunt that may have one, on every
  * map, its build-up `startSeconds` in (on the hunt's length); `?reenbuiPhase=<phase>` also holds
- * that phase (600 s) after half-second earlier phases, for tests and screenshots (lesson 11).
+ * that phase (600 s) after half-second earlier phases, for tests and screenshots (lesson 11);
+ * `?reenbuiPhase=after`: every phase half a second, so the clearing sky comes 4 s in.
  */
 export function withReenbuiPreview(
   b: ContentBundle,
-  hold: ReenbuiPhase | null,
+  hold: ReenbuiPhase | 'after' | null,
   startSeconds = 2,
 ): ContentBundle {
   const r = b.reenbui;
   const hunt = b.modes.modes.classic.huntSeconds;
   const at = Math.min(1, startSeconds / hunt);
   let phaseSeconds = r.phaseSeconds;
-  if (hold !== null) {
+  if (hold === 'after') phaseSeconds = { buildup: 0.5, drops: 0.5, swarm: 0.5, easing: 0.5 };
+  else if (hold !== null) {
     const i = REENBUI_PHASES.indexOf(hold);
     phaseSeconds = { ...phaseSeconds };
     REENBUI_PHASES.forEach((p, j) => {

@@ -37,5 +37,13 @@ describe('Reënbui test flags (D-067)', () => {
     }).snapshot().reenbui;
     expect(v?.swarmTick).toBe(120 + 60);
     expect((v?.easingTick ?? 0) - (v?.swarmTick ?? 0)).toBe(600 * 60);
+    const after = withReenbuiPreview(base, 'after');
+    const a = createSim({
+      seed: 3,
+      content: after,
+      mode: { id: 'classic' },
+      inputKind: 'pointer',
+    }).snapshot().reenbui;
+    expect(a?.endTick).toBe(120 + 4 * 30);
   });
 });
