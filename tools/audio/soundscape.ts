@@ -344,6 +344,127 @@ function goAwayBird(): Buf {
   return finish(out, 0.25, 1.6);
 }
 
+// --- v1.10 (D-067) Reënbui: the first summer storm and the flying ants -----------------------
+
+/** Distant thunder rolling in: a soft crackle, then a low, rolling rumble that swells twice. */
+function reenbuiThunder(): Buf {
+  const sec = 4.6;
+  const r = rng(8101);
+  const rumble = lowpass(lowpass(noise(sec, SR, r), SR, 160), SR, 220);
+  shape(rumble, SR, (t) => {
+    const roll = 0.6 + 0.4 * Math.sin(2 * Math.PI * 0.9 * t + 1.2);
+    return (
+      roll * swell(sec, 0.22)(t) * (t < 2.2 ? 1 : 0.75 + 0.25 * swell(sec - 2.2, 0.3)(t - 2.2))
+    );
+  });
+  const crack = bandpass(noise(0.9, SR, r), SR, 900, 1.2);
+  shape(crack, SR, ad(0.02, 0.22, 0.9));
+  const out = buf(sec, SR);
+  mix(out, rumble, 0, SR, 1);
+  mix(out, lowpass(crack, SR, 1800), 0.15, SR, 0.25);
+  return finish(normalise(out, 0.85), 0.3, 2.2);
+}
+
+/** One fat drop: on the sinkdak (a short metallic tick with a ring) or on the dust (a soft pat). */
+function drop(r: () => number, onRoof: boolean): Buf {
+  const len = onRoof ? 0.22 : 0.12;
+  const x = noise(len, SR, r);
+  if (onRoof) {
+    const f = 2600 + r() * 2400;
+    bandpass(x, SR, f, 7);
+    mix(x, bandpass(noise(len, SR, r), SR, 1150 + r() * 300, 18), 0, SR, 0.5);
+    shape(x, SR, ad(0.001, 0.045, len));
+  } else {
+    lowpass(x, SR, 700 + r() * 500);
+    shape(x, SR, ad(0.002, 0.03, len));
+  }
+  return x;
+}
+
+/** The first fat drops: a few, then more, on the iron roof and the dust. */
+function reenbuiDrops(): Buf {
+  const sec = 3.2;
+  const r = rng(8202);
+  const out = buf(sec, SR);
+  for (let t = 0.05; t < sec - 0.25;) {
+    mix(out, drop(r, r() < 0.55), t, SR, 0.6 + r() * 0.4);
+    // Ever closer together: 0.45 s apart at first, 0.06 s at the end.
+    t += 0.06 + 0.4 * (1 - t / sec) ** 2 * (0.6 + r() * 0.8);
+  }
+  return finish(normalise(out, 0.8), 0.12, 0.9);
+}
+
+/** The rain on a sinkdak and on the dust: a steady hiss full of ticks, in and out soft. */
+function reenbuiRain(): Buf {
+  const sec = 10.2;
+  const r = rng(8303);
+  const hiss = highpass(lowpass(noise(sec, SR, r), SR, 7000), SR, 900);
+  const body = lowpass(noise(sec, SR, r), SR, 500);
+  const out = buf(sec, SR);
+  mix(out, hiss, 0, SR, 0.35);
+  mix(out, body, 0, SR, 0.25);
+  for (let t = 0; t < sec - 0.25; t += 0.012 + r() * 0.03)
+    mix(out, drop(r, r() < 0.6), t, SR, 0.18 + r() * 0.22);
+  shape(out, SR, (t) => Math.min(1, t / 1.4) * Math.min(1, (sec - t) / 2.2));
+  return finish(normalise(out, 0.8), 0.15, 1.2);
+}
+
+/** The swarm's soft buzz: thousands of small wings, a warm drone with a flutter. */
+function reenbuiBuzz(): Buf {
+  const sec = 6.2;
+  const r = rng(8404);
+  const out = buf(sec, SR);
+  for (let k = 0; k < 9; k++) {
+    const f0 = 170 + r() * 110;
+    const flutter = 18 + r() * 14;
+    const ph = r() * Math.PI * 2;
+    const x = osc('saw', (t) => f0 * (1 + 0.012 * Math.sin(2 * Math.PI * 0.7 * t + ph)), sec, SR);
+    bandpass(x, SR, 520 + r() * 260, 1.4);
+    shape(x, SR, (t) => 0.55 + 0.45 * Math.sin(2 * Math.PI * flutter * t + ph));
+    mix(out, x, 0, SR, 0.12);
+  }
+  mix(out, bandpass(noise(sec, SR, r), SR, 2400, 2), 0, SR, 0.05);
+  shape(out, SR, swell(sec, 0.25));
+  return finish(normalise(out, 0.7), 0.1, 1);
+}
+
+/** Excited birds at the feast: guineafowl "kek-kek" chatter and quick small-bird chirps. */
+function reenbuiBirds(): Buf {
+  const sec = 2.6;
+  const r = rng(8505);
+  const out = buf(sec, SR);
+  // Guineafowl chatter: harsh, rattling "kek" notes in quick runs.
+  for (let t = 0.05; t < 1.9; t += 0.09 + r() * 0.07) {
+    const len = 0.06;
+    const x = osc('saw', glide(1100 + r() * 200, 900, len), len, SR);
+    bandpass(x, SR, 1800, 2.5);
+    shape(x, SR, ad(0.004, 0.025, len));
+    mix(out, saturate(x, 2), t, SR, 0.55 + r() * 0.3);
+  }
+  // Small birds darting in: high, quick up-slurred chirps.
+  for (let k = 0; k < 7; k++) {
+    const at = 0.2 + r() * 2.1;
+    const len = 0.07 + r() * 0.05;
+    const f0 = 3200 + r() * 1400;
+    mix(
+      out,
+      voiced(
+        glide(f0, f0 * 1.35, len),
+        len,
+        [
+          [1, 1],
+          [2, 0.2],
+        ],
+        swell(len, 0.2),
+      ),
+      at,
+      SR,
+      0.35,
+    );
+  }
+  return finish(normalise(out, 0.8), 0.2, 1.3);
+}
+
 const CALLS: Readonly<Record<string, () => Buf>> = {
   amb_cape_turtle_dove: capeTurtleDove,
   amb_laughing_dove: laughingDove,
@@ -359,6 +480,11 @@ const CALLS: Readonly<Record<string, () => Buf>> = {
   amb_korhaan: korhaan,
   amb_francolin: francolin,
   amb_go_away_bird: goAwayBird,
+  amb_reenbui_thunder: reenbuiThunder,
+  amb_reenbui_drops: reenbuiDrops,
+  amb_reenbui_rain: reenbuiRain,
+  amb_reenbui_buzz: reenbuiBuzz,
+  amb_reenbui_birds: reenbuiBirds,
 };
 
 /** The interim soundscape calls (file names under audio/sfx/). */

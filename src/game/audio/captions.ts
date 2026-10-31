@@ -43,6 +43,13 @@ export function captionFor(e: SimEvent): I18nKey | null {
         : e.feesdag === 'newyear'
           ? 'caption.ny_sting'
           : 'caption.spook_sting';
+    // v1.10 (D-067): Reënbui's thunder, the rain on the sinkdak, the swarm and its birds.
+    case 'reenbuiBuildup':
+      return e.withStorm ? null : 'caption.thunder';
+    case 'reenbuiRain':
+      return 'caption.rain_roof';
+    case 'alatesSwarm':
+      return 'caption.alates';
     // D-065: the countdown's fireworks (they grow more frequent as it starts).
     case 'countdownStarted':
       return 'caption.firework_pop';

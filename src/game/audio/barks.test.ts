@@ -98,6 +98,20 @@ describe('BarkDirector (v1.0.1, D-028 §3)', () => {
     expect(d.hunt([], frame(GAP + 1))).toBeNull();
   });
 
+  it('v1.10 (D-067): Reënbui — the first drops, the swarm (held over the gap), the rain easing', () => {
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0);
+    expect(d.hunt([{ type: 'reenbuiRain', tick: 100 }], frame(0))?.line).toBe('bark.reenbui_rain');
+    // The swarm rises inside the gap: held, said once the gap has passed.
+    expect(
+      d.hunt([{ type: 'alatesSwarm', tick: 280, mult: 1.3, columns: [] }], frame(1000)),
+    ).toBeNull();
+    expect(d.hunt([], frame(GAP + 10))?.line).toBe('bark.reenbui_swarm');
+    expect(d.hunt([{ type: 'rainEased', tick: 1200, bagged: 4 }], frame(GAP * 2 + 20))?.line).toBe(
+      'bark.reenbui_eased',
+    );
+  });
+
   it('fires on a bag streak and a miss streak of the configured length', () => {
     const d = new BarkDirector(T, GAP);
     d.startHunt(0);

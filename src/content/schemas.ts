@@ -2180,6 +2180,10 @@ export const BARK_TRIGGERS = [
   // D-065 (New Year): the countdown started, a big shot during it.
   'feesdagCountdown',
   'countdownShot',
+  // v1.10 (D-067): Reënbui — the first drops, the alates rising, the rain easing.
+  'reenbuiRain',
+  'alatesSwarm',
+  'rainEased',
 ] as const;
 export type BarkTrigger = (typeof BARK_TRIGGERS)[number];
 /** D-048: triggers whose lines come from feesdae.json (their feel.json lines are empty). */
@@ -3013,6 +3017,8 @@ export const NotaboekMetricSchema = z.enum([
   'familiefotos',
   /** v1.8 (D-050): the hunt's longest tin-can juggle (air hits in a row; scope hunt). */
   'canChain',
+  /** v1.10 (D-067): birds bagged during one Reënbui's swarm (scope hunt). */
+  'reenbuiBags',
 ]);
 export type NotaboekMetric = z.infer<typeof NotaboekMetricSchema>;
 

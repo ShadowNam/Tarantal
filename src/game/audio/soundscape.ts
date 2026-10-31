@@ -19,7 +19,7 @@ export type CallOutcome =
   | 'muted' // hidden tab, pause, ad, effects volume 0
   | 'missing' // its recording isn't decoded (yet)
   | 'voices' // no soundscape voice free, or the game needs its voices
-  | 'quiet' // a penalty creature's event is near: its own call is the warning
+  | 'quiet' // a penalty creature's event is near (its own call is the warning), or a Reënbui
   | 'gap' // too soon after the last call
   | 'late'; // its moment passed (a slow frame, a held or hidden hunt)
 
@@ -48,6 +48,8 @@ export interface SoundscapeSink {
   play(call: Readonly<SoundscapeCall>): CallOutcome;
   /** True while calls that sound like `creature` must stay quiet at `tick`. */
   quiet(creature: string, tick: number): boolean;
+  /** v1.10 (D-067): true while every call makes room (a Reënbui's storm and rain). */
+  room?(tick: number): boolean;
 }
 
 /** The area and moment the soundscape plays. */
@@ -265,6 +267,7 @@ export class SoundscapeDirector {
     let outcome: CallOutcome;
     let voice = -1;
     if (tick - due > this.late) outcome = 'late';
+    else if (sink.room?.(tick) === true) outcome = 'quiet';
     else if (c.warns !== null && sink.quiet(c.warns, tick)) outcome = 'quiet';
     else if (tick - this.lastStart < this.minGap) outcome = 'gap';
     else {

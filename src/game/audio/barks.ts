@@ -212,6 +212,19 @@ export class BarkDirector {
         case 'weatherChanged':
           if (e.rain) cands.push('rain');
           break;
+        // v1.10 (D-067) Reënbui: the first drops ("Smell that rain?!"; with the Kalahari storm
+        // its own rain line was said), the alates rising (held until said), the rain easing.
+        case 'reenbuiRain':
+          this.pending.add('reenbuiRain');
+          break;
+        case 'alatesSwarm':
+          this.pending.delete('reenbuiRain');
+          this.pending.add('alatesSwarm');
+          break;
+        case 'rainEased':
+          this.pending.delete('alatesSwarm');
+          cands.push('rainEased');
+          break;
         // D-048: the Spookjag. Lanterns out is held until said (it is the day's secret).
         case 'spookHit':
           if (e.thing === 'bat') cands.push('feesdagBat');

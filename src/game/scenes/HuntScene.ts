@@ -2062,7 +2062,7 @@ export class HuntScene extends Phaser.Scene {
     // v1.9 (D-066): the veld soundscape on the hunt's tick (its own hook timer, report only).
     if (soundscape !== null) {
       const s0 = hook ? performance.now() : 0;
-      soundscape.frame(state.tick, state.birds, events, now);
+      soundscape.frame(state.tick, state.birds, events, now, state.reenbui);
       if (hook && !this.ending) {
         hook.soundscapeMs += performance.now() - s0;
         hook.soundscapeFrames++;

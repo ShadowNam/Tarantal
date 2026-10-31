@@ -1200,6 +1200,27 @@
         "priority": 85,
         "cooldownMs": 4000,
         "lines": []
+      },
+      "reenbuiRain": {
+        "priority": 82,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.reenbui_rain"
+        ]
+      },
+      "alatesSwarm": {
+        "priority": 86,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.reenbui_swarm"
+        ]
+      },
+      "rainEased": {
+        "priority": 35,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.reenbui_eased"
+        ]
       }
     }
   },

@@ -1058,6 +1058,9 @@ export class HudScene extends Phaser.Scene {
       else if (e.type === 'reloadStarted' && e.auto === true && this.ctx.hook)
         this.ctx.hook.reloadFx.autoReloads++;
       else if (e.type === 'stampedeStarted') this.showBanner(t('hud.stampede'));
+      // v1.10 (D-067): the alates rise — every bag scores more until the rain eases.
+      else if (e.type === 'alatesSwarm')
+        this.showBanner(fill(t('hud.reenbui_swarm'), { mult: formatMult(e.mult) }));
       else if (e.type === 'flockStateChanged' && e.to === 'flush')
         this.flushedFlocks.add(e.flockId);
       else if (e.type === 'flockRemoved') this.flushedFlocks.delete(e.flockId);
