@@ -261,6 +261,49 @@ describe("Reënbui's sheet (v1.10, D-067)", () => {
   });
 });
 
+describe("Die Braai's keys (v1.11, D-068)", () => {
+  it('the sheet and sounds are used by their constants, the story lines by tell(line.say)', () => {
+    const keys: [string, 'texture' | 'sound'][] = [
+      ['braai/sheet', 'texture'],
+      ['sfx/braai_fire', 'sound'],
+      ['voice/en/braai.say.open_some', 'sound'],
+    ];
+    const cat: Catalog = {
+      ...catalog,
+      entries: new Map(
+        keys.map(([k, kind]) => [
+          k,
+          entry(
+            k,
+            kind,
+            kind === 'texture' ? { width: 8, height: 8, group: 'braai' } : { group: 'braai' },
+          ),
+        ]),
+      ),
+    };
+    const view = 'src/game/braai/BraaiView.ts';
+    const used = audit(
+      base({
+        catalog: cat,
+        sources: new Map([
+          [
+            view,
+            'addImage(BRAAI_SHEET, s); setBraai({ ambience: BRAAI_SOUNDS.fire }); this.s.tell(line.say, c); voiceKey(l, k)',
+          ],
+        ]),
+        tex: {},
+      }),
+    );
+    for (const [k] of keys) expect(used.rows.find((x) => x.key === k)?.usedIn, k).toContain(view);
+    const bare = audit(base({ catalog: cat, sources: new Map([['src/x.ts', 'x']]), tex: {} }));
+    for (const [k] of keys)
+      expect(
+        bare.problems.some((p) => p.includes(k)),
+        k,
+      ).toBe(true);
+  });
+});
+
 describe('the veld soundscape calls (v1.9, D-066)', () => {
   it('are used when soundscape.json names them and the director plays soundscape calls', () => {
     const key = 'sfx/amb_reed_frog';
