@@ -23,6 +23,10 @@ export interface ReenbuiDeps {
   readonly tick: () => number;
   readonly cameraX: () => number;
   readonly flocks: () => readonly Flock[];
+  /** Where a flock will be on the ground (steering.ts landingX, read only). */
+  readonly landingX: (f: Flock) => number;
+  /** Whether a flushed flock's birds are all coming down (steering.ts comingDown). */
+  readonly comingDown: (f: Flock) => boolean;
   /** Planes where columns can rise on this map. */
   readonly planes: readonly ColumnPlaneGeo[];
   /** Spawns a flock of `size` at plane x, running in direction `dir`; false when there is no
@@ -74,23 +78,42 @@ export function createReenbuiSystem(
     }
   };
 
-  /** The flock on a column plane nearest the view's centre, if it is in view (spreadPx): the
-   *  first column rises where it forages. Flocks in id order; ties keep the first. */
+  /**
+   * Where the first column rises (review of #110). First choice: a flock in view (spreadPx round
+   * the view's centre) that forages, settles or is coming down to land — the column at where it
+   * is (or lands), the one nearest the view's centre. Else: the flock whose landing point
+   * (where it is on the ground, or where its flight sets it down) is the shortest walk from the
+   * view — the column at that point held inside the view, if it is within feeding reach, so it
+   * comes down and feeds on screen. Sim data only (the sim camera and content, never a device
+   * viewport); flocks in id order, ties keep the first. Draws nothing.
+   */
   const anchorFlock = (): { plane: AlateColumn['plane']; x: number } | null => {
-    let best: { plane: AlateColumn['plane']; x: number } | null = null;
-    let bestD = Infinity;
+    let inView: { plane: AlateColumn['plane']; x: number } | null = null;
+    let inViewD = Infinity;
+    let landing: { plane: AlateColumn['plane']; x: number } | null = null;
+    let landingWalk = Infinity;
     for (const f of deps.flocks()) {
-      if (f.members.length === 0 || f.state === 'flush') continue;
+      if (f.members.length === 0) continue;
       const geo = deps.planes.find((g) => g.plane === f.plane);
       if (geo === undefined) continue;
-      const x = centroid(f).x;
-      const d = Math.abs(x - planeCentreX(deps.cameraX(), geo.scrollFactor)) / geo.ratio;
-      if (d <= cfg.columns.spreadPx && d < bestD) {
-        bestD = d;
-        best = { plane: geo.plane, x };
+      const centre = planeCentreX(deps.cameraX(), geo.scrollFactor);
+      const spread = cfg.columns.spreadPx * geo.ratio;
+      const down = f.state === 'flush' ? deps.comingDown(f) : true;
+      const at = f.state === 'flush' ? deps.landingX(f) : centroid(f).x;
+      const settled = f.state === 'forage' || f.state === 'settle' || (f.state === 'flush' && down);
+      const d = Math.abs(at - centre);
+      if (settled && d <= spread && d < inViewD) {
+        inViewD = d;
+        inView = { plane: geo.plane, x: at };
+      }
+      const x = Math.min(centre + spread, Math.max(centre - spread, at));
+      const walk = Math.abs(at - x);
+      if (walk <= cfg.feeding.reachPx * geo.ratio && walk < landingWalk) {
+        landingWalk = walk;
+        landing = { plane: geo.plane, x };
       }
     }
-    return best;
+    return inView ?? landing;
   };
 
   /** Each forage/settle/alert flock in reach of a column feeds there; the others don't. */

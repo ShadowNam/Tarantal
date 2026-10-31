@@ -231,3 +231,36 @@ function fly(
     enter(b, 'land');
   }
 }
+
+/**
+ * v1.10 (D-067): where a flock will be on the ground — for a bird on the ground (walking,
+ * running, landing) where it is; for one in the air, the x where its flight puts it down: the
+ * flap left at fly·cos θ, then the glide at glide·cos θ sinking at glideSinkPxPerSec from cruise
+ * height to its landing y. Read only: it draws nothing (the wind is left out).
+ */
+export function landingX(f: Flock, p: FlockParams): number {
+  if (f.members.length === 0) return f.homeX;
+  const sink = Math.max(1e-6, p.glideSinkPerTick * f.ratio);
+  let sum = 0;
+  for (const b of f.members) {
+    const m = b.fm;
+    if (m === null || isGrounded(b)) {
+      sum += b.x;
+      continue;
+    }
+    const glideAcross = f.dir * m.glide * cos(m.angle);
+    if (b.phase === 'glide') {
+      sum += b.x + glideAcross * Math.max(0, (m.landY - b.y) / sink);
+      continue;
+    }
+    const flyAcross = f.dir * m.fly * cos(m.angle) * Math.max(0, m.flapTicks);
+    const fromY = Math.min(b.y, m.cruiseY);
+    sum += b.x + flyAcross + glideAcross * Math.max(0, (m.landY - fromY) / sink);
+  }
+  return sum / f.members.length;
+}
+
+/** True when every bird of a flushed flock is on its way down or back on the ground. */
+export function comingDown(f: Flock): boolean {
+  return f.members.length > 0 && f.members.every((b) => b.phase !== 'launch' && b.phase !== 'flap');
+}

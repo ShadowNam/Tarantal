@@ -801,7 +801,9 @@ stream `reenbui`, at most **once a hunt**; every number in `content/reenbui.json
      thunder; every flock is a little jumpier (shot alert radius ×1.15).
   2. **First drops** (3 s): fat drops, dust puffs, the ground darkens where it rains.
   3. **The alate swarm** (15 s): 2–4 columns of flying ants rise from the ground on the mid and far
-     planes, in and near the view. Flocks within reach of a column (mid-plane 900 px) walk to it and
+     planes, in and near the view; the first rises where a flock in view forages, settles or comes
+     down to land, else at the view's edge nearest where a flock lands within feeding reach (sim
+     camera only, never the device's screen). Flocks within reach of a column (mid-plane 900 px) walk to it and
      feed there, **calmer** (shot alert radius ×0.7: a shot near them still alerts, flushes and runs
      work as always); up to **2 extra flocks** run in to the columns (inside the map's
      maxFlocks and maxBirdsOnScreen). **Every bag scores ×1.3** in this window ("Flying ants! Every

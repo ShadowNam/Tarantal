@@ -15,6 +15,8 @@ import {
   reenbuiPhaseAt,
   type ReenbuiEligibility,
 } from './reenbui/reenbui';
+import { createReenbuiSystem } from './reenbui/system';
+import type { Flock } from './flocks/Flock';
 import { makeFlock } from './flocks/testing';
 import { shotThreats } from './flocks/threats';
 import { createRng } from './rng';
@@ -240,6 +242,80 @@ describe('Reënbui: the swarm (D-067)', () => {
       });
       expect(near, `seed ${seed}`).toBe(true);
     }
+  });
+
+  it('anchors the first column: in view foraging, settling or landing, else where a flock lands in reach', () => {
+    const cfg = base.reenbui;
+    const planes = [
+      {
+        plane: 'mid' as const,
+        scrollFactor: 0.6,
+        ratio: 1,
+        coreWidth: 4000,
+        groundY: [700, 760] as const,
+      },
+    ];
+    // Camera 2560: the mid plane's view centre is x 1920, the view ±spreadPx (760) round it.
+    const camera = 2560;
+    const plan = { buildupAt: 0, dropsAt: 10, swarmAt: 20, easingAt: 900, endAt: 1000 };
+    type Spec = { x: number; state: Flock['state']; lands?: number; down?: boolean };
+    const firstColumn = (specs: Spec[], seed = 5) => {
+      const flocks = specs.map((sp, i) => {
+        const f = makeFlock(base, { x: sp.x, id: i + 1 }).flock;
+        f.state = sp.state;
+        return f;
+      });
+      const spec = (f: Flock): Spec | undefined => specs[flocks.indexOf(f)];
+      const sys = createReenbuiSystem(
+        cfg,
+        { ...plan, withStorm: false },
+        createRng(seed).stream('reenbui'),
+        {
+          tick: () => plan.swarmAt,
+          cameraX: () => camera,
+          flocks: () => flocks,
+          landingX: (f) => spec(f)?.lands ?? f.homeX,
+          comingDown: (f) => spec(f)?.down === true,
+          planes,
+          spawnFlock: () => false,
+          emit: () => undefined,
+        },
+      );
+      sys.step();
+      return sys.view().columns[0];
+    };
+    const placed = (x: number | null, seed = 5) =>
+      placeColumns(
+        cfg,
+        planes,
+        camera,
+        createRng(seed).stream('reenbui'),
+        x === null ? null : { plane: 'mid', x },
+      )[0];
+    const near = (x: number) =>
+      expect.objectContaining({ id: 0, x: expect.closeTo(x, 0) }) as unknown;
+    // A foraging flock in view: the column at it.
+    expect(firstColumn([{ x: 2300, state: 'forage' }])).toEqual(near(2300));
+    // A settling one in view, nearer the centre than a forager: the settler.
+    expect(
+      firstColumn([
+        { x: 2400, state: 'forage' },
+        { x: 1700, state: 'settle' },
+      ]),
+    ).toEqual(near(1700));
+    // A flushed flock coming down in view: where it lands.
+    expect(firstColumn([{ x: 2900, state: 'flush', lands: 2050, down: true }])).toEqual(near(2050));
+    // Still climbing (not coming down) and out of view: the column where it will land, held
+    // inside the view (2680 = 1920 + 760), as it lands within feeding reach (900) of it.
+    expect(firstColumn([{ x: 3100, state: 'flush', lands: 3300, down: false }])).toEqual(
+      near(2680),
+    );
+    // Lands beyond feeding reach of the view: no anchor (the columns as without one).
+    expect(firstColumn([{ x: 3500, state: 'flush', lands: 3700 }])).toEqual(placed(null));
+    // A forager out of view but within reach of its edge: the column at the edge.
+    expect(firstColumn([{ x: 800, state: 'forage' }])).toEqual(near(1920 - 760));
+    // Draws nothing of its own: an anchored hunt's columns are placeColumns' with that anchor.
+    expect(firstColumn([{ x: 2300, state: 'forage' }], 11)).toEqual(placed(2300, 11));
   });
 
   it('feeding cuts the shot alert radius and the build-up widens it (content factors)', () => {

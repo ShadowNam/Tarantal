@@ -3659,7 +3659,9 @@ feeds"). GDD §11.3e.
 - *Flocks:* within reach of a column, a forage or settle flock's goal is the column (the same
   draws from `flockNoise`, so nothing else shifts) and its shot alert radius is ×0.7; the build-up
   makes every flock's radius ×1.15. Up to 2 extra flocks run in (inside maxFlocks and
-  maxBirdsOnScreen), drawn from the `reenbui` stream.
+  maxBirdsOnScreen): every draw for them (size, twist, run state, Stampede state) comes from the
+  `reenbui` stream, and the "threat" they run from sits `extraFlocks.runFromPx` behind them
+  (content; review of #110 — they had drawn their run and twist from `flocks`/`twist`).
 - *e2e:* `?reenbui=0` turns it off (lesson 17, like `?baboons=0`); `tests/e2e/helpers.ts` boot()
   adds it unless a spec names `reenbui=`, and the direct `page.goto` boots carry it, so every
   existing spec that pins a seed plays it as before. Nothing else changes the content: `?e2e` alone
@@ -3681,8 +3683,19 @@ feeds"). GDD §11.3e.
 - *Review of #110 (the look):* the columns were faint specks at phone size. They are now drawn at
   mid-plane size (~430 px tall there, by plane scale on the far one), alates 3–5 px across with
   a few glinting per frame, a sideways sway, and the first column rises where a flock in view
-  forages (`placeColumns`' anchor, from the `reenbui` stream as before: golden replays
-  re-recorded). The rain eases to a faint drizzle in the swarm (alates fly when the rain lets up;
+  forages (`placeColumns`' anchor). The golden replays were not re-recorded for that anchor: it
+  fired at neither golden swarm, and in play it almost never did (competent bot: 0 of 20 forced
+  Okavango hunts — at the swarm's tick the flocks in view were flushing or gone).
+- *Review of #110 (the anchor and the streams):* the first column now rises at a flock in view
+  that forages, settles or is coming down to land (where it lands), else where the flock nearest
+  the view lands (`landingX`: the flight model read only), held inside the view, if that is within
+  feeding reach — sim camera and content only, never a device viewport; it draws nothing.
+  Competent bot, 20 forced hunts: anchored in 14 (Okavango), 14 (Kalahari), 15 (Karoo); the rest
+  had no flock within reach of the view. With the extra flocks' draws moved to `reenbui` (above),
+  the golden replays were re-recorded twice, each time only the cases that roll a Reënbui moving:
+  for the streams all six (classic-41/81 and daily-42 Okavango, classic-82 Karoo,
+  classic-91/daily-92 Kalahari); for the anchor five (all but daily-92, whose first column comes out
+  the same under both rules). The rain eases to a faint drizzle in the swarm (alates fly when the rain lets up;
   the columns and birds stay clear in the ×1.3 window) and stops with the easing; the rain sound
   fades into a patter (`sfx/amb_reenbui_patter`). The sheet grew to 1024 × 490 (~2 MB on the GPU,
   still Standard in HD).

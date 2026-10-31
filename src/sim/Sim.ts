@@ -78,7 +78,7 @@ import {
 import type { BonusId, FlockCause, SimEvent, ThreatSource } from './events';
 import { centroid, flockParams, flockView, removeMembers, type Flock } from './flocks/Flock';
 import { applyThreat, forceState, tickFsm, type Transition } from './flocks/fsm';
-import { moveFlock } from './flocks/steering';
+import { comingDown, landingX, moveFlock } from './flocks/steering';
 import {
   reactionTargets,
   shotThreats,
@@ -1144,6 +1144,8 @@ export function createSim(config: SimConfig): Sim {
           tick: () => tick,
           cameraX: () => cameraX,
           flocks: () => flocks,
+          landingX: (f) => landingX(f, fParams),
+          comingDown,
           planes: reenbuiPlanes,
           emit: (e) => {
             emit(e);
