@@ -55,7 +55,7 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     (options.strict === true ? errors : warnings).push({ file, message });
   };
 
-  const { scoring, birds, weapons, powerups, charms, run, modes, biomes, feesdae, reenbui } = bundle;
+  const { scoring, birds, weapons, powerups, charms, run, modes, biomes, feesdae, reenbui, brakkie } = bundle;
 
   // --- unique ids --------------------------------------------------------------------------
   checkUnique('birds.json', 'creature', birds.creatures.map((c) => c.id), err);
@@ -537,6 +537,35 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       for (const l of b.layouts)
         if (l.reenbui === 'force' && l.weather === 'calm')
           err(`biomes/${b.id}.json`, `layout ${l.id}: a calm day can't force a Reënbui`);
+  }
+
+  // --- brakkie.json (D-069) ----------------------------------------------------------------
+  checkUnique('brakkie.json', 'area', brakkie.areas.map((a) => a.biome), err);
+  for (const a of brakkie.areas) {
+    const b = loadedBiomes.get(a.biome);
+    if (b === undefined) err('brakkie.json', `area at unknown biome "${a.biome}"`);
+    else if (b.harvest !== undefined) err('brakkie.json', `the Harvest's map "${a.biome}" has no Brakkie`);
+  }
+  for (const m of brakkie.modes)
+    if (m === 'ftue' || m === 'range' || m === 'harvest')
+      err('brakkie.json', `mode "${m}" never has Brakkie (GDD §11.3f)`);
+  if (brakkie.seasonKinds.includes('boss')) err('brakkie.json', 'no Brakkie in a boss hunt (GDD §11.3f)');
+  {
+    // He stands below the pop-ups (lesson 21: shots at a pop-up pass over him) and on the screen.
+    const nearScale = scoring.planes.near.scale;
+    const top = (h: (typeof brakkie.hitboxes)['stand']): number =>
+      Math.min(h.body.oy - h.body.ry, h.head.oy - h.head.r) * nearScale;
+    if (brakkie.groundY > 1080) err('brakkie.json', 'groundY is below the screen');
+    for (const b of biomes) {
+      if (!brakkie.areas.some((a) => a.biome === b.id)) continue;
+      const mid = b.lanes.mid?.groundY;
+      // His head stays this far below the mid plane's ground (more than any gun's pellet spread).
+      const spread = Math.max(
+        ...weapons.weapons.flatMap((w) => (w.kind === 'primary' ? [w.spreadPx] : [])),
+      );
+      if (mid !== undefined && brakkie.groundY + top(brakkie.hitboxes.stand) - mid[1] <= spread)
+        err('brakkie.json', `on ${b.id} his head is within a pellet spread of the mid ground`);
+    }
   }
 
   // --- feesdae.json (D-048) ----------------------------------------------------------------

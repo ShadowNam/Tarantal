@@ -1,0 +1,51 @@
+{
+  "$comment": "Brakkie, Oupa's Jack Russell (GDD §11.3f, D-069). A sim entity on his own stream `dog`: never a target, never hurt, never removed. Px are design px on the near plane at his scale 1 (the mid plane converts by plane scale, D-049); times in seconds. areas: the maps he comes to and the side the bakkie stands (-1 left, 1 right). hitboxes: sprite-local px from his feet (x forward), facing right.",
+  "version": 1,
+  "modes": ["classic", "daily", "seasonHunt"],
+  "seasonKinds": ["plain", "omen"],
+  "areas": [
+    { "biome": "bushveld-winter", "homeSide": -1 },
+    { "biome": "kalahari-summer", "homeSide": -1 },
+    { "biome": "karoo-autumn", "homeSide": 1 },
+    { "biome": "namibie", "homeSide": -1 },
+    { "biome": "okavango-spring", "homeSide": -1 }
+  ],
+  "groundY": 1040,
+  "homeOffPx": 480,
+  "hitboxes": {
+    "stand": { "body": { "ox": -4, "oy": -60, "rx": 84, "ry": 38 }, "head": { "ox": 74, "oy": -112, "r": 30 } },
+    "low": { "body": { "ox": -4, "oy": -30, "rx": 96, "ry": 28 }, "head": { "ox": 84, "oy": -52, "r": 28 } }
+  },
+  "speeds": { "trotPx": 240, "runPx": 820, "boltPx": 1000 },
+  "enterSeconds": [3, 6],
+  "roam": {
+    "viewHalfPx": 760,
+    "stepPx": [220, 700],
+    "tries": 6,
+    "restSeconds": [2.5, 6],
+    "restWeights": { "sniff": 3, "sit": 2, "lie": 1 }
+  },
+  "clear": { "aimPx": 260, "checkSeconds": 0.25, "holdBackSeconds": 1.2 },
+  "fetch": {
+    "chance": 0.35,
+    "planes": ["near", "mid"],
+    "delaySeconds": 0.9,
+    "clearPx": 420,
+    "waitSeconds": 4,
+    "maxDxPx": 1100,
+    "pickupSeconds": 0.6,
+    "crossSeconds": 1.1,
+    "awaySeconds": [5, 9]
+  },
+  "bark": { "everySeconds": [14, 26], "barkSeconds": 1.4, "threatAtSeconds": 0.5, "maxDxPx": 900, "retrySeconds": 3 },
+  "flush": {
+    "firstSeconds": [20, 32],
+    "everySeconds": [35, 55],
+    "chance": 0.8,
+    "digSeconds": 1.6,
+    "size": [3, 4],
+    "maxDxPx": 600,
+    "retrySeconds": 4
+  },
+  "hit": { "penalty": 25, "cooldownSeconds": 2, "yelpSeconds": 0.45, "awaySeconds": [12, 18] }
+}
