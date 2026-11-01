@@ -173,34 +173,33 @@ test('a fetch on a fixed seed: he races to a bagged bird and carries it home, dr
     );
   };
   let n = 0;
+  let sx = 0;
   let sy = 0;
-  let minX = Infinity;
-  let maxX = -Infinity;
   let bird = 0;
   for (let y = d.y - 190; y <= d.y + 6; y += 2)
     for (let x = d.x - 220; x <= d.x + 260; x += 2) {
       if (changed(noBird, none, x, y)) {
         n++;
+        sx += x;
         sy += y;
-        minX = Math.min(minX, x);
-        maxX = Math.max(maxX, x);
       }
       if (changed(all, noBird, x, y)) bird++;
     }
   expect(n, 'his pixels on the canvas').toBeGreaterThan(400);
   expect(bird, 'the bird in his mouth is drawn').toBeGreaterThan(30);
-  // Lesson 22: facing either way his drawn extent sits on his feet as the art has it. The running
-  // frames' ink reaches 120 px behind and 133 ahead of the feet (run_a), 106 and 129 (run_b), so
-  // its middle is 6.5 or 11.5 px ahead; mirrored when he faces left. A frame mirrored round the
-  // wrong point would put it ±13 px off (1 − 2 × pivotX of the frame's width).
-  const ahead = d.frame === 'run_b' ? 11.5 : 6.5;
-  const mid = (minX + maxX) / 2;
+  // Lesson 22: facing either way, his drawn pixels' centroid sits on his hit shape — inside his
+  // standing body ellipse (brakkie.json hitboxes.stand.body, mirrored when he faces left). His own
+  // pixels only (the carried bird hidden: it hangs 116 px ahead and pulled the centroid to 78.8 px
+  // on 404d9aa). Not the extent's ends: the foreground grass hides some of him (c1ca190's Pixel 7).
+  const body = brakkie.hitboxes.stand.body;
+  const cx = d.x + body.ox * d.facing;
+  const cy = d.y + body.oy;
+  const nx = (sx / n - cx) / body.rx;
+  const ny = (sy / n - cy) / body.ry;
   expect(
-    Math.abs(mid - (d.x + ahead * d.facing)),
-    `extent middle ${mid} vs feet ${d.x}`,
-  ).toBeLessThanOrEqual(10);
-  expect(sy / n).toBeLessThan(d.y - 20);
-  expect(sy / n).toBeGreaterThan(d.y - 140);
+    nx * nx + ny * ny,
+    `centroid ${String(sx / n)}, ${String(sy / n)} vs body ${String(cx)}, ${String(cy)}`,
+  ).toBeLessThanOrEqual(1);
 });
 
 test('a shot aimed at him costs 25 with Oupa’s scold; he yelps, bolts and comes back', async ({
