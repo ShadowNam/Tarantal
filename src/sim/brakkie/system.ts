@@ -146,9 +146,12 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   const k = (plane: DogPlane): number => geo.planeScale[plane] / geo.planeScale.near;
   /** px a tick on a plane for a near-plane px/s speed. */
   const perTick = (pxPerSecond: number, plane: DogPlane): number => (pxPerSecond * k(plane)) / 60;
-  const homeX = (plane: DogPlane): number => {
+  /** The end of the panorama he goes home by this time (the bakkie's side when its way is clear,
+   *  else the other end: a trip home never passes a tin can or anything else aimed at). */
+  let side: 1 | -1 = geo.homeSide;
+  const homeX = (plane: DogPlane, end: 1 | -1 = side): number => {
     const sf = geo.layers[plane].scrollFactor;
-    return geo.homeSide < 0 ? -B.homeOffPx * k(plane) : coreWidth(sf) + B.homeOffPx * k(plane);
+    return end < 0 ? -B.homeOffPx * k(plane) : coreWidth(sf) + B.homeOffPx * k(plane);
   };
   const dxOf = (plane: DogPlane, x: number): number =>
     planeToDx(host.cameraX(), geo.layers[plane].scrollFactor, x);
@@ -180,6 +183,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   };
   dog.nextBark = dog.dur + rangeTicks(B.bark.everySeconds);
   dog.nextFlush = rangeTicks(B.flush.firstSeconds);
+  /** Test builds only (?brakkiePreview=fetch): when he fetches a bird placed beside him. */
+  let demoTick = B.demoFetchSeconds === undefined ? null : ticks(B.demoFetchSeconds);
 
   const present = (): boolean => dog.phase !== 'away';
   const hittable = (): boolean => present() && dog.phase !== 'cross';
@@ -223,6 +228,18 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     if (goal !== dog.x) dog.facing = goal > dog.x ? 1 : -1;
   }
 
+  /** The way from where he stands to x is clear too (lesson 21: a tin can on its post or a crate
+   *  he would run past is in the line of fire as much as one he stands by). Checked every
+   *  clear.pathStepPx within clear.pathPx; where he stands now is not checked (he is leaving it). */
+  function pathClear(x: number, from = dog.x, plane: DogPlane = dog.plane): boolean {
+    const s = k(plane);
+    const step = B.clear.pathStepPx * s;
+    const dir = x > from ? 1 : -1;
+    for (let p = from + dir * step; dir * (x - p) > 0; p += dir * step)
+      if (host.busyNear(plane, p, B.clear.pathPx * s)) return false;
+    return true;
+  }
+
   /** A clear spot in view on his plane (null: none of the tries was clear); `away`: only on that
    *  side of where he stands (scampering away from something, never past it). */
   function pickSpot(away: 1 | -1 | 0 = 0): number | null {
@@ -244,7 +261,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       } else {
         x = rng.range(lo, hi);
       }
-      if (!host.busyNear(dog.plane, x, B.clear.aimPx * s)) return x;
+      if (!host.busyNear(dog.plane, x, B.clear.aimPx * s) && pathClear(x)) return x;
     }
     return null;
   }
@@ -267,6 +284,9 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
 
   /** Back to the bakkie on his plane, then away for `away` ticks. */
   function goHome(phase: 'carry' | 'bolt', pxPerSecond: number): void {
+    const pref = geo.homeSide;
+    const other: 1 | -1 = pref < 0 ? 1 : -1;
+    side = pathClear(homeX(dog.plane, pref)) || !pathClear(homeX(dog.plane, other)) ? pref : other;
     moveTo(phase, phase === 'carry' ? 'carry' : 'run', homeX(dog.plane), pxPerSecond);
   }
 
@@ -275,11 +295,21 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     dog.x = homeX('near');
     dog.carrying = false;
     dog.fetch = null;
+    // In by the end he went home by; if no clear way in from there, by the other end.
+    let spot = pickSpot();
+    if (spot === null) {
+      side = side < 0 ? 1 : -1;
+      dog.x = homeX('near');
+      spot = pickSpot();
+    }
     host.emit({ type: 'brakkieArrived', tick: host.tick(), x: dog.x });
-    if (!roam()) {
+    if (spot !== null) {
+      const far = Math.abs(spot - dog.x) > 1200;
+      moveTo('trot', far ? 'run' : 'trot', spot, far ? B.speeds.runPx : B.speeds.trotPx);
+    } else {
       // Nowhere clear in view: in to the view's edge on his side and look round.
       const sf = geo.layers.near.scrollFactor;
-      const edge = planeCentreX(host.cameraX(), sf) + geo.homeSide * B.roam.viewHalfPx;
+      const edge = planeCentreX(host.cameraX(), sf) + side * B.roam.viewHalfPx;
       moveTo('trot', 'run', edge, B.speeds.runPx);
     }
   }
@@ -378,6 +408,13 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     const tick = host.tick();
     if (dog.cooldown > 0) dog.cooldown--;
     dog.t++;
+    // Test builds only: the screenshot spec's fetch, a bird placed beside him (no bag needed).
+    if (demoTick !== null && tick >= demoTick && idle() && dog.plane === 'near' && !dog.carrying) {
+      demoTick = null;
+      const x = dog.x + 260 * k('near') * dog.facing;
+      startFetch({ plane: 'near', x, readyTick: tick, giveUpTick: tick });
+      return;
+    }
     if (dog.plane === 'near' && STANDING.has(dog.phase)) {
       // A wide-spread gun came out: off to the bakkie (no yelp, nothing hit him).
       if (host.wideGun()) {
@@ -461,7 +498,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
             planeCentreX(host.cameraX(), geo.layers.near.scrollFactor) + dxOf(dog.plane, dog.x);
           dog.cross = { from: dog.plane, fromX: dog.x, to: 'near', toX };
           setPhase('cross', 'carry', ticks(B.fetch.crossSeconds));
-          dog.facing = geo.homeSide;
+          dog.facing = side;
         }
         return;
       case 'bark':

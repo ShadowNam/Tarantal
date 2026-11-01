@@ -2126,6 +2126,10 @@ export const BrakkieSchema = obj({
     checkSeconds: pos,
     /** After a shot he holds still this long (and while a sight or fire is held). */
     holdBackSeconds: nonNeg,
+    /** His way to a new spot is clear too: nothing aimed at within pathPx of it, checked every
+     *  pathStepPx. */
+    pathPx: pos,
+    pathStepPx: pos,
     /** A gun in hand with a pellet spread over this (a crate gun like the Voorlaaier, screen px):
      *  he keeps to the bakkie while it is out. */
     wideSpreadPx: pos,
@@ -2167,6 +2171,9 @@ export const BrakkieSchema = obj({
     maxDxPx: pos,
     retrySeconds: pos,
   }),
+  /** Test builds only (?brakkiePreview=fetch, the screenshot spec): this many seconds in he
+   *  fetches a bird placed beside him (visual only). Never in shipped content (cross-refs). */
+  demoFetchSeconds: pos.optional(),
   hit: obj({
     /** Points off for a shot aimed at him. */
     penalty: posInt,

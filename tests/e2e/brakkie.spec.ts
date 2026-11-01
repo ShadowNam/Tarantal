@@ -54,7 +54,7 @@ type Hooked = {
     flockSpots: { id: number; alive: number; x: number; y: number; plane: string }[];
   };
   __TM_HOLD_AT__?: (tick: number | null) => void;
-  __TM_BRAKKIE_HIDE__?: (on: boolean) => void;
+  __TM_BRAKKIE_HIDE__?: (on: boolean | 'bird') => void;
 };
 
 const dogOf = (page: Page): Promise<Dog | null> =>
@@ -135,36 +135,64 @@ test('a fetch on a fixed seed: he races to a bagged bird and carries it home, dr
   expect(Math.abs(d.y - d.groundY)).toBeLessThanOrEqual(2);
   const shot = async (): Promise<ReturnType<typeof decodePng>> =>
     decodePng(await page.locator('#game canvas').screenshot());
-  const withDog = await shot();
-  await page.evaluate(() => {
-    (window as unknown as Hooked).__TM_BRAKKIE_HIDE__?.(true);
-  });
-  await page.waitForTimeout(1000);
-  const without = await shot();
-  await page.evaluate(() => {
-    (window as unknown as Hooked).__TM_BRAKKIE_HIDE__?.(false);
-  });
+  const hide = async (on: boolean | 'bird'): Promise<void> => {
+    await page.evaluate((v) => {
+      (window as unknown as Hooked).__TM_BRAKKIE_HIDE__?.(v);
+    }, on);
+    await page.waitForTimeout(1000);
+  };
+  // Three grabs of the same held tick: everything, his bird hidden, him hidden. The dog's own
+  // pixels are (bird hidden) vs (him hidden): the bird he carries hangs ahead of his mouth and
+  // would pull any measure of his body forward (CI on 404d9aa: centroid 78.8 px ahead with it).
+  const all = await shot();
+  await hide('bird');
+  const noBird = await shot();
+  await hide(true);
+  const none = await shot();
+  await hide(false);
   const h = await hook(page);
-  const k = withDog.width / h.designWidth;
+  const k = all.width / h.designWidth;
+  const changed = (
+    a: ReturnType<typeof decodePng>,
+    b: ReturnType<typeof decodePng>,
+    x: number,
+    y: number,
+  ): boolean => {
+    const i = (Math.round(y * k) * a.width + Math.round(x * k)) * 4;
+    return (
+      Math.abs((a.data[i] ?? 0) - (b.data[i] ?? 0)) +
+        Math.abs((a.data[i + 1] ?? 0) - (b.data[i + 1] ?? 0)) +
+        Math.abs((a.data[i + 2] ?? 0) - (b.data[i + 2] ?? 0)) >
+      60
+    );
+  };
   let n = 0;
-  let sx = 0;
   let sy = 0;
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let bird = 0;
   for (let y = d.y - 190; y <= d.y + 6; y += 2)
-    for (let x = d.x - 200; x <= d.x + 200; x += 2) {
-      const i = (Math.round(y * k) * withDog.width + Math.round(x * k)) * 4;
-      const diff =
-        Math.abs((withDog.data[i] ?? 0) - (without.data[i] ?? 0)) +
-        Math.abs((withDog.data[i + 1] ?? 0) - (without.data[i + 1] ?? 0)) +
-        Math.abs((withDog.data[i + 2] ?? 0) - (without.data[i + 2] ?? 0));
-      if (diff > 60) {
+    for (let x = d.x - 220; x <= d.x + 260; x += 2) {
+      if (changed(noBird, none, x, y)) {
         n++;
-        sx += x;
         sy += y;
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
       }
+      if (changed(all, noBird, x, y)) bird++;
     }
   expect(n, 'his pixels on the canvas').toBeGreaterThan(400);
-  // Lesson 22: facing either way, the drawn dog sits on his feet (his body round them).
-  expect(Math.abs(sx / n - d.x), 'centroid x on his feet').toBeLessThanOrEqual(70);
+  expect(bird, 'the bird in his mouth is drawn').toBeGreaterThan(30);
+  // Lesson 22: facing either way his drawn extent sits on his feet as the art has it. The running
+  // frames' ink reaches 120 px behind and 133 ahead of the feet (run_a), 106 and 129 (run_b), so
+  // its middle is 6.5 or 11.5 px ahead; mirrored when he faces left. A frame mirrored round the
+  // wrong point would put it ±13 px off (1 − 2 × pivotX of the frame's width).
+  const ahead = d.frame === 'run_b' ? 11.5 : 6.5;
+  const mid = (minX + maxX) / 2;
+  expect(
+    Math.abs(mid - (d.x + ahead * d.facing)),
+    `extent middle ${mid} vs feet ${d.x}`,
+  ).toBeLessThanOrEqual(10);
   expect(sy / n).toBeLessThan(d.y - 20);
   expect(sy / n).toBeGreaterThan(d.y - 140);
 });
@@ -287,4 +315,46 @@ test('on the title he sits clear of every title rect and wags when tapped', asyn
   );
   // The tap was his, not a button's: still on the title.
   expect((await hook(page)).scene).toBe('start');
+});
+
+// Review of the screenshots (C1): with his feet at y 1040 he walked behind the shells HUD on 16:9.
+// His feet are at y 985 now: at most his paws reach the bottom HUD band. Over a stretch of play,
+// sampled every 30 ticks while he is drawn on the near plane, his standing box (about 230 × 142
+// design px round his feet: brakkie.json hitboxes.stand and the art) is at most 25 % covered by
+// the hook's HUD rects, on every landscape profile (16:9 desktop, 20:9 Pixel 7, 19.5:9 iPhone).
+test('he is clearly visible in play: at most a quarter of him under the HUD', async ({
+  page,
+}, info) => {
+  test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
+  test.setTimeout(600_000);
+  const touch = isTouchProject(info);
+  await boot(page, `${BASE}&birds=0&brakkie=1`);
+  await startHunt(page, touch);
+  await dogOnScreen(page);
+  let samples = 0;
+  let worst = 0;
+  for (let i = 0; i < 40; i++) {
+    const r = await page.evaluate(() => {
+      const tm = window.__TM__;
+      const d = (window as unknown as Hooked).__TM__?.brakkie;
+      if (tm === undefined || d == null || !d.visible || d.plane !== 'near') return null;
+      const box = { x: d.x - (d.facing > 0 ? 100 : 130), y: d.y - 142, w: 230, h: 142 };
+      const rects = Object.values(tm.rects);
+      let inside = 0;
+      let all = 0;
+      for (let y = box.y; y < box.y + box.h; y += 4)
+        for (let x = box.x; x < box.x + box.w; x += 4) {
+          all++;
+          if (rects.some((o) => x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h)) inside++;
+        }
+      return inside / all;
+    });
+    if (r !== null) {
+      samples++;
+      worst = Math.max(worst, r);
+    }
+    await waitTicks(page, 30);
+  }
+  expect(samples, 'he was drawn while sampled').toBeGreaterThan(10);
+  expect(worst, 'share of him under the HUD').toBeLessThanOrEqual(0.25);
 });

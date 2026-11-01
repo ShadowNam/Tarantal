@@ -53,4 +53,20 @@ describe('Brakkie test flags (D-069)', () => {
         if (e.type === 'brakkieFlushed' && e.flockId !== null) flushed = true;
     expect(flushed).toBe(true);
   });
+
+  it('?brakkiePreview=fetch fetches a bird placed beside him within seconds (no bag)', () => {
+    const c = withBrakkieParams(base, new URLSearchParams('brakkiePreview=fetch'));
+    expect(c.brakkie.demoFetchSeconds).toBe(3);
+    const s = createSim({ seed: 4, content: c, mode, inputKind: 'pointer' });
+    let carrying = -1;
+    while (!s.isOver() && s.tick < 60 * 12 && carrying < 0) {
+      s.step([]);
+      s.drainEvents();
+      if (s.snapshot().brakkie?.phase === 'carry') carrying = s.tick;
+    }
+    expect(carrying).toBeGreaterThan(0);
+    expect(carrying).toBeLessThan(60 * 8);
+    // Never in shipped content.
+    expect(base.brakkie.demoFetchSeconds).toBeUndefined();
+  });
 });

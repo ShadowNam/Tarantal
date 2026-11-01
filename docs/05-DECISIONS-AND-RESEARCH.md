@@ -3801,10 +3801,20 @@ hunt"). GDD §8.
 - *Modes (the brief's recommendation, kept).* Classic, the Daily (special days too) and the bonus
   maps, the Season Run's plain and omen hunts. Not boss hunts, Oupa se Les, the Skietbaan or the
   Harvest. Bles (the FTUE's dog and the charm) is unchanged: Oupa has two dogs.
-- *Planes.* The near plane, his feet at `groundY` 1040 (below the pop-ups at 880–960), drawn small
-  (a Jack Russell is shorter than a guineafowl): his head stays ≥ 100 px below the mid plane's
-  ground (760), more than any gun's pellet spread, so shots at mid birds pass over him. The mid
-  plane only for a fetch there, crossing in depth (not hittable while crossing).
+- *Planes.* The near plane, his feet at `groundY` 985 (the pop-ups' grass line is 880–960), drawn
+  small (a Jack Russell is shorter than a guineafowl): his head stays ≥ 80 px below the mid plane's
+  ground (760), more than any gun's pellet spread (70), so shots at mid birds pass over him. The
+  mid plane only for a fetch there, crossing in depth (not hittable while crossing). *Screenshot
+  review:* at first his feet were at 1040, and on 16:9 he walked behind the shells HUD (the bottom
+  HUD rects start at ~952); at 985 at most his paws reach that band (an e2e checks ≤ 25 % of his
+  standing box under the HUD rects on every landscape profile). At 985 his head is level with the
+  tin cans on a near fence's posts (y ≈ 855): the can-happy bot strayed into him 0.2 a hunt on the
+  Karoo's Wednesday (6 in 30), always while he ran past the cans going home or coming out (the
+  bakkie's side, the right, is where that fence stands). So a new spot is taken only when the way
+  to it is clear too (`clear.pathPx` 220, checked every `pathStepPx` 100), and each trip home goes
+  by the bakkie's end of the panorama when that way is clear, else by the other end, and he comes
+  back out the way he went (or the other end if no clear way in): 0 in 30; competent bots 5 in 150
+  hunts across the five areas. Golden replays re-recorded for the height and the routes.
 - *The hit rule (D-062/D-063's aimed-at rule).* −25 only for a shot aimed at him (the fire command's
   aim point, a rifle's before the sway, mapped onto his layer, inside his body or head ellipse) that
   hit no target elsewhere, at most once per 2 s (the weaver nest's cooldown, `hit.cooldownSeconds`);

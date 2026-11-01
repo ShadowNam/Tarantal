@@ -265,14 +265,19 @@ export class BrakkieView {
     // e2e only (test hooks on): hide him, so a spec can grab the same held tick with and without
     // him and find his drawn pixels (lessons 14 and 22: real pixels, the centroid on his shape).
     if (s.hooks && typeof window !== 'undefined')
-      (window as { __TM_BRAKKIE_HIDE__?: (on: boolean) => void }).__TM_BRAKKIE_HIDE__ = (on) => {
-        this.hidden = on;
+      (window as { __TM_BRAKKIE_HIDE__?: (on: boolean | 'bird') => void }).__TM_BRAKKIE_HIDE__ = (
+        on,
+      ) => {
+        // 'bird': only the bird he carries (the e2e measures his own body without it).
+        this.hidden = on === true;
+        this.birdHidden = on === 'bird';
         this.x = NaN;
       };
   }
 
-  /** e2e only: hidden (__TM_BRAKKIE_HIDE__). */
+  /** e2e only: hidden, or only his bird hidden (__TM_BRAKKIE_HIDE__). */
   private hidden = false;
+  private birdHidden = false;
 
   /** The sheet under the key (polled every SHEET_POLL_FRAMES frames until it arrives). */
   private sheetReady(): boolean {
@@ -421,7 +426,7 @@ export class BrakkieView {
       this.calls++;
     }
     // The bird in his mouth (the running frames only).
-    const carry = d.carrying && (frame === 'run_a' || frame === 'run_b');
+    const carry = d.carrying && !this.birdHidden && (frame === 'run_a' || frame === 'run_b');
     if (carry !== this.birdShown) {
       this.bird.setVisible(carry);
       this.birdShown = carry;

@@ -424,7 +424,8 @@ export type BrakkiePreview = (typeof BRAKKIE_PREVIEWS)[number];
  * v1.12 (D-069) e2e/dev only: `?brakkie=1` — Brakkie on every map he comes to, out of the bakkie
  * half a second in, fetching every bag in view and back from the bakkie in 2 s; with
  * `?brakkiePreview=bark` he barks at a mid flock every 3–4 s, `flush` digs a flock out 4 s in and
- * every 8–10 s (the e2e and screenshot moments, lesson 11).
+ * every 8–10 s, `fetch` fetches a bird placed beside him 3 s in (no bag needed: the screenshot
+ * spec on software GL, lesson 11) (the e2e and screenshot moments).
  */
 export function withBrakkiePreview(
   b: ContentBundle,
@@ -438,6 +439,7 @@ export function withBrakkiePreview(
       enterSeconds: [0.5, 0.5],
       fetch: { ...d.fetch, chance: 1, maxDxPx: 1300, awaySeconds: [2, 2.5] },
       hit: { ...d.hit, awaySeconds: [3, 3.5] },
+      ...(preview === 'fetch' ? { demoFetchSeconds: 3 } : {}),
       bark:
         preview === 'bark'
           ? { ...d.bark, everySeconds: [3, 4], maxDxPx: 1300, retrySeconds: 0.5 }

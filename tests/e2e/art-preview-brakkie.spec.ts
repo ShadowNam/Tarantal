@@ -7,7 +7,7 @@
 //   trot (+ trot-2x): out in the Karoo at a fixed held tick (the same tick as the HD boot's);
 //   bark: barking at a mid flock (?brakkiePreview=bark: every 3–4 s);
 //   yelp-2x: the startled yelp after a shot aimed at him (never hurt);
-//   fetch (+ fetch-2x): carrying a bagged guineafowl home (?brakkie=1: he fetches every bag);
+//   fetch (+ fetch-2x): carrying a guineafowl home (?brakkiePreview=fetch: one placed beside him);
 //   std-hd: Standard | HD close-up of him at the same held tick (Standard crop from the first boot);
 //   windpomp-before-after: polish a — the kestrel under the target discs | above them (the same
 //     held frame, __TM_TELL_UNDER__ for the "before");
@@ -22,7 +22,7 @@ import { join } from 'node:path';
 import { test, type Page, type TestInfo } from '@playwright/test';
 import { blank, crop, decodePng, encodePng8, resize, type Rgba } from '../../tools/assets/image';
 import { fireAt, reloadIfEmpty } from './feesdaeHelpers';
-import { burstAtFlock, hook, isTouchProject, tapRect, waitTicks } from './helpers';
+import { hook, isTouchProject, tapRect, waitTicks } from './helpers';
 
 const OUT = join(import.meta.dirname, '..', '..', 'docs', 'art-preview', 'compare');
 const PROFILES = ['desktop-chromium', 'pixel7-landscape', 'iphone14-landscape'];
@@ -209,7 +209,7 @@ async function holdWhen(page: Page, touch: boolean, what: 'bark' | 'yelp' | 'car
         return dog;
       },
       what,
-      { timeout: 600_000, polling: 'raf' },
+      { timeout: 300_000, polling: 'raf' },
     )
   ).jsonValue()) as Dog;
   await fresh(page, touch);
@@ -358,36 +358,14 @@ test('Brakkie: the title wag, then trotting, barking and the yelp (Standard)', a
   save('yelp-2x', info, scaled(cut(await grab(page), dogBox(y)), 2));
 });
 
-test('Brakkie: fetching a bagged guineafowl', async ({ page }, info) => {
+test('Brakkie: fetching a guineafowl', async ({ page }, info) => {
   const touch = isTouchProject(info);
-  await bootTitle(page, KAROO, 'standard');
+  // ?brakkiePreview=fetch (test builds only, lesson 11): 3 s in he fetches a bird placed beside
+  // him — no bag needed, which on software GL took 14 tries × 2 min and still failed (C2).
+  await bootTitle(page, `${KAROO}&brakkiePreview=fetch`, 'standard');
   await hunt(page, info, 'standard', true);
-  let going = false;
-  for (let attempt = 0; attempt < 14 && !going; attempt++) {
-    await reloadIfEmpty(page, touch);
-    const h = await hook(page);
-    const flock = h.flockSpots.find(
-      (f) =>
-        f.plane === 'mid' && f.alive > 0 && Math.abs(f.x - h.designWidth / 2) < h.designWidth * 0.3,
-    );
-    if (flock === undefined) {
-      await waitTicks(page, 60);
-      continue;
-    }
-    await burstAtFlock(page, touch, flock.id, 2, 30);
-    going = await page
-      .waitForFunction(
-        () => {
-          const p = (window as unknown as Hooked).__TM__?.brakkie?.phase;
-          return p === 'fetch' || p === 'cross' || p === 'pickup' || p === 'carry';
-        },
-        null,
-        { timeout: 120_000 },
-      )
-      .then(() => true)
-      .catch(() => false);
-  }
-  if (!going) throw new Error('no fetch within 14 tries');
+  // Bounded: the carry comes a few sim seconds in (~1 min at ~5 ticks a second); holdWhen fails
+  // the test after its timeout if it never shows.
   const d = await holdWhen(page, touch, 'carry');
   const g = await grab(page);
   save('fetch', info, g.img);

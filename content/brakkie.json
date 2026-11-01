@@ -10,7 +10,7 @@
     { "biome": "namibie", "homeSide": -1 },
     { "biome": "okavango-spring", "homeSide": -1 }
   ],
-  "groundY": 1040,
+  "groundY": 985,
   "homeOffPx": 480,
   "hitboxes": {
     "stand": { "body": { "ox": -4, "oy": -60, "rx": 84, "ry": 38 }, "head": { "ox": 74, "oy": -112, "r": 30 } },
@@ -25,7 +25,7 @@
     "restSeconds": [2.5, 6],
     "restWeights": { "sniff": 3, "sit": 2, "lie": 1 }
   },
-  "clear": { "aimPx": 340, "checkSeconds": 0.2, "holdBackSeconds": 1.2, "wideSpreadPx": 120 },
+  "clear": { "aimPx": 340, "pathPx": 220, "pathStepPx": 100, "checkSeconds": 0.2, "holdBackSeconds": 1.2, "wideSpreadPx": 120 },
   "fetch": {
     "chance": 0.35,
     "planes": ["near", "mid"],
