@@ -19,7 +19,9 @@
   "speeds": { "trotPx": 240, "runPx": 820, "boltPx": 1000 },
   "enterSeconds": [3, 6],
   "roam": {
-    "viewHalfPx": 760,
+    "viewHalfPx": 450,
+    "scamperHalfPx": 760,
+    "driftPx": 100,
     "stepPx": [220, 700],
     "tries": 6,
     "restSeconds": [2.5, 6],
@@ -32,7 +34,7 @@
     "delaySeconds": 0.9,
     "clearPx": 700,
     "waitSeconds": 4,
-    "maxDxPx": 1100,
+    "maxDxPx": 520,
     "pickupSeconds": 0.6,
     "crossSeconds": 1.1,
     "awaySeconds": [5, 9]
@@ -44,7 +46,7 @@
     "chance": 0.7,
     "digSeconds": 1.6,
     "size": [3, 4],
-    "maxDxPx": 600,
+    "maxDxPx": 450,
     "retrySeconds": 4
   },
   "hit": { "penalty": 25, "cooldownSeconds": 2, "yelpSeconds": 0.45, "awaySeconds": [12, 18] }

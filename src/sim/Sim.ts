@@ -11,6 +11,7 @@ import type { Biome, ContentBundle, Feesdag, Sight } from '../content/schemas';
 import {
   behaviourOf,
   damageOf,
+  enter as enterBirdPhase,
   isHittable,
   updateBird,
   viewOf,
@@ -1355,6 +1356,7 @@ export function createSim(config: SimConfig): Sim {
       aliveBirds: birds.length,
       stampede: stampedeActive(),
       windDir: wind?.dir ?? null,
+      popupAvoid: brakkie?.nearSpot() ?? null,
       nextId: () => nextBirdId++,
     };
   }
@@ -3685,6 +3687,17 @@ export function createSim(config: SimConfig): Sim {
     harvest?.step();
     reenbui?.step();
     brakkie?.step();
+    // v1.12 (D-069): a pop-up ducks back into the grass when Brakkie comes within his room (a
+    // guineafowl would): never a bird standing beside him for a shot to stray onto him.
+    const dogSpot = brakkie?.nearSpot() ?? null;
+    if (dogSpot !== null)
+      for (const b of birds)
+        if (
+          b.motion === 'popup' &&
+          b.phase !== 'duck' &&
+          Math.abs(b.x - dogSpot.x) < dogSpot.halfPx
+        )
+          enterBirdPhase(b, 'duck');
 
     if (ranged) rangeStep();
     else {

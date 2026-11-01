@@ -1271,7 +1271,7 @@ their system packages took 1–22 min per job, jobs queued up to 20 min for free
 PRs pushed several 16-job runs at once), and the slowest test shards took 17–18 min. Idle gaps
 between agent turns (a turn ends mid-task, nothing restarts it until the next hourly check) cost
 more than any of these. Decisions: (1) *CI lanes.* Pull requests into `main` run the **quick
-lane**: check/build/size, desktop Chromium in 6 shards (4 until v1.11, D-068), Pixel 7 landscape in 3, iPhone 14
+lane**: check/build/size, desktop Chromium in 6 shards (4 until v1.11, D-068), Pixel 7 landscape in 4 (3 until v1.12, D-069), iPhone 14
 landscape on WebKit, without the Season Run and perf timing specs. Push to `main`, the nightly
 run, a manual run and a PR labelled `full-ci` run the **full lane** (every profile, Season Run,
 perf, portal and public-build jobs, desktop WebKit in 2 shards). A PR merges on a green quick
@@ -3815,6 +3815,22 @@ hunt"). GDD §8.
   by the bakkie's end of the panorama when that way is clear, else by the other end, and he comes
   back out the way he went (or the other end if no clear way in): 0 in 30; competent bots 5 in 150
   hunts across the five areas. Golden replays re-recorded for the height and the routes.
+- *Out of the HUD's corners (CI on c1ca190).* At 985 he still lay or ran behind the shells belt
+  (bottom right, where the bakkie side is on the Karoo): 0.69 of his box on desktop, 0.75 on the
+  iPhone, whose bottom inset lifts the belt. The sim never sees the device, so his rests, barks,
+  digs and the bags he fetches keep to a fixed band round the screen's centre (`roam.viewHalfPx`
+  450, `fetch.maxDxPx` 520, `flush.maxDxPx` 450): the belt starts at 568 px from the centre on
+  16:9 and further out on wider screens. Scampering away from something aimed at may use ±760
+  (`scamperHalfPx`), and a pan that leaves him resting outside the band (`driftPx` 100) gets him
+  up and back in. That band is where pop-ups rise (±600), which first raised the stray hits (8 in
+  60 hunts), so a pop-up now never rises within his room (the director moves its spawn point just
+  clear of him, the same draws) and one already up ducks back into the grass when he comes within
+  it (a guineafowl would): 2 in 120 competent hunts across the five areas, 0 in 12 can-happy
+  Karoo Wednesdays. Running in from or off to the bakkie he may pass behind the belt for a moment;
+  the e2e holds every stationary pose to ≤ 25 % under the HUD rects and the hunt's mean to ≤ 25 %.
+- *CI shards.* Pixel 7 landscape now runs in 4 shards (3/3 took 37.2 min with his specs on
+  c1ca190; the others 28.8 and 34.2); desktop Chromium's 6 took 9.6–30.9 min. The 45-min limit is
+  unchanged and nothing is skipped.
 - *The hit rule (D-062/D-063's aimed-at rule).* −25 only for a shot aimed at him (the fire command's
   aim point, a rifle's before the sway, mapped onto his layer, inside his body or head ellipse) that
   hit no target elsewhere, at most once per 2 s (the weaver nest's cooldown, `hit.cooldownSeconds`);

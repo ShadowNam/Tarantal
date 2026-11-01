@@ -2110,8 +2110,14 @@ export const BrakkieSchema = obj({
   /** He trots in from the bakkie this long into the hunt. */
   enterSeconds: range(nonNeg),
   roam: obj({
-    /** New spots lie within this of the view's centre on his layer. */
+    /** New spots lie within this of the view's centre on his layer: clear of the screen's
+     *  corners, where the HUD's belt and gadget sit on every device (the sim never sees the
+     *  viewport, so it is a fixed band round the centre). */
     viewHalfPx: pos,
+    /** Scampering away from something aimed at may use this wider band. */
+    scamperHalfPx: pos,
+    /** Resting this far outside his band (the view panned), he gets up and comes back in. */
+    driftPx: nonNeg,
     /** And this far from where he stands. */
     stepPx: range(pos),
     /** Spots tried before he rests where he is. */

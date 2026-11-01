@@ -57,6 +57,9 @@ export interface BrakkieSystem {
   bagged(plane: PlaneId, x: number): void;
   step(): void;
   view(): BrakkieView;
+  /** Where he stands on the near plane and the room he keeps (layer px), else null (away,
+   *  crossing, on the mid plane): the director keeps pop-ups clear of him. */
+  nearSpot(): { readonly x: number; readonly halfPx: number } | null;
 }
 
 export interface BrakkieGeometry {
@@ -242,11 +245,11 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
 
   /** A clear spot in view on his plane (null: none of the tries was clear); `away`: only on that
    *  side of where he stands (scampering away from something, never past it). */
-  function pickSpot(away: 1 | -1 | 0 = 0): number | null {
+  function pickSpot(away: 1 | -1 | 0 = 0, halfPx = B.roam.viewHalfPx): number | null {
     const sf = geo.layers[dog.plane].scrollFactor;
     const s = k(dog.plane);
     const centre = planeCentreX(host.cameraX(), sf);
-    const half = B.roam.viewHalfPx * s;
+    const half = halfPx * s;
     const lo = Math.max(centre - half, B.clear.aimPx * s);
     const hi = Math.min(centre + half, coreWidth(sf) - B.clear.aimPx * s);
     if (hi <= lo) return null;
@@ -350,7 +353,12 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
 
   function tryBark(tick: number): void {
     if (tick < dog.nextBark) return;
-    if (!idle() || dog.plane !== 'near' || dog.fetch !== null) {
+    if (
+      !idle() ||
+      dog.plane !== 'near' ||
+      dog.fetch !== null ||
+      Math.abs(dxOf(dog.plane, dog.x)) > B.roam.viewHalfPx + B.roam.driftPx
+    ) {
       dog.nextBark = tick + ticks(B.bark.retrySeconds);
       return;
     }
@@ -429,13 +437,22 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
         dog.nextCheck = tick + checkTicks;
         const busy = host.busyAt(dog.plane, dog.x, B.clear.aimPx * k(dog.plane));
         if (busy !== null) {
-          const x = pickSpot(busy > dog.x ? -1 : 1) ?? pickSpot();
+          const wide = B.roam.scamperHalfPx;
+          const x = pickSpot(busy > dog.x ? -1 : 1, wide) ?? pickSpot(0, wide);
           if (x !== null) {
             dog.barkFlock = null;
             moveTo('trot', 'run', x, B.speeds.runPx);
             return;
           }
         }
+        // The view panned and left him outside his band (the screen's corners hold the HUD on
+        // every device): he gets up and comes back into it.
+        if (
+          dog.phase === 'rest' &&
+          Math.abs(dxOf(dog.plane, dog.x)) > B.roam.viewHalfPx + B.roam.driftPx &&
+          roam()
+        )
+          return;
       }
     }
     switch (dog.phase) {
@@ -624,5 +641,12 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     };
   }
 
-  return { extras, shot, bagged, step, view };
+  const spot = { x: 0, halfPx: B.clear.aimPx };
+  function nearSpot(): { readonly x: number; readonly halfPx: number } | null {
+    if (!hittable() || dog.plane !== 'near') return null;
+    spot.x = dog.x;
+    return spot;
+  }
+
+  return { extras, shot, bagged, step, view, nearSpot };
 };

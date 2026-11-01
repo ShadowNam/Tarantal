@@ -437,7 +437,7 @@ export function withBrakkiePreview(
     brakkie: {
       ...d,
       enterSeconds: [0.5, 0.5],
-      fetch: { ...d.fetch, chance: 1, maxDxPx: 1300, awaySeconds: [2, 2.5] },
+      fetch: { ...d.fetch, chance: 1, awaySeconds: [2, 2.5] },
       hit: { ...d.hit, awaySeconds: [3, 3.5] },
       ...(preview === 'fetch' ? { demoFetchSeconds: 3 } : {}),
       bark:
@@ -446,7 +446,7 @@ export function withBrakkiePreview(
           : d.bark,
       flush:
         preview === 'flush'
-          ? { ...d.flush, firstSeconds: [4, 4], everySeconds: [8, 10], chance: 1, maxDxPx: 900 }
+          ? { ...d.flush, firstSeconds: [4, 4], everySeconds: [8, 10], chance: 1 }
           : d.flush,
     },
   };
