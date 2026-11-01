@@ -80,7 +80,7 @@ test('FTUE "Oupa se Les" completes with one line of text at a time', async ({ pa
   test.setTimeout(600_000);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
-  await page.goto('/?e2e=1&reenbui=0&seed=7&huntSeconds=24');
+  await page.goto('/?e2e=1&reenbui=0&brakkie=0&seed=7&huntSeconds=24');
   await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
     timeout: 60_000,
   });

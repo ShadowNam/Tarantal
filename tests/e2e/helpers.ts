@@ -105,6 +105,8 @@ export async function quick(
  * Daily is never a special day (`feesdag=none`, D-048) unless the query names one. And no hunt has
  * a Reënbui (`reenbui=0`, D-067) unless the query names `reenbui=`: a spec that compares with Node
  * (the Daily seed, challenge links, replays) boots with `reenbui=content` — the real content hash.
+ * Brakkie the farm dog likewise stays home (`brakkie=0`, D-069) unless the query names `brakkie=`
+ * (`brakkie=content` with `reenbui=content` for the specs that compare with Node).
  */
 export async function boot(page: Page, query: string): Promise<void> {
   const pinned = /(^|&)(today|layout|bonus|c)=/.test(query);
@@ -115,7 +117,9 @@ export async function boot(page: Page, query: string): Promise<void> {
   // v1.10 (D-067, lesson 17): no Reënbui unless the spec names `reenbui=` (=1 forces it, =content
   // keeps the content as shipped: the specs that compare with Node's content hash or replays).
   const q = /(^|&)reenbui=/.test(withFtue) ? withFtue : `${withFtue}&reenbui=0`;
-  await page.goto(`/?e2e=1&${q}`);
+  // v1.12 (D-069, lesson 17): no Brakkie unless the spec names `brakkie=`.
+  const qd = /(^|&)brakkie=/.test(q) ? q : `${q}&brakkie=0`;
+  await page.goto(`/?e2e=1&${qd}`);
   await expect(page.locator('#game canvas')).toHaveCount(1);
   await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 60_000 });
 }

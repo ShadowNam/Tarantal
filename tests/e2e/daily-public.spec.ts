@@ -89,7 +89,7 @@ test.describe('public build: ?e2e is unranked', () => {
       loadContentHash(),
       'Oom Koos',
     );
-    await boot(page, `huntSeconds=3&c=${encodeChallenge(c)}&reenbui=content`);
+    await boot(page, `huntSeconds=3&c=${encodeChallenge(c)}&reenbui=content&brakkie=content`);
     await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined);
     let h = await hook(page);
     expect(h.scene, 'the title, not the "beat this" card').toBe('start');
