@@ -191,6 +191,9 @@ function usages(
       if (line.startsWith('guide\\.baboon\\.')) needles.push(/\bthis\.oupa\(/);
       // v1.8c (D-063): Oupa's Harvest lines, the same way.
       if (line.startsWith('guide\\.harvest\\.')) needles.push(/\bthis\.oupa\('guide\.harvest\./);
+      // v1.12 (D-069): Oupa's Brakkie lines, named in code by their key (HudScene's oupa(), the
+      // title's greeting).
+      if (line.startsWith('guide\\.brakkie\\.')) needles.push(new RegExp(`'${line}'`));
       // v1.11 (D-068): Oupa's braai story phrases (story.ts sayKey), said by BraaiView's tell().
       if (line.startsWith('braai\\.say\\.')) needles.push(/\.tell\(line\.say,/);
     } else needles.push(quoted(key));
