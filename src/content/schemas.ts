@@ -2758,6 +2758,21 @@ export const FeelSchema = obj({
     stampMs: pos,
     newsDelayMs: nonNeg,
   }),
+  /** v1.12 (D-069): Brakkie on screen (the sim's numbers are content/brakkie.json). */
+  brakkie: obj({
+    /** The HD twin only while the textures in use plus its own stay within budgetMiB − headroomMiB. */
+    hd: obj({ budgetMiB: pos, headroomMiB: nonNeg }),
+    title: obj({
+      /** A tap on him wags his tail this long, a swish every swishMs. */
+      wagMs: pos,
+      swishMs: pos,
+      /** His height on the title (design px) and the gap to Oupa's feet. */
+      heightPx: pos,
+      gapPx: nonNeg,
+      /** Oupa's greeting the first time the title shows him in a session (a lazy guide line). */
+      greetChance: fraction,
+    }),
+  }),
   /** v1.11 (D-068): Die Braai, the tally's night setting at Oupa's fire (GDD §8). */
   braai: obj({
     /** The top rank, or no miss with at least minBagged birds, is a perfect hunt (the vastrap). */

@@ -10,6 +10,7 @@ import type { FruitHookSpot } from './view/fruit/FruitView';
 import type { TreeLifeHook } from './view/tree/TreeLifeView';
 import type { TellHook } from './view/tell/TellView';
 import type { BaboonHook } from './view/baboon/BaboonView';
+import type { BrakkieHook, TitleBrakkieHook } from './brakkie/BrakkieView';
 import type { HarvestHook } from './view/harvest/HarvestView';
 import type { ReenbuiHook } from './view/reenbui/ReenbuiView';
 import type { BaboonsView, HarvestView, PlaneId, ReenbuiView as ReenbuiState } from '../sim/types';
@@ -514,6 +515,12 @@ export interface TestHook {
   baboons: readonly BaboonHook[] | null;
   baboonRaid: BaboonsView['raid'];
   baboonMs: number;
+  /** v1.12 (D-069): Brakkie as drawn (null: not on this hunt, or his chunk isn't in). */
+  brakkie: BrakkieHook | null;
+  /** v1.12 (D-069): ms his view took this frame (perf: ≤ 0.3 at 4× throttle). */
+  brakkieMs: number;
+  /** v1.12 (D-069): the title's Brakkie (null: not drawn). */
+  titleBrakkie: TitleBrakkieHook | null;
   /** v1.8c (D-063): the Harvest's actors drawn this frame (null: not the Harvest, or the chunk
    *  not in yet), its state from the snapshot (phase, crop, repair, counts; null outside the
    *  Harvest), and the ms its view took (perf.spec: per scenery frame). */
