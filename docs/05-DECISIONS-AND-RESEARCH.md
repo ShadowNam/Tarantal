@@ -3828,6 +3828,11 @@ hunt"). GDD §8.
   it (a guineafowl would): 2 in 120 competent hunts across the five areas, 0 in 12 can-happy
   Karoo Wednesdays. Running in from or off to the bakkie he may pass behind the belt for a moment;
   the e2e holds every stationary pose to ≤ 25 % under the HUD rects and the hunt's mean to ≤ 25 %.
+- *Sizes (gzip, main → this release).* First download: web 2,966.9 → 2,970.5 KB (+3.6: strings and
+  a little code; budget 3,072), Poki 2,959.2 → 2,962.5, CrazyGames 2,959.3 → 2,962.6; new lazy
+  groups `brakkie` 55.4 KB and `brakkie-hd` 64.2 KB; voice packs +55.5 (en), +57.6 (af), +71.7 (de)
+  for Oupa's 9 clips; lazy JS +6.8 KB; every other group unchanged. `size --strict` passes on all
+  three builds.
 - *CI shards.* Pixel 7 landscape now runs in 4 shards (3/3 took 37.2 min with his specs on
   c1ca190; the others 28.8 and 34.2); desktop Chromium's 6 took 9.6–30.9 min. The 45-min limit is
   unchanged and nothing is skipped.
