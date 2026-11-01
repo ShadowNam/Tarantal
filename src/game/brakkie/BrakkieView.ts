@@ -264,7 +264,7 @@ export class BrakkieView {
     this.bird = s.scene.add.image(0, 0, '__DEFAULT').setVisible(false);
     // e2e only (test hooks on): hide him, so a spec can grab the same held tick with and without
     // him and find his drawn pixels (lessons 14 and 22: real pixels, the centroid on his shape).
-    if (s.hooks)
+    if (s.hooks && typeof window !== 'undefined')
       (window as { __TM_BRAKKIE_HIDE__?: (on: boolean) => void }).__TM_BRAKKIE_HIDE__ = (on) => {
         this.hidden = on;
         this.x = NaN;
