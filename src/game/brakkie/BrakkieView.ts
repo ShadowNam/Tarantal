@@ -530,7 +530,11 @@ export class TitleBrakkie {
     private spot: { x: number; y: number; h: number; facing: 1 | -1 } | null,
     depth: number,
   ) {
-    this.img = scene.add.image(0, 0, '__DEFAULT').setVisible(false).setDepth(depth);
+    this.img = scene.add
+      .image(0, 0, '__DEFAULT')
+      .setVisible(false)
+      .setDepth(depth)
+      .setName('titleBrakkie');
   }
 
   /** A new spot (the title re-laid out). */
