@@ -3788,6 +3788,49 @@ hunt"). GDD §8.
   runs in 6 shards in both lanes (35–36 tests each, was 52–53); the 45-min limit is unchanged and no
   test is skipped.
 
+**D-069 1.15.0 v1.12: Brakkie, the farm dog (1 Nov 2026):** from the product owner's list of 24 Oct
+("more personality and an African farm vibe"). GDD §11.3f.
+- *A sim entity, not a view-only cameo.* He barks at flocks and flushes them, and he can be shot at,
+  so he lives in the sim on his own stream `dog` (never shared: the flush's flock size, twist and
+  run come from `dog` too, as the Reënbui's extra flocks come from `reenbui`), reading the hunt's
+  flocks, pop-ups, crates and fire commands read-only. Content: `content/brakkie.json` (Zod schema,
+  cross-references to the biomes and modes). His code is in the lazy sim-systems chunk with the
+  baboons (every map already needs that chunk, so no hunt waits for anything new). Golden replays
+  re-recorded on purpose: every hunt with him gains his events, and his barks and flushes change
+  the flocks.
+- *Modes (the brief's recommendation, kept).* Classic, the Daily (special days too) and the bonus
+  maps, the Season Run's plain and omen hunts. Not boss hunts, Oupa se Les, the Skietbaan or the
+  Harvest. Bles (the FTUE's dog and the charm) is unchanged: Oupa has two dogs.
+- *Planes.* The near plane, his feet at `groundY` 1040 (below the pop-ups at 880–960), drawn small
+  (a Jack Russell is shorter than a guineafowl): his head stays ≥ 100 px below the mid plane's
+  ground (760), more than any gun's pellet spread, so shots at mid birds pass over him. The mid
+  plane only for a fetch there, crossing in depth (not hittable while crossing).
+- *The hit rule (D-062/D-063's aimed-at rule).* −25 only for a shot aimed at him (the fire command's
+  aim point, a rifle's before the sway, mapped onto his layer, inside his body or head ellipse) that
+  hit no target elsewhere, at most once per 2 s (the weaver nest's cooldown, `hit.cooldownSeconds`);
+  any hit, aimed or stray, sends him yelping back to the bakkie. Never removed, never hurt.
+  Oupa's scold is a bark line on the hit event (the BarkDirector's cooldown rules), not a second
+  scold system. Accidental hits are measured in the balance report (gate < 0.1 a hunt, every gun).
+- *Line of fire (lesson 21).* His stand spots are checked against what a player aims at on his
+  layer (pop-ups, crates, secret parts, tell animals, meerkat colonies, tin cans) with `clearPx`,
+  he never starts a trot while the gun is up, and a mid fetch waits until no live bird is within
+  `fetch.clearPx` of the spot (else he gives up).
+- *Fetch is visual only.* No points; the bird he carries is his own frame. Balance moves only
+  through the bark (one threat to a mid flock in view) and the flush (a small flock bursting up
+  flushing): `docs/balance/v1.12-brakkie.md`.
+- *Lazy group, never waited for.* His sheet and sounds are the lazy group `brakkie` (+ `brakkie-hd`),
+  requested at START (and on the title for the wag) and never waited for: until it arrives he is
+  not drawn (the sim runs him all the same, so replays match). Oupa's three lines are in the voice
+  packs (en/af/de voiced with the interim TTS, nl text). Nothing new in the first download but
+  strings and a little code.
+- *Texture memory (lessons 29, 38, 40).* The heaviest HD hunt (Okavango with the Reënbui) is
+  254.8 of 256 MB; with his sheet capped at 512 × 256 (0.5 MiB) it is 255.3 MB, under the budget.
+  The hunt → braai tally hand-over peaks at 255.7 MB: + 0.5 would be 256.2 MB, over. So his texture
+  is released when the hunt ends, before the braai tally opens, and the → braai case measures the
+  same ≤ 255.7 MB as before. A unit test caps the sheet's GPU bytes.
+- *Phones (lessons 32–33).* Baked frames, properties set only on change, no allocation a frame; his
+  own hook timer `brakkieMs` in the [perf] JSON (≤ 0.3 ms a frame at 4× throttle, perf.spec).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
