@@ -3161,6 +3161,8 @@ export const NotaboekMetricSchema = z.enum([
   'canChain',
   /** v1.10 (D-067): birds bagged during one Reënbui's swarm (scope hunt). */
   'reenbuiBags',
+  /** v1.12 (D-069): a whole hunt with Brakkie out and never shot at (1 or 0; scope hunt). */
+  'brakkieMates',
 ]);
 export type NotaboekMetric = z.infer<typeof NotaboekMetricSchema>;
 
