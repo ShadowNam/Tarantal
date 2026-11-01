@@ -1,36 +1,4 @@
 {
-  "bushveld-winter.dubbelloop.before": {
-    "hunts": 500,
-    "score": 2339864,
-    "dogAimed": 0,
-    "dogStray": 0,
-    "dogBarks": 0,
-    "dogFlushes": 0,
-    "dogFetches": 0,
-    "chunks": [
-      "1-100",
-      "101-200",
-      "201-300",
-      "301-400",
-      "401-500"
-    ]
-  },
-  "bushveld-winter.dubbelloop.after": {
-    "hunts": 500,
-    "score": 2344459,
-    "dogAimed": 0,
-    "dogStray": 8,
-    "dogBarks": 272,
-    "dogFlushes": 395,
-    "dogFetches": 945,
-    "chunks": [
-      "1-100",
-      "101-200",
-      "201-300",
-      "301-400",
-      "401-500"
-    ]
-  },
   "kalahari-summer.dubbelloop.before": {
     "hunts": 500,
     "score": 2102558,
@@ -159,58 +127,6 @@
       "401-500"
     ]
   },
-  "karoo-autumn.wed.canHappy.before": {
-    "hunts": 200,
-    "score": 800148,
-    "dogAimed": 0,
-    "dogStray": 0,
-    "dogBarks": 0,
-    "dogFlushes": 0,
-    "dogFetches": 0,
-    "chunks": [
-      "1-100",
-      "101-200"
-    ]
-  },
-  "karoo-autumn.wed.canHappy.after": {
-    "hunts": 200,
-    "score": 806077,
-    "dogAimed": 6,
-    "dogStray": 22,
-    "dogBarks": 138,
-    "dogFlushes": 158,
-    "dogFetches": 422,
-    "chunks": [
-      "1-100",
-      "101-200"
-    ]
-  },
-  "bushveld-winter.windbuks.before": {
-    "hunts": 200,
-    "score": 558814,
-    "dogAimed": 0,
-    "dogStray": 0,
-    "dogBarks": 0,
-    "dogFlushes": 0,
-    "dogFetches": 0,
-    "chunks": [
-      "1-100",
-      "101-200"
-    ]
-  },
-  "bushveld-winter.windbuks.after": {
-    "hunts": 200,
-    "score": 565338,
-    "dogAimed": 0,
-    "dogStray": 0,
-    "dogBarks": 134,
-    "dogFlushes": 154,
-    "dogFetches": 376,
-    "chunks": [
-      "1-100",
-      "101-200"
-    ]
-  },
   "kalahari-summer.windbuks.before": {
     "hunts": 200,
     "score": 580252,
@@ -303,495 +219,620 @@
     ]
   },
   "okavango-spring.windbuks.after": {
-    "hunts": 100,
-    "score": 287936,
+    "hunts": 200,
+    "score": 584333,
     "dogAimed": 0,
     "dogStray": 1,
-    "dogBarks": 61,
-    "dogFlushes": 86,
-    "dogFetches": 150,
+    "dogBarks": 119,
+    "dogFlushes": 170,
+    "dogFetches": 309,
     "chunks": [
-      "1-100"
-    ]
-  },
-  "bushveld-winter.kettie.before": {
-    "hunts": 100,
-    "score": 463911,
-    "dogAimed": 0,
-    "dogStray": 0,
-    "dogBarks": 0,
-    "dogFlushes": 0,
-    "dogFetches": 0,
-    "chunks": [
-      "1-100"
-    ]
-  },
-  "bushveld-winter.kettie.after": {
-    "hunts": 100,
-    "score": 468275,
-    "dogAimed": 1,
-    "dogStray": 0,
-    "dogBarks": 49,
-    "dogFlushes": 66,
-    "dogFetches": 200,
-    "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "kalahari-summer.kettie.before": {
-    "hunts": 100,
-    "score": 430619,
+    "hunts": 200,
+    "score": 868190,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "kalahari-summer.kettie.after": {
-    "hunts": 100,
-    "score": 433269,
+    "hunts": 200,
+    "score": 877400,
     "dogAimed": 1,
     "dogStray": 0,
-    "dogBarks": 68,
-    "dogFlushes": 52,
-    "dogFetches": 231,
+    "dogBarks": 135,
+    "dogFlushes": 110,
+    "dogFetches": 458,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "karoo-autumn.kettie.before": {
-    "hunts": 100,
-    "score": 489424,
+    "hunts": 200,
+    "score": 993466,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "karoo-autumn.kettie.after": {
-    "hunts": 100,
-    "score": 502731,
+    "hunts": 200,
+    "score": 1010506,
     "dogAimed": 0,
-    "dogStray": 1,
-    "dogBarks": 61,
-    "dogFlushes": 69,
-    "dogFetches": 235,
+    "dogStray": 2,
+    "dogBarks": 120,
+    "dogFlushes": 132,
+    "dogFetches": 470,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "namibie.kettie.before": {
-    "hunts": 100,
-    "score": 346432,
+    "hunts": 200,
+    "score": 698209,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "namibie.kettie.after": {
-    "hunts": 100,
-    "score": 354575,
+    "hunts": 200,
+    "score": 710712,
     "dogAimed": 0,
     "dogStray": 0,
-    "dogBarks": 9,
-    "dogFlushes": 56,
-    "dogFetches": 117,
+    "dogBarks": 21,
+    "dogFlushes": 110,
+    "dogFetches": 244,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "okavango-spring.kettie.before": {
-    "hunts": 100,
-    "score": 465900,
+    "hunts": 200,
+    "score": 953597,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "okavango-spring.kettie.after": {
-    "hunts": 100,
-    "score": 481933,
+    "hunts": 200,
+    "score": 972234,
     "dogAimed": 0,
     "dogStray": 0,
-    "dogBarks": 51,
-    "dogFlushes": 60,
-    "dogFetches": 157,
+    "dogBarks": 105,
+    "dogFlushes": 117,
+    "dogFetches": 317,
     "chunks": [
-      "1-100"
-    ]
-  },
-  "bushveld-winter.pomp.before": {
-    "hunts": 100,
-    "score": 426058,
-    "dogAimed": 0,
-    "dogStray": 0,
-    "dogBarks": 0,
-    "dogFlushes": 0,
-    "dogFetches": 0,
-    "chunks": [
-      "1-100"
-    ]
-  },
-  "bushveld-winter.pomp.after": {
-    "hunts": 100,
-    "score": 431077,
-    "dogAimed": 0,
-    "dogStray": 0,
-    "dogBarks": 63,
-    "dogFlushes": 94,
-    "dogFetches": 183,
-    "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "kalahari-summer.pomp.before": {
-    "hunts": 100,
-    "score": 422076,
+    "hunts": 200,
+    "score": 843188,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "kalahari-summer.pomp.after": {
-    "hunts": 100,
-    "score": 423510,
+    "hunts": 200,
+    "score": 839304,
     "dogAimed": 0,
     "dogStray": 1,
-    "dogBarks": 79,
-    "dogFlushes": 81,
-    "dogFetches": 210,
+    "dogBarks": 157,
+    "dogFlushes": 165,
+    "dogFetches": 394,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "karoo-autumn.pomp.before": {
-    "hunts": 100,
-    "score": 437356,
+    "hunts": 200,
+    "score": 896685,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "karoo-autumn.pomp.after": {
-    "hunts": 100,
-    "score": 448817,
+    "hunts": 200,
+    "score": 906039,
     "dogAimed": 0,
-    "dogStray": 1,
-    "dogBarks": 92,
-    "dogFlushes": 73,
-    "dogFetches": 207,
+    "dogStray": 2,
+    "dogBarks": 176,
+    "dogFlushes": 170,
+    "dogFetches": 422,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "namibie.pomp.before": {
-    "hunts": 100,
-    "score": 252997,
+    "hunts": 200,
+    "score": 517514,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "namibie.pomp.after": {
-    "hunts": 100,
-    "score": 260247,
-    "dogAimed": 0,
+    "hunts": 200,
+    "score": 527510,
+    "dogAimed": 1,
     "dogStray": 0,
-    "dogBarks": 23,
-    "dogFlushes": 76,
-    "dogFetches": 110,
+    "dogBarks": 43,
+    "dogFlushes": 134,
+    "dogFetches": 203,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "okavango-spring.pomp.before": {
-    "hunts": 100,
-    "score": 456785,
+    "hunts": 200,
+    "score": 900151,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "okavango-spring.pomp.after": {
-    "hunts": 100,
-    "score": 459310,
+    "hunts": 200,
+    "score": 913875,
     "dogAimed": 0,
-    "dogStray": 5,
-    "dogBarks": 61,
-    "dogFlushes": 88,
-    "dogFetches": 157,
+    "dogStray": 8,
+    "dogBarks": 125,
+    "dogFlushes": 175,
+    "dogFetches": 312,
     "chunks": [
-      "1-100"
-    ]
-  },
-  "bushveld-winter.twee_twee.before": {
-    "hunts": 100,
-    "score": 354510,
-    "dogAimed": 0,
-    "dogStray": 0,
-    "dogBarks": 0,
-    "dogFlushes": 0,
-    "dogFetches": 0,
-    "chunks": [
-      "1-100"
-    ]
-  },
-  "bushveld-winter.twee_twee.after": {
-    "hunts": 100,
-    "score": 362561,
-    "dogAimed": 0,
-    "dogStray": 0,
-    "dogBarks": 55,
-    "dogFlushes": 56,
-    "dogFetches": 189,
-    "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "kalahari-summer.twee_twee.before": {
-    "hunts": 100,
-    "score": 353254,
+    "hunts": 200,
+    "score": 716579,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "kalahari-summer.twee_twee.after": {
-    "hunts": 100,
-    "score": 350441,
+    "hunts": 200,
+    "score": 723751,
     "dogAimed": 0,
     "dogStray": 0,
-    "dogBarks": 49,
-    "dogFlushes": 56,
-    "dogFetches": 205,
+    "dogBarks": 100,
+    "dogFlushes": 121,
+    "dogFetches": 417,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "karoo-autumn.twee_twee.before": {
-    "hunts": 100,
-    "score": 382858,
+    "hunts": 200,
+    "score": 780978,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "karoo-autumn.twee_twee.after": {
-    "hunts": 100,
-    "score": 399940,
+    "hunts": 200,
+    "score": 807962,
     "dogAimed": 1,
     "dogStray": 0,
-    "dogBarks": 67,
-    "dogFlushes": 67,
-    "dogFetches": 199,
+    "dogBarks": 138,
+    "dogFlushes": 134,
+    "dogFetches": 407,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "namibie.twee_twee.before": {
-    "hunts": 100,
-    "score": 312710,
+    "hunts": 200,
+    "score": 636806,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "namibie.twee_twee.after": {
-    "hunts": 100,
-    "score": 315370,
+    "hunts": 200,
+    "score": 642340,
     "dogAimed": 0,
     "dogStray": 0,
-    "dogBarks": 13,
-    "dogFlushes": 42,
-    "dogFetches": 89,
+    "dogBarks": 29,
+    "dogFlushes": 79,
+    "dogFetches": 166,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "okavango-spring.twee_twee.before": {
-    "hunts": 100,
-    "score": 370595,
+    "hunts": 200,
+    "score": 762503,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "okavango-spring.twee_twee.after": {
-    "hunts": 100,
-    "score": 375907,
+    "hunts": 200,
+    "score": 777866,
     "dogAimed": 0,
     "dogStray": 0,
-    "dogBarks": 67,
-    "dogFlushes": 70,
-    "dogFetches": 165,
+    "dogBarks": 111,
+    "dogFlushes": 128,
+    "dogFetches": 314,
     "chunks": [
-      "1-100"
-    ]
-  },
-  "bushveld-winter.langloop.before": {
-    "hunts": 100,
-    "score": 270463,
-    "dogAimed": 0,
-    "dogStray": 0,
-    "dogBarks": 0,
-    "dogFlushes": 0,
-    "dogFetches": 0,
-    "chunks": [
-      "1-100"
-    ]
-  },
-  "bushveld-winter.langloop.after": {
-    "hunts": 100,
-    "score": 271902,
-    "dogAimed": 0,
-    "dogStray": 0,
-    "dogBarks": 33,
-    "dogFlushes": 76,
-    "dogFetches": 148,
-    "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "kalahari-summer.langloop.before": {
-    "hunts": 100,
-    "score": 287283,
+    "hunts": 200,
+    "score": 580356,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "kalahari-summer.langloop.after": {
-    "hunts": 100,
-    "score": 289333,
+    "hunts": 200,
+    "score": 584791,
     "dogAimed": 1,
-    "dogStray": 0,
-    "dogBarks": 51,
-    "dogFlushes": 67,
-    "dogFetches": 158,
+    "dogStray": 1,
+    "dogBarks": 95,
+    "dogFlushes": 131,
+    "dogFetches": 315,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "karoo-autumn.langloop.before": {
-    "hunts": 100,
-    "score": 275585,
+    "hunts": 200,
+    "score": 581779,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "karoo-autumn.langloop.after": {
-    "hunts": 100,
-    "score": 276627,
+    "hunts": 200,
+    "score": 579319,
     "dogAimed": 0,
     "dogStray": 0,
-    "dogBarks": 31,
-    "dogFlushes": 58,
-    "dogFetches": 139,
+    "dogBarks": 70,
+    "dogFlushes": 108,
+    "dogFetches": 277,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "namibie.langloop.before": {
-    "hunts": 100,
-    "score": 352708,
+    "hunts": 200,
+    "score": 708737,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "namibie.langloop.after": {
-    "hunts": 100,
-    "score": 359397,
+    "hunts": 200,
+    "score": 734088,
     "dogAimed": 0,
     "dogStray": 0,
-    "dogBarks": 31,
-    "dogFlushes": 76,
-    "dogFetches": 60,
+    "dogBarks": 53,
+    "dogFlushes": 152,
+    "dogFetches": 127,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "okavango-spring.langloop.before": {
-    "hunts": 100,
-    "score": 292085,
+    "hunts": 200,
+    "score": 614387,
     "dogAimed": 0,
     "dogStray": 0,
     "dogBarks": 0,
     "dogFlushes": 0,
     "dogFetches": 0,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
     ]
   },
   "okavango-spring.langloop.after": {
-    "hunts": 100,
-    "score": 296003,
+    "hunts": 200,
+    "score": 619242,
     "dogAimed": 0,
     "dogStray": 0,
-    "dogBarks": 16,
-    "dogFlushes": 80,
-    "dogFetches": 145,
+    "dogBarks": 36,
+    "dogFlushes": 143,
+    "dogFetches": 271,
     "chunks": [
-      "1-100"
+      "1-100",
+      "101-200"
+    ]
+  },
+  "bushveld-winter.dubbelloop.before": {
+    "hunts": 500,
+    "score": 2339864,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 0,
+    "dogFlushes": 0,
+    "dogFetches": 0,
+    "chunks": [
+      "1-100",
+      "101-200",
+      "201-300",
+      "301-400",
+      "401-500"
+    ]
+  },
+  "bushveld-winter.dubbelloop.after": {
+    "hunts": 500,
+    "score": 2360984,
+    "dogAimed": 0,
+    "dogStray": 5,
+    "dogBarks": 400,
+    "dogFlushes": 228,
+    "dogFetches": 466,
+    "chunks": [
+      "1-100",
+      "101-200",
+      "201-300",
+      "301-400",
+      "401-500"
+    ]
+  },
+  "bushveld-winter.windbuks.before": {
+    "hunts": 200,
+    "score": 558814,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 0,
+    "dogFlushes": 0,
+    "dogFetches": 0,
+    "chunks": [
+      "1-100",
+      "101-200"
+    ]
+  },
+  "bushveld-winter.windbuks.after": {
+    "hunts": 200,
+    "score": 553949,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 72,
+    "dogFlushes": 39,
+    "dogFetches": 160,
+    "chunks": [
+      "1-100",
+      "101-200"
+    ]
+  },
+  "bushveld-winter.kettie.before": {
+    "hunts": 200,
+    "score": 943655,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 0,
+    "dogFlushes": 0,
+    "dogFetches": 0,
+    "chunks": [
+      "1-100",
+      "101-200"
+    ]
+  },
+  "bushveld-winter.kettie.after": {
+    "hunts": 200,
+    "score": 953173,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 79,
+    "dogFlushes": 31,
+    "dogFetches": 178,
+    "chunks": [
+      "1-100",
+      "101-200"
+    ]
+  },
+  "bushveld-winter.pomp.before": {
+    "hunts": 200,
+    "score": 875011,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 0,
+    "dogFlushes": 0,
+    "dogFetches": 0,
+    "chunks": [
+      "1-100",
+      "101-200"
+    ]
+  },
+  "bushveld-winter.pomp.after": {
+    "hunts": 200,
+    "score": 873269,
+    "dogAimed": 0,
+    "dogStray": 2,
+    "dogBarks": 86,
+    "dogFlushes": 46,
+    "dogFetches": 135,
+    "chunks": [
+      "1-100",
+      "101-200"
+    ]
+  },
+  "bushveld-winter.twee_twee.before": {
+    "hunts": 200,
+    "score": 741926,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 0,
+    "dogFlushes": 0,
+    "dogFetches": 0,
+    "chunks": [
+      "1-100",
+      "101-200"
+    ]
+  },
+  "bushveld-winter.twee_twee.after": {
+    "hunts": 200,
+    "score": 747304,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 71,
+    "dogFlushes": 36,
+    "dogFetches": 153,
+    "chunks": [
+      "1-100",
+      "101-200"
+    ]
+  },
+  "bushveld-winter.langloop.before": {
+    "hunts": 200,
+    "score": 569737,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 0,
+    "dogFlushes": 0,
+    "dogFetches": 0,
+    "chunks": [
+      "1-100",
+      "101-200"
+    ]
+  },
+  "bushveld-winter.langloop.after": {
+    "hunts": 200,
+    "score": 567642,
+    "dogAimed": 4,
+    "dogStray": 0,
+    "dogBarks": 38,
+    "dogFlushes": 31,
+    "dogFetches": 116,
+    "chunks": [
+      "1-100",
+      "101-200"
+    ]
+  },
+  "karoo-autumn.wed.canHappy.before": {
+    "hunts": 200,
+    "score": 800148,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 0,
+    "dogFlushes": 0,
+    "dogFetches": 0,
+    "chunks": [
+      "1-100",
+      "101-200"
+    ]
+  },
+  "karoo-autumn.wed.canHappy.after": {
+    "hunts": 200,
+    "score": 803497,
+    "dogAimed": 0,
+    "dogStray": 3,
+    "dogBarks": 30,
+    "dogFlushes": 14,
+    "dogFetches": 35,
+    "chunks": [
+      "1-100",
+      "101-200"
     ]
   }
 }

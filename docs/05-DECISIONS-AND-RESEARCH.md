@@ -3832,6 +3832,13 @@ hunt"). GDD §8.
   ground (the can-happy bot on the Karoo's Wednesday: 0.11 stray + 0.03 aimed a hunt before, 0 in
   20 after). Running in from or off to the bakkie he may pass behind the belt for a moment;
   the e2e holds every stationary pose to ≤ 25 % under the HUD rects and the hunt's mean to ≤ 25 %.
+- *Balance (final content, `docs/balance/v1.12-brakkie.md`).* Competent bot, each area's Monday,
+  every gun (the Dubbelloop 500 seeds, the others 200), before = the same build without him: every
+  area's mean +0.5 … +1.6 % (gate ±3 %); single cells −0.9 … +4.5 % (three above +3 %: Kalahari
+  Windbuks, Namibië Langloop, Karoo Twee-Twee — his flush suits silent and single-shot guns; the
+  area means hold, so it was not tuned down). Accidental hits on him (stray + aimed) ≤ 0.074 a hunt
+  in every cell (gate < 0.1), the can-happy Karoo Wednesday 0.015. His fetches 0.6–2.6 a hunt,
+  barks 0.1–1.0, flushes 0.2–0.9.
 - *Sizes (gzip, main → this release).* First download: web 2,966.9 → 2,970.5 KB (+3.6: strings and
   a little code; budget 3,072), Poki 2,959.2 → 2,962.5, CrazyGames 2,959.3 → 2,962.6; new lazy
   groups `brakkie` 55.4 KB and `brakkie-hd` 64.2 KB; voice packs +55.5 (en), +57.6 (af), +71.7 (de)
