@@ -105,6 +105,10 @@ export class TellView {
       readonly id: string;
       readonly scale?: number | undefined;
     }[] = [],
+    /** v1.12 (polish a): props whose tell is drawn above the layer's fixtures — a prop with a
+     *  turning rotor and its target discs (the Karoo windpomp's kestrel): under them, every disc
+     *  that came round hid the bird. */
+    private readonly aboveFixtures: ReadonlySet<string> = new Set(),
   ) {}
 
   /**
@@ -172,7 +176,7 @@ export class TellView {
       img.setFlipX(true);
       glow.setFlipX(true);
     }
-    layer.propFruit.add([glow, img]);
+    (this.aboveFixtures.has(t.propId) ? layer.fixtures : layer.propFruit).add([glow, img]);
     s = {
       img,
       glow,

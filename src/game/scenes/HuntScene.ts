@@ -70,6 +70,7 @@ import type { ReenbuiView } from '../view/reenbui/ReenbuiView';
 import { braaiReady, requestBraai } from '../braai/braaiChunk';
 import { brakkieChunk, requestBrakkie } from '../brakkie/brakkieChunk';
 import { BRAKKIE_SHEET } from '../brakkie/brakkieKeys';
+import { secretOwnsRotor } from '../view/windpompMotion';
 import type { BrakkieView } from '../brakkie/BrakkieView';
 import { StoryFactsLog } from '../braai/storyFacts';
 import type { HarvestView } from '../view/harvest/HarvestView';
@@ -2743,6 +2744,12 @@ export class HuntScene extends Phaser.Scene {
           () => performance.now(),
           this.manifest,
           this.ctx.content.birds.tells.species,
+          // v1.12 (polish a): a tell on a prop with a rotor (its target discs) draws above them.
+          new Set(
+            mapBiome.props.flatMap((p) =>
+              p.secret?.tell !== undefined && secretOwnsRotor(p.secret) ? [p.id] : [],
+            ),
+          ),
         );
       })
       .catch(() => {
