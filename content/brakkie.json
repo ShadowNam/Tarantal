@@ -41,7 +41,7 @@
   "flush": {
     "firstSeconds": [20, 32],
     "everySeconds": [35, 55],
-    "chance": 0.8,
+    "chance": 0.7,
     "digSeconds": 1.6,
     "size": [3, 4],
     "maxDxPx": 600,
