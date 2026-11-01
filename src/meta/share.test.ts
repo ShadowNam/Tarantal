@@ -91,6 +91,16 @@ describe('share text (GDD §15)', () => {
     expect(show(buildShareText({ ...daily, url: '' }, translator('en')))).not.toContain('\n');
   });
 
+  it('v1.11 (D-068): the Daily card puts the braai round its score', () => {
+    const tr = translator('en');
+    expect(show(buildShareText({ ...daily, braai: true }, tr))).toMatchInlineSnapshot(`
+      "🐦 Tarantal Madness · Daily #142 · 🔥 2⎵840 🌌 · Bushveld Hunter · 🟩🟩🟨🟩⬛ · 2× whole flock
+      Beat me on this exact hunt: https://shadownam.github.io/Tarantal/?c=eyJ2IjoxfQ"
+    `);
+    // A special day's card keeps its own frame (the braai is only for the ordinary Daily).
+    expect(buildShareText({ ...daily, braai: false }, tr).text).not.toContain('🔥');
+  });
+
   it('groups thousands with a no-break space', () => {
     expect(groupThousands(999)).toBe('999');
     expect(groupThousands(2840)).toBe('2\u00a0840');

@@ -391,6 +391,7 @@
   "tally.vs_tie": "Jij {you} · {them} {score} · gelijkspel!",
   "tally.vs_lose": "Jij {you} · {them} {score} · net niet!",
   "tally.streak": "Reeks: {n} dagen",
+  "tally.streak_one": "Reeks: 1 dag",
   "tally.freeze_used": "bevriezing gebruikt",
   "tally.cosmetic": "Ontgrendeld: {item}",
   "tally.daily_best": "Nieuw dagrecord!",

@@ -391,6 +391,7 @@
   "tally.vs_tie": "You {you} · {them} {score} · a tie!",
   "tally.vs_lose": "You {you} · {them} {score} · so close!",
   "tally.streak": "Streak: {n} days",
+  "tally.streak_one": "Streak: 1 day",
   "tally.freeze_used": "freeze used",
   "tally.cosmetic": "Unlocked: {item}",
   "tally.daily_best": "New daily best!",

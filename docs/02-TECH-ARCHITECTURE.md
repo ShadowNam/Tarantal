@@ -767,6 +767,43 @@ v1.4 B (D-039):
   1×, `tools/assets/pack.ts PROP_PLANE_RES`). The asset index's image `scale` (design px per
   texture px) is applied by `ParallaxView`.
 
+
+v1.11 (D-068), **Die Braai** (`src/game/braai/`), presentation only (no sim change):
+- **Where:** `TallyScene` draws the braai behind the slate (depth −10) for Classic, the Daily and
+  the Harvest (`TallyData.braai`), never Oupa se Les or the Season Run's day end (`RunScene`). The
+  slate, its rows, buttons, focus order, news line, hook values and the verdict bark are as before.
+- **Lazy chunk:** `braaiChunk.ts` (first download, a few lines) imports `BraaiView.ts` when a
+  Classic, Daily or Harvest hunt starts (`requestBraai`), and the chunk fetches its files: the
+  Standard sheet (always: the fallback), the HD twin (when HD is chosen), the sounds and the voice
+  language's story lines, from the asset index's `braai`, `braai-hd` and `braai-voice-<lang>` groups
+  (the sounds and lines are in the lazy voice index). The delivery switch holds (lesson 35): no
+  index, or none of its files, loads nothing. At the tally `braaiReady()` is asked once,
+  synchronously: the braai shows only if the chunk and the Standard sheet are in, otherwise the plain
+  slate shows at once (no wait, no late switch-over). `hook.braaiLoaded` tells e2e when it would.
+- **Texture memory (lesson 29):** the sky is a `Graphics` gradient and the horizon a `Graphics`
+  silhouette per area (`feel.json braai.horizons`), no textures. The one sheet (512 × 432 at 1×,
+  ≈ 0.84 MiB; HD 1024 × 864, ≈ 3.4 MiB) becomes a texture (`braai/sheet`) only when the braai tally
+  opens and is removed when it closes (nothing else draws it), so no hunt carries it. The HD twin
+  is used only while `textureBytes()` + its size ≤ `braai.hd.budgetMiB − headroomMiB`; on the
+  heaviest HD hunt (the Okavango with the Reënbui) the Standard sheet shows: perf.spec "HD texture
+  memory, the Okavango Reënbui hunt → the braai tally" ≤ 256 MB. The hunt scene beneath is set
+  invisible while the braai covers it.
+- **Per frame (lessons 32–33):** `braaiAnim.ts` is pure: `animState(ms)` (the flame, spark and
+  glow steps, Oupa's pose, the dance's step) from the braai clock (ms since the tally opened, held
+  by `?braaiAt=` / `window.__TM_BRAAI_AT__`), and `applyAnim` sets only what changed (≤ 10 calls a
+  frame, unit-tested at 60 fps and in 330 ms frames). Hook `braaiMs`/`braaiFrames` (perf.spec: ≤
+  0.3 ms a frame at 4× throttle) and `braai` (rects, pose, story, sheet, calls).
+- **Story:** `storyFacts.ts` counts what the result doesn't carry (Ver and far bags, meerkat and
+  nest scolds, the Reënbui swarm's bag) from the sim's event stream in `HuntScene`; `story.ts`
+  picks two to four lines from the result, those facts and the save's changes (deterministic).
+  Lines start after the count-up and the verdict bark, one every `story.lineMs + gapMs` on the
+  braai clock, in Oupa's bubble above his head (`braaiLayout.ts`, laid out against every tally
+  rect), voiced through `AudioDirector.bark`. A tap off the buttons or Esc skips the count-up and
+  the story (DOM Pointer Events like Menu — Phaser's input is off — through `braaiTap.ts`; the
+  last taps and their outcome in `hook.braai.taps`). `AudioDirector.setBraai` crossfades the area's music into the braai's bed (guitar on
+  the music bus, fire and crickets on the ambience bus); mute, pause and visibility go through the
+  same buses.
+- **Test flags (test hooks only):** `?braai=0` (the plain slate), `?braaiDance=1`, `?braaiAt=<ms>`.
 ## 6. Input (`src/game/input/InputMapper.ts`)
 - Pointer Events only (one code path for mouse/touch/pen); canvas CSS `touch-action: none`;
   prevent double-tap zoom, long-press callouts, text selection, overscroll bounce.

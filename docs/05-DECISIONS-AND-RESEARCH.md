@@ -1271,7 +1271,7 @@ their system packages took 1–22 min per job, jobs queued up to 20 min for free
 PRs pushed several 16-job runs at once), and the slowest test shards took 17–18 min. Idle gaps
 between agent turns (a turn ends mid-task, nothing restarts it until the next hourly check) cost
 more than any of these. Decisions: (1) *CI lanes.* Pull requests into `main` run the **quick
-lane**: check/build/size, desktop Chromium in 4 shards, Pixel 7 landscape in 3, iPhone 14
+lane**: check/build/size, desktop Chromium in 6 shards (4 until v1.11, D-068), Pixel 7 landscape in 3, iPhone 14
 landscape on WebKit, without the Season Run and perf timing specs. Push to `main`, the nightly
 run, a manual run and a PR labelled `full-ci` run the **full lane** (every profile, Season Run,
 perf, portal and public-build jobs, desktop WebKit in 2 shards). A PR merges on a green quick
@@ -3717,6 +3717,76 @@ feeds"). GDD §11.3e.
   in Afrikaans folk use; *Macrotermes* and harvester termites in the region).
   Sources: [Wikipedia — Termite](https://en.wikipedia.org/wiki/Termite) ·
   [Wikipedia — Alate](https://en.wikipedia.org/wiki/Alate)
+
+**D-068 1.14.0 v1.11: Die Braai — the day ends at Oupa's fire (31 Oct 2026):** from the product
+owner's list of 24 Oct ("Die Braai: results told by Oupa at the fire, vastrap dance for a perfect
+hunt"). GDD §8.
+- *A setting, not a new tally.* The Bakkie Tally keeps every number, button, focus order, news line
+  and hook value; the braai is drawn behind and around the slate. Where: Classic and the Daily (a
+  Feesdae Daily with its own decorations joining the fire: the party hats, the present, the
+  pumpkin), the Harvest with its own lines. Not the Season Run's day end (the Padstal's layout fills
+  the screen; no vignette: the run's own day end stays as it is) and not Oupa se Les (the first
+  tally stays plain and quick, GDD §16 step 7).
+- *Presentation only.* Nothing in `src/sim/` changes; no golden or content hash moves. The story's
+  facts the result doesn't carry (a Ver bag, the scolds, the Reënbui swarm's bag) are counted in
+  the game layer from the sim's event stream; the story is a pure function of the result, those
+  counts and the save's changes (same result ⇒ same lines). Tuning is client-only
+  (`content/client/feel.json → braai`, outside the content hash).
+- *Lazy and never waited for.* The braai's art, sounds and Oupa's story lines are in a lazy group
+  (`braai`, its HD twin `braai-hd`, the voice lines in `braai-voice-<lang>`) fetched by the braai's
+  own lazy chunk when a hunt starts, so they are there by the tally; with no delivery, or before
+  they arrive, the tally shows today's plain slate. Nothing new in the first download but strings
+  and a little code.
+- *Texture memory (lesson 29).* The heaviest HD hunt (Okavango with the Reënbui, ≈ 254.8 of 256 MB)
+  leaves ~1.2 MB. The sky is a code-drawn gradient (no texture), the stars a few baked tiles, the
+  horizon a code-drawn silhouette; the fire, Oupa, the dance and the bakkie one small sheet. The
+  sheet becomes a texture only when the braai tally opens and is removed when it closes, so no
+  hunt carries it. Its HD twin is used only when the texture memory in use leaves room for it under
+  the budget; otherwise (the Okavango Reënbui case) the Standard sheet shows. perf.spec measures
+  that case at the tally.
+- *The story.* Openers by the bag (none, some, ≥ `story.manyBirds` = 15, the Harvest's crop), then
+  the hunt's moments in a fixed priority — a new best (one that beat an earlier best), a rank up,
+  a Ver bag (else a far-plane bag), whole flocks, a Blikkies chain of 3+, 3+ bags in the Reënbui
+  swarm, a meerkat scold, a nest scold, a near miss (within 90 % of the area's best) — at most
+  `story.maxLines − 2` (2) of them, then a closer (a perfect hunt, a rank up, a Feesdae day, a
+  poor hunt, else "the coals are just right"). 19 phrases, each voiced without numbers (`braai.say.*`, 57 clips in
+  en/af/de) and captioned with them (`braai.*`): a small, fixed clip count whatever the numbers.
+  The story's strings and the 19 × 2 keys live in a lazy table (`src/i18n/braai/`, the braai's
+  chunk), not the first download's.
+- *A perfect hunt* is the top rank (Bosveld Legend), or every shot bagged with at least
+  `perfect.minBagged` (10) birds — rare enough to be a reward, reachable without the top score. It
+  or a rank up earns the vastrap (`danceMs` 3.6 s, four steps mirrored); a perfect hunt closes "A
+  perfect hunt!", a plain rank up "That calls for a dance!" (`close_rank_up`). *Review B:* the save's
+  `bestRank` starts null, so a new player's first scored hunt always "reaches" a rank (the tally's
+  news line says so, unchanged); for the story and the dance a rank up counts only when there was
+  an earlier rank (`TallyBraai.rankBefore`, read before the hunt is recorded) and never for the
+  bottom rank — a first 0-point hunt closes "Tomorrow the birds won't be so lucky", no dance.
+- *Layout (lesson 25).* Oupa and the fire stand in the column left of the slate, sized to it
+  (`braaiLayout.ts`, unit-tested against every tally rect at 16:9, 20:9 and 19.5:9 with the
+  iPhone's insets); his bubble sits above his head; on 4:3 he and the fire are left out.
+- *Perf (CI full lane, review):* the braai tally measured 0.43 ms a frame at 4× throttle with
+  only 7 Phaser calls a frame: telling a story line rendered its caption (a canvas Text with word
+  wrap) inside the per-frame update. Each caption's bubble is now prepared when the braai is built
+  (`captionPool.ts`, `BarkBubble.prepare`/`showPrepared`); telling a line only reveals it. The hook's
+  `braaiParts` (anim, story, sound) and the perf report show where the time goes.
+- *Skip.* "A tap or key skips … as today": the tally had no skip, so the braai adds one — a tap
+  that isn't on a button, or Esc (Enter and Space press the focused button, [Again] by default,
+  as before). It finishes the count-up and shows the rest of the story in one caption. Phaser's
+  own input is off in this game (all input is Pointer Events on the canvas), so the skip listens to
+  the DOM as Menu does (CI review: a Phaser `pointerup` listener never fired); each tap and the
+  branch it took (`button`, `skip`, `skip-ignored:blocked|done`) is in the hook's `braai.taps`.
+- *Share card.* An ordinary Daily's text card puts the braai round its score (`🔥 2 840 🌌`); a
+  Feesdae Daily keeps its own frame. The card's prefix is unchanged (challenge links, e2e).
+- *Feesdae at the braai.* The special's framed slate is drawn as before; its hat (Christmas, New
+  Year) goes on Oupa and a present (Christmas) or a pumpkin lantern (Halloween) beside the fire,
+  from the special's own sheet already in memory (no new texture). Nothing if it isn't in.
+- *Season Run.* The Padstal's day end is unchanged and gets no vignette: its layout fills the
+  screen and its own flow (the shop) follows at once.
+- *CI shards (supervisor).* With the braai at every hunt's end, `desktop-chromium 2/4` timed out at
+  the e2e job's 45-min limit twice on the full lane (44 min each, 52 of 53 tests passed; 41 min on
+  main's v1.10 run, 21 min on a fast quick-lane runner), and 4/4 ran 39–43 min. Desktop Chromium now
+  runs in 6 shards in both lanes (35–36 tests each, was 52–53); the 45-min limit is unchanged and no
+  test is skipped.
 
 ## 3. Research notes (with sources)
 

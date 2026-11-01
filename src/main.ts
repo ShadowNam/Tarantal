@@ -1,3 +1,4 @@
+import { setBraaiFlags } from './game/braai/braaiChunk';
 import { BONUS_MAP_IDS, WEEKDAY_IDS, type Biome } from './content/schemas';
 // Boot: save (settings + progress) → i18n → content (validated) → platform adapter →
 // placeholder assets → Phaser game with the flexible-width layout (Tech §5). Opens on the title
@@ -450,6 +451,12 @@ const hook: TestHook = {
   reenbui: null,
   reenbuiDraw: null,
   reenbuiMs: 0,
+  braai: null,
+  braaiMs: 0,
+  braaiFrames: 0,
+  braaiParts: null,
+  braaiLoaded: false,
+  tallyScore: null,
   reenbuiParts: null,
   reloadFx: { chipIcons: [], bolts: 0, oupaHand: false, autoReloads: 0 },
   mirage: false,
@@ -526,6 +533,16 @@ const noTroops = testHooks && params.get('baboons') === '0' ? withNoBaboons(with
 // ?reenbui=0 turns it off (specs that pin a seed, lesson 17). Nothing else changes the content:
 // `?e2e` alone keeps the real content hash (the Daily seed, challenge links, Node replays).
 const withRain = testHooks ? withReenbuiParams(noTroops, params) : noTroops;
+// e2e/dev only (v1.11, D-068): ?braai=0 — the plain slate (specs that don't test the braai);
+// ?braaiDance=1 — Oupa dances whatever the result; ?braaiAt=<ms> holds the braai's clock there.
+if (testHooks) {
+  const at = Number(params.get('braaiAt') ?? NaN);
+  setBraaiFlags({
+    off: params.get('braai') === '0',
+    dance: params.get('braaiDance') === '1',
+    at: Number.isFinite(at) && at >= 0 ? at : null,
+  });
+}
 // e2e/dev only (v1.8c, D-063): ?harvestDuck=<seconds> (a struck worker stays down that long) and
 // ?harvestRush=1 (the rush's peak from the start), for the Harvest's screenshots.
 const duckParam = testHooks ? Number(params.get('harvestDuck') ?? NaN) : NaN;

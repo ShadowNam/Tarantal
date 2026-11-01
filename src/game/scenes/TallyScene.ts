@@ -21,9 +21,17 @@ import { NY_SOUNDS } from '../feesdae/newyearKeys';
 import { BarkBubble, sayBark } from '../ui/BarkBubble';
 import { powerupIcon } from '../ui/powerupIcons';
 import type { BarkTrigger } from '../../content/schemas';
-import { drawButton, fitText, Menu } from '../ui/menu';
+import { drawButton, fitText, Menu, menuInputBlocked } from '../ui/menu';
+import { clientToDesign } from '../input/screenButtons';
+import { classifyTap, recordTap } from '../braai/braaiTap';
+import { CaptionPool } from '../braai/captionPool';
 import { FONT } from '../view/Fx';
 import { fontPx, outline } from '../ui/textLook';
+import { braaiFlags, braaiReady } from '../braai/braaiChunk';
+import type { StoryFacts } from '../braai/storyFacts';
+import type { BraaiView } from '../braai/BraaiView';
+import { oupaShows, oupaSpeaks } from '../audio/oupaMode';
+import { textureBytes } from '../assets/textureBytes';
 
 /** v1.8c (D-063): what the Harvest's tally shows instead of the plane rows. */
 export interface HarvestTally {
@@ -40,7 +48,19 @@ export interface HarvestTally {
   readonly newBest: boolean;
 }
 
+/** v1.11 (D-068): what the braai's story needs beyond the result (absent: no braai). */
+export interface TallyBraai {
+  readonly facts: StoryFacts;
+  /** The area's best before this hunt (the Harvest's own), null: none. */
+  readonly bestBefore: number | null;
+  /** The save's best rank before this hunt (null: none yet: no rank up for the story). */
+  readonly rankBefore: string | null;
+  readonly biome: string;
+}
+
 export interface TallyData {
+  /** v1.11 (D-068): Classic, the Daily and the Harvest end at the braai. */
+  readonly braai?: TallyBraai;
   /** v1.8c (D-063): the Harvest's lines (absent for every other mode). */
   readonly harvest?: HarvestTally;
   readonly result: HuntResult;
@@ -64,8 +84,26 @@ export interface TallyData {
   readonly share: (extras: TallyExtras) => Promise<ShareOutcome>;
 }
 
+/** The story bubble's own timer is not used (the braai clock hides it): a day. */
+const STORY_BUBBLE_HELD_MS = 86_400_000;
+
+/** A text's on-screen box (design px). */
+function bounds(o: Phaser.GameObjects.Text): Rect {
+  const b = o.getBounds();
+  return { x: b.x, y: b.y, w: b.width, h: b.height };
+}
+
 export class TallyScene extends Phaser.Scene {
   private readonly ctx: GameContext;
+  /** v1.11 (D-068): the braai behind the slate (null: the plain slate). */
+  private braai: BraaiView | null = null;
+  /** The braai clock's zero (scene time). */
+  private braaiT0 = 0;
+  /** Oupa's story bubble and when (braai clock ms) its line's time is up. */
+  private storyBubble: BarkBubble | null = null;
+  private storyHideAt: number | null = null;
+  /** Oupa's verdict bubble (a braai skip hides it: the story takes its place at once). */
+  private verdictBubble: BarkBubble | null = null;
 
   constructor(ctx: GameContext) {
     super({ key: 'Tally' });
@@ -119,8 +157,8 @@ export class TallyScene extends Phaser.Scene {
    * v1.0.1 (D-028 §3): a new best, the top rank ("Bosveld Legend!") or the bottom one
    * ("Stadsjapie…") gets a word from Oupa; not after his lesson or in capture mode.
    */
-  private verdictBark(data: TallyData, at: { safe: Rect; panel: Rect }): void {
-    if (data.ftue || this.ctx.capture !== null) return;
+  private verdictBark(data: TallyData, at: { safe: Rect; panel: Rect }): boolean {
+    if (data.ftue || this.ctx.capture !== null) return false;
     const ranks = this.ctx.content.scoring.ranks;
     const r = data.result;
     const trigger: BarkTrigger | null =
@@ -134,15 +172,53 @@ export class TallyScene extends Phaser.Scene {
             : r.rank === ranks[0]?.id && r.shots > 0
               ? 'badHunt'
               : null;
-    if (trigger === null) return;
+    if (trigger === null) return false;
     const now = this.time.now;
     const bark = this.ctx.barks.say(trigger, now);
-    if (bark === null) return;
+    if (bark === null) return false;
     const bubble = new BarkBubble(this, this.ctx.feel.barks.fontPx);
+    this.verdictBubble = bubble;
     sayBark(this.ctx, bubble, bark.line, tallyBarkSlot(at.safe, at.panel), now);
+    return oupaShows(this.ctx.prefs.oupa);
+  }
+
+  /**
+   * v1.11 (D-068): the braai clock (ms since the tally opened): the braai's animation and story
+   * run on it, so a hold (`?braaiAt=` or `window.__TM_BRAAI_AT__`, e2e) freezes the picture.
+   */
+  private braaiClock(): number {
+    const real = this.time.now - this.braaiT0;
+    // Holds are test-build only (review 5): the page's hold is read only behind the test hooks.
+    const page =
+      this.ctx.hook === null ? undefined : (window as { __TM_BRAAI_AT__?: number }).__TM_BRAAI_AT__;
+    const at = typeof page === 'number' ? page : braaiFlags().at;
+    return at === null ? real : Math.min(real, at);
+  }
+
+  override update(): void {
+    const v = this.braai;
+    if (v === null) return;
+    const ms = this.braaiClock();
+    v.update(ms);
+    // Oupa's story bubble goes when its line's time on the braai clock is up.
+    if (this.storyHideAt !== null && ms >= this.storyHideAt) {
+      this.storyHideAt = null;
+      this.storyBubble?.hide();
+    }
+    const hook = this.ctx.hook;
+    if (hook) {
+      hook.braaiMs += v.lastMs;
+      hook.braaiFrames++;
+      hook.braaiParts = v.partMs;
+    }
   }
 
   create(data: TallyData): void {
+    // A scene is reused: nothing of the last tally's (review 5).
+    this.verdictBubble = null;
+    this.braai = null;
+    this.storyBubble = null;
+    this.storyHideAt = null;
     const { width, height } = designSize();
     fitCamera(this.cameras.main);
     const r = data.result;
@@ -152,7 +228,10 @@ export class TallyScene extends Phaser.Scene {
     const px = safe.left + (width - safe.left - safe.right - panelW) / 2;
     const py = safe.top + (height - safe.top - safe.bottom - panelH) / 2;
 
-    this.add.rectangle(0, 0, width, height, 0x1b1410, 0.55).setOrigin(0);
+    // v1.11 (D-068): Classic, the Daily and the Harvest end at Oupa's braai — if its chunk and
+    // sheet are already in (asked for when the hunt started); otherwise the plain slate, at once.
+    const braaiMod = data.braai !== undefined && !data.ftue ? braaiReady() : null;
+    if (braaiMod === null) this.add.rectangle(0, 0, width, height, 0x1b1410, 0.55).setOrigin(0);
     const g = this.add.graphics();
     g.fillStyle(0x8b5a2b, 1).fillRoundedRect(px - 14, py - 14, panelW + 28, panelH + 28, 26);
     g.fillStyle(0x2e3b33, 1).fillRoundedRect(px, py, panelW, panelH, 18);
@@ -210,11 +289,15 @@ export class TallyScene extends Phaser.Scene {
     const score = this.add
       .text(px + panelW / 2, py + 160, '0', chalk(96, '#F3EAD3', false))
       .setOrigin(0.5);
+    // v1.11 (D-068): the score's box at its final value (the braai's bubble keeps clear of it).
+    score.setText(formatScore(r.score));
+    const scoreBox = bounds(score);
+    score.setText('0');
     // No Oupa bark over the count-up (art bible §10). The count ticks as it climbs (GDD §17).
     const pace = this.ctx.feel.tally;
     this.ctx.audio.setTallyCounting(true);
     let ticks = 0;
-    this.tweens.addCounter({
+    const countUp = this.tweens.addCounter({
       from: 0,
       to: r.score,
       duration: pace.countUpMs,
@@ -229,8 +312,11 @@ export class TallyScene extends Phaser.Scene {
       },
       onComplete: () => {
         this.ctx.audio.setTallyCounting(false);
+        // The final score (v1.11: a skip completes the count-up without a last onUpdate).
+        score.setText(formatScore(r.score));
+        if (this.ctx.hook) this.ctx.hook.tallyScore = score.text;
         // D-028 §3: Oupa's verdict once the count-up is done (never over it, art bible §10).
-        this.verdictBark(data, {
+        const said = this.verdictBark(data, {
           safe: {
             x: safe.left,
             y: safe.top,
@@ -239,6 +325,10 @@ export class TallyScene extends Phaser.Scene {
           },
           panel: { x: px, y: py, w: panelW, h: panelH },
         });
+        // v1.11 (D-068): then Oupa tells the hunt at the fire (after his verdict, if he gave one).
+        this.braai?.startStory(
+          this.braaiClock() + (said ? this.ctx.feel.barks.bubbleMs + 400 : pace.stampMs + 200),
+        );
       },
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -496,6 +586,188 @@ export class TallyScene extends Phaser.Scene {
         ...(greeting === null ? {} : { greeting }),
       };
     }
+    if (braaiMod !== null) {
+      // What this slate drew (as the hook's rects): the buttons, then the frame's pieces.
+      const buttons: Rect[] = [
+        again,
+        menuR,
+        ...(harvestShare ? [] : [season]),
+        ...(shareMsg === null ? [] : [shareR]),
+      ];
+      this.buildBraai(braaiMod, data, {
+        safe: {
+          x: safe.left,
+          y: safe.top,
+          w: width - safe.left - safe.right,
+          h: height - safe.top - safe.bottom,
+        },
+        panel: { x: px, y: py, w: panelW, h: panelH },
+        slate: { x: px - 14, y: py - 14, w: panelW + 28, h: panelH + 28 },
+        buttons,
+        avoid: [...buttons, ...Object.values(frameRects)],
+        content: [
+          bounds(title),
+          scoreBox,
+          { x: px + 60, y: py + 232, w: panelW - 120, h: rows.length * rowH + 8 },
+          { x: px + 60, y: py + panelH - 262, w: panelW - 120, h: 130 },
+        ],
+        countUp,
+      });
+    }
+  }
+
+  /** v1.11 (D-068): the braai behind the slate, its story bubble and its skip (a tap off the
+   *  buttons, or Esc). */
+  private buildBraai(
+    m: NonNullable<ReturnType<typeof braaiReady>>,
+    data: TallyData,
+    at: {
+      safe: Rect;
+      panel: Rect;
+      slate: Rect;
+      /** The buttons (a tap on one never skips). */
+      buttons: Rect[];
+      /** Every rect Oupa and the fire keep clear of. */
+      avoid: Rect[];
+      /** The slate's content (the title first): Oupa's bubble keeps clear of it. */
+      content: Rect[];
+      countUp: Phaser.Tweens.Tween | null;
+    },
+  ): void {
+    const braai = data.braai;
+    if (braai === undefined) return;
+    const { width, height } = designSize();
+    const ctx = this.ctx;
+    const r = data.result;
+    const o = data.outcome;
+    const ranks = ctx.content.scoring.ranks;
+    const hv = data.harvest;
+    const slot = tallyBarkSlot(at.safe, at.panel);
+    // Its slot comes from the braai's layout (above Oupa's head), once the view is built.
+    let storySlot = slot;
+    const lineMs = ctx.feel.braai.story.lineMs;
+    // One bubble per caption, prepared (text rendered and laid out) when the braai is built, so
+    // telling a line in the per-frame update is only a reveal (perf: a canvas Text render costs
+    // milliseconds at 4× throttle). The bubble shows and hides on the braai clock (review 6: a
+    // held clock holds the line and its bubble); only its short fade-in runs on scene time.
+    const pool = new CaptionPool((text) => {
+      const b = new BarkBubble(this, ctx.feel.barks.fontPx);
+      b.prepare(text, storySlot);
+      return b;
+    });
+    const tell = (voice: string | null, caption: string, ms: number): void => {
+      if (!oupaShows(ctx.prefs.oupa)) return;
+      this.storyBubble?.hide();
+      const bubble = pool.take(caption);
+      bubble.showPrepared(
+        { bubbleMs: STORY_BUBBLE_HELD_MS, fadeMs: ctx.feel.barks.fadeMs },
+        this.time.now,
+      );
+      this.storyBubble = bubble;
+      this.storyHideAt = ms + (voice === null ? lineMs * 2 : lineMs);
+      if (voice !== null && oupaSpeaks(ctx.prefs.oupa)) ctx.audio.bark(voice);
+      const v = this.braai;
+      if (v !== null) {
+        v.hook.bubble = bubble.rect;
+        bubble.onHidden = () => {
+          if (this.storyBubble === bubble) v.hook.bubble = null;
+        };
+      }
+    };
+    this.braaiT0 = this.time.now;
+    const view = new m.BraaiView({
+      scene: this,
+      audio: ctx.audio,
+      tuning: ctx.feel.braai,
+      layoutIn: {
+        width,
+        height,
+        safe: at.safe,
+        panel: at.slate,
+        slot,
+        avoid: at.avoid,
+        content: at.content,
+      },
+      biome: braai.biome,
+      story: {
+        result: r,
+        facts: braai.facts,
+        newBest:
+          hv !== undefined
+            ? hv.newBest && braai.bestBefore !== null
+            : (o?.newBest?.previous ?? null) !== null,
+        rankUp: o?.rankUp ?? null,
+        rankBefore: braai.rankBefore,
+        bestBefore: braai.bestBefore,
+        harvestCrop: hv?.crop ?? null,
+        topRank: ranks.at(-1)?.id ?? '',
+        bottomRank: ranks[0]?.id ?? '',
+      },
+      hd: ctx.graphics.hd,
+      reducedMotion: ctx.reducedMotion,
+      reduceFlashes: ctx.prefs.reduceFlashes,
+      forceDance: braaiFlags().dance,
+      special: data.extras?.special?.frame ?? null,
+      tell,
+    });
+    this.braai = view;
+    storySlot = view.layout.storySlot;
+    if (oupaShows(ctx.prefs.oupa)) pool.prepare(view.captions());
+    // The hunt under the braai draws nothing on screen: stop drawing it (it shows again when the
+    // tally closes, for [Again]'s restart or the title).
+    this.scene.setVisible(false, 'Hunt');
+    const skip = (): void => {
+      if (at.countUp?.isPlaying() === true) at.countUp.complete();
+      if (this.verdictBubble !== null) {
+        this.verdictBubble.hide();
+        // Its voice goes with it (review 5): the story's closer takes the bubble at once.
+        ctx.audio.stopBark();
+        this.verdictBubble = null;
+      }
+      view.skip(this.braaiClock());
+    };
+    // Phaser's own input is off in this game (main.ts: all input is Pointer Events on the canvas),
+    // so the skip listens to the DOM as Menu does: a press on the canvas, released anywhere, is a
+    // tap at the press's design point; a tap on a button drawn here stays the button's.
+    const canvas = this.game.canvas;
+    let down: { id: number; x: number; y: number } | null = null;
+    const onDown = (e: PointerEvent): void => {
+      const p = clientToDesign(canvas, e.clientX, e.clientY, designSize());
+      down = { id: e.pointerId, x: p.x, y: p.y };
+    };
+    const onUp = (e: PointerEvent): void => {
+      const d = down;
+      if (d === null || d.id !== e.pointerId) return;
+      down = null;
+      const outcome = classifyTap(d, at.buttons, {
+        blocked: menuInputBlocked(),
+        done: view.storyDone,
+      });
+      recordTap(view.hook.taps, { x: d.x, y: d.y, outcome });
+      if (outcome === 'skip') skip();
+    };
+    canvas.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointerup', onUp);
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.code === 'Escape' && !menuInputBlocked() && !view.storyDone) skip();
+    };
+    window.addEventListener('keydown', onKey);
+    const hook = ctx.hook;
+    if (hook) {
+      hook.braai = view.hook;
+      hook.textureBytes = textureBytes(this.textures);
+      hook.textureTop = view.textureTop();
+    }
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.verdictBubble = null;
+      window.removeEventListener('keydown', onKey);
+      canvas.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointerup', onUp);
+      view.destroy();
+      this.braai = null;
+      this.scene.setVisible(true, 'Hunt');
+      if (ctx.hook) ctx.hook.braai = null;
+    });
   }
 
   private news(data: TallyData): string | null {

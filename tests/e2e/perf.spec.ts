@@ -92,6 +92,8 @@ for (const gfx of ['standard', 'hd'] as const)
       // v1.9 (D-066, report only): the veld soundscape's frame cost and what it offered/played.
       soundscapeMsPerFrame: h.soundscapeFrames > 0 ? h.soundscapeMs / h.soundscapeFrames : 0,
       soundscapeCounts: h.soundscape?.counts ?? null,
+      // v1.11 (D-068): the braai view's own timer (0 until a braai tally has shown).
+      braaiMsPerFrame: h.braaiFrames > 0 ? h.braaiMs / h.braaiFrames : 0,
       realFrameMs: real,
       realFps: real.avg > 0 ? 1000 / real.avg : 0,
       cpuFrameMs: cpu,
@@ -1328,5 +1330,130 @@ test('perf: score pop A/B — pooled BitmapText vs canvas Text (Pixel 7, 4×)', 
   });
   expect(report.text.textDrawsPerPop, 'a canvas Text pop draws text').toBeGreaterThanOrEqual(2);
   expect(report.bitmap.textDrawsPerPop, 'a BitmapText pop draws no canvas text').toBeLessThan(0.5);
+  expect(errors).toEqual([]);
+});
+
+// v1.11 (D-068): the heaviest HD hunt (the Okavango with the Reënbui, ≈ 254.8 MB) ends at the
+// braai: the braai's sheet becomes a texture only at the tally (its HD twin only if it fits, else
+// the Standard one, ≈ 0.84 MiB), so the peak stays ≤ 256 MB. The braai must show.
+test('HD texture memory, the Okavango Reënbui hunt → the braai tally', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'the Pixel 7 profile (medium tier)',
+  );
+  test.setTimeout(600_000);
+  await emulateCores(page);
+  await boot(
+    page,
+    'biome=okavango-spring&layout=none&seed=3&huntSeconds=45&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm',
+  );
+  await startHunt(page, isTouchProject(info));
+  await page.waitForFunction(
+    () => {
+      const tm = window.__TM__;
+      return (
+        tm?.biome === 'okavango-spring' &&
+        tm.reenbui?.phase === 'swarm' &&
+        tm.reenbuiDraw?.sheet === true &&
+        tm.graphics.hdTextures > 0 &&
+        tm.braaiLoaded
+      );
+    },
+    null,
+    { timeout: 300_000 },
+  );
+  await page.waitForFunction(() => window.__TM__?.braai != null, null, { timeout: 240_000 });
+  await page.waitForTimeout(4000);
+  const h = await hook(page);
+  const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
+  console.log(
+    `[perf] okavango reenbui → braai tally HD texture memory ${mb} MB (${h.braai?.sheet})`,
+  );
+  await info.attach('hd-memory-braai-okavango.json', {
+    body: JSON.stringify(
+      { biome: 'okavango-spring', textureMB: mb, sheet: h.braai?.sheet, top: h.textureTop },
+      null,
+      1,
+    ),
+    contentType: 'application/json',
+  });
+  expect(h.scene).toBe('tally');
+  expect(h.braai, 'the braai shows').not.toBeNull();
+  expect(mb, 'okavango reenbui → braai: texture memory (MB) with HD').toBeLessThanOrEqual(256);
+});
+
+// v1.11 (D-068): the braai tally on the Pixel 7 profile at 4× CPU throttle, medium tier, Oupa's
+// story told and his dance (?braaiDance=1): the braai view on its own timer (braaiMs per frame)
+// ≤ 0.3 ms — baked frames set on change, nothing built per frame.
+test('perf: the braai tally at 4× CPU throttle (Pixel 7)', async ({ page, browserName }, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await emulateCores(page);
+  await page.addInitScript(() => {
+    const key = 'tm.e2e.save.v1';
+    if (localStorage.getItem(key) === null)
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          v: 1,
+          settings: { quality: 'medium' },
+          ftue: { done: true, skipped: false, step: '' },
+        }),
+      );
+  });
+  await boot(page, 'seed=42&huntSeconds=3&graphics=standard&baboons=0&holdAt=20&braaiDance=1');
+  await startHunt(page, touch);
+  await page.waitForFunction(() => window.__TM__?.braaiLoaded === true, null, {
+    timeout: 120_000,
+  });
+  await page.evaluate(() => {
+    const hold = (window as unknown as { __TM_HOLD_AT__?: (t: number) => void }).__TM_HOLD_AT__;
+    hold?.(Number.MAX_SAFE_INTEGER);
+  });
+  await page.waitForFunction(() => window.__TM__?.braai != null, null, { timeout: 120_000 });
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  const first = await hook(page);
+  let danced = false;
+  let calls = 0;
+  for (let i = 0; i < 60; i++) {
+    await page.waitForTimeout(250);
+    const h = await hook(page);
+    danced ||= h.braai?.dancing === true;
+    calls = Math.max(calls, h.braai?.calls ?? 0);
+    if ((h.braai?.story.shown ?? 0) >= (h.braai?.story.lines.length ?? 9) && danced) break;
+  }
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const frames = Math.max(1, h.braaiFrames - first.braaiFrames);
+  const report = {
+    project: info.project.name,
+    tier: h.quality.tier,
+    throttle: 4,
+    braaiFrames: frames,
+    braaiMsPerFrame: (h.braaiMs - first.braaiMs) / frames,
+    // Where the braai's frame time goes (ms per frame, by part).
+    braaiParts: {
+      anim: ((h.braaiParts?.anim ?? 0) - (first.braaiParts?.anim ?? 0)) / frames,
+      story: ((h.braaiParts?.story ?? 0) - (first.braaiParts?.story ?? 0)) / frames,
+      sound: ((h.braaiParts?.sound ?? 0) - (first.braaiParts?.sound ?? 0)) / frames,
+    },
+    maxCallsPerFrame: calls,
+    danced,
+    storyShown: h.braai?.story.shown ?? 0,
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf-braai.json'), JSON.stringify(report, null, 2));
+  expect(frames).toBeGreaterThan(10);
+  expect(report.maxCallsPerFrame).toBeLessThanOrEqual(40);
+  expect(report.braaiMsPerFrame, 'braai view ms per frame, 4× throttle').toBeLessThanOrEqual(0.3);
   expect(errors).toEqual([]);
 });

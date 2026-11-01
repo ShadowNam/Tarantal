@@ -20,6 +20,7 @@ import {
 import { RaidActionSchema } from '../../src/content/schemas';
 import { VOICE_LANGUAGES, type VoiceLanguage } from '../../src/i18n/i18n';
 import { loadContent, loadFeel } from '../testContent';
+import { STORY_LINE_IDS, sayKey } from '../../src/game/braai/story';
 
 const root = join(import.meta.dirname, '..', '..');
 const out = join(root, 'art-source', 'audio', 'voice');
@@ -51,6 +52,8 @@ const lines = voicedLines(
     ...veldLifeBarks(loadContent().birds),
     ...baboonBarks(RaidActionSchema.options),
     ...harvestBarks(),
+    // v1.11 (D-068): Oupa's story phrases at the braai (lazy table src/i18n/braai/).
+    ...STORY_LINE_IDS.map(sayKey),
   ],
 ).filter((l) => only === undefined || only.includes(l));
 const jobs: { lang: string; key: string; text: string; out: string }[] = [];
@@ -60,6 +63,9 @@ for (const lang of langs) {
   const table = {
     ...(JSON.parse(
       readFileSync(join(root, 'src', 'i18n', 'guide', `${lang}.json`), 'utf8'),
+    ) as Record<string, string>),
+    ...(JSON.parse(
+      readFileSync(join(root, 'src', 'i18n', 'braai', `${lang}.json`), 'utf8'),
     ) as Record<string, string>),
     ...(JSON.parse(readFileSync(join(root, 'src', 'i18n', `${lang}.json`), 'utf8')) as Record<
       string,

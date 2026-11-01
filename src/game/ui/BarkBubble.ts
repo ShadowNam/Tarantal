@@ -78,6 +78,29 @@ export class BarkBubble {
 
   /** Shows `text` in `slot` (top-left anchored) for timing.bubbleMs, fading in and out. */
   show(text: string, slot: Rect, timing: BarkTiming, nowMs: number): void {
+    this.layout(text, slot);
+    this.reveal(timing, nowMs);
+  }
+
+  /**
+   * v1.11 (D-068): lays `text` out in `slot` and keeps the bubble hidden — the canvas text render
+   * and word wrap happen now, so a later showPrepared() is only a reveal (the braai's story
+   * bubbles are prepared when the braai is built, never in its per-frame update).
+   */
+  prepare(text: string, slot: Rect): void {
+    this.layout(text, slot);
+    this.root.setVisible(false);
+    this.rect = null;
+  }
+
+  /** v1.11 (D-068): shows the text and slot prepare() laid out. */
+  showPrepared(timing: BarkTiming, nowMs: number): void {
+    this.reveal(timing, nowMs);
+  }
+
+  private prepared: Rect | null = null;
+
+  private layout(text: string, slot: Rect): void {
     const inner = slot.w - 2 * PAD;
     this.line.setWordWrapWidth(inner, true).setText(text).setScale(1);
     // D-064: Oupa's face in the name row, left of his name: its face and beard (the frame below
@@ -111,8 +134,13 @@ export class BarkBubble {
     this.plate.setSize(w, h);
     this.plate.setRounded(18);
     this.tail.setPosition(PAD * 2, h - 2);
-    this.root.setPosition(slot.x, slot.y).setVisible(true).setAlpha(0);
-    this.rect = { x: slot.x, y: slot.y, w, h };
+    this.root.setPosition(slot.x, slot.y);
+    this.prepared = { x: slot.x, y: slot.y, w, h };
+  }
+
+  private reveal(timing: BarkTiming, nowMs: number): void {
+    this.root.setVisible(true).setAlpha(0);
+    this.rect = this.prepared;
     this.shownUntil = nowMs + timing.bubbleMs;
     this.scene.tweens.killTweensOf(this.root);
     this.scene.tweens.add({ targets: this.root, alpha: 1, duration: timing.fadeMs });

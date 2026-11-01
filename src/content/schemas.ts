@@ -2661,6 +2661,34 @@ export const FeelSchema = obj({
     stampMs: pos,
     newsDelayMs: nonNeg,
   }),
+  /** v1.11 (D-068): Die Braai, the tally's night setting at Oupa's fire (GDD §8). */
+  braai: obj({
+    /** The top rank, or no miss with at least minBagged birds, is a perfect hunt (the vastrap). */
+    perfect: obj({ minBagged: pos }),
+    story: obj({
+      maxLines: z.number().int().min(2).max(4),
+      lineMs: pos,
+      gapMs: nonNeg,
+      /** The opener's bucket: this many birds or more is a big bag. */
+      manyBirds: pos,
+      /** Within this fraction of the area's best (and not a new best): a near miss. */
+      nearRecordFrac: fraction,
+    }),
+    danceMs: pos,
+    danceFrameMs: pos,
+    fire: obj({ flameFrameMs: pos, sparkFrameMs: pos, glowPulseMs: pos, glowPulse: fraction }),
+    idle: obj({ idleEveryMs: pos, poseMs: pos }),
+    /** The HD sheet only while textures in use + its own ≤ budgetMiB − headroomMiB. */
+    hd: obj({ budgetMiB: pos, headroomMiB: nonNeg }),
+    /** The dark skyline per area id (`default` for the rest). */
+    horizons: z.record(
+      z.string(),
+      obj({
+        style: z.enum(['hills', 'dunes', 'flat', 'ridge']),
+        trees: z.enum(['acacia', 'palm', 'baobab', 'none']),
+      }),
+    ),
+  }),
   hud: obj({
     marginPx: nonNeg,
     /** Minimum height of the shell-belt tap target on touch screens (art bible §6). */

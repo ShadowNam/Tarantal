@@ -76,6 +76,9 @@ export const SHARE_FRAMES: Readonly<Record<string, readonly [string, string]>> =
   newyear: ['🎊🥳', '🎆🎊'],
 };
 
+/** v1.11 (D-068): the Daily card's braai round its score — the fire and the night sky. */
+export const BRAAI_SCORE_FRAME: readonly [string, string] = ['🔥', '🌌'];
+
 export interface ShareInput {
   /** Daily number (#n) for a daily hunt; null for Classic. */
   readonly dailyNumber: number | null;
@@ -85,6 +88,8 @@ export interface ShareInput {
   readonly bonus?: string | null;
   /** D-048: the special day's card (null/absent = an ordinary card). */
   readonly feesdag?: ShareSpecial | null;
+  /** v1.11 (D-068): the braai round the score (the fire and the night sky): 🔥 2 840 🌌. */
+  readonly braai?: boolean;
   readonly score: number;
   /** scoring.json rank id. */
   readonly rank: string;
@@ -120,7 +125,9 @@ export function buildShareText(input: ShareInput, tr: Translator): ShareMessage 
       ? fill(tr.text('share.classic'), { biome: tr.or(`share.biome.${biomeKey}`, input.biome) })
       : fill(tr.text('share.daily'), { n: input.dailyNumber }),
     mapLabel(input, tr),
-    groupThousands(input.score),
+    input.braai === true
+      ? `${BRAAI_SCORE_FRAME[0]} ${groupThousands(input.score)} ${BRAAI_SCORE_FRAME[1]}`
+      : groupThousands(input.score),
     tr.or(`share.rank.${input.rank}`, tr.or(`rank.${input.rank}`, input.rank)),
     input.grid,
   ];

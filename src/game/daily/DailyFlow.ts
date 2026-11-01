@@ -99,6 +99,11 @@ interface Started {
   readonly cosmetics: readonly string[];
 }
 
+/** v1.11: the Daily streak line, with its own singular ("Streak: 1 day", not "1 days"). */
+export function streakText(n: number): string {
+  return n === 1 ? t('tally.streak_one') : fill(t('tally.streak'), { n });
+}
+
 export class DailyFlow {
   private started: Started | null = null;
 
@@ -286,9 +291,7 @@ export class DailyFlow {
       tag = fill(t('tally.tag_daily'), { n: daily.setup.number });
       const s = this.deps.save.data.daily;
       const frozen = (this.started?.frozen.length ?? 0) > 0;
-      news.push(
-        fill(t('tally.streak'), { n: s.streak }) + (frozen ? ` · ${t('tally.freeze_used')}` : ''),
-      );
+      news.push(streakText(s.streak) + (frozen ? ` · ${t('tally.freeze_used')}` : ''));
       for (const c of this.started?.cosmetics ?? [])
         news.push(fill(t('tally.cosmetic'), { item: tOr(`cosmetic.${c}`, c) }));
       if (newBest) news.push(t('tally.daily_best'));
@@ -333,6 +336,8 @@ export class DailyFlow {
             layout: result.layout,
             bonus: result.bonus,
             ...(result.feesdag === undefined ? {} : { feesdag: this.shareSpecial(result, daily) }),
+            // v1.11 (D-068): an ordinary Daily's card puts the braai round its score.
+            braai: dailyNumber !== null && result.feesdag === undefined,
             score: result.score,
             rank: result.rank,
             grid,

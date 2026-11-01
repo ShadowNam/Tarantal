@@ -60,13 +60,17 @@ jobs:
             ${{ (github.event_name != 'pull_request' && inputs.lane != 'quick') ||
             contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: |
+          # desktop-chromium runs in 6 shards (was 4 until v1.11): with 4, two shards ran 41–45 min of
+          # the job's 45-min limit and a slower runner timed one out; 6 keeps each near 30 min.
           SKIP_LONG='**/season-*.spec.ts,**/perf.spec.ts'
           quick=$(cat <<JSON
           [
-            {"project":"desktop-chromium","browser":"chromium","shard":"1/4","skip":"$SKIP_LONG"},
-            {"project":"desktop-chromium","browser":"chromium","shard":"2/4","skip":"$SKIP_LONG"},
-            {"project":"desktop-chromium","browser":"chromium","shard":"3/4","skip":"$SKIP_LONG"},
-            {"project":"desktop-chromium","browser":"chromium","shard":"4/4","skip":"$SKIP_LONG"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"1/6","skip":"$SKIP_LONG"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"2/6","skip":"$SKIP_LONG"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"3/6","skip":"$SKIP_LONG"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"4/6","skip":"$SKIP_LONG"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"5/6","skip":"$SKIP_LONG"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"6/6","skip":"$SKIP_LONG"},
             {"project":"pixel7-landscape","browser":"chromium","shard":"1/3","skip":"$SKIP_LONG"},
             {"project":"pixel7-landscape","browser":"chromium","shard":"2/3","skip":"$SKIP_LONG"},
             {"project":"pixel7-landscape","browser":"chromium","shard":"3/3","skip":"$SKIP_LONG"},
@@ -77,10 +81,12 @@ jobs:
           )
           full=$(cat <<'JSON'
           [
-            {"project":"desktop-chromium","browser":"chromium","shard":"1/4","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
-            {"project":"desktop-chromium","browser":"chromium","shard":"2/4","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
-            {"project":"desktop-chromium","browser":"chromium","shard":"3/4","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
-            {"project":"desktop-chromium","browser":"chromium","shard":"4/4","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"1/6","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"2/6","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"3/6","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"4/6","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"5/6","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"6/6","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
             {"project":"desktop-chromium","browser":"chromium","shard":"season","only":"**/season-*.spec.ts","workers":1},
             {"project":"desktop-chromium","browser":"chromium","shard":"perf","only":"**/perf.spec.ts","workers":1},
             {"project":"desktop-webkit","browser":"webkit","shard":"1/2"},

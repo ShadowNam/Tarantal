@@ -403,6 +403,26 @@ lightning, top centre). A delivery keeps the size and the frame boxes (or update
 `reenbuiKeys.ts`) and stays ≤ 0.5 MiB on the GPU (`GPU_BYTES_CAP`: the Okavango's HD headroom). The six
 `sfx/amb_reenbui_*` sounds are in the soundscape table above.
 
+**Die Braai (v1.11, D-068; art bible §6.1, §10.4).** Interim, awaiting real art and recordings:
+one sheet `sprites/braai/sheet.png` (a 2× master, 1024 × 864; the pack serves it at 1×, 512 × 432,
+and the master as its HD twin `braai-hd`; the catalog's lazy group `braai`; layout, crops, origins
+and `res` in `src/game/braai/braaiSheet.ts`, packed by its skyline packer): `sit_idle`, `sit_sip`,
+`sit_poke` (Oupa side on in his camp chair facing right, feet at 60, 178 of 128 × 182), `poker`
+(held at its left end, pointing right), `dance_a`, `dance_b` (standing with his bush hat on, 108 × 216, feet at
+the bottom centre: the game mirrors them), `flame_0`…`flame_3` (base at 28, 78), `hearth` (stones,
+coals, grid and coffee pot; the fire's base at 75, 36), `glow` (shown additively), `spark_0`…
+`spark_2` (embers rising: frame 2 leads back to 0), `stars` (a 192 × 192 tile that must wrap),
+`milky`, `cross` (the Southern Cross), `bakkie` (a generic pickup in silhouette, no brand). Frames
+with `res` 0.5 or 0.25 are authored at that size and shown larger. A delivery keeps the frame
+boxes (or updates the table and `braaiKeys.ts`) and stays ≤ 0.84 MiB on the GPU at 1×
+(`GPU_BYTES_CAP`: the Okavango Reënbui HD headroom). Sounds (group `braai`, never the first
+download): `sfx/braai_fire` (the bed: a wood fire's crackle with crickets, a seamless loop, ~10 s),
+`sfx/braai_guitar` (a soft original fingerpicked loop, ~13 s, seamless), `sfx/braai_nightjar` (a
+fiery-necked nightjar far off, "Good Lord, deliver us", ≤ 3.6 s), `sfx/braai_vastrap` (a
+concertina oom-pa sting, ≤ 3 s). Oupa's 19 story phrases are voiced per language
+(`audio/voice/<lang>/braai.say.<id>.wav`, lazy packs `braai-voice-<lang>`; text in
+`src/i18n/braai/<lang>.json`, the numbers only in the captions).
+
 **Desert group (v1.7, D-044).** The meerkat colonies' sheet `desert/meerkats` and their four
 sounds (`sfx/meerkat_chirp`, `sfx/meerkat_alarm`, `sfx/meerkat_dig`, `sfx/camera_click`) are
 shared by the Kalahari and Namibië. They load in their own lazy group, `desert`, with either map,

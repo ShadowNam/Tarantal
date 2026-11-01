@@ -3,13 +3,14 @@
 // each WAV with a `<name>.json` sidecar `{ "origin": "interim" }`. Then run `npm run assets:pack`.
 // A WAV without an interim sidecar is a human delivery and is never overwritten: delete it and
 // its sidecar to go back to the interim one, or drop a recording in to replace it.
-//   --only sfx|music|ambience|soundscape   one part
+//   --only sfx|music|ambience|soundscape|braai   one part
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { writeWav } from '../assets/wav';
 import { INTERIM_SFX, renderSfx, SFX_RATE } from './sfx';
 import { AMB_RATE, MUSIC_BIOMES, MUSIC_RATE, renderAmbience, renderStem, STEM_IDS } from './music';
 import { renderCall, SOUNDSCAPE_CALLS, SOUNDSCAPE_RATE } from './soundscape';
+import { BRAAI_CALLS, BRAAI_RATE, renderBraai } from './braai';
 import type { Buf } from './dsp';
 
 const root = join(import.meta.dirname, '..', '..');
@@ -49,6 +50,8 @@ if (wants('sfx')) for (const id of INTERIM_SFX) put(`sfx/${id}.wav`, renderSfx(i
 // v1.9 (D-066): the soundscape's one-shot calls (sfx/amb_*, lazy group `soundscape`).
 if (wants('soundscape'))
   for (const id of SOUNDSCAPE_CALLS) put(`sfx/${id}.wav`, renderCall(id), SOUNDSCAPE_RATE);
+// v1.11 (D-068): the braai's bed, guitar, nightjar and vastrap sting (sfx/braai_*, group `braai`).
+if (wants('braai')) for (const id of BRAAI_CALLS) put(`sfx/${id}.wav`, renderBraai(id), BRAAI_RATE);
 if (wants('music'))
   for (const b of MUSIC_BIOMES)
     for (const s of STEM_IDS) put(`music/${b}/${s}.wav`, renderStem(b, s), MUSIC_RATE);

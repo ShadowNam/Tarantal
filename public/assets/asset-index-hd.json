@@ -11,6 +11,16 @@
       "height": 1820,
       "scale": 0.5
     },
+    "braai/sheet": {
+      "file": {
+        "path": "assets/braai-hd/img/braai_sheet.fad96e36c292.png",
+        "bytes": 73533,
+        "hash": "fad96e36c292"
+      },
+      "width": 1024,
+      "height": 864,
+      "scale": 0.5
+    },
     "bushveld/aloe_a": {
       "file": {
         "path": "assets/bushveld-winter-hd/img/bushveld_aloe_a.88aa1e5bb4aa.png",

@@ -2,7 +2,7 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|christmas|newyear|blikkies|makalani|treelife|colony|namiblife|tells|baboons|reenbui
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|christmas|newyear|blikkies|makalani|treelife|colony|namiblife|tells|baboons|reenbui|braai
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
 //                         range = the Skietbaan's steel plate (24 Oct update),
@@ -98,6 +98,8 @@ import { NEWYEAR_SHEET, NY_MASTER } from '../../src/game/feesdae/newyearAssets';
 import { renderNewYearSheet } from './newyear';
 import { REENBUI_SHEET } from '../../src/game/view/reenbui/reenbuiKeys';
 import { renderReenbuiSheet } from './reenbui';
+import { BRAAI_SHEET } from '../../src/game/braai/braaiKeys';
+import { renderBraaiSheet } from './braai';
 import { renderHalloweenSheet } from './halloween';
 import { CAN_MASTER, renderCanSheet } from './blikkies';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
@@ -706,6 +708,28 @@ if (wants('reenbui') && !hdOnly) {
       }),
     );
     console.log(`sprites/${REENBUI_SHEET}`);
+  }
+}
+if (wants('braai') && !hdOnly) {
+  // v1.11 (D-068): Die Braai's sheet (Oupa in his camp chair and dancing, the fire, the sky pieces,
+  // the bakkie) as a 2× master in its own lazy group (the catalog's `braai`): the pack serves it at 1× (Standard) and the
+  // master as its HD twin (braai-hd). Layout: src/game/braai/braaiSheet.ts.
+  const png = join(src, 'sprites', `${BRAAI_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${BRAAI_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderBraaiSheet(2)));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({
+        origin: 'interim',
+        encode: 'png8',
+        master: 2,
+        originX: 0,
+        originY: 0,
+      }),
+    );
+    rmSync(join(hdSrc, 'sprites', `${BRAAI_SHEET}.png`), { force: true });
+    console.log(`sprites/${BRAAI_SHEET}`);
   }
 }
 if (wants('blikkies')) {

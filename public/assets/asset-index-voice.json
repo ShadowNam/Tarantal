@@ -361,6 +361,78 @@
       "lufs": -14,
       "peakDb": -1.8
     },
+    "sfx/braai_fire": {
+      "group": "braai",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/braai/audio/sfx/braai_fire.ba4a827c96dd.ogg",
+        "bytes": 101447,
+        "hash": "ba4a827c96dd"
+      },
+      "mp3": {
+        "path": "assets/braai/audio/sfx/braai_fire.ed25e5749661.mp3",
+        "bytes": 93557,
+        "hash": "ed25e5749661"
+      },
+      "loop": false,
+      "lufs": -18.9,
+      "peakDb": -1
+    },
+    "sfx/braai_guitar": {
+      "group": "braai",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/braai/audio/sfx/braai_guitar.470e4a132f48.ogg",
+        "bytes": 117515,
+        "hash": "470e4a132f48"
+      },
+      "mp3": {
+        "path": "assets/braai/audio/sfx/braai_guitar.8b978b794eae.mp3",
+        "bytes": 124851,
+        "hash": "8b978b794eae"
+      },
+      "loop": false,
+      "lufs": -18.8,
+      "peakDb": -1
+    },
+    "sfx/braai_nightjar": {
+      "group": "braai",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/braai/audio/sfx/braai_nightjar.e8bf2e13ed06.ogg",
+        "bytes": 16778,
+        "hash": "e8bf2e13ed06"
+      },
+      "mp3": {
+        "path": "assets/braai/audio/sfx/braai_nightjar.c851cbae5ad2.mp3",
+        "bytes": 15003,
+        "hash": "c851cbae5ad2"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -2.6
+    },
+    "sfx/braai_vastrap": {
+      "group": "braai",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/braai/audio/sfx/braai_vastrap.1d4e806db497.ogg",
+        "bytes": 35051,
+        "hash": "1d4e806db497"
+      },
+      "mp3": {
+        "path": "assets/braai/audio/sfx/braai_vastrap.0f04307f3f41.mp3",
+        "bytes": 32622,
+        "hash": "0f04307f3f41"
+      },
+      "loop": false,
+      "lufs": -15.7,
+      "peakDb": -1
+    },
     "voice/af/bark.ag_nee": {
       "group": "voice-af",
       "origin": "interim",
@@ -1601,6 +1673,348 @@
       },
       "loop": false,
       "lufs": -18.4,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.blikkies": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_blikkies.7f3e9cbd67dd.ogg",
+        "bytes": 26900,
+        "hash": "7f3e9cbd67dd"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_blikkies.acc30904ce15.mp3",
+        "bytes": 34349,
+        "hash": "acc30904ce15"
+      },
+      "loop": false,
+      "lufs": -18.3,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.close_feesdag": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_close_feesdag.2e016f149dfb.ogg",
+        "bytes": 16208,
+        "hash": "2e016f149dfb"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_close_feesdag.49130c704c18.mp3",
+        "bytes": 18453,
+        "hash": "49130c704c18"
+      },
+      "loop": false,
+      "lufs": -18.2,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.close_good": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_close_good.af954c25ac40.ogg",
+        "bytes": 17424,
+        "hash": "af954c25ac40"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_close_good.7e22b369008d.mp3",
+        "bytes": 18761,
+        "hash": "7e22b369008d"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -1.3
+    },
+    "voice/af/braai.say.close_perfect": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_close_perfect.fd55ead9c2fe.ogg",
+        "bytes": 24095,
+        "hash": "fd55ead9c2fe"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_close_perfect.5b40b8942979.mp3",
+        "bytes": 29588,
+        "hash": "5b40b8942979"
+      },
+      "loop": false,
+      "lufs": -19.7,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.close_rank_up": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_close_rank_up.717aefaa5e38.ogg",
+        "bytes": 25397,
+        "hash": "717aefaa5e38"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_close_rank_up.5bae89a9aa67.mp3",
+        "bytes": 31546,
+        "hash": "5bae89a9aa67"
+      },
+      "loop": false,
+      "lufs": -18.2,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.close_try": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_close_try.6bd2f75d4303.ogg",
+        "bytes": 20611,
+        "hash": "6bd2f75d4303"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_close_try.574b20db4ff7.mp3",
+        "bytes": 24748,
+        "hash": "574b20db4ff7"
+      },
+      "loop": false,
+      "lufs": -16.5,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.far": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_far.4e965a8ad276.ogg",
+        "bytes": 23751,
+        "hash": "4e965a8ad276"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_far.5840b339e8e2.mp3",
+        "bytes": 28595,
+        "hash": "5840b339e8e2"
+      },
+      "loop": false,
+      "lufs": -16.4,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.meerkat": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_meerkat.0c3080eb5c06.ogg",
+        "bytes": 20856,
+        "hash": "0c3080eb5c06"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_meerkat.cd3a36ec9b18.mp3",
+        "bytes": 24563,
+        "hash": "cd3a36ec9b18"
+      },
+      "loop": false,
+      "lufs": -17.7,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.near_record": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_near_record.6aaf6454f310.ogg",
+        "bytes": 25445,
+        "hash": "6aaf6454f310"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_near_record.8444496297e6.mp3",
+        "bytes": 32057,
+        "hash": "8444496297e6"
+      },
+      "loop": false,
+      "lufs": -18.4,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.nest": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_nest.0cc7d79d809f.ogg",
+        "bytes": 20411,
+        "hash": "0cc7d79d809f"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_nest.792115721dae.mp3",
+        "bytes": 24852,
+        "hash": "792115721dae"
+      },
+      "loop": false,
+      "lufs": -20,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.new_best": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_new_best.57b6d0290602.ogg",
+        "bytes": 21943,
+        "hash": "57b6d0290602"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_new_best.83e423f13a58.mp3",
+        "bytes": 25343,
+        "hash": "83e423f13a58"
+      },
+      "loop": false,
+      "lufs": -19.1,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.open_harvest": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_open_harvest.14cc06748292.ogg",
+        "bytes": 23665,
+        "hash": "14cc06748292"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_open_harvest.540e5690be12.mp3",
+        "bytes": 28622,
+        "hash": "540e5690be12"
+      },
+      "loop": false,
+      "lufs": -17.6,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.open_many": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_open_many.9a5e66c910ce.ogg",
+        "bytes": 20371,
+        "hash": "9a5e66c910ce"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_open_many.a65777540372.mp3",
+        "bytes": 23991,
+        "hash": "a65777540372"
+      },
+      "loop": false,
+      "lufs": -18.6,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.open_none": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_open_none.83badfebbf61.ogg",
+        "bytes": 28738,
+        "hash": "83badfebbf61"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_open_none.e8902ff280ce.mp3",
+        "bytes": 35758,
+        "hash": "e8902ff280ce"
+      },
+      "loop": false,
+      "lufs": -18.3,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.open_some": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_open_some.12014b74ad49.ogg",
+        "bytes": 19964,
+        "hash": "12014b74ad49"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_open_some.1252fcc844b6.mp3",
+        "bytes": 23628,
+        "hash": "1252fcc844b6"
+      },
+      "loop": false,
+      "lufs": -18.1,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.rank_up": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_rank_up.13183499afeb.ogg",
+        "bytes": 18550,
+        "hash": "13183499afeb"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_rank_up.843b1f79c549.mp3",
+        "bytes": 21386,
+        "hash": "843b1f79c549"
+      },
+      "loop": false,
+      "lufs": -17.9,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.swarm": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_swarm.bdbf2d9fd26c.ogg",
+        "bytes": 30814,
+        "hash": "bdbf2d9fd26c"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_swarm.0990721f48cb.mp3",
+        "bytes": 39313,
+        "hash": "0990721f48cb"
+      },
+      "loop": false,
+      "lufs": -16.7,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.ver": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_ver.ab12eba6a2e7.ogg",
+        "bytes": 26149,
+        "hash": "ab12eba6a2e7"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_ver.0266f654acea.mp3",
+        "bytes": 31453,
+        "hash": "0266f654acea"
+      },
+      "loop": false,
+      "lufs": -18.2,
+      "peakDb": -1
+    },
+    "voice/af/braai.say.whole_flock": {
+      "group": "braai-voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_whole_flock.76bac57b0053.ogg",
+        "bytes": 20053,
+        "hash": "76bac57b0053"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-af/audio/voice/af-braai_say_whole_flock.61d6800eeedf.mp3",
+        "bytes": 22894,
+        "hash": "61d6800eeedf"
+      },
+      "loop": false,
+      "lufs": -18.9,
       "peakDb": -1
     },
     "voice/af/guide.baboon.bagged": {
@@ -3133,6 +3547,348 @@
       "lufs": -16,
       "peakDb": -6.2
     },
+    "voice/de/braai.say.blikkies": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_blikkies.c0baa1eef693.ogg",
+        "bytes": 31665,
+        "hash": "c0baa1eef693"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_blikkies.0318d53ca4fc.mp3",
+        "bytes": 35468,
+        "hash": "0318d53ca4fc"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.5
+    },
+    "voice/de/braai.say.close_feesdag": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_close_feesdag.24df5b0fd25d.ogg",
+        "bytes": 22132,
+        "hash": "24df5b0fd25d"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_close_feesdag.2dcc765dbab8.mp3",
+        "bytes": 23742,
+        "hash": "2dcc765dbab8"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6
+    },
+    "voice/de/braai.say.close_good": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_close_good.36266f4e7cd8.ogg",
+        "bytes": 24039,
+        "hash": "36266f4e7cd8"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_close_good.ee1831e8ad4b.mp3",
+        "bytes": 26160,
+        "hash": "ee1831e8ad4b"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.3
+    },
+    "voice/de/braai.say.close_perfect": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_close_perfect.f8e53e950518.ogg",
+        "bytes": 31358,
+        "hash": "f8e53e950518"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_close_perfect.6a25b532f300.mp3",
+        "bytes": 35025,
+        "hash": "6a25b532f300"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.3
+    },
+    "voice/de/braai.say.close_rank_up": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_close_rank_up.1247781e3b70.ogg",
+        "bytes": 30990,
+        "hash": "1247781e3b70"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_close_rank_up.94a63f795137.mp3",
+        "bytes": 34740,
+        "hash": "94a63f795137"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -5.3
+    },
+    "voice/de/braai.say.close_try": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_close_try.9173bfcb48b1.ogg",
+        "bytes": 22636,
+        "hash": "9173bfcb48b1"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_close_try.4e6ae2499be4.mp3",
+        "bytes": 24185,
+        "hash": "4e6ae2499be4"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -4
+    },
+    "voice/de/braai.say.far": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_far.52206c2b93fd.ogg",
+        "bytes": 28426,
+        "hash": "52206c2b93fd"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_far.66306eb9e66e.mp3",
+        "bytes": 31594,
+        "hash": "66306eb9e66e"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.2
+    },
+    "voice/de/braai.say.meerkat": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_meerkat.bf8c37934b3b.ogg",
+        "bytes": 26995,
+        "hash": "bf8c37934b3b"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_meerkat.d695aa0f2be4.mp3",
+        "bytes": 29619,
+        "hash": "d695aa0f2be4"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -2.6
+    },
+    "voice/de/braai.say.near_record": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_near_record.f8fbc9ee8248.ogg",
+        "bytes": 29105,
+        "hash": "f8fbc9ee8248"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_near_record.a9df6aebbe5e.mp3",
+        "bytes": 32037,
+        "hash": "a9df6aebbe5e"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -4.8
+    },
+    "voice/de/braai.say.nest": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_nest.7dd1b5647620.ogg",
+        "bytes": 27164,
+        "hash": "7dd1b5647620"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_nest.739d5f10a001.mp3",
+        "bytes": 30086,
+        "hash": "739d5f10a001"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.9
+    },
+    "voice/de/braai.say.new_best": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_new_best.e0bef3dc3da0.ogg",
+        "bytes": 27322,
+        "hash": "e0bef3dc3da0"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_new_best.b2bcda8270b4.mp3",
+        "bytes": 29852,
+        "hash": "b2bcda8270b4"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -1.8
+    },
+    "voice/de/braai.say.open_harvest": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_open_harvest.6d24ac9a4fd3.ogg",
+        "bytes": 28691,
+        "hash": "6d24ac9a4fd3"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_open_harvest.66b61c727355.mp3",
+        "bytes": 32088,
+        "hash": "66b61c727355"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -4.3
+    },
+    "voice/de/braai.say.open_many": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_open_many.e0a886bb87e7.ogg",
+        "bytes": 27176,
+        "hash": "e0a886bb87e7"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_open_many.ff2cc84622a7.mp3",
+        "bytes": 29669,
+        "hash": "ff2cc84622a7"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.5
+    },
+    "voice/de/braai.say.open_none": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_open_none.ca0f56450f5a.ogg",
+        "bytes": 30461,
+        "hash": "ca0f56450f5a"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_open_none.c437aace0507.mp3",
+        "bytes": 33960,
+        "hash": "c437aace0507"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -4
+    },
+    "voice/de/braai.say.open_some": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_open_some.4c60637eddbd.ogg",
+        "bytes": 22602,
+        "hash": "4c60637eddbd"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_open_some.ff8058002722.mp3",
+        "bytes": 24365,
+        "hash": "ff8058002722"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.4
+    },
+    "voice/de/braai.say.rank_up": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_rank_up.90531ce15579.ogg",
+        "bytes": 21770,
+        "hash": "90531ce15579"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_rank_up.99ce6fca2b7d.mp3",
+        "bytes": 23352,
+        "hash": "99ce6fca2b7d"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -7
+    },
+    "voice/de/braai.say.swarm": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_swarm.14c2744614dc.ogg",
+        "bytes": 33465,
+        "hash": "14c2744614dc"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_swarm.e0db6f7642bf.mp3",
+        "bytes": 37523,
+        "hash": "e0db6f7642bf"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -5.5
+    },
+    "voice/de/braai.say.ver": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_ver.c43c5ef035aa.ogg",
+        "bytes": 27780,
+        "hash": "c43c5ef035aa"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_ver.0b73098ecaff.mp3",
+        "bytes": 30658,
+        "hash": "0b73098ecaff"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -4.2
+    },
+    "voice/de/braai.say.whole_flock": {
+      "group": "braai-voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_whole_flock.8437a5f9a316.ogg",
+        "bytes": 23798,
+        "hash": "8437a5f9a316"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-de/audio/voice/de-braai_say_whole_flock.32aedfaf64a5.mp3",
+        "bytes": 25796,
+        "hash": "32aedfaf64a5"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -3.5
+    },
     "voice/de/guide.baboon.bagged": {
       "group": "voice-de",
       "origin": "interim",
@@ -4661,6 +5417,348 @@
       },
       "loop": false,
       "lufs": -17.9,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.blikkies": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_blikkies.d64f922b3b1e.ogg",
+        "bytes": 20321,
+        "hash": "d64f922b3b1e"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_blikkies.42b539d764d2.mp3",
+        "bytes": 24358,
+        "hash": "42b539d764d2"
+      },
+      "loop": false,
+      "lufs": -18.3,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.close_feesdag": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_feesdag.d63227c0a324.ogg",
+        "bytes": 17045,
+        "hash": "d63227c0a324"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_feesdag.37694b242704.mp3",
+        "bytes": 20168,
+        "hash": "37694b242704"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -1.2
+    },
+    "voice/en/braai.say.close_good": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_good.f89d79eea864.ogg",
+        "bytes": 16515,
+        "hash": "f89d79eea864"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_good.828f7f94bd73.mp3",
+        "bytes": 18867,
+        "hash": "828f7f94bd73"
+      },
+      "loop": false,
+      "lufs": -18.7,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.close_perfect": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_perfect.a02a96bb1e1d.ogg",
+        "bytes": 25552,
+        "hash": "a02a96bb1e1d"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_perfect.69b4a8525c15.mp3",
+        "bytes": 31917,
+        "hash": "69b4a8525c15"
+      },
+      "loop": false,
+      "lufs": -17.4,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.close_rank_up": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_rank_up.6e58a873e7a3.ogg",
+        "bytes": 23325,
+        "hash": "6e58a873e7a3"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_rank_up.c7733835b0c7.mp3",
+        "bytes": 29198,
+        "hash": "c7733835b0c7"
+      },
+      "loop": false,
+      "lufs": -19,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.close_try": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_try.8627eed1c8e5.ogg",
+        "bytes": 17821,
+        "hash": "8627eed1c8e5"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_try.ac3529619f55.mp3",
+        "bytes": 21108,
+        "hash": "ac3529619f55"
+      },
+      "loop": false,
+      "lufs": -16.7,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.far": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_far.8ba8da55da9c.ogg",
+        "bytes": 20252,
+        "hash": "8ba8da55da9c"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_far.6294b4cebed6.mp3",
+        "bytes": 24384,
+        "hash": "6294b4cebed6"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.meerkat": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_meerkat.7406a810abbc.ogg",
+        "bytes": 18964,
+        "hash": "7406a810abbc"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_meerkat.f3b50137df06.mp3",
+        "bytes": 23062,
+        "hash": "f3b50137df06"
+      },
+      "loop": false,
+      "lufs": -17.8,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.near_record": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_near_record.a738c6e351a1.ogg",
+        "bytes": 20935,
+        "hash": "a738c6e351a1"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_near_record.61778cc54ddf.mp3",
+        "bytes": 25588,
+        "hash": "61778cc54ddf"
+      },
+      "loop": false,
+      "lufs": -18.8,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.nest": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_nest.3d33af69be79.ogg",
+        "bytes": 20469,
+        "hash": "3d33af69be79"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_nest.4e6c7cec8092.mp3",
+        "bytes": 24493,
+        "hash": "4e6c7cec8092"
+      },
+      "loop": false,
+      "lufs": -16.9,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.new_best": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_new_best.de5a45706b26.ogg",
+        "bytes": 18209,
+        "hash": "de5a45706b26"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_new_best.9568023e636f.mp3",
+        "bytes": 21079,
+        "hash": "9568023e636f"
+      },
+      "loop": false,
+      "lufs": -17.9,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.open_harvest": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_harvest.b52a09143141.ogg",
+        "bytes": 21700,
+        "hash": "b52a09143141"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_harvest.1fd90aeada42.mp3",
+        "bytes": 26916,
+        "hash": "1fd90aeada42"
+      },
+      "loop": false,
+      "lufs": -19.6,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.open_many": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_many.99024c4cffeb.ogg",
+        "bytes": 18129,
+        "hash": "99024c4cffeb"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_many.63f77a608f57.mp3",
+        "bytes": 22042,
+        "hash": "63f77a608f57"
+      },
+      "loop": false,
+      "lufs": -17.2,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.open_none": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_none.78f1f19b4180.ogg",
+        "bytes": 22632,
+        "hash": "78f1f19b4180"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_none.924d5a645402.mp3",
+        "bytes": 27348,
+        "hash": "924d5a645402"
+      },
+      "loop": false,
+      "lufs": -18.2,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.open_some": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_some.61647ff06725.ogg",
+        "bytes": 16883,
+        "hash": "61647ff06725"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_some.a6c8884c2856.mp3",
+        "bytes": 20775,
+        "hash": "a6c8884c2856"
+      },
+      "loop": false,
+      "lufs": -16.8,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.rank_up": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_rank_up.906f163506f3.ogg",
+        "bytes": 17030,
+        "hash": "906f163506f3"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_rank_up.010ccec1c52f.mp3",
+        "bytes": 19540,
+        "hash": "010ccec1c52f"
+      },
+      "loop": false,
+      "lufs": -17.9,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.swarm": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_swarm.581029b1c062.ogg",
+        "bytes": 26690,
+        "hash": "581029b1c062"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_swarm.48ddb5862b9d.mp3",
+        "bytes": 33521,
+        "hash": "48ddb5862b9d"
+      },
+      "loop": false,
+      "lufs": -16.9,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.ver": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_ver.d367a1c1a079.ogg",
+        "bytes": 22638,
+        "hash": "d367a1c1a079"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_ver.7233ea72e5b4.mp3",
+        "bytes": 28235,
+        "hash": "7233ea72e5b4"
+      },
+      "loop": false,
+      "lufs": -17.9,
+      "peakDb": -1
+    },
+    "voice/en/braai.say.whole_flock": {
+      "group": "braai-voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_whole_flock.17d0331aff78.ogg",
+        "bytes": 16562,
+        "hash": "17d0331aff78"
+      },
+      "mp3": {
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_whole_flock.efb63f3c3dc3.mp3",
+        "bytes": 18556,
+        "hash": "efb63f3c3dc3"
+      },
+      "loop": false,
+      "lufs": -16.5,
       "peakDb": -1
     },
     "voice/en/guide.baboon.bagged": {

@@ -55,6 +55,15 @@ import {
 import { loadFeel, loadSoundscape } from '../testContent';
 import { SOUNDSCAPE_GROUP, soundscapeSounds } from '../../src/game/audio/soundscapeKeys';
 import { RaidActionSchema } from '../../src/content/schemas';
+import {
+  BRAAI_GROUP,
+  BRAAI_SHEET,
+  BRAAI_SHEET_H,
+  BRAAI_SHEET_W,
+  BRAAI_SOUNDS,
+  braaiVoiceGroup,
+} from '../../src/game/braai/braaiKeys';
+import { STORY_LINE_IDS, sayKey } from '../../src/game/braai/story';
 
 export interface CatalogEntry {
   readonly key: string;
@@ -189,6 +198,24 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   });
   for (const key of Object.values(NY_SOUNDS))
     entries.set(key, { key, kind: 'sound', group: NEWYEAR_GROUP, biomes: everyBiome });
+  // v1.11 (D-068): Die Braai's sheet and sounds in a lazy group of their own (its HD twin
+  // braai-hd), fetched by the braai's chunk when a hunt starts.
+  entries.set(BRAAI_SHEET, {
+    key: BRAAI_SHEET,
+    kind: 'texture',
+    group: BRAAI_GROUP,
+    biomes: everyBiome,
+    width: BRAAI_SHEET_W,
+    height: BRAAI_SHEET_H,
+  });
+  for (const key of Object.values(BRAAI_SOUNDS))
+    entries.set(key, { key, kind: 'sound', group: BRAAI_GROUP, biomes: everyBiome });
+  // Oupa's story phrases at the braai, one lazy pack per voice language.
+  for (const lang of VOICE_LANGUAGES)
+    for (const id of STORY_LINE_IDS) {
+      const key = voiceKey(lang, sayKey(id));
+      entries.set(key, { key, kind: 'sound', group: braaiVoiceGroup(lang), biomes: everyBiome });
+    }
   // v1.9 (D-066): the soundscape's calls, in one lazy group (its chunk loads them after the hunt
   // has started; no placeholder manifest has them).
   for (const key of soundscapeSounds(loadSoundscape()))
