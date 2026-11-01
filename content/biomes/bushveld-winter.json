@@ -151,7 +151,7 @@
       },
       "secret": {
         "$comment": "Shoot near the dassie, not at it: its alarm whistle alerts every flock and it points out hidden birds.",
-        "tell": { "species": "rock_agama", "ox": 96, "oy": -30, "facing": -1 },
+        "tell": { "species": "rock_agama", "ox": -18, "oy": -48, "facing": -1 },
         "type": "nearMiss",
         "part": {
           "id": "dassie",
