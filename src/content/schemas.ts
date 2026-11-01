@@ -2106,7 +2106,8 @@ export const BrakkieSchema = obj({
   homeOffPx: pos,
   /** Standing (trot, run, sniff, sit, bark, carry, yelp) and lying (lie, dig). */
   hitboxes: obj({ stand: dogHitbox, low: dogHitbox }),
-  speeds: obj({ trotPx: pos, runPx: pos, boltPx: pos }),
+  /** runBeyondPx: a new spot farther than this he runs to instead of trotting. */
+  speeds: obj({ trotPx: pos, runPx: pos, boltPx: pos, runBeyondPx: pos }),
   /** He trots in from the bakkie this long into the hunt. */
   enterSeconds: range(nonNeg),
   roam: obj({

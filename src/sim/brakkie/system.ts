@@ -280,7 +280,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   function roam(): boolean {
     const x = pickSpot();
     if (x === null) return false;
-    const far = Math.abs(x - dog.x) > 1200 * k(dog.plane);
+    const far = Math.abs(x - dog.x) > B.speeds.runBeyondPx * k(dog.plane);
     moveTo('trot', far ? 'run' : 'trot', x, far ? B.speeds.runPx : B.speeds.trotPx);
     return true;
   }
@@ -307,7 +307,9 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     }
     host.emit({ type: 'brakkieArrived', tick: host.tick(), x: dog.x });
     if (spot !== null) {
-      const far = Math.abs(spot - dog.x) > 1200;
+      // Intentionally unscaled: he always comes in on the near plane (scale 1), so this is the
+      // same threshold as roam()'s there.
+      const far = Math.abs(spot - dog.x) > B.speeds.runBeyondPx;
       moveTo('trot', far ? 'run' : 'trot', spot, far ? B.speeds.runPx : B.speeds.trotPx);
     } else {
       // Nowhere clear in view: in to the view's edge on his side and look round.

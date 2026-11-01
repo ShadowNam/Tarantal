@@ -16,7 +16,7 @@
     "stand": { "body": { "ox": -4, "oy": -60, "rx": 84, "ry": 38 }, "head": { "ox": 74, "oy": -112, "r": 30 } },
     "low": { "body": { "ox": -4, "oy": -30, "rx": 96, "ry": 28 }, "head": { "ox": 84, "oy": -52, "r": 28 } }
   },
-  "speeds": { "trotPx": 240, "runPx": 820, "boltPx": 1000 },
+  "speeds": { "trotPx": 240, "runPx": 820, "boltPx": 1000, "runBeyondPx": 1200 },
   "enterSeconds": [3, 6],
   "roam": {
     "viewHalfPx": 450,

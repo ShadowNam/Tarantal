@@ -1459,6 +1459,10 @@ test('perf: Brakkie fetching and barking at 4× CPU throttle (Pixel 7)', async (
   writeFileSync(info.outputPath('perf-brakkie.json'), JSON.stringify(report, null, 2));
   expect(shown, 'Brakkie was drawn on screen').toBeGreaterThan(0);
   expect(report.phases, 'he barked').toContain('bark');
+  expect(
+    report.phases.some((p) => p === 'fetch' || p === 'carry'),
+    'he fetched (a fetch or carry phase was seen)',
+  ).toBe(true);
   expect(maxCalls).toBeLessThanOrEqual(40);
   expect(report.brakkieMsPerFrame, 'Brakkie view ms per frame, 4× throttle').toBeLessThanOrEqual(
     0.3,
