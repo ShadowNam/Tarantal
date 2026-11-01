@@ -25,12 +25,12 @@
     "restSeconds": [2.5, 6],
     "restWeights": { "sniff": 3, "sit": 2, "lie": 1 }
   },
-  "clear": { "aimPx": 260, "checkSeconds": 0.25, "holdBackSeconds": 1.2 },
+  "clear": { "aimPx": 340, "checkSeconds": 0.2, "holdBackSeconds": 1.2, "wideSpreadPx": 120 },
   "fetch": {
     "chance": 0.35,
     "planes": ["near", "mid"],
     "delaySeconds": 0.9,
-    "clearPx": 420,
+    "clearPx": 700,
     "waitSeconds": 4,
     "maxDxPx": 1100,
     "pickupSeconds": 0.6,

@@ -23,9 +23,14 @@ export interface BrakkieHost {
   readonly cameraX: () => number;
   /** The gun is up: a sight or fire held, or a shot within `holdTicks` ticks. */
   gunUp(holdTicks: number): boolean;
+  /** A gun with a wide pellet spread (a crate gun like the Voorlaaier) is in hand: he keeps to the
+   *  bakkie while it is out. */
+  wideGun(): boolean;
   /** Something a player aims at on the plane's layer within `px` of layer x `x`: a live bird on
    *  that plane, a crate, a secret's part, a meerkat, a tell animal, a tin can, a raider… */
   busyNear(plane: DogPlane, x: number, px: number): boolean;
+  /** The same, with where the nearest such thing is (layer x), else null. */
+  busyAt(plane: DogPlane, x: number, px: number): number | null;
   /** A mid flock foraging or settled whose centre is within `maxDx` screen px of `dx`: its id and
    *  centre's layer x (the one nearest `dx`), else null. */
   barkTarget(dx: number, maxDx: number): { readonly flockId: number; readonly x: number } | null;
@@ -69,6 +74,10 @@ export interface BrakkieGeometry {
   readonly durationTicks: number;
 }
 
+/** Phases where he stands about (or trots) on his own business: he keeps out of the line of
+ *  fire in these. */
+const STANDING: ReadonlySet<DogPhase> = new Set<DogPhase>(['rest', 'trot', 'bark', 'toDig', 'dig']);
+
 /** The poses drawn standing (the rest are lying low). */
 const LOW_POSES: ReadonlySet<DogPose> = new Set<DogPose>(['lie', 'dig']);
 
@@ -109,6 +118,7 @@ interface Dog {
   nextBark: number;
   nextFlush: number;
   nextCheck: number;
+  fetchCheck: number;
   hits: number;
   fetches: number;
   barks: number;
@@ -162,6 +172,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     nextBark: 0,
     nextFlush: 0,
     nextCheck: 0,
+    fetchCheck: 0,
     hits: 0,
     fetches: 0,
     barks: 0,
@@ -212,8 +223,9 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     if (goal !== dog.x) dog.facing = goal > dog.x ? 1 : -1;
   }
 
-  /** A clear spot in view on his plane (null: none of the tries was clear). */
-  function pickSpot(): number | null {
+  /** A clear spot in view on his plane (null: none of the tries was clear); `away`: only on that
+   *  side of where he stands (scampering away from something, never past it). */
+  function pickSpot(away: 1 | -1 | 0 = 0): number | null {
     const sf = geo.layers[dog.plane].scrollFactor;
     const s = k(dog.plane);
     const centre = planeCentreX(host.cameraX(), sf);
@@ -225,9 +237,9 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     for (let i = 0; i < B.roam.tries; i++) {
       let x: number;
       if (inView) {
-        const dir = rng.chance(0.5) ? 1 : -1;
+        const dir = away !== 0 ? away : rng.chance(0.5) ? 1 : -1;
         x = dog.x + dir * rng.range(B.roam.stepPx[0], B.roam.stepPx[1]) * s;
-        if (x < lo || x > hi) x = dog.x - (x - dog.x);
+        if (away === 0 && (x < lo || x > hi)) x = dog.x - (x - dog.x);
         if (x < lo || x > hi) continue;
       } else {
         x = rng.range(lo, hi);
@@ -300,8 +312,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       dog.fetch = null;
       return;
     }
-    if (tick < dog.nextCheck) return;
-    dog.nextCheck = tick + checkTicks;
+    if (tick < dog.fetchCheck) return;
+    dog.fetchCheck = tick + checkTicks;
     if (host.busyNear(f.plane, f.x, B.fetch.clearPx * k(f.plane))) return;
     startFetch(f);
   }
@@ -366,8 +378,33 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     const tick = host.tick();
     if (dog.cooldown > 0) dog.cooldown--;
     dog.t++;
+    if (dog.plane === 'near' && STANDING.has(dog.phase)) {
+      // A wide-spread gun came out: off to the bakkie (no yelp, nothing hit him).
+      if (host.wideGun()) {
+        dog.fetch = null;
+        dog.barkFlock = null;
+        goHome('bolt', B.speeds.runPx);
+        return;
+      }
+      // Out of the line of fire: a pop-up or anything a player aims at came up near him — he
+      // scampers off to a clear spot (lesson 21).
+      if (tick >= dog.nextCheck) {
+        dog.nextCheck = tick + checkTicks;
+        const busy = host.busyAt(dog.plane, dog.x, B.clear.aimPx * k(dog.plane));
+        if (busy !== null) {
+          const x = pickSpot(busy > dog.x ? -1 : 1) ?? pickSpot();
+          if (x !== null) {
+            dog.barkFlock = null;
+            moveTo('trot', 'run', x, B.speeds.runPx);
+            return;
+          }
+        }
+      }
+    }
     switch (dog.phase) {
       case 'away':
+        // He waits at the bakkie while a wide-spread gun is out.
+        if (host.wideGun()) dog.t = Math.min(dog.t, dog.dur - 1);
         if (dog.t >= dog.dur) arrive();
         return;
       case 'trot':
@@ -453,12 +490,6 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
         break;
     }
     if (!idle()) return;
-    // Out of the line of fire: something a player aims at came close — off to a clear spot.
-    if (dog.fetch === null && tick >= dog.nextCheck) {
-      dog.nextCheck = tick + checkTicks;
-      if (dog.phase === 'rest' && host.busyNear(dog.plane, dog.x, B.clear.aimPx * k(dog.plane)))
-        roam();
-    }
     tryFetch(tick);
     if (!idle()) return;
     tryBark(tick);
@@ -514,7 +545,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     const tick = host.tick();
     const ready = tick + ticks(B.fetch.delaySeconds);
     dog.fetch = { plane, x, readyTick: ready, giveUpTick: ready + ticks(B.fetch.waitSeconds) };
-    dog.nextCheck = ready;
+    dog.fetchCheck = ready;
   }
 
   function view(): BrakkieView {

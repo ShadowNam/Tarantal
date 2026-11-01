@@ -2126,6 +2126,9 @@ export const BrakkieSchema = obj({
     checkSeconds: pos,
     /** After a shot he holds still this long (and while a sight or fire is held). */
     holdBackSeconds: nonNeg,
+    /** A gun in hand with a pellet spread over this (a crate gun like the Voorlaaier, screen px):
+     *  he keeps to the bakkie while it is out. */
+    wideSpreadPx: pos,
   }),
   fetch: obj({
     chance: fraction,

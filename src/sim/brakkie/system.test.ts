@@ -55,7 +55,9 @@ function rig(seed = 3, homeSide: 1 | -1 = -1): Rig {
     },
     cameraX: () => state.cameraX,
     gunUp: () => state.gunUp,
+    wideGun: () => false,
     busyNear: (plane, x, px) => state.busy(plane, x, px),
+    busyAt: (plane, x, px) => (state.busy(plane, x, px) ? x + 1 : null),
     barkTarget: () => state.barkFlock,
     threaten: (flockId, fromX) => {
       threats.push({ flockId, fromX, tick: state.tick });

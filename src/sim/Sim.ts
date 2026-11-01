@@ -1061,6 +1061,22 @@ export function createSim(config: SimConfig): Sim {
     /** What his layer holds this tick (built once a tick, when he asks). */
     let busyTick = -1;
     let busyExtras: Map<string, HitExtra[]> = new Map();
+    /** The nearest thing a player aims at within px of layer x on the plane's layer (its x). */
+    const dogBusyAt = (plane: 'near' | 'mid', x: number, px: number): number | null => {
+      let best: number | null = null;
+      const consider = (at: number): void => {
+        if (Math.abs(at - x) <= px && (best === null || Math.abs(at - x) < Math.abs(best - x)))
+          best = at;
+      };
+      for (const b of birds) if (b.plane === plane) consider(b.x);
+      if (busyTick !== tick) {
+        busyTick = tick;
+        busyExtras = hitExtras();
+      }
+      const layerId = plane === 'near' ? dogNear : dogMid;
+      for (const e of busyExtras.get(layerId) ?? []) if (e.kind !== 'dog') consider(e.x);
+      return best;
+    };
     brakkie = needLazy('Brakkie').brakkie(
       content,
       {
@@ -1085,17 +1101,9 @@ export function createSim(config: SimConfig): Sim {
         },
         cameraX: () => cameraX,
         gunUp: (holdTicks) => aim !== null || hold !== null || ticksSinceShot < holdTicks,
-        busyNear: (plane, x, px) => {
-          for (const b of birds) if (b.plane === plane && Math.abs(b.x - x) <= px) return true;
-          if (busyTick !== tick) {
-            busyTick = tick;
-            busyExtras = hitExtras();
-          }
-          const layerId = plane === 'near' ? dogNear : dogMid;
-          for (const e of busyExtras.get(layerId) ?? [])
-            if (e.kind !== 'dog' && Math.abs(e.x - x) <= px) return true;
-          return false;
-        },
+        wideGun: () => (crateWeapon?.def.spreadPx ?? 0) > dogCfg.clear.wideSpreadPx,
+        busyNear: (plane, x, px) => dogBusyAt(plane, x, px) !== null,
+        busyAt: (plane, x, px) => dogBusyAt(plane, x, px),
         barkTarget: (dx, maxDx) => {
           let best: { flockId: number; x: number; d: number } | null = null;
           for (const f of flocks) {
