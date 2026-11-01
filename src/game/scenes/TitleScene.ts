@@ -536,6 +536,9 @@ export class TitleScene extends Phaser.Scene {
           this.ctx.reducedMotion,
           this.brakkieSpot(),
           5,
+          () =>
+            this.ctx.hook !== null &&
+            (window as { __TM_WAG_HOLD__?: boolean }).__TM_WAG_HOLD__ === true,
         );
       }
       dog.update(this.time.now);

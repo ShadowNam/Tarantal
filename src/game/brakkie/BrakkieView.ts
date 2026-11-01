@@ -539,6 +539,8 @@ export class TitleBrakkie {
     /** Feet (design px) and his height on screen; null: no room on this screen. */
     private spot: { x: number; y: number; h: number; facing: 1 | -1 } | null,
     depth: number,
+    /** e2e only: the wag held on its wag frame (the screenshot spec; false otherwise). */
+    private readonly holdWag: () => boolean = () => false,
   ) {
     this.img = scene.add
       .image(0, 0, '__DEFAULT')
@@ -587,12 +589,10 @@ export class TitleBrakkie {
       this.layout();
     }
     const since = this.tapAt === null ? null : nowMs - this.tapAt;
-    const f = wagFrame(
-      since,
-      this.tuning.title.wagMs,
-      this.tuning.title.swishMs,
-      this.reducedMotion,
-    );
+    // e2e (screenshots): a held wag shows the wag frame until released.
+    const f = this.holdWag()
+      ? 'wag_a'
+      : wagFrame(since, this.tuning.title.wagMs, this.tuning.title.swishMs, this.reducedMotion);
     if (f !== this.frame) {
       this.frame = f;
       this.img.setFrame(f);

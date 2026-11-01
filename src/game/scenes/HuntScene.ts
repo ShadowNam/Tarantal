@@ -2750,6 +2750,7 @@ export class HuntScene extends Phaser.Scene {
               p.secret?.tell !== undefined && secretOwnsRotor(p.secret) ? [p.id] : [],
             ),
           ),
+          this.ctx.hook !== null,
         );
       })
       .catch(() => {

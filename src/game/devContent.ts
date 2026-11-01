@@ -465,3 +465,31 @@ export function withBrakkieParams(b: ContentBundle, params: URLSearchParams): Co
   if (flag === '1' || preview !== null) return withBrakkiePreview(b, preview);
   return b;
 }
+
+/**
+ * v1.12 (polish b) art previews only: `?agamaBefore=1` — the Bushveld agama on its old seat (its
+ * tail off the koppie's edge), the screenshot spec's "before".
+ */
+export function withAgamaBefore(b: ContentBundle): ContentBundle {
+  return {
+    ...b,
+    biomes: b.biomes.map((x) =>
+      x.id !== 'bushveld-winter'
+        ? x
+        : {
+            ...x,
+            props: x.props.map((p) =>
+              p.id === 'dassie_koppie' && p.secret !== undefined
+                ? {
+                    ...p,
+                    secret: {
+                      ...p.secret,
+                      tell: { species: 'rock_agama', ox: 96, oy: -30, facing: -1 as const },
+                    },
+                  }
+                : p,
+            ),
+          },
+    ),
+  };
+}
