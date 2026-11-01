@@ -31,6 +31,8 @@ export function quiet(biomeId = 'karoo-autumn'): Content {
   c.powerups.crates.perHunt = 0;
   c.powerups.crates.windows = [];
   for (const w of c.weapons.weapons) w.spreadPx = 0;
+  // v1.12 (D-069): no Brakkie (his barks and flushes would move the flocks a test watches).
+  c.brakkie.areas = [];
   return c;
 }
 

@@ -112,4 +112,14 @@ describe('SoundscapeRuntime Reënbui sounds (v1.10, D-067)', () => {
     rt.frame(10, [], [], 0, null);
     expect([...(keys.mock.calls.at(-1)?.[0] ?? [])].sort()).toEqual([...areaKeys].sort());
   });
+
+  it('v1.12 (D-069): the calls make room while Brakkie barks, yelps or digs, and only then', () => {
+    const rt = runtime('ogg');
+    rt.frame(10, [], [], 0, null, false);
+    expect(rt.room(10)).toBe(false);
+    rt.frame(11, [], [], 0, null, true);
+    expect(rt.room(11)).toBe(true);
+    rt.frame(12, [], [], 0, null, false);
+    expect(rt.room(12)).toBe(false);
+  });
 });

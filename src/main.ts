@@ -21,6 +21,8 @@ import {
   withBaboonRaid,
   withNoBaboons,
   withReenbuiParams,
+  withBrakkieParams,
+  withAgamaBefore,
   withHarvestPreview,
   withNoPalms,
   withPlaneScales,
@@ -432,6 +434,10 @@ const hook: TestHook = {
   baboons: null,
   baboonRaid: null,
   baboonMs: 0,
+  brakkie: null,
+  brakkieMs: 0,
+  brakkieTexture: false,
+  titleBrakkie: null,
   feesdagMs: 0,
   feesdagDimMs: 0,
   feesdagFxMs: 0,
@@ -532,7 +538,13 @@ const noTroops = testHooks && params.get('baboons') === '0' ? withNoBaboons(with
 // e2e/dev only (v1.10, D-067): ?reenbui=1 forces a Reënbui, ?reenbuiPhase= holds a phase,
 // ?reenbui=0 turns it off (specs that pin a seed, lesson 17). Nothing else changes the content:
 // `?e2e` alone keeps the real content hash (the Daily seed, challenge links, Node replays).
-const withRain = testHooks ? withReenbuiParams(noTroops, params) : noTroops;
+const withRainOnly = testHooks ? withReenbuiParams(noTroops, params) : noTroops;
+// e2e/dev only (v1.12, D-069): ?brakkie=0 no Brakkie (specs that pin a seed, lesson 17), ?brakkie=1
+// out at once and fetching every bag, ?brakkiePreview=bark|flush that moment within seconds.
+const withDog = testHooks ? withBrakkieParams(withRainOnly, params) : withRainOnly;
+// art previews only (v1.12 polish b): ?agamaBefore=1 — the agama on its old seat.
+const withRain =
+  testHooks && params.get('agamaBefore') === '1' ? withAgamaBefore(withDog) : withDog;
 // e2e/dev only (v1.11, D-068): ?braai=0 — the plain slate (specs that don't test the braai);
 // ?braaiDance=1 — Oupa dances whatever the result; ?braaiAt=<ms> holds the braai's clock there.
 if (testHooks) {

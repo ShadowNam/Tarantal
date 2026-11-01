@@ -42,6 +42,9 @@ export interface DirectorContext {
   readonly stampede: boolean;
   /** v1.7d (D-059): the omen wind's direction (null: no wind): balloons drift with it. */
   readonly windDir?: 1 | -1 | null;
+  /** v1.12 (D-069): where Brakkie stands on the near plane and how much room he keeps (layer
+   *  px): a pop-up never rises beside him (it rises just clear of him instead). */
+  readonly popupAvoid?: { readonly x: number; readonly halfPx: number } | null;
   nextId(): number;
 }
 
@@ -248,12 +251,22 @@ export function createDirector(deps: DirectorDeps): Director {
     const creature = pick('near', 'popup');
     if (creature === null) return [];
     const centre = planeCentreX(ctx.cameraX, planes.near.scrollFactor);
+    const half = popup.spawnHalfWidthPx;
+    let x = centre + spawns.range(-half, half);
+    // v1.12 (D-069): not beside Brakkie — just clear of him on the same side (or the other side
+    // when that is out of the band); the same draws, so nothing else moves.
+    const a = ctx.popupAvoid;
+    if (a !== undefined && a !== null && Math.abs(x - a.x) < a.halfPx) {
+      const right = a.x + a.halfPx;
+      const left = a.x - a.halfPx;
+      x = x >= a.x ? (right <= centre + half ? right : left) : left >= centre - half ? left : right;
+    }
     return [
       createPopup({
         id: ctx.nextId(),
         creature,
         planeScale: planes.near.scale,
-        x: centre + spawns.range(-popup.spawnHalfWidthPx, popup.spawnHalfWidthPx),
+        x,
         groundY: spawns.range(lane[0], lane[1]),
         facing: spawns.chance(0.5) ? 1 : -1,
         riseTicks: Math.max(1, msToTicks(popup.riseMs)),

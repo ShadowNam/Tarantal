@@ -11,6 +11,7 @@ import type { Biome, ContentBundle, Feesdag, Sight } from '../content/schemas';
 import {
   behaviourOf,
   damageOf,
+  enter as enterBirdPhase,
   isHittable,
   updateBird,
   viewOf,
@@ -191,6 +192,7 @@ import {
 } from './meerkats/colony';
 import type { TellSystem } from './tells/system';
 import type { BaboonSystem } from './baboons/system';
+import type { BrakkieSystem } from './brakkie/system';
 import { registeredLazySystems } from './lazySystems';
 import { overlapsReenbui, planReenbui, type ColumnPlaneGeo } from './reenbui/reenbui';
 import { createReenbuiSystem, type ReenbuiSystem } from './reenbui/system';
@@ -1037,6 +1039,124 @@ export function createSim(config: SimConfig): Sim {
     );
     if (harvest !== null) durationTicks += harvest.introTicks + harvest.outroTicks;
   }
+  // v1.12 (D-069): Brakkie, from his own stream `dog` (Classic, the Daily, the Season Run's plain
+  // and omen hunts; never the Skietbaan, Oupa se Les or the Harvest). Lazy chunk like the baboons.
+  const dogCfg = content.brakkie;
+  const dogArea = dogCfg.areas.find((a) => a.biome === biome.id);
+  const dogNear = planeLayer.get('near');
+  const dogMid = planeLayer.get('mid');
+  const dogMidGround = biome.lanes.mid?.groundY?.[1];
+  let brakkie: BrakkieSystem | null = null;
+  if (
+    dogArea !== undefined &&
+    dogNear !== undefined &&
+    dogMid !== undefined &&
+    dogMidGround !== undefined &&
+    !ranged &&
+    setup.tutorial === null &&
+    harvest === null &&
+    dogCfg.modes.includes(mode.id) &&
+    (season === null || dogCfg.seasonKinds.includes(season.kind))
+  ) {
+    const dogRng = rng.stream('dog');
+    /** What his layer holds this tick (built once a tick, when he asks). */
+    let busyTick = -1;
+    let busyExtras: Map<string, HitExtra[]> = new Map();
+    /** The nearest thing a player aims at within px of layer x on the plane's layer (its x). */
+    const dogBusyAt = (plane: 'near' | 'mid', x: number, px: number): number | null => {
+      let best: number | null = null;
+      const consider = (at: number): void => {
+        if (Math.abs(at - x) <= px && (best === null || Math.abs(at - x) < Math.abs(best - x)))
+          best = at;
+      };
+      for (const b of birds) if (b.plane === plane) consider(b.x);
+      // A tin-can fence on his plane, with the ground its knocked cans fly over and land on, is
+      // aimed at as a whole (a player juggles cans there): he keeps off that stretch.
+      // A fence on the mid plane counts where it shows on screen now (his near layer is in front
+      // of it: a pellet at a can bouncing low on the mid ground meets him first).
+      for (const fence of [blik?.fence, blikFar?.fence]) {
+        if (fence === undefined || fence.posts.length === 0) continue;
+        if (fence.plane !== plane && !(plane === 'near' && fence.plane === 'mid')) continue;
+        const shift =
+          fence.plane === plane
+            ? 0
+            : planeCentreX(cameraX, planeGeo.near.scrollFactor) -
+              planeCentreX(cameraX, planeGeo.mid.scrollFactor);
+        const xs = fence.posts.map((p) => p.x + shift);
+        const lo = Math.min(...xs) - dogCfg.clear.fencePx;
+        const hi = Math.max(...xs) + dogCfg.clear.fencePx;
+        consider(Math.min(hi, Math.max(lo, x)));
+      }
+      if (busyTick !== tick) {
+        busyTick = tick;
+        busyExtras = hitExtras();
+      }
+      const layerId = plane === 'near' ? dogNear : dogMid;
+      for (const e of busyExtras.get(layerId) ?? []) if (e.kind !== 'dog') consider(e.x);
+      return best;
+    };
+    brakkie = needLazy('Brakkie').brakkie(
+      content,
+      {
+        layers: {
+          near: { id: dogNear, scrollFactor: planeGeo.near.scrollFactor },
+          mid: { id: dogMid, scrollFactor: planeGeo.mid.scrollFactor },
+        },
+        planeScale: { near: geometry.planeScale.near, mid: geometry.planeScale.mid },
+        groundY: { near: dogCfg.groundY, mid: dogMidGround },
+        homeSide: dogArea.homeSide,
+        durationTicks,
+      },
+      dogRng,
+      {
+        tick: () => tick,
+        emit: (e) => {
+          emit(e);
+        },
+        penalty: (points) => {
+          score += points;
+          stats.penalties++;
+        },
+        cameraX: () => cameraX,
+        gunUp: (holdTicks) => aim !== null || hold !== null || ticksSinceShot < holdTicks,
+        wideGun: () => (crateWeapon?.def.spreadPx ?? 0) > dogCfg.clear.wideSpreadPx,
+        busyNear: (plane, x, px) => dogBusyAt(plane, x, px) !== null,
+        busyAt: (plane, x, px) => dogBusyAt(plane, x, px),
+        barkTarget: (dx, maxDx) => {
+          let best: { flockId: number; x: number; d: number } | null = null;
+          for (const f of flocks) {
+            if (f.plane !== 'mid' || f.members.length === 0) continue;
+            if (f.state !== 'forage' && f.state !== 'settle') continue;
+            const fx = centroid(f).x;
+            const d = Math.abs(planeToDx(cameraX, planeGeo.mid.scrollFactor, fx) - dx);
+            if (d <= maxDx && (best === null || d < best.d)) best = { flockId: f.id, x: fx, d };
+          }
+          return best === null ? null : { flockId: best.flockId, x: best.x };
+        },
+        threaten: (flockId, fromX) => {
+          const f = flocks.find((x) => x.id === flockId);
+          if (f === undefined || f.members.length === 0 || f.state === 'flush') return;
+          emit({ type: 'flockThreatened', tick, flockId: f.id, source: 'dog' });
+          emitTransition(f, applyThreat(f, fromX, fParams, dogRng));
+        },
+        flush: (x, size) => {
+          if (flocks.filter((f) => f.members.length > 0).length >= biome.pacing.maxFlocks)
+            return null;
+          const f = director.spawnFlockAt(
+            { ...directorContext(), flocks, nextFlockId: () => nextFlockId++ },
+            'mid',
+            x,
+            size,
+            dogRng,
+          );
+          if (f === null) return null;
+          addFlocks([f], dogRng);
+          emitTransition(f, forceState(f, 'flush', x, 'event', fParams, dogRng));
+          return f.id;
+        },
+      },
+    );
+  }
   /** v1.7d (D-059): each balloon's penalty cooldown (the tick it ends). */
   const drifterCooldown = new Map<number, number>();
   const mkCalmTicks = secondsToTicks(mk.calmSeconds);
@@ -1253,6 +1373,7 @@ export function createSim(config: SimConfig): Sim {
       aliveBirds: birds.length,
       stampede: stampedeActive(),
       windDir: wind?.dir ?? null,
+      popupAvoid: brakkie?.nearSpot() ?? null,
       nextId: () => nextBirdId++,
     };
   }
@@ -1736,6 +1857,8 @@ export function createSim(config: SimConfig): Sim {
     // tells, so where a raider walks past one the secret (or tell) takes the pellet (review).
     baboons?.extras(add);
     harvest?.extras(add);
+    // v1.12 (D-069): Brakkie last on his layer: anything else there takes the pellet first.
+    brakkie?.extras(add);
     return out;
   }
 
@@ -1847,7 +1970,7 @@ export function createSim(config: SimConfig): Sim {
         ? plane === 'far' || plane === 'ver'
         : r.meerkatId !== undefined || r.ostrichId !== undefined || r.tellId !== undefined
           ? false
-          : r.harvestId !== undefined
+          : r.harvestId !== undefined || r.dogId !== undefined
             ? false
             : r.baboonId !== undefined
               ? baboons?.plane(r.baboonId) === 'far' || baboons?.plane(r.baboonId) === 'ver'
@@ -1879,6 +2002,7 @@ export function createSim(config: SimConfig): Sim {
       ...(r.tellId === undefined ? {} : { tellId: r.tellId }),
       ...(r.baboonId === undefined ? {} : { baboonId: r.baboonId }),
       ...(r.harvestId === undefined ? {} : { harvestId: r.harvestId }),
+      ...(r.dogId === undefined ? {} : { dogId: r.dogId }),
       ...(cx === null ? {} : { cx }),
     });
     return { dx: ldx, sy: psy, r };
@@ -2055,6 +2179,7 @@ export function createSim(config: SimConfig): Sim {
           r.tellId !== undefined ||
           r.baboonId !== undefined ||
           r.harvestId !== undefined ||
+          r.dogId !== undefined ||
           r.canId !== undefined ||
           f.next >= bands.length;
         if (!stopped) continue;
@@ -2115,6 +2240,7 @@ export function createSim(config: SimConfig): Sim {
     const tellHits: number[] = [];
     const baboonHits: number[] = [];
     const harvestHits: number[] = [];
+    let dogHit = false;
     /** v1.8: pellets per tin can, their summed offsets and the dents (in landing order). */
     const canHits = new Map<
       number,
@@ -2162,6 +2288,7 @@ export function createSim(config: SimConfig): Sim {
       if (r.baboonId !== undefined && !baboonHits.includes(r.baboonId)) baboonHits.push(r.baboonId);
       if (r.harvestId !== undefined && !harvestHits.includes(r.harvestId))
         harvestHits.push(r.harvestId);
+      if (r.dogId !== undefined) dogHit = true;
       if (r.canId !== undefined) {
         const h = canHits.get(r.canId) ?? { n: 0, dx: 0, dy: 0, at: [] };
         h.n++;
@@ -2246,6 +2373,7 @@ export function createSim(config: SimConfig): Sim {
       tellHits.length > 0 ||
       baboonHits.length > 0 ||
       harvestHits.length > 0 ||
+      dogHit ||
       canHits.size > 0;
 
     const targets = bagged.filter((x) => x.bird.creature.kind !== 'nonTarget');
@@ -2310,6 +2438,7 @@ export function createSim(config: SimConfig): Sim {
         x: bird.x,
         y: bird.y,
       });
+      brakkie?.bagged(bird.plane, bird.x);
       // The Skietbaan scores nothing (its stats count the hits).
       if (!ranged) {
         const s = scoreBag(
@@ -2435,6 +2564,20 @@ export function createSim(config: SimConfig): Sim {
         shotId,
         harvestHits,
         damage.outcomes.length > 0 || baboonHits.some((id) => baboons?.isRaider(id) === true),
+        (layerId) =>
+          tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
+      );
+    // v1.12 (D-069): Brakkie yelps and bolts; −25 only if the shot was aimed at him and hit no
+    // target elsewhere (D-062/D-063's rule).
+    if (dogHit)
+      brakkie?.shot(
+        shotId,
+        damage.outcomes.length > 0 ||
+          partHits.length > 0 ||
+          crateHits.length > 0 ||
+          spookHits.length > 0 ||
+          [...canHits.keys()].length > 0 ||
+          baboonHits.some((id) => baboons?.isRaider(id) === true),
         (layerId) =>
           tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
       );
@@ -3560,6 +3703,18 @@ export function createSim(config: SimConfig): Sim {
     baboons?.step();
     harvest?.step();
     reenbui?.step();
+    brakkie?.step();
+    // v1.12 (D-069): a pop-up ducks back into the grass when Brakkie comes within his room (a
+    // guineafowl would): never a bird standing beside him for a shot to stray onto him.
+    const dogSpot = brakkie?.nearSpot() ?? null;
+    if (dogSpot !== null)
+      for (const b of birds)
+        if (
+          b.motion === 'popup' &&
+          b.phase !== 'duck' &&
+          Math.abs(b.x - dogSpot.x) < dogSpot.halfPx
+        )
+          enterBirdPhase(b, 'duck');
 
     if (ranged) rangeStep();
     else {
@@ -3745,6 +3900,7 @@ export function createSim(config: SimConfig): Sim {
         baboons: baboons?.view() ?? null,
         harvest: harvest?.view() ?? null,
         reenbui: reenbui?.view() ?? null,
+        brakkie: brakkie?.view() ?? null,
         powerups: powerups.map(powerupView),
         wind: windView(wind),
         dustDevils: dustDevils.map(dustDevilView),

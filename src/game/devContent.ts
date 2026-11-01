@@ -407,3 +407,91 @@ export function withReenbuiParams(b: ContentBundle, params: URLSearchParams): Co
   if (flag === '0') return withNoReenbui(b);
   return b;
 }
+
+/**
+ * v1.12 (D-069, lesson 17) e2e only: no Brakkie on any map — `?brakkie=0`, for the specs that pin
+ * a seed (tests/e2e/helpers.ts boot() adds it unless a spec names `brakkie=`).
+ */
+export function withNoBrakkie(b: ContentBundle): ContentBundle {
+  return { ...b, brakkie: { ...b.brakkie, areas: [] } };
+}
+
+/** v1.12 (D-069): the moments `?brakkiePreview=` brings on quickly (lesson 11). */
+export const BRAKKIE_PREVIEWS = ['fetch', 'bark', 'flush'] as const;
+export type BrakkiePreview = (typeof BRAKKIE_PREVIEWS)[number];
+
+/**
+ * v1.12 (D-069) e2e/dev only: `?brakkie=1` — Brakkie on every map he comes to, out of the bakkie
+ * half a second in, fetching every bag in view and back from the bakkie in 2 s; with
+ * `?brakkiePreview=bark` he barks at a mid flock every 3–4 s, `flush` digs a flock out 4 s in and
+ * every 8–10 s, `fetch` fetches a bird placed beside him 3 s in (no bag needed: the screenshot
+ * spec on software GL, lesson 11) (the e2e and screenshot moments).
+ */
+export function withBrakkiePreview(
+  b: ContentBundle,
+  preview: BrakkiePreview | null,
+): ContentBundle {
+  const d = b.brakkie;
+  return {
+    ...b,
+    brakkie: {
+      ...d,
+      enterSeconds: [0.5, 0.5],
+      fetch: { ...d.fetch, chance: 1, awaySeconds: [2, 2.5] },
+      hit: { ...d.hit, awaySeconds: [3, 3.5] },
+      ...(preview === 'fetch' ? { demoFetchSeconds: 3 } : {}),
+      bark:
+        preview === 'bark'
+          ? { ...d.bark, everySeconds: [3, 4], maxDxPx: 1300, retrySeconds: 0.5 }
+          : d.bark,
+      flush:
+        preview === 'flush'
+          ? { ...d.flush, firstSeconds: [4, 4], everySeconds: [8, 10], chance: 1 }
+          : d.flush,
+    },
+  };
+}
+
+/**
+ * v1.12 (D-069): the content a test-hook build plays for the URL's Brakkie flags — `brakkie=1` or
+ * `brakkiePreview=` the preview, `brakkie=0` none, anything else (no flag, `brakkie=content`) the
+ * bundle as it is: `?e2e` alone never changes the content or its hash (lesson 37).
+ */
+export function withBrakkieParams(b: ContentBundle, params: URLSearchParams): ContentBundle {
+  const flag = params.get('brakkie');
+  const p = params.get('brakkiePreview');
+  const preview = (BRAKKIE_PREVIEWS as readonly (string | null)[]).includes(p)
+    ? (p as BrakkiePreview)
+    : null;
+  if (flag === '0') return withNoBrakkie(b);
+  if (flag === '1' || preview !== null) return withBrakkiePreview(b, preview);
+  return b;
+}
+
+/**
+ * v1.12 (polish b) art previews only: `?agamaBefore=1` — the Bushveld agama on its old seat (its
+ * tail off the koppie's edge), the screenshot spec's "before".
+ */
+export function withAgamaBefore(b: ContentBundle): ContentBundle {
+  return {
+    ...b,
+    biomes: b.biomes.map((x) =>
+      x.id !== 'bushveld-winter'
+        ? x
+        : {
+            ...x,
+            props: x.props.map((p) =>
+              p.id === 'dassie_koppie' && p.secret !== undefined
+                ? {
+                    ...p,
+                    secret: {
+                      ...p.secret,
+                      tell: { species: 'rock_agama', ox: 96, oy: -30, facing: -1 as const },
+                    },
+                  }
+                : p,
+            ),
+          },
+    ),
+  };
+}

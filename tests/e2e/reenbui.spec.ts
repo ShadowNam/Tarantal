@@ -273,7 +273,10 @@ test('?reenbui=0 has none, even on a forcing day; ?e2e alone keeps the real cont
   test.setTimeout(300_000);
   const touch = isTouchProject(info);
   // The real content: the game's content hash is Node's (the Daily seed, links and replays).
-  await boot(page, 'biome=kalahari-summer&layout=wed&seed=11&graphics=standard&reenbui=content');
+  await boot(
+    page,
+    'biome=kalahari-summer&layout=wed&seed=11&graphics=standard&reenbui=content&brakkie=content',
+  );
   const tools = await page.evaluate(
     () =>
       (window as unknown as { __TM_TOOLS__?: { contentHash: string } }).__TM_TOOLS__?.contentHash,

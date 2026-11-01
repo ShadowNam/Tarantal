@@ -728,6 +728,21 @@ the birds stay clear in the ×1.3 window), and it stops as the easing starts; th
 over 8 s after. With the Kalahari Donderstorm only the columns and the wet ground are the event's:
 the storm's own gloom, rain and lightning do the rest.
 
+### 5.6 Brakkie, Oupa's Jack Russell (1.15.0, D-069)
+Interim at the D-035 bar, inked Bosveld Comic in daylight (lit from the upper left). A smooth-coated
+Jack Russell terrier: mostly white, a tan head with a white blaze down the muzzle, tan button ears
+folded forward, a tan saddle at the base of his short, high-carried tail and a small patch on his
+back, a black nose, bright dark eyes. Brave, busy, cheeky — never shown hurt. **One sheet**
+(`brakkie/sheet`, 512 × 256 at 1×, its own lazy group `brakkie`, the HD twin `brakkie-hd` its 2×
+master; 0.5 MiB on the GPU, a unit test caps it): every frame authored at half size and drawn ×2,
+facing right with the origin at his feet (boxes fitted to the drawing with a 6 px margin; an art
+test checks the margins and that his paws reach the ground line): trot (2), run (2: stretched and
+gathered), sit, the title's wag (sit ↔ wag, his tail up), lie, sniff (nose down), bark (head up,
+mouth open), dig (front low, rump and tail up), the startled yelp (ears flat, tail tucked, eyes
+wide), and the guineafowl he carries (limp and whole, no blood), held at his mouth in the running
+frames. On the near plane he is a little smaller than a standing guineafowl (his head ~150 px up
+at 1×); on the mid plane by its plane scale; tinted with the layer's map light.
+
 ## 6. HUD and UI
 
 **Materials:** weathered wood signs (`#8B5A2B`), cream enamel with blue rim (`#F3EAD3` / `#2D5DA8`),
@@ -1005,6 +1020,19 @@ per voice language — 57 clips in en/af/de (Dutch text speaks Afrikaans), made 
 interim voice pipeline as his other lines (§10.1); the numbers are only in the caption, never
 spoken, so the clips stay few. Example: "Jislaaik, what a bag! The pickup's full!" (caption:
 "Jislaaik, 14 birds! The pickup's full!").
+### 10.5 Brakkie's sounds and Oupa's lines (1.15.0, D-069)
+
+Made in code (`tools/audio/brakkie.ts`, the lazy group `brakkie`): two short, sharp terrier barks
+("rruf!" and a double "rip-rip", alternated) — a breathy onset, a buzzy voiced burst that jumps up
+and falls through a small dog's two mouth formants; a startled yelp (a quick high squeal rising and
+dropping away: startled, never a cry of pain); happy panting when he's back from a fetch. The
+soundscape's far calls hold off while he barks, yelps or digs. **Oupa:** three lines — a gruff,
+loving scold when a shot is aimed at Brakkie ("Hey! That's my Brakkie, not a tarentaal!"), a proud
+line after his first fetch of a hunt ("Good boy, Brakkie! Bring it here."), and the title's
+greeting when the player first taps him ("Come, Brakkie! We're going hunting.") — 9 clips in
+en/af/de with the interim voice pipeline (§10.1), Dutch text. "Brakkie" is his name in every
+language; "the farm dog" is translated.
+
 ## 11. Special days (Feesdae, D-048)
 
 A special day dresses the day's map; it never swaps the biome art. Each special's art and sounds

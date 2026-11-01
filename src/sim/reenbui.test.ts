@@ -30,6 +30,8 @@ function forced(): Content {
   const c = structuredClone(base) as Content;
   c.reenbui.areas = c.biomes.map((b) => ({ biome: b.id, chance: 1 }));
   c.reenbui.window = [0.1, 0.1];
+  // v1.12 (D-069): no Brakkie (his flush is an 'event' flock too, counted here otherwise).
+  c.brakkie.areas = [];
   return c;
 }
 

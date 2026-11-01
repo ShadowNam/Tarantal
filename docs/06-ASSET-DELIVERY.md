@@ -423,6 +423,20 @@ concertina oom-pa sting, ≤ 3 s). Oupa's 19 story phrases are voiced per langua
 (`audio/voice/<lang>/braai.say.<id>.wav`, lazy packs `braai-voice-<lang>`; text in
 `src/i18n/braai/<lang>.json`, the numbers only in the captions).
 
+**Brakkie, the farm dog (v1.12, D-069; art bible §5.6, §10.5).** Interim, awaiting real art and
+recordings: one sheet `sprites/brakkie/sheet.png` (a 2× master, 1024 × 512; the pack serves it at
+1×, 512 × 256, and the master as its HD twin `brakkie-hd`; the catalog's lazy group `brakkie`;
+boxes, origins and `res` in `src/game/brakkie/brakkieSheet.ts`, packed by its skyline packer):
+`trot_a`, `trot_b`, `run_a`, `run_b`, `sit`, `wag_a`, `lie`, `sniff`, `bark`, `dig`, `yelp` (a Jack
+Russell facing right, the origin at his feet; every frame authored at half size, `res` 0.5, and
+shown ×2) and `bird` (the guineafowl he carries, hung from its origin at his mouth, `MOUTH` in the
+table). A delivery keeps the frame boxes (or updates the table and `brakkieKeys.ts`) and stays
+≤ 0.5 MiB on the GPU at 1× (`GPU_BYTES_CAP`). Sounds (group `brakkie`, never the first download):
+`sfx/brakkie_bark`, `sfx/brakkie_bark2` (short terrier barks, ≤ 0.5 s), `sfx/brakkie_yelp` (a
+startled yelp, never a cry of pain, ≤ 0.4 s), `sfx/brakkie_pant` (happy panting, ~1.8 s). Oupa's
+three lines are voiced per language (`audio/voice/<lang>/guide.brakkie.{scold,fetched,title}.wav`,
+the voice packs; text in `src/i18n/guide/<lang>.json`).
+
 **Desert group (v1.7, D-044).** The meerkat colonies' sheet `desert/meerkats` and their four
 sounds (`sfx/meerkat_chirp`, `sfx/meerkat_alarm`, `sfx/meerkat_dig`, `sfx/camera_click`) are
 shared by the Kalahari and Namibië. They load in their own lazy group, `desert`, with either map,

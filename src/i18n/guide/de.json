@@ -62,5 +62,9 @@
   "guide.harvest.duck": "Vorsicht, Mann! Die arbeiten da!",
   "guide.harvest.piglet": "Lass die Ferkel in Ruhe!",
   "guide.harvest.crop_low": "Die Ernte! Die fressen alles auf!",
-  "guide.harvest.fixed": "Der Zaun ist dicht! Gut gemacht, alle!"
+  "guide.harvest.fixed": "Der Zaun ist dicht! Gut gemacht, alle!",
+  "guide.brakkie.name": "Brakkie, der Hofhund",
+  "guide.brakkie.scold": "He! Das ist mein Brakkie, kein Perlhuhn!",
+  "guide.brakkie.fetched": "Braver Junge, Brakkie! Bring ihn her.",
+  "guide.brakkie.title": "Komm, Brakkie! Wir gehen auf die Jagd."
 }

@@ -105,7 +105,23 @@ export class TellView {
       readonly id: string;
       readonly scale?: number | undefined;
     }[] = [],
-  ) {}
+    /** v1.12 (polish a): props whose tell is drawn above the layer's fixtures — a prop with a
+     *  turning rotor and its target discs (the Karoo windpomp's kestrel): under them, every disc
+     *  that came round hid the bird. */
+    private readonly aboveFixtures: ReadonlySet<string> = new Set(),
+    /** The e2e hooks are on: `__TM_TELL_UNDER__(on)` puts those tells back under the fixtures
+     *  (the screenshot spec's "before" of polish a). */
+    hooks = false,
+  ) {
+    if (hooks && aboveFixtures.size > 0)
+      (window as { __TM_TELL_UNDER__?: (on: boolean) => void }).__TM_TELL_UNDER__ = (on) => {
+        for (const s of this.slots.values()) {
+          if (!this.aboveFixtures.has(s.hook.propId)) continue;
+          const layer = this.parallax.layer(s.layerId);
+          if (layer !== undefined) (on ? layer.propFruit : layer.fixtures).add([s.glow, s.img]);
+        }
+      };
+  }
 
   /**
    * Review R11: true once the delivered sheet (Standard or its HD twin) is under the key. The
@@ -172,7 +188,7 @@ export class TellView {
       img.setFlipX(true);
       glow.setFlipX(true);
     }
-    layer.propFruit.add([glow, img]);
+    (this.aboveFixtures.has(t.propId) ? layer.fixtures : layer.propFruit).add([glow, img]);
     s = {
       img,
       glow,

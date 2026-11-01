@@ -62,5 +62,9 @@
   "guide.harvest.duck": "Pas op, man! Daar wordt gewerkt!",
   "guide.harvest.piglet": "Laat de biggetjes met rust!",
   "guide.harvest.crop_low": "De oogst! Ze vreten alles op!",
-  "guide.harvest.fixed": "Het hek is dicht! Goed gedaan, allemaal!"
+  "guide.harvest.fixed": "Het hek is dicht! Goed gedaan, allemaal!",
+  "guide.brakkie.name": "Brakkie, de boerenhond",
+  "guide.brakkie.scold": "Hé! Dat is mijn Brakkie, geen parelhoen!",
+  "guide.brakkie.fetched": "Brave jongen, Brakkie! Breng hem hier.",
+  "guide.brakkie.title": "Kom, Brakkie! We gaan jagen."
 }

@@ -76,7 +76,7 @@ test.describe('Blikkies: tin cans on the fence posts (v1.8, D-050)', () => {
     test.setTimeout(600_000);
     const touch = isTouchProject(info);
     const errors = collectErrors(page);
-    await page.goto('/?e2e=1&reenbui=0&admin=1');
+    await page.goto('/?e2e=1&reenbui=0&brakkie=0&admin=1');
     await page.waitForFunction(() => window.__TM__?.admin?.view === 'list', null, {
       timeout: 90_000,
     });

@@ -3,6 +3,7 @@
 // penalties and the rank stamp. GDD §16 step 7: [Again] (default focus) starts the next hunt with
 // one tap; [Season Run] opens the run (M6); [Menu] goes back to the title. Below the rank:
 // what the hunt changed in the save (new best, rank up, Notaboek ticks, unlocks), one line.
+import { BRAKKIE_SHEET } from '../brakkie/brakkieKeys';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -102,6 +103,10 @@ export class TallyScene extends Phaser.Scene {
   /** Oupa's story bubble and when (braai clock ms) its line's time is up. */
   private storyBubble: BarkBubble | null = null;
   private storyHideAt: number | null = null;
+  /** v1.12 (polish c): when the story bubble's line was told (braai clock ms), and how to show it
+   *  again: the bubble shows exactly while the clock is in [toldAt, hideAt). */
+  private storyToldAt = 0;
+  private storyReshow: (() => void) | null = null;
   /** Oupa's verdict bubble (a braai skip hides it: the story takes its place at once). */
   private verdictBubble: BarkBubble | null = null;
 
@@ -200,10 +205,14 @@ export class TallyScene extends Phaser.Scene {
     if (v === null) return;
     const ms = this.braaiClock();
     v.update(ms);
-    // Oupa's story bubble goes when its line's time on the braai clock is up.
-    if (this.storyHideAt !== null && ms >= this.storyHideAt) {
-      this.storyHideAt = null;
-      this.storyBubble?.hide();
+    // Oupa's story bubble shows while its line's time on the braai clock lasts: it goes when the
+    // time is up, and comes back if a hold moves the clock back inside it (v1.12 polish c: the
+    // screenshot spec's hold could land after a slow frame had already hidden it).
+    const bubble = this.storyBubble;
+    if (bubble !== null && this.storyHideAt !== null) {
+      const inWindow = ms >= this.storyToldAt && ms < this.storyHideAt;
+      if (!inWindow && bubble.rect !== null) bubble.hide();
+      else if (inWindow && bubble.rect === null) this.storyReshow?.();
     }
     const hook = this.ctx.hook;
     if (hook) {
@@ -219,6 +228,7 @@ export class TallyScene extends Phaser.Scene {
     this.braai = null;
     this.storyBubble = null;
     this.storyHideAt = null;
+    this.storyReshow = null;
     const { width, height } = designSize();
     fitCamera(this.cameras.main);
     const r = data.result;
@@ -659,20 +669,25 @@ export class TallyScene extends Phaser.Scene {
       if (!oupaShows(ctx.prefs.oupa)) return;
       this.storyBubble?.hide();
       const bubble = pool.take(caption);
-      bubble.showPrepared(
-        { bubbleMs: STORY_BUBBLE_HELD_MS, fadeMs: ctx.feel.barks.fadeMs },
-        this.time.now,
-      );
+      const show = (): void => {
+        bubble.showPrepared(
+          { bubbleMs: STORY_BUBBLE_HELD_MS, fadeMs: ctx.feel.barks.fadeMs },
+          this.time.now,
+        );
+        const v = this.braai;
+        if (v !== null) {
+          v.hook.bubble = bubble.rect;
+          bubble.onHidden = () => {
+            if (this.storyBubble === bubble) v.hook.bubble = null;
+          };
+        }
+      };
+      show();
       this.storyBubble = bubble;
+      this.storyToldAt = ms;
       this.storyHideAt = ms + (voice === null ? lineMs * 2 : lineMs);
+      this.storyReshow = show;
       if (voice !== null && oupaSpeaks(ctx.prefs.oupa)) ctx.audio.bark(voice);
-      const v = this.braai;
-      if (v !== null) {
-        v.hook.bubble = bubble.rect;
-        bubble.onHidden = () => {
-          if (this.storyBubble === bubble) v.hook.bubble = null;
-        };
-      }
     };
     this.braaiT0 = this.time.now;
     const view = new m.BraaiView({
@@ -756,6 +771,7 @@ export class TallyScene extends Phaser.Scene {
     if (hook) {
       hook.braai = view.hook;
       hook.textureBytes = textureBytes(this.textures);
+      hook.brakkieTexture = this.textures.exists(BRAKKIE_SHEET);
       hook.textureTop = view.textureTop();
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {

@@ -1271,7 +1271,7 @@ their system packages took 1–22 min per job, jobs queued up to 20 min for free
 PRs pushed several 16-job runs at once), and the slowest test shards took 17–18 min. Idle gaps
 between agent turns (a turn ends mid-task, nothing restarts it until the next hourly check) cost
 more than any of these. Decisions: (1) *CI lanes.* Pull requests into `main` run the **quick
-lane**: check/build/size, desktop Chromium in 6 shards (4 until v1.11, D-068), Pixel 7 landscape in 3, iPhone 14
+lane**: check/build/size, desktop Chromium in 6 shards (4 until v1.11, D-068), Pixel 7 landscape in 4 (3 until v1.12, D-069), iPhone 14
 landscape on WebKit, without the Season Run and perf timing specs. Push to `main`, the nightly
 run, a manual run and a PR labelled `full-ci` run the **full lane** (every profile, Season Run,
 perf, portal and public-build jobs, desktop WebKit in 2 shards). A PR merges on a green quick
@@ -3787,6 +3787,118 @@ hunt"). GDD §8.
   main's v1.10 run, 21 min on a fast quick-lane runner), and 4/4 ran 39–43 min. Desktop Chromium now
   runs in 6 shards in both lanes (35–36 tests each, was 52–53); the 45-min limit is unchanged and no
   test is skipped.
+
+**D-069 1.15.0 v1.12: Brakkie, the farm dog (1 Nov 2026):** from the product owner's list of 24 Oct
+("more personality and an African farm vibe"). GDD §11.3f.
+- *A sim entity, not a view-only cameo.* He barks at flocks and flushes them, and he can be shot at,
+  so he lives in the sim on his own stream `dog` (never shared: the flush's flock size, twist and
+  run come from `dog` too, as the Reënbui's extra flocks come from `reenbui`), reading the hunt's
+  flocks, pop-ups, crates and fire commands read-only. Content: `content/brakkie.json` (Zod schema,
+  cross-references to the biomes and modes). His code is in the lazy sim-systems chunk with the
+  baboons (every map already needs that chunk, so no hunt waits for anything new). Golden replays
+  re-recorded on purpose: every hunt with him gains his events, and his barks and flushes change
+  the flocks.
+- *Modes (the brief's recommendation, kept).* Classic, the Daily (special days too) and the bonus
+  maps, the Season Run's plain and omen hunts. Not boss hunts, Oupa se Les, the Skietbaan or the
+  Harvest. Bles (the FTUE's dog and the charm) is unchanged: Oupa has two dogs.
+- *Planes.* The near plane, his feet at `groundY` 985 (the pop-ups' grass line is 880–960), drawn
+  small (a Jack Russell is shorter than a guineafowl): his head stays ≥ 80 px below the mid plane's
+  ground (760), more than any gun's pellet spread (70), so shots at mid birds pass over him. The
+  mid plane only for a fetch there, crossing in depth (not hittable while crossing). *Screenshot
+  review:* at first his feet were at 1040, and on 16:9 he walked behind the shells HUD (the bottom
+  HUD rects start at ~952); at 985 at most his paws reach that band (an e2e checks ≤ 25 % of his
+  standing box under the HUD rects on every landscape profile). At 985 his head is level with the
+  tin cans on a near fence's posts (y ≈ 855): the can-happy bot strayed into him 0.2 a hunt on the
+  Karoo's Wednesday (6 in 30), always while he ran past the cans going home or coming out (the
+  bakkie's side, the right, is where that fence stands). So a new spot is taken only when the way
+  to it is clear too (`clear.pathPx` 220, checked every `pathStepPx` 100), and each trip home goes
+  by the bakkie's end of the panorama when that way is clear, else by the other end, and he comes
+  back out the way he went (or the other end if no clear way in): 0 in 30; competent bots 5 in 150
+  hunts across the five areas. Golden replays re-recorded for the height and the routes.
+- *Out of the HUD's corners (CI on c1ca190).* At 985 he still lay or ran behind the shells belt
+  (bottom right, where the bakkie side is on the Karoo): 0.69 of his box on desktop, 0.75 on the
+  iPhone, whose bottom inset lifts the belt. The sim never sees the device, so his rests, barks,
+  digs and the bags he fetches keep to a fixed band round the screen's centre (`roam.viewHalfPx`
+  450, `fetch.maxDxPx` 520, `flush.maxDxPx` 450): the belt starts at 568 px from the centre on
+  16:9 and further out on wider screens. Scampering away from something aimed at may use ±760
+  (`scamperHalfPx`), and a pan that leaves him resting outside the band (`driftPx` 100) gets him
+  up and back in. That band is where pop-ups rise (±600), which first raised the stray hits (8 in
+  60 hunts), so a pop-up now never rises within his room (the director moves its spawn point just
+  clear of him, the same draws) and one already up ducks back into the grass when he comes within
+  it (a guineafowl would): 2 in 120 competent hunts across the five areas, 0 in 12 can-happy
+  Karoo Wednesdays. A tin-can fence is aimed at as a whole (a player juggles its cans; knocked
+  cans fly and land round it): he keeps `clear.fencePx` 420 from its end posts — a mid-plane fence
+  where it shows on screen now, as his near layer is in front of its cans bouncing on the mid
+  ground (the can-happy bot on the Karoo's Wednesday: 0.11 stray + 0.03 aimed a hunt before, 0 in
+  20 after). Running in from or off to the bakkie he may pass behind the belt for a moment;
+  the e2e holds every stationary pose to ≤ 25 % under the HUD rects and the hunt's mean to ≤ 25 %.
+- *Balance (final content, `docs/balance/v1.12-brakkie.md`).* Competent bot, each area's Monday,
+  every gun (the Dubbelloop 500 seeds, the others 200), before = the same build without him: every
+  area's mean +0.5 … +1.6 % (gate ±3 %); single cells −0.9 … +4.5 % (three above +3 %: Kalahari
+  Windbuks, Namibië Langloop, Karoo Twee-Twee — his flush suits silent and single-shot guns; the
+  area means hold, so it was not tuned down). Accidental hits on him (stray + aimed) ≤ 0.074 a hunt
+  in every cell (gate < 0.1), the can-happy Karoo Wednesday 0.015. His fetches 0.6–2.6 a hunt,
+  barks 0.1–1.0, flushes 0.2–0.9.
+- *Sizes (gzip, main → this release).* First download: web 2,966.9 → 2,970.5 KB (+3.6: strings and
+  a little code; budget 3,072), Poki 2,959.2 → 2,962.5, CrazyGames 2,959.3 → 2,962.6; new lazy
+  groups `brakkie` 55.4 KB and `brakkie-hd` 64.2 KB; voice packs +55.5 (en), +57.6 (af), +71.7 (de)
+  for Oupa's 9 clips; lazy JS +6.8 KB; every other group unchanged. `size --strict` passes on all
+  three builds.
+- *CI shards.* Pixel 7 landscape now runs in 4 shards (3/3 took 37.2 min with his specs on
+  c1ca190; the others 28.8 and 34.2); desktop Chromium's 6 took 9.6–30.9 min. The 45-min limit is
+  unchanged and nothing is skipped.
+- *The hit rule (D-062/D-063's aimed-at rule).* −25 only for a shot aimed at him (the fire command's
+  aim point, a rifle's before the sway, mapped onto his layer, inside his body or head ellipse) that
+  hit no target elsewhere, at most once per 2 s (the weaver nest's cooldown, `hit.cooldownSeconds`);
+  any hit, aimed or stray, sends him yelping back to the bakkie. Never removed, never hurt.
+  Oupa's scold is a bark line on the hit event (the BarkDirector's cooldown rules), not a second
+  scold system. Accidental hits are measured in the balance report (gate < 0.1 a hunt, every gun).
+- *Line of fire (lesson 21).* His stand spots are checked against what a player aims at on his
+  layer (pop-ups, crates, secret parts, tell animals, meerkat colonies, tin cans) with `clearPx`,
+  he never starts a trot while the gun is up, and a mid fetch waits until no live bird is within
+  `fetch.clearPx` of the spot (else he gives up).
+- *Fetch is visual only.* No points; the bird he carries is his own frame. Balance moves only
+  through the bark (one threat to a mid flock in view) and the flush (a small flock bursting up
+  flushing): `docs/balance/v1.12-brakkie.md`.
+- *Lazy group, never waited for.* His sheet and sounds are the lazy group `brakkie` (+ `brakkie-hd`),
+  requested at START (and on the title for the wag) and never waited for: until it arrives he is
+  not drawn (the sim runs him all the same, so replays match). Oupa's three lines are in the voice
+  packs (en/af/de voiced with the interim TTS, nl text). Nothing new in the first download but
+  strings and a little code.
+- *Texture memory (lessons 29, 38, 40).* The heaviest HD hunt (Okavango with the Reënbui) is
+  254.8 of 256 MB; with his sheet capped at 512 × 256 (0.5 MiB) it is 255.3 MB, under the budget.
+  The hunt → braai tally hand-over peaks at 255.7 MB: + 0.5 would be 256.2 MB, over. So his texture
+  is released when the hunt ends, before the braai tally opens, and the → braai case measures the
+  same ≤ 255.7 MB as before. A unit test caps the sheet's GPU bytes.
+- *Phones (lessons 32–33).* Baked frames, properties set only on change, no allocation a frame; his
+  own hook timer `brakkieMs` in the [perf] JSON (≤ 0.3 ms a frame at 4× throttle, perf.spec).
+- *Line of fire, measured (balance sweep).* A first sweep showed every stray hit came from three
+  places, each fixed: carrying a mid-plane bird home along the mid plane, through the flocks (he
+  now crosses back to the near plane at once and carries it home there); a pop-up rising beside him
+  (pop-ups rise within ±600 px of the centre, in his band: every 0.2 s he checks and scampers away
+  from anything aimed at within 340 px, away from it, never past it); a crate gun's 300 px spread
+  (he keeps to the bakkie while a gun spreading over 120 px is out). Sim tests that need a quiet
+  world drop him (`quiet()` and friends).
+- *His own loader, like the braai's.* His sheet and sounds load through the chunk's own loader (as
+  `BraaiView` does), not the AssetManifest: it is what lets the texture come and go with the hunt
+  and the HD twin be chosen against the memory in use. No placeholder: until the delivered sheet is
+  in he simply isn't drawn (he is never needed to start or play a hunt).
+- *Title.* He sits beside START (else a bottom corner; three sizes; left out when no spot is clear
+  of every title rect, lesson 25), loads in the background and wags when tapped; the first tap of a
+  session gets Oupa's greeting. `?brakkie=0` leaves him off the title too, so no title baseline
+  changes.
+- *Notaboek* "Beste maats": a whole hunt with Brakkie out and never hit (a stray pellet spoils it).
+- *Polish in this release.* (a) The Karoo windpomp's kestrel (its tell) was drawn in the layer's
+  prop-fruit container, under the fixtures where the wheel's target discs turn: every disc that came
+  round hid it. A tell on a prop with a turning rotor now draws above them; nothing moved. (b) The
+  Bushveld agama's tail ran off its koppie's right edge onto the sand: re-seated on the lower left
+  ledge (−18, −48), clear of the dassie and the raid spots; an art test now checks a flat-lying
+  lizard has rock at both ends (the boulder crack's skink is left out: its crown is shorter than it
+  and it must stay clear of the crack). (c) The braai's story bubble now shows exactly while the
+  braai clock is in its line's window (a hold that moves the clock back brings it back), and the
+  screenshot spec re-holds 200 ms after line 2 is told. (e) Oupa's flip and hop at the braai are set
+  only when they change (≤ 7 calls a frame, was ≤ 10); the braai perf case measures ≥ 60 frames so
+  one GC pause can't decide it (the failing sample had 28); the 0.3 ms budget stays.
 
 ## 3. Research notes (with sources)
 

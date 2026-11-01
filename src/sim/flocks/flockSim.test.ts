@@ -23,6 +23,8 @@ function flockContent(edit: (c: ContentBundle) => void = () => undefined): Conte
     b.pacing.stampede.popupsPerMin = 0;
     b.events = [];
   }
+  // v1.12 (D-069): no Brakkie (his barks and flushes are his own tests').
+  c.brakkie.areas = [];
   edit(c);
   return c;
 }

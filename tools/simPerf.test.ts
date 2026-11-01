@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { createSim } from '../src/sim/Sim';
 import type { Command } from '../src/sim/types';
+import { withBrakkiePreview } from '../src/game/devContent';
 import { loadContent } from './testContent';
 
 describe('sim performance budget', () => {
@@ -171,6 +172,37 @@ describe('sim performance budget', () => {
     expect(sim.snapshot().reenbui?.phase).toBe('swarm');
     expect(maxBirds).toBeGreaterThanOrEqual(55);
     expect(feeding).toBeGreaterThanOrEqual(2);
+    expect(mean).toBeLessThan(1.5);
+  });
+  it('step() averages ≤ 1.5 ms with 60 birds plus Brakkie roaming, fetching and barking', () => {
+    const content = withBrakkiePreview(structuredClone(loadContent()), 'bark');
+    for (const b of content.biomes) {
+      for (const k of b.pacing.keyframes) {
+        k.flyoversPerMin = 3000;
+        k.popupsPerMin = 300;
+      }
+      b.pacing.stampede = { flyoversPerMin: 3000, popupsPerMin: 300 };
+    }
+    const sim = createSim({ seed: 2, content, mode: { id: 'classic' }, inputKind: 'touch' });
+    while (sim.snapshot().birds.length < 60) sim.step([]);
+    let total = 0;
+    let steps = 0;
+    let out = 0;
+    for (let i = 0; i < 1200; i++) {
+      const cmds: Command[] = [];
+      if (i % 4 === 0)
+        cmds.push({ t: 'fire', dx: ((i * 37) % 1600) - 800, sy: 150 + ((i * 53) % 600) });
+      if (i % 40 === 0) cmds.push({ t: 'reload' });
+      const t0 = performance.now();
+      sim.step(cmds);
+      total += performance.now() - t0;
+      steps++;
+      sim.drainEvents();
+      if (sim.snapshot().brakkie?.present === true) out++;
+    }
+    const mean = total / steps;
+    console.log(`brakkie step(): mean ${(mean * 1000).toFixed(1)} µs, out ${out} of ${steps}`);
+    expect(out).toBeGreaterThan(steps / 4);
     expect(mean).toBeLessThan(1.5);
   });
 });

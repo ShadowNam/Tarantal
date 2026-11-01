@@ -39,6 +39,7 @@ import {
   veldLifeBarks,
   baboonBarks,
   harvestBarks,
+  brakkieBarks,
   voiceGroup,
   voicedLines,
 } from '../../src/game/audio/voiceLines';
@@ -63,6 +64,13 @@ import {
   BRAAI_SOUNDS,
   braaiVoiceGroup,
 } from '../../src/game/braai/braaiKeys';
+import {
+  BRAKKIE_GROUP,
+  BRAKKIE_SHEET,
+  BRAKKIE_SHEET_H,
+  BRAKKIE_SHEET_W,
+  BRAKKIE_SOUNDS,
+} from '../../src/game/brakkie/brakkieKeys';
 import { STORY_LINE_IDS, sayKey } from '../../src/game/braai/story';
 
 export interface CatalogEntry {
@@ -210,6 +218,18 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   });
   for (const key of Object.values(BRAAI_SOUNDS))
     entries.set(key, { key, kind: 'sound', group: BRAAI_GROUP, biomes: everyBiome });
+  // v1.12 (D-069): Brakkie's sheet and sounds in a lazy group of their own (its HD twin
+  // brakkie-hd), fetched by his chunk when a hunt starts (and on the title for the wag).
+  entries.set(BRAKKIE_SHEET, {
+    key: BRAKKIE_SHEET,
+    kind: 'texture',
+    group: BRAKKIE_GROUP,
+    biomes: everyBiome,
+    width: BRAKKIE_SHEET_W,
+    height: BRAKKIE_SHEET_H,
+  });
+  for (const key of Object.values(BRAKKIE_SOUNDS))
+    entries.set(key, { key, kind: 'sound', group: BRAKKIE_GROUP, biomes: everyBiome });
   // Oupa's story phrases at the braai, one lazy pack per voice language.
   for (const lang of VOICE_LANGUAGES)
     for (const id of STORY_LINE_IDS) {
@@ -238,6 +258,7 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
         ...veldLifeBarks(content.birds),
         ...baboonBarks(RaidActionSchema.options),
         ...harvestBarks(),
+        ...brakkieBarks(),
       ],
     )) {
       const key = voiceKey(lang, line);

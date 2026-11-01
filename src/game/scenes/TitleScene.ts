@@ -28,6 +28,16 @@ import {
 } from '../ui/specialBadge';
 import { CHRISTMAS_SHEET } from '../feesdae/christmasKeys';
 import { NEWYEAR_SHEET } from '../feesdae/newyearKeys';
+import { brakkieChunk, requestBrakkie } from '../brakkie/brakkieChunk';
+import { BRAKKIE_SOUNDS } from '../brakkie/brakkieKeys';
+import type { TitleBrakkie } from '../brakkie/BrakkieView';
+
+import { clientToDesign } from '../input/screenButtons';
+import { guideString, loadGuide } from '../ui/guideI18n';
+import { getLanguage } from '../../i18n/i18n';
+
+/** v1.12 (D-069): the title Brakkie image's name (his own spot ignores him). */
+const TITLE_BRAKKIE_NAME = 'titleBrakkie';
 
 export interface TitleData {
   /** Starts the hunt; pointerId is the pressing pointer (null from the keyboard). */
@@ -498,6 +508,155 @@ export class TitleScene extends Phaser.Scene {
       this.ctx.chrome.setOnTitle(false);
       this.menu = null;
     });
+    this.addBrakkie();
+  }
+
+  /**
+   * v1.12 (D-069): Brakkie sitting on the title, in a spot clear of every title rect (lesson 25,
+   * the same occupied rects as Oupa's spot) — or left out when the screen has no room. His lazy
+   * chunk and sheet load in the background (never waited for); a tap on him makes him wag, and the
+   * first tap in a session gets Oupa's greeting. Not when Brakkie is off (?brakkie=0: no area).
+   */
+  private addBrakkie(): void {
+    const tuning = this.ctx.feel.brakkie;
+    if (this.ctx.content.brakkie.areas.length === 0) return;
+    requestBrakkie(this.ctx.audio, this.ctx.graphics.hd);
+    void loadGuide();
+    let dog: TitleBrakkie | null = null;
+    let caption: Phaser.GameObjects.Text | null = null;
+    let captionUntil = 0;
+    const onUpdate = (): void => {
+      if (dog === null) {
+        const chunk = brakkieChunk();
+        if (chunk === null) return;
+        dog = new chunk.TitleBrakkie(
+          this,
+          tuning,
+          this.ctx.graphics.hd,
+          this.ctx.reducedMotion,
+          this.brakkieSpot(),
+          5,
+          () =>
+            this.ctx.hook !== null &&
+            (window as { __TM_WAG_HOLD__?: boolean }).__TM_WAG_HOLD__ === true,
+        );
+      }
+      dog.update(this.time.now);
+      if (caption !== null && this.time.now > captionUntil) {
+        caption.destroy();
+        caption = null;
+      }
+      if (this.ctx.hook) this.ctx.hook.titleBrakkie = dog.hook;
+    };
+    this.events.on(Phaser.Scenes.Events.UPDATE, onUpdate);
+    const canvas = this.game.canvas;
+    const onDown = (e: PointerEvent): void => {
+      if (dog === null) return;
+      const p = clientToDesign(canvas, e.clientX, e.clientY, designSize());
+      if (!dog.tap(p.x, p.y, this.time.now)) return;
+      this.ctx.audio.playExtra(BRAKKIE_SOUNDS.bark, 0, () => 0);
+      if (TitleScene.greeted || Math.random() >= tuning.title.greetChance) return;
+      TitleScene.greeted = true;
+      const key = 'guide.brakkie.title';
+      this.ctx.audio.bark(key);
+      const text = guideString(getLanguage(), key);
+      const r = dog.hook.rect;
+      if (text === null || r === null) return;
+      caption?.destroy();
+      caption = this.add
+        .text(r.x + r.w / 2, r.y - 8, text, {
+          ...textStyle(24),
+          stroke: '#1B1410',
+          strokeThickness: 5,
+        })
+        .setOrigin(0.5, 1)
+        .setDepth(6);
+      fitText(caption, Math.max(160, designSize().width * 0.3));
+      captionUntil = this.time.now + 2600;
+    };
+    canvas.addEventListener('pointerdown', onDown);
+    const relayout = (): void => {
+      dog?.place(this.brakkieSpot());
+    };
+    this.scale.on(Phaser.Scale.Events.RESIZE, relayout);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.events.off(Phaser.Scenes.Events.UPDATE, onUpdate);
+      this.scale.off(Phaser.Scale.Events.RESIZE, relayout);
+      canvas.removeEventListener('pointerdown', onDown);
+      caption?.destroy();
+      dog?.destroy();
+      dog = null;
+      if (this.ctx.hook) this.ctx.hook.titleBrakkie = null;
+    });
+  }
+
+  /** v1.12 (D-069): Oupa's greeting goes out once a session. */
+  private static greeted = false;
+
+  /** Every rect on the title now (lesson 25): menu items, text lines, small pictures, and any
+   *  extra (the badge). */
+  private occupiedRects(extra: readonly Rect[], skipBrakkie = false): Rect[] {
+    const { width, height } = designSize();
+    const occupied: Rect[] = [...extra, ...(this.menu?.itemRects() ?? [])];
+    const big = width * height * 0.25;
+    for (const child of this.children.list) {
+      if (!(child instanceof Phaser.GameObjects.Text || child instanceof Phaser.GameObjects.Image))
+        continue;
+      if (!child.visible) continue;
+      // Brakkie himself is not an obstacle to his own spot.
+      if (skipBrakkie && child.name === TITLE_BRAKKIE_NAME) continue;
+      const b = child.getBounds();
+      if (b.width * b.height >= big || b.width === 0) continue;
+      occupied.push({ x: b.x, y: b.y, w: b.width, h: b.height });
+    }
+    return occupied;
+  }
+
+  /**
+   * v1.12 (D-069): where Brakkie sits on the title, from what is on screen now (every aspect
+   * ratio, lesson 25): beside the START button (left, then right, his feet on its bottom line),
+   * then the safe area's bottom corners, each at three sizes; the first spot clear of every title
+   * rect (8 px apart) and inside the safe area wins. Null: no room (he is left out).
+   */
+  private brakkieSpot(): { x: number; y: number; h: number; facing: 1 | -1 } | null {
+    const { width, height } = designSize();
+    const safe = this.ctx.safeArea();
+    const occupied = this.occupiedRects([], true);
+    const start = this.ctx.hook?.rects['start'] ?? this.menu?.itemRects()[0] ?? null;
+    const pad = 8;
+    const t = this.ctx.feel.brakkie.title;
+    // His sitting frame's width per height (brakkieSheet.ts: sit 167 × 181).
+    const aspect = 167 / 181;
+    for (const k of [1, 0.8, 0.62]) {
+      const h = t.heightPx * k;
+      const w = h * aspect;
+      const spots: { x: number; y: number; facing: 1 | -1 }[] = [];
+      if (start !== null) {
+        const foot = start.y + start.h;
+        spots.push({ x: start.x - t.gapPx - w / 2, y: foot, facing: 1 });
+        spots.push({ x: start.x + start.w + t.gapPx + w / 2, y: foot, facing: -1 });
+      }
+      const floor = height - safe.bottom - pad;
+      spots.push({ x: safe.left + pad + w / 2 + 40, y: floor, facing: 1 });
+      spots.push({ x: width - safe.right - pad - w / 2 - 40, y: floor, facing: -1 });
+      for (const sp of spots) {
+        const r = { x: sp.x - w / 2, y: sp.y - h, w, h };
+        const inside =
+          r.x >= safe.left + pad &&
+          r.y >= safe.top + pad &&
+          r.x + r.w <= width - safe.right - pad &&
+          r.y + r.h <= height - safe.bottom - pad;
+        const clear = occupied.every(
+          (o) =>
+            r.x >= o.x + o.w + pad ||
+            o.x >= r.x + r.w + pad ||
+            r.y >= o.y + o.h + pad ||
+            o.y >= r.y + r.h + pad,
+        );
+        if (inside && clear) return { ...sp, h };
+      }
+    }
+    return null;
   }
 
   /** The line above the Daily button: new today, the streak (and its freeze), or played. */
@@ -540,16 +699,7 @@ export class TitleScene extends Phaser.Scene {
   private oupaSpot(badge: Rect): { x: number; y: number; s: number } | null {
     const { width, height } = designSize();
     const safe = this.ctx.safeArea();
-    const occupied: Rect[] = [badge, ...(this.menu?.itemRects() ?? [])];
-    const big = width * height * 0.25;
-    for (const child of this.children.list) {
-      if (!(child instanceof Phaser.GameObjects.Text || child instanceof Phaser.GameObjects.Image))
-        continue;
-      if (!child.visible) continue;
-      const b = child.getBounds();
-      if (b.width * b.height >= big || b.width === 0) continue;
-      occupied.push({ x: b.x, y: b.y, w: b.width, h: b.height });
-    }
+    const occupied = this.occupiedRects([badge]);
     const gap = 6;
     const foot = badge.y + badge.h;
     for (const s of [0.36, 0.3, 0.24, 0.19]) {

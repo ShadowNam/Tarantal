@@ -68,6 +68,10 @@ import type { TellView } from '../view/tell/TellView';
 import type { BaboonView } from '../view/baboon/BaboonView';
 import type { ReenbuiView } from '../view/reenbui/ReenbuiView';
 import { braaiReady, requestBraai } from '../braai/braaiChunk';
+import { brakkieChunk, requestBrakkie } from '../brakkie/brakkieChunk';
+import { BRAKKIE_SHEET } from '../brakkie/brakkieKeys';
+import { secretOwnsRotor } from '../view/windpompMotion';
+import type { BrakkieView } from '../brakkie/BrakkieView';
 import { StoryFactsLog } from '../braai/storyFacts';
 import type { HarvestView } from '../view/harvest/HarvestView';
 import type { HarvestTally } from './TallyScene';
@@ -191,6 +195,10 @@ export class HuntScene extends Phaser.Scene {
   private harvestGen = 0;
   /** v1.10 (D-067): Reënbui's view (lazy chunk; null until it is in, or no Reënbui this hunt). */
   private reenbui: ReenbuiView | null = null;
+  /** v1.12 (D-069): Brakkie (lazy chunk; null until it is in, or not on this hunt). */
+  private brakkie: BrakkieView | null = null;
+  /** This hunt has Brakkie (the sim's snapshot): the view is built once the chunk is in. */
+  private brakkieWanted = false;
   private reenbuiGen = 0;
   private reenbuiBiome: Biome | null = null;
   private readonly feedingFlocks = new Set<number>();
@@ -849,6 +857,7 @@ export class HuntScene extends Phaser.Scene {
   /** D-029 texture memory for the test hook, and (v1.3) which gun atlases are on the GPU. */
   private sampleTextures(hook: TestHook): void {
     hook.textureBytes = textureBytes(this.textures);
+    hook.brakkieTexture = this.textures.exists(BRAKKIE_SHEET);
     hook.textureTop = largestTextures(this.textures, 15);
     // D-053: HD textures in the texture manager, and sampled on-screen boxes (the same with
     // Standard and HD).
@@ -1813,6 +1822,10 @@ export class HuntScene extends Phaser.Scene {
     // v1.10 (D-067): Reënbui's view, only for a hunt that has one (its chunk loads in the
     // background: the hunt never waits for it, lesson 19).
     this.loadReenbui(sim.snapshot().reenbui !== null);
+    // v1.12 (D-069): Brakkie's chunk and files, asked for at START and never waited for: until
+    // they are in he isn't drawn (the sim runs him all the same).
+    this.brakkieWanted = sim.snapshot().brakkie !== null;
+    if (this.brakkieWanted) requestBrakkie(this.ctx.audio, this.ctx.graphics.hd);
     const durationTicks = sim.snapshot().durationTicks;
     this.ftue =
       modeId === 'ftue'
@@ -1981,6 +1994,8 @@ export class HuntScene extends Phaser.Scene {
       hook.tellMs = 0;
       hook.baboons = null;
       hook.baboonMs = 0;
+      hook.brakkie = null;
+      hook.brakkieMs = 0;
       hook.harvestActors = null;
       hook.harvest = null;
       hook.harvestMs = 0;
@@ -2074,7 +2089,18 @@ export class HuntScene extends Phaser.Scene {
     // v1.9 (D-066): the veld soundscape on the hunt's tick (its own hook timer, report only).
     if (soundscape !== null) {
       const s0 = hook ? performance.now() : 0;
-      soundscape.frame(state.tick, state.birds, events, now, state.reenbui);
+      soundscape.frame(
+        state.tick,
+        state.birds,
+        events,
+        now,
+        state.reenbui,
+        // v1.12 (D-069): the calls make room while Brakkie barks, yelps or digs.
+        state.brakkie !== null &&
+          (state.brakkie.phase === 'bark' ||
+            state.brakkie.phase === 'yelp' ||
+            state.brakkie.phase === 'dig'),
+      );
       if (hook && !this.ending) {
         hook.soundscapeMs += performance.now() - s0;
         hook.soundscapeFrames++;
@@ -2191,6 +2217,23 @@ export class HuntScene extends Phaser.Scene {
     if (this.tells !== null) {
       this.tells.update(state, this.world.secretsLit(state));
       if (this.ctx.hook) this.ctx.hook.tellMs += this.tells.lastMs;
+    }
+    // v1.12 (D-069): Brakkie, on his own timer (brakkieMs); his view is built once his chunk is in.
+    if (this.brakkie === null && this.brakkieWanted && !this.ending) {
+      const chunk = brakkieChunk();
+      if (chunk !== null)
+        this.brakkie = new chunk.BrakkieView({
+          scene: this,
+          parallax: this.parallax,
+          now: () => performance.now(),
+          tuning: this.ctx.feel.brakkie,
+          hd: this.ctx.graphics.hd,
+          hooks: this.ctx.hook !== null,
+        });
+    }
+    if (this.brakkie !== null) {
+      this.brakkie.update(state);
+      if (this.ctx.hook) this.ctx.hook.brakkieMs += this.brakkie.lastMs;
     }
     // v1.8b (D-062): the baboons, on their own timer (outside the weavers + mirage window).
     if (this.baboons !== null) {
@@ -2484,6 +2527,7 @@ export class HuntScene extends Phaser.Scene {
       hook.namibLife = this.namibLife?.hook() ?? null;
       hook.tells = this.tells?.tells ?? null;
       hook.baboons = this.baboons?.baboons ?? null;
+      hook.brakkie = this.brakkie?.hook ?? null;
       hook.baboonRaid = state.baboons?.raid ?? null;
       hook.harvestActors = this.harvest?.actors ?? null;
       hook.reenbui = state.reenbui;
@@ -2621,6 +2665,13 @@ export class HuntScene extends Phaser.Scene {
       });
   }
 
+  /** v1.12 (D-069): Brakkie's view and his sheet's texture, gone (hunt end, teardown). */
+  private releaseBrakkie(): void {
+    this.brakkie?.destroy();
+    this.brakkie = null;
+    if (this.ctx.hook) this.ctx.hook.brakkie = null;
+  }
+
   /** v1.10 (D-067): Reënbui's chunk, for a hunt that has one. */
   private loadReenbui(has: boolean): void {
     this.reenbui?.destroy();
@@ -2704,6 +2755,13 @@ export class HuntScene extends Phaser.Scene {
           () => performance.now(),
           this.manifest,
           this.ctx.content.birds.tells.species,
+          // v1.12 (polish a): a tell on a prop with a rotor (its target discs) draws above them.
+          new Set(
+            mapBiome.props.flatMap((p) =>
+              p.secret?.tell !== undefined && secretOwnsRotor(p.secret) ? [p.id] : [],
+            ),
+          ),
+          this.ctx.hook !== null,
         );
       })
       .catch(() => {
@@ -2819,6 +2877,8 @@ export class HuntScene extends Phaser.Scene {
     this.makalani?.handle(events, this.ctx.audio, width);
     // v1.8b (D-062): the baboons' barks, screeches and raid sounds.
     this.baboons?.handle(events, state, this.ctx.audio, width);
+    // v1.12 (D-069): Brakkie's barks, yelp and panting.
+    this.brakkie?.handle(events, this.ctx.audio, width);
     this.harvest?.handle(events, state, this.ctx.audio, width);
     this.world.potjie.handle(events);
     if (this.ctx.hook) {
@@ -2960,6 +3020,9 @@ export class HuntScene extends Phaser.Scene {
     const runner = this.runner;
     if (runner === null) return;
     this.ending = true;
+    // v1.12 (D-069, lesson 40): Brakkie and his sheet go with the hunt, before the tally opens —
+    // the hunt → (braai) tally hand-over carries none of his texture.
+    this.releaseBrakkie();
     this.mapper?.setEnabled(false);
     this.game.canvas.style.cursor = '';
     this.weapon.hideReticle();
@@ -3310,6 +3373,8 @@ export class HuntScene extends Phaser.Scene {
     this.baboons?.destroy();
     this.baboons = null;
     this.baboonsGen++;
+    this.releaseBrakkie();
+    this.brakkieWanted = false;
     this.harvest?.destroy();
     this.harvest = null;
     this.harvestGen++;
