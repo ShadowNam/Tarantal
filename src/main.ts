@@ -435,6 +435,7 @@ const hook: TestHook = {
   baboonMs: 0,
   brakkie: null,
   brakkieMs: 0,
+  brakkieTexture: false,
   titleBrakkie: null,
   feesdagMs: 0,
   feesdagDimMs: 0,

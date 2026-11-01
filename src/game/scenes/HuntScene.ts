@@ -69,6 +69,7 @@ import type { BaboonView } from '../view/baboon/BaboonView';
 import type { ReenbuiView } from '../view/reenbui/ReenbuiView';
 import { braaiReady, requestBraai } from '../braai/braaiChunk';
 import { brakkieChunk, requestBrakkie } from '../brakkie/brakkieChunk';
+import { BRAKKIE_SHEET } from '../brakkie/brakkieKeys';
 import type { BrakkieView } from '../brakkie/BrakkieView';
 import { StoryFactsLog } from '../braai/storyFacts';
 import type { HarvestView } from '../view/harvest/HarvestView';
@@ -855,6 +856,7 @@ export class HuntScene extends Phaser.Scene {
   /** D-029 texture memory for the test hook, and (v1.3) which gun atlases are on the GPU. */
   private sampleTextures(hook: TestHook): void {
     hook.textureBytes = textureBytes(this.textures);
+    hook.brakkieTexture = this.textures.exists(BRAKKIE_SHEET);
     hook.textureTop = largestTextures(this.textures, 15);
     // D-053: HD textures in the texture manager, and sampled on-screen boxes (the same with
     // Standard and HD).

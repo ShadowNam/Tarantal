@@ -3,6 +3,7 @@
 // penalties and the rank stamp. GDD §16 step 7: [Again] (default focus) starts the next hunt with
 // one tap; [Season Run] opens the run (M6); [Menu] goes back to the title. Below the rank:
 // what the hunt changed in the save (new best, rank up, Notaboek ticks, unlocks), one line.
+import { BRAKKIE_SHEET } from '../brakkie/brakkieKeys';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -756,6 +757,7 @@ export class TallyScene extends Phaser.Scene {
     if (hook) {
       hook.braai = view.hook;
       hook.textureBytes = textureBytes(this.textures);
+      hook.brakkieTexture = this.textures.exists(BRAKKIE_SHEET);
       hook.textureTop = view.textureTop();
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {

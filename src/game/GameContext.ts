@@ -296,6 +296,9 @@ export interface TestHook {
   /** D-029: RGBA bytes of all textures (GPU memory estimate) during a hunt, and when the
    *  Skiet-Skuur opens (D-035 review); 0 before. */
   textureBytes: number;
+  /** v1.12 (D-069): Brakkie's sheet is in the texture manager (sampled with textureBytes; the
+   *  tally must show false: it goes with the hunt, lesson 40). */
+  brakkieTexture: boolean;
   /** D-053: the largest textures (key, MB), sampled with textureBytes. */
   textureTop: { key: string; mb: number }[];
   /** v1.3: delivered gun atlases in the texture manager (sampled with textureBytes). */

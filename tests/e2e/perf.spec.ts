@@ -10,6 +10,7 @@ import { writeFileSync } from 'node:fs';
 import { STANDARD_IN_HD_LAYERS } from '../../src/game/assets/hdPack';
 import {
   boot,
+  burstAtFlock,
   collectErrors,
   hook,
   isTouchProject,
@@ -602,9 +603,10 @@ test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async 
   );
   test.setTimeout(400_000);
   await emulateCores(page);
+  // v1.12 (D-069): with Brakkie out (his sheet adds to the hunt: 254.8 + 0.5 = 255.3 MB).
   await boot(
     page,
-    'biome=okavango-spring&layout=none&seed=3&huntSeconds=60&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm',
+    'biome=okavango-spring&layout=none&seed=3&huntSeconds=60&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm&brakkie=1',
   );
   await startHunt(page, isTouchProject(info));
   await page.waitForFunction(
@@ -615,6 +617,7 @@ test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async 
         tm?.biome === 'okavango-spring' &&
         tm.reenbui?.phase === 'swarm' &&
         tm.reenbuiDraw?.sheet === true &&
+        tm.brakkie?.sheet != null &&
         tm.graphics.hdTextures > 0 &&
         fauna.length > 0 &&
         fauna.every((b) => b.hd)
@@ -643,9 +646,15 @@ test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async 
   await page.waitForTimeout(4000);
   const h = await hook(page);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
-  console.log(`[perf] reenbui (okavango) HD texture memory (title → hunt) ${mb} MB`);
+  console.log(
+    `[perf] reenbui (okavango) HD texture memory (title → hunt) ${mb} MB (brakkie ${h.brakkie?.sheet})`,
+  );
   await info.attach('hd-memory-reenbui-okavango.json', {
-    body: JSON.stringify({ biome: 'okavango-spring', textureMB: mb, top: h.textureTop }, null, 1),
+    body: JSON.stringify(
+      { biome: 'okavango-spring', textureMB: mb, brakkie: h.brakkie?.sheet, top: h.textureTop },
+      null,
+      1,
+    ),
     contentType: 'application/json',
   });
   const others = h.textureTop.filter(
@@ -656,6 +665,7 @@ test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async 
     h.textureTop.filter((t) => t.key.includes('reenbui') && t.key.includes('hd')),
     'an HD Reënbui texture on the GPU',
   ).toEqual([]);
+  expect(h.brakkieTexture, "Brakkie's sheet in this hunt").toBe(true);
   expect(mb, 'reenbui (okavango): texture memory (MB) with HD').toBeLessThanOrEqual(256);
 });
 
@@ -1348,9 +1358,11 @@ test('HD texture memory, the Okavango Reënbui hunt → the braai tally', async 
   await emulateCores(page);
   await boot(
     page,
-    'biome=okavango-spring&layout=none&seed=3&huntSeconds=45&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm',
+    'biome=okavango-spring&layout=none&seed=3&huntSeconds=45&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm&brakkie=1',
   );
   await startHunt(page, isTouchProject(info));
+  // v1.12 (D-069, lesson 40): Brakkie's sheet is in during the hunt and gone before the tally:
+  // 255.7 + 0.5 would be 256.2 MB at the braai.
   await page.waitForFunction(
     () => {
       const tm = window.__TM__;
@@ -1358,6 +1370,7 @@ test('HD texture memory, the Okavango Reënbui hunt → the braai tally', async 
         tm?.biome === 'okavango-spring' &&
         tm.reenbui?.phase === 'swarm' &&
         tm.reenbuiDraw?.sheet === true &&
+        tm.brakkie?.sheet != null &&
         tm.graphics.hdTextures > 0 &&
         tm.braaiLoaded
       );
@@ -1382,7 +1395,76 @@ test('HD texture memory, the Okavango Reënbui hunt → the braai tally', async 
   });
   expect(h.scene).toBe('tally');
   expect(h.braai, 'the braai shows').not.toBeNull();
+  expect(h.brakkieTexture, "Brakkie's sheet went with the hunt").toBe(false);
   expect(mb, 'okavango reenbui → braai: texture memory (MB) with HD').toBeLessThanOrEqual(256);
+});
+
+// v1.12 (D-069): Brakkie fetching and barking on the Pixel 7 profile at 4× CPU throttle (the
+// smoke's regime: ~20 sim ticks a frame). ?brakkie=1 brings him out at once and fetches every bag
+// in view; ?brakkiePreview=bark has him bark every 3–4 s. Shots at the flocks in view bag birds.
+// His view on its own timer (brakkieMs per scenery frame) ≤ 0.3 ms, the frame within the budget.
+test('perf: Brakkie fetching and barking at 4× CPU throttle (Pixel 7)', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await emulateCores(page);
+  await boot(
+    page,
+    'biome=karoo-autumn&layout=mon&seed=3&huntSeconds=30&graphics=standard&baboons=0&brakkie=1&brakkiePreview=bark',
+  );
+  await startHunt(page, touch);
+  await page.waitForFunction(() => window.__TM__?.brakkie?.sheet != null, null, {
+    timeout: 120_000,
+  });
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  const first = await hook(page);
+  let shown = 0;
+  let maxCalls = 0;
+  const phases = new Set<string>();
+  while (!(await hook(page)).over) {
+    const h = await hook(page);
+    if (h.brakkie?.visible === true) shown++;
+    maxCalls = Math.max(maxCalls, h.brakkie?.calls ?? 0);
+    if (h.brakkie !== null) phases.add(h.brakkie.phase);
+    const flock = h.flockSpots.find(
+      (f) => f.plane === 'mid' && f.alive > 0 && f.x > 100 && f.x < h.designWidth - 100,
+    );
+    if (flock !== undefined) await burstAtFlock(page, touch, flock.id, 2, 20);
+    else await waitTicks(page, 40);
+  }
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const frames = Math.max(1, h.sceneryFrames - first.sceneryFrames);
+  const cpu = stats(h.cpuFrameMs.slice(30));
+  const report = {
+    project: info.project.name,
+    tier: h.quality.tier,
+    throttle: 4,
+    frames,
+    brakkieMsPerFrame: (h.brakkieMs - first.brakkieMs) / frames,
+    maxCallsPerFrame: maxCalls,
+    samplesShown: shown,
+    phases: [...phases].sort(),
+    cpuFrameMs: cpu,
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf-brakkie.json'), JSON.stringify(report, null, 2));
+  expect(shown, 'Brakkie was drawn on screen').toBeGreaterThan(0);
+  expect(report.phases, 'he barked').toContain('bark');
+  expect(maxCalls).toBeLessThanOrEqual(40);
+  expect(report.brakkieMsPerFrame, 'Brakkie view ms per frame, 4× throttle').toBeLessThanOrEqual(
+    0.3,
+  );
+  expect(cpu.avg, 'CPU cost per frame (ms), Brakkie, 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
+  expect(errors).toEqual([]);
 });
 
 // v1.11 (D-068): the braai tally on the Pixel 7 profile at 4× CPU throttle, medium tier, Oupa's
