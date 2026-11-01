@@ -1506,12 +1506,15 @@ test('perf: the braai tally at 4× CPU throttle (Pixel 7)', async ({ page, brows
   const first = await hook(page);
   let danced = false;
   let calls = 0;
-  for (let i = 0; i < 60; i++) {
+  // v1.12 (polish e): at least 60 frames measured, so one GC pause can't decide the mean (the
+  // failing CI sample had 28 frames: anim 0.193 ms vs 0.075 on its retry).
+  for (let i = 0; i < 200; i++) {
     await page.waitForTimeout(250);
     const h = await hook(page);
     danced ||= h.braai?.dancing === true;
     calls = Math.max(calls, h.braai?.calls ?? 0);
-    if ((h.braai?.story.shown ?? 0) >= (h.braai?.story.lines.length ?? 9) && danced) break;
+    const told = (h.braai?.story.shown ?? 0) >= (h.braai?.story.lines.length ?? 9);
+    if (told && danced && h.braaiFrames - first.braaiFrames >= 60) break;
   }
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
   const h = await hook(page);
@@ -1534,7 +1537,7 @@ test('perf: the braai tally at 4× CPU throttle (Pixel 7)', async ({ page, brows
   };
   console.log(`[perf] ${JSON.stringify(report)}`);
   writeFileSync(info.outputPath('perf-braai.json'), JSON.stringify(report, null, 2));
-  expect(frames).toBeGreaterThan(10);
+  expect(frames).toBeGreaterThanOrEqual(60);
   expect(report.maxCallsPerFrame).toBeLessThanOrEqual(40);
   expect(report.braaiMsPerFrame, 'braai view ms per frame, 4× throttle').toBeLessThanOrEqual(0.3);
   expect(errors).toEqual([]);
