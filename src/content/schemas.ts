@@ -2132,6 +2132,9 @@ export const BrakkieSchema = obj({
     checkSeconds: pos,
     /** After a shot he holds still this long (and while a sight or fire is held). */
     holdBackSeconds: nonNeg,
+    /** A tin-can fence on his plane: he keeps this far from its end posts (its knocked cans fly
+     *  and land round it; a player juggles them there). */
+    fencePx: nonNeg,
     /** His way to a new spot is clear too: nothing aimed at within pathPx of it, checked every
      *  pathStepPx. */
     pathPx: pos,

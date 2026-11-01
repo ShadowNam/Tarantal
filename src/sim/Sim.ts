@@ -1070,6 +1070,23 @@ export function createSim(config: SimConfig): Sim {
           best = at;
       };
       for (const b of birds) if (b.plane === plane) consider(b.x);
+      // A tin-can fence on his plane, with the ground its knocked cans fly over and land on, is
+      // aimed at as a whole (a player juggles cans there): he keeps off that stretch.
+      // A fence on the mid plane counts where it shows on screen now (his near layer is in front
+      // of it: a pellet at a can bouncing low on the mid ground meets him first).
+      for (const fence of [blik?.fence, blikFar?.fence]) {
+        if (fence === undefined || fence.posts.length === 0) continue;
+        if (fence.plane !== plane && !(plane === 'near' && fence.plane === 'mid')) continue;
+        const shift =
+          fence.plane === plane
+            ? 0
+            : planeCentreX(cameraX, planeGeo.near.scrollFactor) -
+              planeCentreX(cameraX, planeGeo.mid.scrollFactor);
+        const xs = fence.posts.map((p) => p.x + shift);
+        const lo = Math.min(...xs) - dogCfg.clear.fencePx;
+        const hi = Math.max(...xs) + dogCfg.clear.fencePx;
+        consider(Math.min(hi, Math.max(lo, x)));
+      }
       if (busyTick !== tick) {
         busyTick = tick;
         busyExtras = hitExtras();

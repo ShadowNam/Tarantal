@@ -3826,7 +3826,11 @@ hunt"). GDD §8.
   60 hunts), so a pop-up now never rises within his room (the director moves its spawn point just
   clear of him, the same draws) and one already up ducks back into the grass when he comes within
   it (a guineafowl would): 2 in 120 competent hunts across the five areas, 0 in 12 can-happy
-  Karoo Wednesdays. Running in from or off to the bakkie he may pass behind the belt for a moment;
+  Karoo Wednesdays. A tin-can fence is aimed at as a whole (a player juggles its cans; knocked
+  cans fly and land round it): he keeps `clear.fencePx` 420 from its end posts — a mid-plane fence
+  where it shows on screen now, as his near layer is in front of its cans bouncing on the mid
+  ground (the can-happy bot on the Karoo's Wednesday: 0.11 stray + 0.03 aimed a hunt before, 0 in
+  20 after). Running in from or off to the bakkie he may pass behind the belt for a moment;
   the e2e holds every stationary pose to ≤ 25 % under the HUD rects and the hunt's mean to ≤ 25 %.
 - *Sizes (gzip, main → this release).* First download: web 2,966.9 → 2,970.5 KB (+3.6: strings and
   a little code; budget 3,072), Poki 2,959.2 → 2,962.5, CrazyGames 2,959.3 → 2,962.6; new lazy
