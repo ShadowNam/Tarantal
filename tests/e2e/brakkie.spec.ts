@@ -90,7 +90,11 @@ test('a fetch on a fixed seed: he races to a bagged bird and carries it home, dr
     const h = await hook(page);
     const flock = h.flockSpots.find(
       (f) =>
-        f.plane === 'mid' && f.alive > 0 && Math.abs(f.x - h.designWidth / 2) < h.designWidth * 0.3,
+        // Inside his fetch band (brakkie.json fetch.maxDxPx: ±520 from the screen's centre on every
+        // device; ±30 % of a 20:9 screen reached 720 and he never went).
+        f.plane === 'mid' &&
+        f.alive > 0 &&
+        Math.abs(f.x - h.designWidth / 2) < brakkie.fetch.maxDxPx - 120,
     );
     if (flock === undefined) {
       await waitTicks(page, 60);
