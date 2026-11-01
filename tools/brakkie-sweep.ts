@@ -35,6 +35,21 @@ function cells(): Cell[] {
             ...(side === 'before' ? { overrides: ['brakkie.areas=[]'] } : {}),
           },
         });
+  // The near can fence (the Karoo's Wednesday) with the bot that shoots every can: the stray-hit
+  // check for a player juggling cans near him.
+  for (const side of ['before', 'after'] as const)
+    out.push({
+      id: `karoo-autumn.wed.canHappy.${side}`,
+      job: {
+        input: 'pointer',
+        mode: 'classic',
+        bot: 'canHappy',
+        biome: 'karoo-autumn',
+        layout: 'wed',
+        weapon: 'dubbelloop',
+        ...(side === 'before' ? { overrides: ['brakkie.areas=[]'] } : {}),
+      },
+    });
   return out;
 }
 
@@ -67,18 +82,21 @@ if (process.argv.includes('--table')) {
     '| area | gun | hunts | before | after | change | stray hits / hunt | aimed / hunt | barks | flushes | fetches |',
     '|---|---|---|---|---|---|---|---|---|---|---|',
   ];
+  const rows: [string, string, string][] = [];
   for (const a of content.brakkie.areas)
-    for (const g of GUNS) {
-      const b = all[`${a.biome}.${g}.before`];
-      const f = all[`${a.biome}.${g}.after`];
-      if (b === undefined || f === undefined) continue;
-      const mb = b.score / b.hunts;
-      const mf = f.score / f.hunts;
-      const per = (x: number): string => (x / f.hunts).toFixed(3);
-      lines.push(
-        `| ${a.biome} | ${g} | ${String(f.hunts)} | ${mb.toFixed(0)} | ${mf.toFixed(0)} | ${(((mf - mb) / mb) * 100).toFixed(1)} % | ${per(f.dogStray)} | ${per(f.dogAimed)} | ${(f.dogBarks / f.hunts).toFixed(1)} | ${(f.dogFlushes / f.hunts).toFixed(1)} | ${(f.dogFetches / f.hunts).toFixed(1)} |`,
-      );
-    }
+    for (const g of GUNS) rows.push([a.biome, g, `${a.biome}.${g}`]);
+  rows.push(['karoo-autumn (wed, can-happy bot)', 'dubbelloop', 'karoo-autumn.wed.canHappy']);
+  for (const [area, g, key] of rows) {
+    const b = all[`${key}.before`];
+    const f = all[`${key}.after`];
+    if (b === undefined || f === undefined) continue;
+    const mb = b.score / b.hunts;
+    const mf = f.score / f.hunts;
+    const per = (x: number): string => (x / f.hunts).toFixed(3);
+    lines.push(
+      `| ${area} | ${g} | ${String(f.hunts)} | ${mb.toFixed(0)} | ${mf.toFixed(0)} | ${(((mf - mb) / mb) * 100).toFixed(1)} % | ${per(f.dogStray)} | ${per(f.dogAimed)} | ${(f.dogBarks / f.hunts).toFixed(1)} | ${(f.dogFlushes / f.hunts).toFixed(1)} | ${(f.dogFetches / f.hunts).toFixed(1)} |`,
+    );
+  }
   console.log(lines.join('\n'));
 } else {
   const seeds = Number(arg('seeds') ?? 100);
