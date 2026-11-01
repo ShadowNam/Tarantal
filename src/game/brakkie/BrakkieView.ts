@@ -262,7 +262,17 @@ export class BrakkieView {
     // Built hidden on the sheet's key (a placeholder until the sheet is in: never shown so).
     this.img = s.scene.add.image(0, 0, '__DEFAULT').setVisible(false);
     this.bird = s.scene.add.image(0, 0, '__DEFAULT').setVisible(false);
+    // e2e only (test hooks on): hide him, so a spec can grab the same held tick with and without
+    // him and find his drawn pixels (lessons 14 and 22: real pixels, the centroid on his shape).
+    if (s.hooks)
+      (window as { __TM_BRAKKIE_HIDE__?: (on: boolean) => void }).__TM_BRAKKIE_HIDE__ = (on) => {
+        this.hidden = on;
+        this.x = NaN;
+      };
   }
+
+  /** e2e only: hidden (__TM_BRAKKIE_HIDE__). */
+  private hidden = false;
 
   /** The sheet under the key (polled every SHEET_POLL_FRAMES frames until it arrives). */
   private sheetReady(): boolean {
@@ -323,7 +333,7 @@ export class BrakkieView {
     this.calls = 0;
     const d = state.brakkie;
     const frame = d === null ? null : dogFrame(d);
-    if (d === null || frame === null || !this.sheetReady()) {
+    if (d === null || frame === null || this.hidden || !this.sheetReady()) {
       this.hide();
       if (d !== null) this.fillHook(d, null, false, 0, 0, 0);
       this.hook.calls = this.calls;
