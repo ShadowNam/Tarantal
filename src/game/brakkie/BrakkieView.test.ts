@@ -31,7 +31,6 @@ function stubImage(): Record<string, unknown> {
   const chain =
     (fn?: (...a: unknown[]) => void) =>
     (...a: unknown[]) => {
-      calls++;
       fn?.(...a);
       return img;
     };
