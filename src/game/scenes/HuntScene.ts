@@ -2089,7 +2089,18 @@ export class HuntScene extends Phaser.Scene {
     // v1.9 (D-066): the veld soundscape on the hunt's tick (its own hook timer, report only).
     if (soundscape !== null) {
       const s0 = hook ? performance.now() : 0;
-      soundscape.frame(state.tick, state.birds, events, now, state.reenbui);
+      soundscape.frame(
+        state.tick,
+        state.birds,
+        events,
+        now,
+        state.reenbui,
+        // v1.12 (D-069): the calls make room while Brakkie barks, yelps or digs.
+        state.brakkie !== null &&
+          (state.brakkie.phase === 'bark' ||
+            state.brakkie.phase === 'yelp' ||
+            state.brakkie.phase === 'dig'),
+      );
       if (hook && !this.ending) {
         hook.soundscapeMs += performance.now() - s0;
         hook.soundscapeFrames++;
