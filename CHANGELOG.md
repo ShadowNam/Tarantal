@@ -3,6 +3,32 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.15.0] — v1.12: Brakkie, the farm dog (1 Nov 2026)
+
+Decision record D-069. From the product owner's list of 24 Oct ("more personality and an African
+farm vibe").
+
+- **Brakkie**, Oupa's Jack Russell (white with tan patches), comes along in Classic, the Daily and
+  the Season Run's plain and omen hunts on every area (not boss hunts, Oupa se Les, the Skietbaan
+  or the Harvest). He trots in from the bakkie's side, sniffs, sits, lies in the shade and keeps
+  out of the line of fire: he never stands where a pop-up, a crate, a secret or a tin can is, he
+  scampers away when one comes up beside him, and he stays at the bakkie while a wide-spread crate
+  gun is out.
+- **Fetch:** after a bag on the near or mid plane he races to the bird and carries it back to Oupa
+  (just for show: no points). **Bark:** now and then he barks at a flock, which alerts it.
+  **Flush:** now and then he digs a hidden flock out of the grass, and it bursts up flushing.
+- **Never hurt.** A shot aimed at him costs −25 (at most once every 2 s) and Oupa's gruff, loving
+  scold; any hit only makes him yelp and bolt back to the bakkie, and he comes back.
+- Oupa has three new lines (the scold, a proud "Good boy, Brakkie!" after a fetch, a greeting on
+  the title), voiced in English, Afrikaans and German (Dutch captions).
+- **On the title** Brakkie sits beside START; tap him and he wags.
+- **Notaboek:** "Beste maats" — a whole hunt with Brakkie out and never shot at.
+- Nothing new in the first download but strings and a little code: his art and sounds are a lazy
+  group fetched when a hunt starts; until they are in he isn't drawn.
+- **Fixes:** the Karoo windpomp's kestrel is no longer hidden by the turning target discs; the
+  Bushveld agama lies on its rock (its tail stuck out over the sand); the braai's story bubble
+  holds with the braai clock (screenshots); the braai's animation makes fewer calls a frame.
+
 ## [1.14.0] — v1.11: Die Braai, the day ends at Oupa's fire (31 Oct 2026)
 
 Decision record D-068. From the product owner's list of 24 Oct: "Die Braai: results told by Oupa at
