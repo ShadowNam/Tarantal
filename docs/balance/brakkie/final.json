@@ -1,0 +1,86 @@
+{
+  "bushveld-winter.dubbelloop.before": {
+    "hunts": 100,
+    "score": 463808,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 0,
+    "dogFlushes": 0,
+    "dogFetches": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "bushveld-winter.dubbelloop.after": {
+    "hunts": 100,
+    "score": 461717,
+    "dogAimed": 0,
+    "dogStray": 1,
+    "dogBarks": 70,
+    "dogFlushes": 47,
+    "dogFetches": 413,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "kalahari-summer.dubbelloop.before": {
+    "hunts": 100,
+    "score": 426657,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 0,
+    "dogFlushes": 0,
+    "dogFetches": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "kalahari-summer.dubbelloop.after": {
+    "hunts": 100,
+    "score": 423421,
+    "dogAimed": 0,
+    "dogStray": 3,
+    "dogBarks": 92,
+    "dogFlushes": 30,
+    "dogFetches": 404,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.dubbelloop.before": {
+    "hunts": 100,
+    "score": 478129,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 0,
+    "dogFlushes": 0,
+    "dogFetches": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.dubbelloop.after": {
+    "hunts": 100,
+    "score": 491580,
+    "dogAimed": 2,
+    "dogStray": 2,
+    "dogBarks": 148,
+    "dogFlushes": 63,
+    "dogFetches": 410,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "namibie.dubbelloop.before": {
+    "hunts": 100,
+    "score": 333990,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 0,
+    "dogFlushes": 0,
+    "dogFetches": 0,
+    "chunks": [
+      "1-100"
+    ]
+  }
+}

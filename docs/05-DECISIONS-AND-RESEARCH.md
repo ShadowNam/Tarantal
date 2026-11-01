@@ -3830,6 +3830,33 @@ hunt"). GDD §8.
   same ≤ 255.7 MB as before. A unit test caps the sheet's GPU bytes.
 - *Phones (lessons 32–33).* Baked frames, properties set only on change, no allocation a frame; his
   own hook timer `brakkieMs` in the [perf] JSON (≤ 0.3 ms a frame at 4× throttle, perf.spec).
+- *Line of fire, measured (balance sweep).* A first sweep showed every stray hit came from three
+  places, each fixed: carrying a mid-plane bird home along the mid plane, through the flocks (he
+  now crosses back to the near plane at once and carries it home there); a pop-up rising beside him
+  (pop-ups rise within ±600 px of the centre, in his band: every 0.2 s he checks and scampers away
+  from anything aimed at within 340 px, away from it, never past it); a crate gun's 300 px spread
+  (he keeps to the bakkie while a gun spreading over 120 px is out). Sim tests that need a quiet
+  world drop him (`quiet()` and friends).
+- *His own loader, like the braai's.* His sheet and sounds load through the chunk's own loader (as
+  `BraaiView` does), not the AssetManifest: it is what lets the texture come and go with the hunt
+  and the HD twin be chosen against the memory in use. No placeholder: until the delivered sheet is
+  in he simply isn't drawn (he is never needed to start or play a hunt).
+- *Title.* He sits beside START (else a bottom corner; three sizes; left out when no spot is clear
+  of every title rect, lesson 25), loads in the background and wags when tapped; the first tap of a
+  session gets Oupa's greeting. `?brakkie=0` leaves him off the title too, so no title baseline
+  changes.
+- *Notaboek* "Beste maats": a whole hunt with Brakkie out and never hit (a stray pellet spoils it).
+- *Polish in this release.* (a) The Karoo windpomp's kestrel (its tell) was drawn in the layer's
+  prop-fruit container, under the fixtures where the wheel's target discs turn: every disc that came
+  round hid it. A tell on a prop with a turning rotor now draws above them; nothing moved. (b) The
+  Bushveld agama's tail ran off its koppie's right edge onto the sand: re-seated on the lower left
+  ledge (−18, −48), clear of the dassie and the raid spots; an art test now checks a flat-lying
+  lizard has rock at both ends (the boulder crack's skink is left out: its crown is shorter than it
+  and it must stay clear of the crack). (c) The braai's story bubble now shows exactly while the
+  braai clock is in its line's window (a hold that moves the clock back brings it back), and the
+  screenshot spec re-holds 200 ms after line 2 is told. (e) Oupa's flip and hop at the braai are set
+  only when they change (≤ 7 calls a frame, was ≤ 10); the braai perf case measures ≥ 60 frames so
+  one GC pause can't decide it (the failing sample had 28); the 0.3 ms budget stays.
 
 ## 3. Research notes (with sources)
 
