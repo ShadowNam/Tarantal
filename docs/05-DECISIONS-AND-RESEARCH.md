@@ -1271,7 +1271,7 @@ their system packages took 1–22 min per job, jobs queued up to 20 min for free
 PRs pushed several 16-job runs at once), and the slowest test shards took 17–18 min. Idle gaps
 between agent turns (a turn ends mid-task, nothing restarts it until the next hourly check) cost
 more than any of these. Decisions: (1) *CI lanes.* Pull requests into `main` run the **quick
-lane**: check/build/size, desktop Chromium in 4 shards, Pixel 7 landscape in 3, iPhone 14
+lane**: check/build/size, desktop Chromium in 6 shards (4 until v1.11, D-068), Pixel 7 landscape in 3, iPhone 14
 landscape on WebKit, without the Season Run and perf timing specs. Push to `main`, the nightly
 run, a manual run and a PR labelled `full-ci` run the **full lane** (every profile, Season Run,
 perf, portal and public-build jobs, desktop WebKit in 2 shards). A PR merges on a green quick
@@ -3782,6 +3782,11 @@ hunt"). GDD §8.
   from the special's own sheet already in memory (no new texture). Nothing if it isn't in.
 - *Season Run.* The Padstal's day end is unchanged and gets no vignette: its layout fills the
   screen and its own flow (the shop) follows at once.
+- *CI shards (supervisor).* With the braai at every hunt's end, `desktop-chromium 2/4` timed out at
+  the e2e job's 45-min limit twice on the full lane (44 min each, 52 of 53 tests passed; 41 min on
+  main's v1.10 run, 21 min on a fast quick-lane runner), and 4/4 ran 39–43 min. Desktop Chromium now
+  runs in 6 shards in both lanes (35–36 tests each, was 52–53); the 45-min limit is unchanged and no
+  test is skipped.
 
 ## 3. Research notes (with sources)
 
