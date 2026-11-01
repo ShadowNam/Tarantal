@@ -62,5 +62,9 @@
   "guide.harvest.duck": "Careful, man! They're working there!",
   "guide.harvest.piglet": "Leave the piglets alone!",
   "guide.harvest.crop_low": "The crop! They're eating everything!",
-  "guide.harvest.fixed": "Fence is fixed! Well done, everyone!"
+  "guide.harvest.fixed": "Fence is fixed! Well done, everyone!",
+  "guide.brakkie.name": "Brakkie, the farm dog",
+  "guide.brakkie.scold": "Hey! That's my Brakkie, not a tarentaal!",
+  "guide.brakkie.fetched": "Good boy, Brakkie! Bring it here.",
+  "guide.brakkie.title": "Come, Brakkie! We're going hunting."
 }

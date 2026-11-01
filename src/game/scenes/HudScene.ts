@@ -109,6 +109,8 @@ export class HudScene extends Phaser.Scene {
   private harvestBars: HarvestBars | null = null;
   /** The Oupa line in this frame's banner (one at a time). */
   private oupaText: string | null = null;
+  /** v1.12 (D-069): Oupa's proud line after Brakkie's fetch is said once a hunt. */
+  private brakkieProud = false;
   private frenzyLabel!: Phaser.GameObjects.Text;
   private frenzyBack!: RoundRect;
   private frenzyFill!: RoundRect;
@@ -226,6 +228,7 @@ export class HudScene extends Phaser.Scene {
     // 1.9.2 (D-055): the power-up guide's sentences (the first-pickup card) load in the background.
     void loadGuide();
     this.pops = [];
+    this.brakkieProud = false;
     // v1.6 (D-042): the build stamp, bottom left beside the gadget (or the belt, left-handed).
     this.buildStamp = new StampLabel(this, this.ctx, cornerStampShown(this.ctx));
     this.stampFrames = 0;
@@ -958,6 +961,15 @@ export class HudScene extends Phaser.Scene {
       } else if (e.type === 'baboonHit' && e.points < 0) {
         this.pushPop(formatAward(e.points), '#FF6B5A');
         this.oupa('guide.baboon.mother', banner);
+      } else if (e.type === 'brakkieHit' && e.points < 0) {
+        // v1.12 (D-069): a shot aimed at Brakkie — points off (the nest's cooldown) and Oupa's
+        // gruff, loving scold.
+        this.pushPop(formatAward(e.points), '#FF6B5A');
+        this.oupa('guide.brakkie.scold', banner);
+      } else if (e.type === 'brakkieFetched' && !this.brakkieProud) {
+        // He's back at the bakkie with the bird: Oupa's proud line (once a hunt).
+        this.brakkieProud = true;
+        this.oupa('guide.brakkie.fetched', banner);
       } else if (e.type === 'harvestFenceBroken') {
         // v1.8c (D-063): the Harvest — "Hulle is deur die draad!"
         this.oupa('guide.harvest.intro', banner);

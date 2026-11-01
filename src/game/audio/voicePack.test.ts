@@ -10,6 +10,7 @@ import { MAX_ATTEMPTS, VoicePacks, voicePackEntries, type VoicePackState } from 
 import {
   baboonBarks,
   harvestBarks,
+  brakkieBarks,
   specialVoiceGroup,
   voiceGroup,
   voicedLines,
@@ -28,7 +29,7 @@ const LINES = voicedLines(
   loadContent().birds.meerkats,
   loadContent().feesdae.specials.map((f) => f.barks),
   // v1.8b (D-062): Oupa's baboon lines; v1.8c (D-063): his Harvest lines.
-  [...baboonBarks(RaidActionSchema.options), ...harvestBarks()],
+  [...baboonBarks(RaidActionSchema.options), ...harvestBarks(), ...brakkieBarks()],
 );
 /** D-048: the special days' own lines (their own lazy voice groups, D-064: one per special). */
 const SPECIAL = new Map(

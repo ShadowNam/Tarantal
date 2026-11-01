@@ -62,5 +62,9 @@
   "guide.harvest.duck": "Pasop, man! Hulle werk daar!",
   "guide.harvest.piglet": "Los die varkies uit!",
   "guide.harvest.crop_low": "Die oes! Hulle vreet alles op!",
-  "guide.harvest.fixed": "Die draad is heel! Mooi so, almal!"
+  "guide.harvest.fixed": "Die draad is heel! Mooi so, almal!",
+  "guide.brakkie.name": "Brakkie, die plaashond",
+  "guide.brakkie.scold": "Haai! Dis my Brakkie, nie 'n tarentaal nie!",
+  "guide.brakkie.fetched": "Mooi so, Brakkie! Bring hom hier.",
+  "guide.brakkie.title": "Kom, Brakkie! Ons gaan jag."
 }
