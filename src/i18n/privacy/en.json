@@ -5,5 +5,6 @@
   "privacy.personal_title": "Personal data",
   "privacy.sent_web": "Nothing. There are no analytics, trackers or ads. Error reports and game statistics stay in this browser.",
   "privacy.sent_portal": "The game itself sends nothing. The games site that hosts it shows the ads and keeps its own statistics, under its own privacy policy. Error reports stay in this browser.",
-  "privacy.personal": "The game asks for no name, email or account and collects no personal data. A shared challenge link holds only the hunt's seed, mode, gun and score."
+  "privacy.personal": "The game asks for no name, email or account and collects no personal data. A shared challenge link holds only the hunt's seed, mode, gun and score.",
+  "privacy.clear_failed": "The browser couldn't delete your saved data. To remove the saved data, clear this site's data in your browser settings."
 }

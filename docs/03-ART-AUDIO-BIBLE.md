@@ -701,7 +701,10 @@ ground (`tools/art/harvestGround.test.ts`), frames clear of their box edges
 (`tools/art/harvestArt.test.ts`). **Sounds** (synths in the lazy view until recordings are
 delivered under `sfx/harvest_*`): the wire snapping, a warthog's grunt, a piglet's squeal, the thump
 of a bagged one, the workers' hammering, the crop warning's two soft beeps and a four-note harvest
-jingle when the fence is whole. Oupa's Harvest lines (`guide.harvest.*`): en/af/de voiced, nl text.
+jingle when the fence is whole. The field's music and ambience (D-070) are delivered interim
+loops in the lazy `oes` group: guitar and marimba in G with mbira, pennywhistle and light hand
+drums, with calm/build/Stampede stems on the common 16-second, 120-bpm grid; wind through dry
+crops, insects and field birds underneath. No silent music slots. Oupa's Harvest lines (`guide.harvest.*`): en/af/de voiced, nl text.
 
 ### 5.5 Reënbui: the storm, the rain and the alate columns (1.13.0, D-067)
 Interim at the D-035 bar, soft weather in gradients and layered tones (no ink on vapour). **One

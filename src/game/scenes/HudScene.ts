@@ -20,6 +20,7 @@ import { fill, getLanguage, isI18nKey, t, tOr, translator } from '../../i18n/i18
 import { msToTicks } from '../../sim/clock';
 import { markSeen } from '../../meta/powerupsSeen';
 import { isOupaLine, oupaShows } from '../audio/oupaMode';
+import { ShotFeedbackGate } from '../../meta/journal';
 import { PickupCard } from '../ui/PickupCard';
 import { guideLoaded, guideString, loadGuide } from '../ui/guideI18n';
 import { effectText, shortText } from '../ui/powerupGuide';
@@ -214,6 +215,7 @@ export class HudScene extends Phaser.Scene {
   private runnerPresents: number | null = null;
   private firstTodayPending = false;
   private lastScore = 0;
+  private greatShots = new ShotFeedbackGate();
   /** M7: "DAILY #n" / "PRACTICE · DAILY #n" / "BEAT 2 840" under the score, in the Season Run
    *  quota's slot (never both: run hunts have no tag), above the score pops. */
   private tagText: string | null = null;
@@ -225,8 +227,10 @@ export class HudScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.greatShots = new ShotFeedbackGate();
+    if (this.ctx.hook) this.ctx.hook.shotMoment = null;
     // 1.9.2 (D-055): the power-up guide's sentences (the first-pickup card) load in the background.
-    void loadGuide();
+    void loadGuide().catch(() => {});
     this.pops = [];
     this.brakkieProud = false;
     // v1.6 (D-042): the build stamp, bottom left beside the gadget (or the belt, left-handed).
@@ -1089,6 +1093,16 @@ export class HudScene extends Phaser.Scene {
       else if (e.type === 'gadgetUsed') this.shoutGadget();
       else if (e.type === 'gadgetDenied') this.shakeGadget();
     }
+    const moment = this.greatShots.take(
+      events,
+      s.tick,
+      msToTicks(Math.max(this.ctx.feel.juice.bannerMs, this.ctx.feel.juice.stampMs)),
+      banner.length > 0,
+    );
+    if (!this.rangeOn && this.promptKey === null && moment !== null) {
+      this.showBanner(t(`journal.moment.${moment}`));
+      if (this.ctx.hook) this.ctx.hook.shotMoment = moment;
+    }
     if (banner.length > 0) this.showBanner(banner.join(' · '));
     this.oupaText = null;
     this.drawGadget(s);
@@ -1782,8 +1796,9 @@ export class HudScene extends Phaser.Scene {
     const room =
       l === null ? this.banner.width : l.safe.w + 2 * l.safe.x - 2 * (l.frenzy.x + l.frenzy.w + 20);
     const fit = Math.min(1, room / Math.max(1, this.banner.width));
-    this.banner.setScale(0.4 * fit);
-    this.tweens.add({ targets: this.banner, scale: fit, duration: 300, ease: 'Back.Out' });
+    this.banner.setScale(this.ctx.reducedMotion ? fit : 0.4 * fit);
+    if (!this.ctx.reducedMotion)
+      this.tweens.add({ targets: this.banner, scale: fit, duration: 300, ease: 'Back.Out' });
     this.tweens.add({
       targets: this.banner,
       alpha: 0,

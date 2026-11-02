@@ -4,6 +4,7 @@ import {
   readText,
   readValue,
   removeAllKeys,
+  removeKey,
   resetStorageForTests,
   setStorageNamespace,
   writeText,
@@ -61,6 +62,63 @@ describe('storage', () => {
     expect(readValue('z', true, isBoolean)).toBe(true);
   });
 
+  it('a failed removal stays removed in this session and can be replaced', () => {
+    const store = new Map([['tm.notice', 'old']]);
+    const backend = mapStorage(store);
+    backend.removeItem = () => {
+      throw new Error('SecurityError');
+    };
+    vi.stubGlobal('localStorage', backend);
+    removeKey('notice');
+    expect(store.get('tm.notice')).toBe('old');
+    expect(readText('notice')).toBeNull();
+    writeText('notice', 'new');
+    expect(readText('notice')).toBe('new');
+  });
+
+  it('a failed clear does not bring old saved data back into the session', () => {
+    const store = new Map([
+      ['tm.save.v1', 'old save'],
+      ['tm.notice', 'old notice'],
+    ]);
+    const backend = mapStorage(store);
+    backend.removeItem = () => {
+      throw new Error('SecurityError');
+    };
+    vi.stubGlobal('localStorage', backend);
+    expect(removeAllKeys()).toBe(false);
+    expect(readText('save.v1')).toBeNull();
+    expect(readText('notice')).toBeNull();
+    writeText('save.v1', 'new save');
+    expect(readText('save.v1')).toBe('new save');
+    expect(readText('notice')).toBeNull();
+  });
+
+  it('clearing still works in memory when storage keys cannot be enumerated', () => {
+    const store = new Map([['tm.notice', 'old notice']]);
+    const backend = mapStorage(store);
+    Object.defineProperty(backend, 'length', {
+      get: () => {
+        throw new Error('SecurityError');
+      },
+    });
+    vi.stubGlobal('localStorage', backend);
+    expect(removeAllKeys()).toBe(false);
+    expect(readText('notice')).toBeNull();
+  });
+
+  it('clearing player data preserves the test namespace in the memory fallback', () => {
+    vi.stubGlobal('localStorage', undefined);
+    setStorageNamespace('e2e.');
+    writeText('save.v1', 'test save');
+    setStorageNamespace('');
+    writeText('save.v1', 'player save');
+    expect(removeAllKeys()).toBe(false);
+    expect(readText('save.v1')).toBeNull();
+    setStorageNamespace('e2e.');
+    expect(readText('save.v1')).toBe('test save');
+  });
+
   it('M9: a namespace keeps test runs away from the player save (tm.e2e.*)', () => {
     const store = new Map<string, string>([['tm.save.v1', 'player']]);
     vi.stubGlobal('localStorage', mapStorage(store));
@@ -79,7 +137,7 @@ describe('storage', () => {
       ['other.app', 'd'],
     ]);
     vi.stubGlobal('localStorage', mapStorage(store));
-    removeAllKeys();
+    expect(removeAllKeys()).toBe(true);
     expect([...store.keys()].sort()).toEqual(['other.app', 'tm.e2e.save.v1']);
     expect(readText('save.v1')).toBeNull();
   });

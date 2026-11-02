@@ -150,12 +150,15 @@ export class SaveStore {
   /**
    * Privacy screen → clear my data (M9): every key the game stored on this device is removed
    * (save, corrupt backup, notices) and this session goes on with the defaults. Nothing is
-   * written back until the next change, so a reload right after starts as a new player.
+   * written back until the next change. Returns false if browser data could not be removed:
+   * callers must not reload into that old data. Keep the active save intact on failure.
    */
-  clear(): void {
-    removeAllKeys();
+  clear(): boolean {
+    const persisted = removeAllKeys();
+    if (!persisted) return false;
     this.current = defaultSave();
     this.readOnly = false;
     for (const fn of this.listeners) fn(this.current);
+    return true;
   }
 }

@@ -404,6 +404,7 @@
   "privacy.load_failed": "Kon nie hierdie deel laai nie. Kyk na die verbinding en maak die blad weer oop.",
   "privacy.clear": "Vee my data uit",
   "privacy.clear_confirm": "Tik weer: vee alles uit",
+  "privacy.clear_failed": "Kon nie gestoorde data uitvee nie.",
   "run.ad_retry_title": "Oupa se tweede kans!",
   "run.ad_retry": "▶ Advertensie: speel weer",
   "run.ad_double": "▶ Advertensie: dubbel Doppies (+{n})",
@@ -648,5 +649,15 @@
   "tally.harvest_new_best": "Nuwe beste oes!",
   "tally.harvest_best_row": "Jou beste",
   "share.harvest": "Die Oes",
-  "share.harvest_crop": "oes gered {pct} %"
+  "share.harvest_crop": "oes gered {pct} %",
+  "shed.tab.journal": "Joernaal",
+  "journal.moment.double": "Twee vlieë met een klap!",
+  "journal.moment.horizon": "Horisonskoot!",
+  "journal.moment.long": "Ver skoot!",
+  "journal.section.field": "Veldgids",
+  "journal.section.goals": "Jou doelwitte",
+  "journal.section.coach": "Oupa se lesse",
+  "journal.section.rivals": "Vriendelike wedywering",
+  "journal.section.plaques": "Aandenkings",
+  "journal.loading": "Die joernaal laai… Maak dit weer oop om te herprobeer as dit hier bly."
 }

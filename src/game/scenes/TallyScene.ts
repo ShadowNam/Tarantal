@@ -33,6 +33,10 @@ import type { StoryFacts } from '../braai/storyFacts';
 import type { BraaiView } from '../braai/BraaiView';
 import { oupaShows, oupaSpeaks } from '../audio/oupaMode';
 import { textureBytes } from '../assets/textureBytes';
+import { huntMoment, coachTip } from '../../meta/journal';
+import { JOURNAL } from '../../content/journal';
+import { journalText } from '../journal/JournalView';
+import { appendJournalNews } from '../journal/tallyNews';
 
 /** v1.8c (D-063): what the Harvest's tally shows instead of the plane rows. */
 export interface HarvestTally {
@@ -793,6 +797,12 @@ export class TallyScene extends Phaser.Scene {
       ...(data.extras?.compare != null ? [data.extras.compare] : []),
       ...(data.extras?.news ?? []),
     ];
+    const r = data.result;
+    const moment = huntMoment({
+      ...r,
+      baggedFar: r.baggedByPlane.far,
+      baggedVer: r.baggedByPlane.ver,
+    });
     // v1.8c (D-063): the Harvest's best first.
     const hv = data.harvest;
     if (hv !== undefined)
@@ -831,7 +841,26 @@ export class TallyScene extends Phaser.Scene {
         fill(t('tally.notaboek_done'), { goal: fill(tOr(`notaboek.${id}`, id), { n: c.target }) }),
       );
     }
-    const some = parts.filter((p) => p !== '');
-    return some.length === 0 ? null : some.slice(0, 2).join('  ·  ');
+    const optional: string[] = [];
+    if (moment !== null) optional.push(journalText(`moment.${moment}`));
+    if (
+      r.mode === 'classic' &&
+      data.extras?.compare == null &&
+      oupaShows(this.ctx.prefs.oupa) &&
+      this.ctx.save.data.stats.hunts <= JOURNAL.coachHunts
+    ) {
+      const tip = coachTip({
+        ...r,
+        baggedFar: r.baggedByPlane.far,
+        baggedVer: r.baggedByPlane.ver,
+      });
+      const nudge = journalText(`nudge.${tip}`);
+      if (nudge !== '') optional.push(nudge);
+    }
+    if ((data.outcome?.personalRecords?.length ?? 0) > 0)
+      optional.push(
+        fill(journalText('records_improved'), { n: data.outcome?.personalRecords?.length ?? 0 }),
+      );
+    return appendJournalNews(parts, optional);
   }
 }

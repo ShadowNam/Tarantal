@@ -15,6 +15,108 @@ Every milestone ends with:
 
 ---
 
+## Approved improvement rollout — 2 Nov 2026 (D-072)
+
+Requested by the product owner: add the six improvement ideas to the plan and roll them out.
+These stages extend existing systems, with local saves and the current share-link model.
+Package versions are assigned when releases are cut; the stage IDs below are stable.
+
+| Stage | Player outcome | First release scope | Status |
+| --- | --- | --- | --- |
+| R1 Living field guide | Looking around rewards curiosity | Eight existing tree/colony residents; real on-screen sightings unlock illustrated facts and Oupa notes in a paged journal | Validated; ready for review |
+| R2 Memorable shots | Difficult shots receive clear recognition | Prioritized, rate-limited horizon/long-shot and double-hit callouts, plus the hunt's standout moment at the tally; existing whole-flock stamp and braai story stay | Validated; ready for review |
+| R3 Oupa's coaching | Players can learn what to improve | An optional journal lesson page and one contextual after-hunt suggestion for newer players, respecting Oupa's off setting | Validated; ready for review |
+| R4 Personal challenges | Every hunt offers a reachable next goal | Best score, qualified accuracy, whole flocks and clean bags compared only on matching biome/map/gun/sight/rules; suggested next targets | Validated; ready for review |
+| R5 Friendly competition | Shared hunts become an ongoing rivalry | Keep results against accepted friend challenge links in a bounded local rival notebook; allow rematches through the existing link format | Validated; ready for review |
+| R6 Personal Skiet-Skuur | Achievements become keepsakes | Earn cosmetic plaques from discoveries and hunt achievements, choose a plaque and display it in the shed; no gameplay bonuses | Validated; ready for review |
+
+**Validation completed:** 241 test files / 2,002 tests pass; 56 content files validate.
+The browser matrix passes 11 checks with four device-gated skips across desktop Chromium,
+Pixel 7 and iPhone 14 landscape. Initial download: 2.91 MB gzip. Independent review gaps
+were repaired. These stages await merge and deployment; this is not a live-release claim.
+
+**Acceptance gates for every stage:** `npm run check`; old-save recovery; no changes to sim,
+scoring, official Daily attempt rules or golden replays; localized text in en/af/de/nl; keyboard
+and touch paths; safe layout and screenshots on desktop, Pixel 7 and iPhone 14 landscape;
+first download ≤ 3 MB gzip and existing lazy-group limits. An independent playtest review checks
+the rollout diff. Admin, capture and training hunts cannot earn journal records or trophies.
+
+**R1:** sightings count only when delivered resident sprites are visible on screen; each species
+is saved once at a completed normal hunt, with pictures loaded lazily and released with the
+journal. Locked pages offer a habitat hint. A failed picture download leaves a usable text card.
+
+**R2–R3:** use the existing HUD banner/score/audio language; never add a large flash or duplicate
+whole-flock effects. FTUE and urgent gameplay notices win. Coaching is optional, short and
+selected from the actual result. Final voice recording follows finalized text; new notes and
+coaching are captions in this release.
+
+**R4:** a one-shot hunt cannot set an accuracy record. Goals show the setup they apply to and
+never compare different weapons, sights, bonus maps, layouts or content versions. Practice
+Dailies cannot overwrite records. Goals award cosmetic keepsakes only.
+
+**R5:** reuse validated challenge links; record a personal best per shared setup/target and cap
+history size. A changed-content challenge remains playable with the existing warning, but is
+not recorded as a fair rivalry win. These are friendly shared claims, not verified world scores.
+
+**R6:** locked plaques explain their requirement. Selecting a locked plaque does nothing. Old
+saves start with an empty collection, and clearing data removes the collection.
+
+**Later expansions, outside this first release:** new cameo species/art beyond the residents
+already present, a weekly shared Season Run, hosted friend groups and server-verified scores,
+photographic keepsakes, full cabin decoration placement and voiced versions of the new notes.
+Store publishing and paid voice services keep their existing release requirements.
+
+---
+
+## Review of the current checkout — 2 Nov 2026
+
+This checkout is package 1.15.0 on `v112-brakkie`; the feature label v1.12 refers to Brakkie,
+not the package version. M0–M10 and the later features through Brakkie are implemented. The local
+`origin/project-log` snapshot is dated 1 Nov and still calls Brakkie running; it is planning
+context, not evidence of the currently deployed version.
+
+Follow-up audit: D-071 repairs failed storage removals/clears and memory namespace isolation.
+The Privacy screen now reports rejected deletions instead of immediately reloading old data.
+Persistent deletion still requires the browser to allow it; the fallback protects this session.
+Follow-up `npm run check` passes: 238 test files, 1,987 tests and all 55 content files valid.
+Browser verification: 12 focused checks pass across desktop Chromium, Pixel 7 and iPhone 14
+WebKit emulation; three cases are skipped by their existing device/browser gates. The checks
+cover rejected and successful privacy deletion, corrupt-save recovery, blocked storage and PWA
+offline loading where supported. The new warning's screenshots were reviewed on all three
+landscape profiles; after the active-save preservation refinement, all three rejected-deletion
+browser tests pass again. The rebuilt download still passes the strict size gate at 2.90 MB gzip.
+
+Priority order after this review:
+
+1. **Finish validation and repair concrete gaps first.** D-070 fills the Harvest's four missing
+   audio beds; local lint/format checks now exclude ignored scratch output in `tmp/`.
+2. **Next feature: v1.13 veld cameos and field-guide entries.** The saved project log lists
+   warthogs, baboons, springbok, elephants, ostrich and dung beetle cameos. Tree residents' field
+   guide entries are also explicitly deferred here and in GDD §11.1b. Several of those animals
+   already have systems or scenery: reconcile those implementations before adding duplicates.
+3. **Final Oupa voices after the text is settled.** The saved plan calls for an en/af/de sample
+   first and speech-to-text checks. Final voice selection and access to the chosen service remain
+   external inputs.
+4. **Production assets and device release checks.** The asset audit still marks art/audio as
+   interim; its normal report passing does not satisfy the strict final-asset release gate.
+   Real-device playtests, native-language review and store accounts/signing/listings remain
+   release work. Android's test APK is already implemented; iOS and production store releases
+   are separate work. The backlog below is not a list of unimplemented core milestones.
+
+Verification for the review fixes: `npm run check` passes (238 test files, 1,982 tests; all 55
+content files valid with no warnings). The production build and `npm run size -- --strict` pass:
+initial download 2.90 MB gzip, Harvest standard group 1,220.1 KB gzip against its 1.5 MB limit.
+The asset audit passes in report mode: 648 interim keys and one runtime placeholder (the mirage).
+The strict final-asset gate remains unmet. Focused boot/fullscreen and Harvest intro-to-results
+checks pass on desktop Chromium, Pixel 7 Chromium and iPhone 14 WebKit emulation (one inapplicable
+Pixel fullscreen test skipped). Harvest audio delivery/playback is asserted on both Chromium
+profiles; Linux WebKit lacks codecs, so real-iPhone audio remains a device check.
+
+Do not infer a merge, deployment or successful full browser/performance matrix from this review;
+those need their own evidence.
+
+---
+
 ## M0 — Scaffold and guardrails
 **Goal:** an empty but production-shaped repo that enforces the architecture from day one.
 

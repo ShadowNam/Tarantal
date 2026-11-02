@@ -27,12 +27,16 @@ import { guideLoaded, guideString, loadGuide } from '../ui/guideI18n';
 import { guideCards } from '../ui/powerupGuide';
 import { upgradePowerupIcons } from '../ui/powerupIcons';
 import type { OverlayData } from './SettingsScene';
+import { renderJournal, journalText, type JournalSection } from '../journal/JournalView';
+import { plaqueProgress } from '../../meta/journal';
 
 type PrimaryWeapon = Extract<Weapon, { kind: 'primary' }>;
-type Tab = 'loadout' | 'powerups' | 'birdbook' | 'notaboek';
-const TABS: readonly Tab[] = ['loadout', 'powerups', 'birdbook', 'notaboek'];
+type Tab = 'loadout' | 'powerups' | 'birdbook' | 'notaboek' | 'journal';
+const TABS: readonly Tab[] = ['loadout', 'powerups', 'birdbook', 'notaboek', 'journal'];
 
 export interface ShedData extends OverlayData {
+  readonly journalSection?: JournalSection;
+  readonly journalPage?: number;
   readonly tab?: Tab;
 }
 
@@ -49,7 +53,7 @@ export class ShedScene extends Phaser.Scene {
 
   create(data: ShedData): void {
     // 1.9.2 (D-055): the Power-ups tab's sentences (lazy) start loading as the Shed opens.
-    void loadGuide();
+    void loadGuide().catch(() => {});
     this.shown = data;
     const tab = data.tab ?? 'loadout';
     const { width, height } = designSize();
@@ -106,9 +110,57 @@ export class ShedScene extends Phaser.Scene {
         rebuild({ tab, focus: this.focusAfterEquip });
       });
     else if (tab === 'powerups') afterMenu = this.powerupsTab(body, items);
-    else if (tab === 'birdbook') this.birdBook(body);
+    else if (tab === 'journal') {
+      renderJournal(
+        this,
+        this.ctx,
+        body,
+        items,
+        data.journalSection ?? 'field',
+        data.journalPage ?? 0,
+        (journalSection, journalPage, focus) => {
+          rebuild({ tab, journalSection, journalPage, ...(focus === undefined ? {} : { focus }) });
+        },
+      );
+      if (!guideLoaded()) {
+        let active = true;
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+          active = false;
+        });
+        void loadGuide()
+          .then(() => {
+            if (active) rebuild({ tab });
+          })
+          .catch(() => {});
+      }
+    } else if (tab === 'birdbook') this.birdBook(body);
     else this.notaboekTab(body);
 
+    const plaque = this.ctx.save.data.journal.plaque;
+    if (
+      plaque !== null &&
+      plaqueProgress(this.ctx.save.data).some((p) => p.id === plaque && p.earned)
+    ) {
+      const plaqueLabel = `★ ${guideLoaded() ? journalText(`plaque.${plaque}`) : t('ui.loading')}`;
+      const label = this.add.text(px + 30, py + panelH - 92, plaqueLabel, textStyle(26, '#FFD25A'));
+      if (this.ctx.hook) this.ctx.hook.shedPlaque = plaqueLabel;
+      fitText(label, (panelW - 440) / 2 - 60);
+      if (!guideLoaded()) {
+        let active = true;
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+          active = false;
+        });
+        void loadGuide()
+          .then(() => {
+            if (!active) return;
+            const named = `★ ${journalText(`plaque.${plaque}`)}`;
+            label.setText(named);
+            if (this.ctx.hook) this.ctx.hook.shedPlaque = named;
+            fitText(label, (panelW - 440) / 2 - 60);
+          })
+          .catch(() => {});
+      }
+    }
     const back: Rect = { x: px + panelW / 2 - 220, y: py + panelH - 120, w: 440, h: 96 };
     drawButton(this, back, t('ui.back'), 'primary', 44);
     items.push({
@@ -134,6 +186,7 @@ export class ShedScene extends Phaser.Scene {
       this.ctx.hook.textureBytes = textureBytes(this.textures);
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      if (this.ctx.hook) delete this.ctx.hook.shedPlaque;
       if (this.ctx.hook?.menu?.startsWith('shed') === true) this.ctx.hook.menu = null;
     });
   }

@@ -2,8 +2,17 @@
 // result (CLAUDE.md rule 4: meta subscribes to events, never reads sim internals). Pure.
 import type { SimEvent } from '../sim/events';
 import type { HuntResult } from '../sim/types';
+import { isJournalSpecies, sightingKey } from './journal';
 
 export interface HuntLog {
+  readonly layout?: string | null;
+  readonly weapon?: string;
+  readonly sight?: string | null;
+  readonly rules?: string;
+  readonly accuracy?: number;
+  readonly penalties?: number;
+  readonly emptyClicks?: number;
+  readonly twoFlies?: number;
   readonly mode: string;
   readonly biome: string;
   /** v1.2: the bonus map played (null = today's map or the plain biome). */
@@ -34,6 +43,7 @@ export interface HuntLog {
 }
 
 export interface HuntLogger {
+  observe(id: string): boolean;
   add(events: readonly SimEvent[]): void;
   /** Creatures seen so far this hunt (the ⛔ first-sighting call-out reads it too). */
   readonly creaturesSeen: ReadonlySet<string>;
@@ -54,6 +64,11 @@ export function createHuntLogger(
   let dogOut = false;
   let dogHit = false;
   return {
+    observe(id) {
+      if (!isJournalSpecies(id) || creatures.has(sightingKey(id))) return false;
+      creatures.add(sightingKey(id));
+      return true;
+    },
     creaturesSeen: creatures,
     add(events) {
       for (const e of events) {
@@ -74,6 +89,13 @@ export function createHuntLogger(
     },
     finish(r, bonusUnlocked = null) {
       return {
+        layout: r.layout,
+        weapon: r.weapon,
+        sight: r.sight,
+        accuracy: r.accuracy,
+        penalties: r.penalties,
+        emptyClicks: r.emptyClicks,
+        twoFlies: r.twoFlies,
         mode: r.mode,
         biome: r.biome,
         bonus: r.bonus,

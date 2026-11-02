@@ -7,6 +7,8 @@
 // so they never stand in front of a shot at a bird) and take the map light's tint.
 import { setFootOrigin } from '../footOrigin';
 import type * as Phaser from 'phaser';
+import { designSize } from '../../layout';
+import { sightingVisible } from './sighting';
 import type { Biome, Feel } from '../../../content/schemas';
 import type { SimEvent } from '../../../sim/events';
 import type { PlaneId, SimState } from '../../../sim/types';
@@ -38,6 +40,7 @@ interface Colony {
 }
 
 export interface ColonyOptions {
+  readonly onSighted?: (id: string) => void;
   readonly seed: () => number;
   readonly reducedMotion: boolean;
   readonly planeScale: Readonly<Record<PlaneId, number>>;
@@ -202,6 +205,7 @@ export class ColonyView {
   }
 
   update(s: SimState, alpha: number): void {
+    const view = designSize();
     if (this.colonies.length === 0 || !this.ensureSheet()) return;
     const t = this.feel.treeLife.colony;
     const tick = s.tick - 1 + alpha;
@@ -237,6 +241,18 @@ export class ColonyView {
       }
       const tint = this.parallax.layerTint(c.layerId);
       for (const p of poses) {
+        if (this.o.onSighted !== undefined) {
+          const x = layer.root.x + (c.x + p.x) * layer.root.scaleX;
+          const y = layer.root.y + (c.y + p.y) * layer.root.scaleY;
+          if (sightingVisible(x, y, p.alpha, view.width, view.height))
+            this.o.onSighted(
+              p.frame.startsWith('falcon')
+                ? 'falcon'
+                : p.frame.startsWith('lovebird')
+                  ? 'lovebirds'
+                  : 'weaver',
+            );
+        }
         const img = this.sprite(used++, layer.propFruit);
         img.setFrame(p.frame);
         // The origin at the frame's anchor, flipped or not (a custom pivot: footOrigin.ts).

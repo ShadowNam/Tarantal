@@ -251,6 +251,47 @@ test.describe('portal build', () => {
 test.describe('web build', () => {
   test.skip(PLATFORM !== 'web', 'web build only');
 
+  test('blocked data deletion shows a warning without reloading the old save', async ({
+    page,
+  }, info) => {
+    test.skip(!isLandscape(info), 'portrait shows the rotate card');
+    test.setTimeout(240_000);
+    const touch = isTouchProject(info);
+    const errors = collectErrors(page);
+    await boot(page, '');
+    await page.waitForFunction(() => window.__TM__?.rects['settings'] !== undefined);
+    await tapRect(page, touch, 'settings');
+    await page.waitForFunction(() => window.__TM__?.menu === 'settings');
+    await tapRect(page, touch, 'settings.privacy');
+    await page.waitForFunction(() => window.__TM__?.menu === 'privacy');
+    const before = await page.evaluate((key) => localStorage.getItem(key), SAVE);
+    expect(before).not.toBeNull();
+    let navigations = 0;
+    page.on('framenavigated', (frame) => {
+      if (frame === page.mainFrame()) navigations++;
+    });
+    await page.evaluate(() => {
+      // eslint-disable-next-line @typescript-eslint/unbound-method -- Invoked with .call(this, key) below.
+      const remove = Storage.prototype.removeItem;
+      Storage.prototype.removeItem = function (key: string): void {
+        if (key.startsWith('tm.e2e.')) throw new DOMException('Blocked', 'SecurityError');
+        remove.call(this, key);
+      };
+    });
+    await tapRect(page, touch, 'privacy.clear');
+    await tapRect(page, touch, 'privacy.clear');
+    await page.waitForFunction(() => window.__TM__?.privacyClearFailed === true);
+    expect((await hook(page)).menu).toBe('privacy');
+    expect(await page.evaluate((key) => localStorage.getItem(key), SAVE)).toBe(before);
+    await page.screenshot({
+      path: `${SCREENSHOTS}/privacy-clear-blocked-${info.project.name}.png`,
+    });
+    await tapRect(page, touch, 'privacy.back');
+    await page.waitForFunction(() => window.__TM__?.menu === 'settings');
+    expect(navigations).toBe(0);
+    expect(errors).toEqual([]);
+  });
+
   test('privacy screen from Settings; clear my data restarts as a new player', async ({
     page,
   }, info) => {

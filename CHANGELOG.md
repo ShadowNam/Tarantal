@@ -3,6 +3,24 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [Unreleased]
+
+- Six-stage improvement rollout (D-072): the shed's new Journal has illustrated resident
+  discoveries, setup-specific personal goals, optional Oupa lessons, a local friend-challenge
+  notebook with rematches, and earnable cosmetic plaques. Great long/horizon/double shots get
+  clear, rate-limited banners; early Classic results offer a contextual coaching nudge.
+- Journal records and keepsakes use a new backwards-compatible save section. No sim, scores,
+  Daily attempt rules or golden replay events change. All new text is in en/af/de/nl.
+
+- Failed browser-data deletions no longer resurrect old values within the session. Clearing
+  player data also preserves the test namespace in the memory fallback. If the browser refuses
+  a privacy reset, the game shows instructions instead of reloading the undeleted save (D-071).
+
+- The Harvest field now has its missing calm, build and Stampede music loops and a dry-crop
+  ambience bed, delivered as lazy Ogg/MP3 assets instead of four silent placeholders (D-070).
+- Local checks ignore the git-ignored `tmp/` scratch directory, including generated browser
+  reports, consistently with the existing exclusions for build and test output.
+
 ## [1.15.0] — v1.12: Brakkie, the farm dog (1 Nov 2026)
 
 Decision record D-069. From the product owner's list of 24 Oct ("more personality and an African

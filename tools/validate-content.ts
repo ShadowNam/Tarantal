@@ -18,6 +18,7 @@ import { checkLanguage, checkLanguageSet } from '../src/content/i18nCheck';
 import { LANGUAGES } from '../src/i18n/i18n';
 import { checkSoundscape, parseSoundscape } from '../src/content/soundscape';
 import { SOUNDSCAPE_CALLS } from './audio/soundscape';
+import { JournalConfigSchema } from '../src/content/journal';
 
 const root = join(import.meta.dirname, '..');
 const strict = process.argv.includes('--strict');
@@ -42,6 +43,14 @@ if (!feel.ok) {
   process.exit(1);
 }
 fileNames.push('client/feel.json');
+const journal = JournalConfigSchema.safeParse(
+  JSON.parse(readFileSync(join(contentDir, 'client/journal.json'), 'utf8')),
+);
+if (!journal.success) {
+  console.error('content: client/journal.json FAILED', journal.error.message);
+  process.exit(1);
+}
+fileNames.push('client/journal.json');
 
 // Meta-only Notaboek challenges (not part of the sim bundle).
 const notaboek = parseNotaboek(

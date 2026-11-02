@@ -25,6 +25,7 @@ import { captureHintAlpha, type CaptureState } from '../capture';
 import { showDontShootBadge } from '../prefs';
 import { TierFilters } from '../quality/TierFilters';
 import type { Challenge } from '../../meta/challenge';
+import { awardPlaques, recordRival } from '../../meta/journal';
 import { createHuntLogger, type HuntLogger } from '../../meta/huntLog';
 import { createShareLogger, type ShareLogger } from '../../meta/share';
 import { applyHunt, huntSight, isWeaponEquippable, type HuntOutcome } from '../../meta/progress';
@@ -1807,6 +1808,7 @@ export class HuntScene extends Phaser.Scene {
                 ?.behaviours.includes('perchHigh') === true,
           )
         : null;
+    if (this.ctx.hook) this.ctx.hook.journalSightings = [];
     if (plan !== null) {
       this.ctx.daily.start(plan);
       this.shareLog = createShareLogger(this.ctx.dailyMeta.grid);
@@ -2635,6 +2637,20 @@ export class HuntScene extends Phaser.Scene {
           farFactor: this.ctx.content.scoring.planes.far.scrollFactor,
           cameraAt: (tick) => this.runner?.cameraAt(tick) ?? null,
           planeScale,
+          onSighted: (id) => {
+            if (
+              this.ctx.daily.unranked ||
+              this.ftue !== null ||
+              this.range !== null ||
+              (this.runner?.state.aim ?? null) !== null
+            )
+              return;
+            const logger = this.logger;
+            if (logger?.observe(id) && this.ctx.hook)
+              this.ctx.hook.journalSightings = [...logger.creaturesSeen]
+                .filter((k) => k.startsWith('veld_'))
+                .map((k) => k.slice(5));
+          },
         });
       })
       .catch(() => {
@@ -3213,11 +3229,28 @@ export class HuntScene extends Phaser.Scene {
     this.ctx.save.update((d) => {
       outcome = applyHunt(
         d,
-        logger.finish(result, bonusUnlocked),
+        {
+          ...logger.finish(result, bonusUnlocked),
+          rules: this.ctx.daily.unranked ? '' : this.ctx.contentHash.slice(0, 8),
+        },
         this.ctx.content,
         this.ctx.notaboek,
         ranked,
       );
+      if (!this.ctx.daily.unranked && this.ftue === null && this.range === null) {
+        outcome = {
+          ...outcome,
+          save: awardPlaques({
+            ...outcome.save,
+            journal: recordRival(
+              outcome.save.journal,
+              this.plan?.challenge ?? null,
+              result.score,
+              this.ctx.contentHash,
+            ),
+          }),
+        };
+      }
       return outcome.save;
     });
     return outcome;
