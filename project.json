@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "updated": "2026-11-02T16:21:52Z",
+  "updated": "2026-11-03T08:24:02Z",
   "by": "Codex",
-  "summary": "Six approved improvement stages are implemented, validated and pushed to improvement-rollout, together with Harvest audio and privacy recovery fixes. Ready for review and merge; the live build remains 1.14.0. Final art, voices and real-device release checks remain outstanding.",
+  "summary": "Six improvement stages plus English startup and baboon refinements are implemented, validated and pushed to improvement-rollout. Ready for review and merge; the live build remains 1.14.0. English captions and 45 voice clips are refreshed. Final production art, voices and real-device release checks remain outstanding.",
   "current": {
     "version": "1.14.0",
     "commit": "cb403d9"
@@ -2539,6 +2539,85 @@
           "url": "https://github.com/ShadowNam/Tarantal/commit/918a6b8c"
         }
       ]
+    },
+    {
+      "id": "D073",
+      "title": "English startup, loading-screen language choice and refined baboons",
+      "status": "review",
+      "owner": "Codex",
+      "requestedBy": "Product owner",
+      "summary": "New and legacy-default saves start in English. Loading/title language choice remembers English, Afrikaans or Deutsch, aligns voice and names, and works without persistent storage. Explicit language choices and later Auto preferences remain intact. English catchphrases and 45 voice clips translated. Refined baboon anatomy, facial detail and fur shading in Standard and HD. Pushed; awaiting merge and deployment.",
+      "checklist": [
+        {
+          "text": "English default and loading/title language selector implemented",
+          "done": true
+        },
+        {
+          "text": "Memory-only language changes and loading-card relabeling repaired",
+          "done": true
+        },
+        {
+          "text": "Refined baboon Standard and HD sheets regenerated",
+          "done": true
+        },
+        {
+          "text": "Final automated and desktop/mobile browser validation",
+          "done": true
+        },
+        {
+          "text": "Merge and deploy release",
+          "done": false
+        }
+      ],
+      "tests": "npm run check passes: 241 files, 2,002 tests; 56 content files valid. Main browser matrix: 12 passed across desktop Chromium, Pixel 7 and iPhone 14 WebKit landscape. Final rebuilt smoke: 7 passed / 5 device-gated skips after two successful serial rechecks. English recorded greeting, legacy Auto migration, returning Auto choice and persistence verified. Strict size: 2.91 MB gzip; normal asset audit passes. Independent review findings repaired.",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/startup-english-desktop-chromium.png",
+          "caption": "English default and startup language selector: desktop-chromium"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/startup-loading-de-desktop-chromium.png",
+          "caption": "German selection on the graphics loading screen: desktop-chromium"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/startup-english-pixel7-landscape.png",
+          "caption": "English default and startup language selector: pixel7-landscape"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/startup-loading-de-pixel7-landscape.png",
+          "caption": "German selection on the graphics loading screen: pixel7-landscape"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/startup-english-iphone14-landscape.png",
+          "caption": "English default and startup language selector: iphone14-landscape"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/startup-loading-de-iphone14-landscape.png",
+          "caption": "German selection on the graphics loading screen: iphone14-landscape"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/english-greeting-and-baboons.png",
+          "caption": "English greeting caption and voice verified in a hunt; refined baboons on the ridge"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/baboon-frame-detail.png",
+          "caption": "Enlarged source frames: connected necks, finer facial detail, fur and soft shading"
+        }
+      ],
+      "links": [
+        {
+          "label": "English startup and voice implementation",
+          "url": "https://github.com/ShadowNam/Tarantal/commit/2f10cf0b"
+        },
+        {
+          "label": "Baboon artwork implementation",
+          "url": "https://github.com/ShadowNam/Tarantal/commit/21b2d7da"
+        },
+        {
+          "label": "Published improvement branch",
+          "url": "https://github.com/ShadowNam/Tarantal/tree/improvement-rollout"
+        }
+      ]
     }
   ],
   "suggestions": [
@@ -3076,6 +3155,12 @@
       "text": "Add the six improvement ideas to the project plan and roll them out; publish commits and update admin progress sheets.",
       "outcome": "All six implemented and validated; implementation branch published. Progress sheets show review status and screenshots. Live deployment remains separate.",
       "job": "R1"
+    },
+    {
+      "date": "3 Nov 2026",
+      "text": "Share admin URL; default game to English with English/Afrikaans/German choice on loading screen; improve primitive-looking baboons.",
+      "outcome": "Implemented, validated and pushed. Admin progress sheet includes final test evidence and eight screenshots/source previews. Awaiting merge and deployment.",
+      "job": "D073"
     }
   ],
   "activity": [
@@ -4001,6 +4086,59 @@
         {
           "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/rollout-2026-11-02/journal-keepsakes-desktop-chromium.png",
           "caption": "Skiet-Skuur keepsakes: desktop-chromium"
+        }
+      ]
+    },
+    {
+      "at": "2026-11-03T08:24:02Z",
+      "kind": "screenshots",
+      "text": "D-073 ready for review: English default and remembered startup selector; English catchphrases and 45 voice clips refreshed; baboon Standard/HD anatomy and fur refined. Full check: 2,002 tests pass. Browser matrix 12 passed; final smoke and two serial rechecks pass. Strict download 2.91 MB gzip. Feature branch pushed; live 1.14.0 unchanged.",
+      "links": [
+        {
+          "label": "English startup and voice implementation",
+          "url": "https://github.com/ShadowNam/Tarantal/commit/2f10cf0b"
+        },
+        {
+          "label": "Baboon artwork implementation",
+          "url": "https://github.com/ShadowNam/Tarantal/commit/21b2d7da"
+        },
+        {
+          "label": "Published improvement branch",
+          "url": "https://github.com/ShadowNam/Tarantal/tree/improvement-rollout"
+        }
+      ],
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/startup-english-desktop-chromium.png",
+          "caption": "English default and startup language selector: desktop-chromium"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/startup-loading-de-desktop-chromium.png",
+          "caption": "German selection on the graphics loading screen: desktop-chromium"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/startup-english-pixel7-landscape.png",
+          "caption": "English default and startup language selector: pixel7-landscape"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/startup-loading-de-pixel7-landscape.png",
+          "caption": "German selection on the graphics loading screen: pixel7-landscape"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/startup-english-iphone14-landscape.png",
+          "caption": "English default and startup language selector: iphone14-landscape"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/startup-loading-de-iphone14-landscape.png",
+          "caption": "German selection on the graphics loading screen: iphone14-landscape"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/english-greeting-and-baboons.png",
+          "caption": "English greeting caption and voice verified in a hunt; refined baboons on the ridge"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/d073-2026-11-03/baboon-frame-detail.png",
+          "caption": "Enlarged source frames: connected necks, finer facial detail, fur and soft shading"
         }
       ]
     }
@@ -5416,6 +5554,10 @@
     {
       "id": "D-060",
       "text": "Season Run Save & leave (1.9.6). Bottle caps stay inside each run, not a permanent wallet: your decision, 29 Oct 13:50"
+    },
+    {
+      "id": "D-073",
+      "text": "English default with a loading/title language selector; translate English catchphrases and speech; improve existing baboon art without changing sim, hitboxes or scoring."
     }
   ],
   "glossary": [
