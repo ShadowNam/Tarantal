@@ -1,5 +1,8 @@
 # Changelog
 
+- English startup default with a remembered English/Afrikaans/Deutsch loading-screen selector; translated English catchphrases and 45 refreshed English voice clips.
+- Refined baboon anatomy, connected necks, fur and soft shading in Standard and HD art.
+
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 

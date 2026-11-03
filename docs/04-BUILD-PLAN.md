@@ -68,6 +68,15 @@ Store publishing and paid voice services keep their existing release requirement
 
 ---
 
+## Startup and visual follow-up — 3 Nov 2026 (D-073)
+
+Product-owner request: English by default, with a remembered English / Afrikaans / Deutsch
+selector on loading and title screens. Keep language changes usable when storage is blocked.
+Translate English catchphrases and regenerate the 45 affected recorded English lines.
+Refine baboon anatomy and fine detail in both Standard and HD, preserving poses and hitboxes.
+Implementation is ready; browser and full-check evidence is recorded in the admin progress sheet.
+Release status remains awaiting merge and deployment.
+
 ## Review of the current checkout — 2 Nov 2026
 
 This checkout is package 1.15.0 on `v112-brakkie`; the feature label v1.12 refers to Brakkie,
