@@ -284,7 +284,7 @@ These follow the names above (and the toggle brings back their pre-v1.5 text too
 | `charm.kwevoel_se_seen.desc` | Kwêvoël 3× so dikwels; alles ×2 terwyl hy roep | Go-away-bird 3× as often; all bags ×2 while it calls | Lärmvogel 3× so oft; alle Vögel ×2, solange er ruft | Lawaaivogel 3× zo vaak; alle vangsten ×2 als hij roept | |
 | `admin.sight_default` | Skiet-Skuur's | Gun Shed's | Wie im Waffenschuppen | Zoals in de Schietschuur | |
 | `bark.legend` | Bosveld-legende! | Bushveld Legend! | Buschveld-Legende! | Bosveldlegende! | |
-| `bark.run_won` | Die hele jaar! Bosveld-legende, my kind! | The whole year! Bushveld Legend, my kind! | Das ganze Jahr! Buschveld-Legende, Kind! | Het hele jaar! Bosveldlegende, m'n kind! | |
+| `bark.run_won` | Die hele jaar! Bosveld-legende, my kind! | The whole year! Bushveld Legend, my child! | Das ganze Jahr! Buschveld-Legende, Kind! | Het hele jaar! Bosveldlegende, m'n kind! | |
 
 **Makalani (1.9.3, D-056).** The nut's name and its pops live in the lazy guide tables
 (`src/i18n/guide/<lang>.json`, D-055), not the main files, so they are listed here rather than in
