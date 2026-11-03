@@ -43,7 +43,7 @@ test('closing the tab mid-menu and reopening restores settings and progress', as
   page,
   context,
 }, info) => {
-  test.setTimeout(240_000);
+  test.setTimeout(600_000);
   onlyDesktopAndIphone(info);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);

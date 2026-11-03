@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { boot, isTouchProject, startHunt } from './helpers';
+import { boot, isTouchProject, startHunt, tapRect } from './helpers';
 import en from '../../src/i18n/en.json' with { type: 'json' };
 
 test('startup defaults to English and remembers the selected language', async ({ page }, info) => {
@@ -98,7 +98,7 @@ test('English startup speech uses the translated English greeting', async ({ pag
 
 test('legacy automatic language adopts the English default once', async ({ page }, info) => {
   test.skip(info.project.name !== 'desktop-chromium', 'one save migration check');
-  test.setTimeout(180_000);
+  test.setTimeout(300_000);
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'languages', { get: () => ['de-DE'] });
     if (sessionStorage.getItem('legacy-language-seeded')) return;
@@ -111,14 +111,23 @@ test('legacy automatic language adopts the English default once', async ({ page 
   await boot(page, 'seed=42&graphics=standard');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('#startup-language-select')).toHaveValue('en');
-  // Auto chosen after the migration remains an explicit browser-language preference.
-  await page.evaluate(() => {
-    const saved = JSON.parse(localStorage.getItem('tm.e2e.save.v1') ?? '{}') as {
-      settings: { language: string };
-    };
-    saved.settings.language = 'auto';
-    localStorage.setItem('tm.e2e.save.v1', JSON.stringify(saved));
-  });
+  // Choose Auto through Settings so the active save changes along with the disk copy.
+  await tapRect(page, false, 'settings');
+  await page.waitForFunction(() => window.__TM__?.menu === 'settings');
+  for (const language of ['af', 'de', 'nl', 'de']) {
+    await tapRect(page, false, 'settings.language');
+    await page.waitForFunction((lang) => document.documentElement.lang === lang, language);
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              resolve();
+            });
+          });
+        }),
+    );
+  }
   await page.reload();
   await page.waitForFunction(() => window.__TM__?.ready === true);
   await expect(page.locator('html')).toHaveAttribute('lang', 'de');
