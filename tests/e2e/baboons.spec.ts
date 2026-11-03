@@ -318,7 +318,11 @@ test('a hunt waits for the baboon sheet; then the troop is drawn on the canvas',
   });
   await page.mouse.move(0, 0);
   await page.waitForTimeout(1500);
-  const img = decodePng(await page.locator('#game canvas').screenshot());
+  const img = decodePng(
+    await page.locator('#game canvas').screenshot({
+      path: `tests/e2e/__screenshots__/baboons-refined-${info.project.name}.png`,
+    }),
+  );
   const h = await hook(page);
   const k = img.height / h.designHeight;
   const px = (x: number, y: number): [number, number, number] => {

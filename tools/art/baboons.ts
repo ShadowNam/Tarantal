@@ -21,9 +21,28 @@ import type { Rgba } from '../assets/image';
 import { add, clipOf, limb, mul, sub, unit, nrm, type V } from './farFauna';
 import { renderSvg } from './raster';
 import { nextId, shade } from './scenery';
-import { el, ellipseD, g, prng, r2, smoothD, svgDoc } from './svg';
+import { el as svgEl, g, prng, smoothD, svgDoc } from './svg';
 
 type Attrs = Record<string, string | number>;
+
+// These poses use body-height units, not pixels. The shared two-decimal serializer
+// erased fine fur widths and eye highlights before scaling to the delivered texture.
+const r2 = (value: number): string => String(Math.round(value * 10000) / 10000);
+function el(tag: string, attrs: Attrs, ...children: string[]): string {
+  return svgEl(
+    tag,
+    Object.fromEntries(
+      Object.entries(attrs).map(([key, value]) => [
+        key,
+        typeof value === 'number' ? r2(value) : value,
+      ]),
+    ),
+    ...children,
+  );
+}
+function ellipseD(cx: number, cy: number, rx: number, ry: number): string {
+  return `M${r2(cx - rx)} ${r2(cy)}a${r2(rx)} ${r2(ry)} 0 1 0 ${r2(rx * 2)} 0a${r2(rx)} ${r2(ry)} 0 1 0 ${r2(-rx * 2)} 0Z`;
+}
 
 interface Coat {
   readonly coat: string;
@@ -423,17 +442,30 @@ export const POSES: Readonly<
 
 // --- drawing -------------------------------------------------------------------------------
 
-const edge = (c: string): string => shade(c, -0.42);
-
 function part(d: string, fillC: string, w: number, extra: Attrs = {}): string {
-  return el('path', {
-    d,
-    fill: fillC,
-    stroke: edge(fillC),
-    'stroke-width': r2(w),
-    'stroke-linejoin': 'round',
-    ...extra,
-  });
+  const id = nextId();
+  // Model each anatomical mass with soft light instead of a flat outlined cutout.
+  return (
+    el(
+      'defs',
+      {},
+      el(
+        'linearGradient',
+        { id, x1: '15%', y1: '0%', x2: '75%', y2: '100%' },
+        el('stop', { offset: 0, 'stop-color': shade(fillC, 0.28) }),
+        el('stop', { offset: 0.35, 'stop-color': fillC }),
+        el('stop', { offset: 1, 'stop-color': shade(fillC, -0.3) }),
+      ),
+    ) +
+    el('path', {
+      d,
+      fill: `url(#${id})`,
+      stroke: shade(fillC, -0.22),
+      'stroke-width': w * 0.55,
+      'stroke-linejoin': 'round',
+      ...extra,
+    })
+  );
 }
 
 /** The torso as one smooth outline round the rump and shoulder ends (with the male's mane). */
@@ -467,7 +499,7 @@ function fur(
   const rnd = prng(seed);
   const strokes: string[] = [];
   const n = Math.round(((box.x1 - box.x0) * (box.y1 - box.y0)) / (0.0016 * k));
-  for (let i = 0; i < Math.min(n, 160); i++) {
+  for (let i = 0; i < Math.min(n, 340); i++) {
     const x = box.x0 + rnd() * (box.x1 - box.x0);
     const y = box.y0 + rnd() * (box.y1 - box.y0);
     const t = (y - box.y0) / Math.max(1e-6, box.y1 - box.y0);
@@ -478,9 +510,9 @@ function fur(
       el('path', {
         d: `M${r2(x)} ${r2(y)}l${r2(-len * Math.cos(a))} ${r2(len * Math.sin(a) * 0.6)}`,
         stroke: c,
-        'stroke-width': 0.008,
+        'stroke-width': 0.004,
         'stroke-linecap': 'round',
-        opacity: r2(0.55 + rnd() * 0.3),
+        opacity: r2(0.35 + rnd() * 0.35),
         fill: 'none',
       }),
     );
@@ -498,7 +530,7 @@ function limbD(l: Limb, w0: number, w1: number): string {
 
 function headParts(p: Pose, coat: Coat, small: boolean): string[] {
   const [hx, hy] = p.head;
-  const r = 0.115;
+  const r = 0.105;
   const a = (p.muzzle * Math.PI) / 180;
   const dir: V = [Math.cos(a), Math.sin(a)];
   const tip: V = [hx + dir[0] * 0.2, hy + dir[1] * 0.2];
@@ -606,11 +638,15 @@ function headParts(p: Pose, coat: Coat, small: boolean): string[] {
       }),
     );
   else {
-    out.push(el('path', { d: ellipseD(ex, ey, 0.024, 0.016), fill: coat.lid }));
-    out.push(el('path', { d: ellipseD(ex + 0.006, ey + 0.004, 0.011, 0.011), fill: '#2A1A10' }));
+    out.push(el('path', { d: ellipseD(ex, ey, 0.018, 0.011), fill: coat.lid }));
+    out.push(el('path', { d: ellipseD(ex + 0.004, ey + 0.002, 0.007, 0.008), fill: '#2A1A10' }));
     if (!small)
       out.push(el('path', { d: ellipseD(ex + 0.002, ey, 0.004, 0.004), fill: '#F2E8D8' }));
   }
+  // Fine cheek fur follows the jaw rather than a circular cartoon face outline.
+  const cheek = clipOf([ellipseD(hx - 0.025, hy + 0.005, r * 0.88, r * 0.9)]);
+  out.push(el('defs', {}, cheek.def));
+  out.push(fur(cheek.id, { x0: hx - r, y0: hy - r, x1: hx + r * 0.6, y1: hy + r }, coat, 73, 0.5));
   if (p.hatOn === true) out.push(...hat(hx - 0.01, hy - r * 0.8, 1));
   return out;
 }
@@ -819,7 +855,7 @@ export function drawBaboon(p: Pose, coat: Coat, small: boolean, seed: number): s
       }),
     ),
   );
-  if (!small) body.push(fur(tclip.id, box, coat, seed, 1));
+  body.push(fur(tclip.id, box, coat, seed, small ? 1.4 : 0.65));
   if (p.mane === true) {
     // The male's rougher shoulder cape: darker strokes over the shoulders.
     const sh = p.front;
@@ -864,6 +900,31 @@ export function drawBaboon(p: Pose, coat: Coat, small: boolean, seed: number): s
   const toeF = p.legs[0][p.legs[0].length - 1] ?? [0, 0];
   body.push(part(ellipseD(toeF[0], toeF[1] - 0.018, 0.05, 0.02), shade(coat.hand, -0.1), w));
   if (p.baby === true) body.push(...baby(p, small ? 1.45 : 1));
+  // A sloping muscular neck joins the shoulder cape to the skull in every pose.
+  // The old gap made moving heads look like separate floating circles.
+  body.push(
+    part(
+      limbD([p.front, lerpV(p.front, p.head, 0.55), p.head], p.mane === true ? 0.23 : 0.17, 0.14),
+      coat.coat,
+      w,
+    ),
+  );
+  const neckClip = clipOf([limbD([p.front, p.head], p.mane === true ? 0.23 : 0.17, 0.14)]);
+  defs.push(neckClip.def);
+  body.push(
+    fur(
+      neckClip.id,
+      {
+        x0: Math.min(p.front[0], p.head[0]) - 0.12,
+        x1: Math.max(p.front[0], p.head[0]) + 0.12,
+        y0: Math.min(p.front[1], p.head[1]) - 0.12,
+        y1: Math.max(p.front[1], p.head[1]) + 0.12,
+      },
+      coat,
+      seed + 53,
+      0.55,
+    ),
+  );
   // Head before the near arm (a hand to the mouth sits in front of the face).
   if (p.back === true) body.push(...faceOn(p.head, coat, p.open === true));
   else body.push(...headParts(p, coat, small));
