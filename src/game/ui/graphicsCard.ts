@@ -89,6 +89,7 @@ function panel(id: string): HTMLDivElement {
 export function showGraphicsCard(
   text: GraphicsCardText,
   pick: GraphicsMode,
+  readText?: () => GraphicsCardText,
 ): Promise<GraphicsCardResult> {
   return new Promise((resolve) => {
     const p = panel('tm-graphics');
@@ -158,7 +159,35 @@ export function showGraphicsCard(
     const later = document.createElement('div');
     later.textContent = text.later;
     later.style.cssText = 'font-size:16px;opacity:0.75';
-    const { box, stop } = scaledBox(p);
+    const { box, stop: stopScale } = scaledBox(p);
+    const relabel = (): void => {
+      const next = readText?.();
+      if (!next) return;
+      name.textContent = next.title;
+      q.textContent = next.question;
+      span.textContent = next.remember;
+      later.textContent = next.later;
+      for (const [button, mode] of [
+        [std, 'standard'],
+        [hd, 'hd'],
+      ] as const) {
+        const values = [
+          next[mode],
+          mode === 'hd' ? next.hdDesc : next.standardDesc,
+          ...(mode === pick ? [next.recommended] : []),
+          ...(mode === 'hd' && next.weak !== null ? [next.weak] : []),
+        ];
+        values.forEach((value, index) => {
+          const child = button.children.item(index);
+          if (child) child.textContent = value;
+        });
+      }
+    };
+    document.addEventListener('tm-language-change', relabel);
+    const stop = (): void => {
+      stopScale();
+      document.removeEventListener('tm-language-change', relabel);
+    };
     box.append(name, q, row, label, later);
     document.body.append(p);
     (pick === 'hd' ? hd : std).focus();

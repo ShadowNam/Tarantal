@@ -143,13 +143,12 @@
       #install-banner {
         position: fixed;
         z-index: 6;
-        left: 50%;
-        transform: translateX(-50%);
-        top: max(8px, env(safe-area-inset-top));
+        right: max(12px, env(safe-area-inset-right));
+        top: max(12px, env(safe-area-inset-top));
         display: flex;
         align-items: center;
         gap: 10px;
-        max-width: calc(100vw - 32px);
+        max-width: min(240px, calc(100vw - 300px));
         box-sizing: border-box;
         padding: 8px 8px 8px 16px;
         border-radius: 14px;
@@ -188,6 +187,38 @@
   <body>
     <div id="game"></div>
     <div id="safe-area-probe"></div>
+    <label
+      id="startup-language"
+      style="
+        position: fixed;
+        top: max(12px, env(safe-area-inset-top));
+        left: max(12px, env(safe-area-inset-left));
+        z-index: 1001;
+        color: #f3ead3;
+        font: 600 16px system-ui;
+        background: #211c14;
+        padding: 8px 12px;
+        border: 1px solid #b59a62;
+        border-radius: 8px;
+      "
+    >
+      <span data-i18n="settings.language">Language</span>
+      <select
+        id="startup-language-select"
+        aria-label="Language"
+        style="
+          font: inherit;
+          min-height: 36px;
+          background: #f3ead3;
+          color: #211c14;
+          border-radius: 4px;
+        "
+      >
+        <option value="en">English</option>
+        <option value="af">Afrikaans</option>
+        <option value="de">Deutsch</option>
+      </select>
+    </label>
     <div id="rotate-card" role="alert" aria-live="polite">
       <div class="icon" aria-hidden="true"></div>
       <h1 data-i18n="rotate.title"></h1>

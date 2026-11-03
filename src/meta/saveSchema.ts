@@ -63,7 +63,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reduceFlashes: false,
   aimAssist: 'standard',
   leftHanded: false,
-  language: 'auto',
+  language: 'en',
   voiceLanguage: 'same',
   afrikaansNames: false,
   quality: 'auto',

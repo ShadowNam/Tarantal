@@ -4290,53 +4290,53 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_ag_nee.4807d8c079fb.ogg",
-        "bytes": 9572,
-        "hash": "4807d8c079fb"
+        "path": "assets/voice-en/audio/voice/en-bark_ag_nee.2b08d23f0732.ogg",
+        "bytes": 9411,
+        "hash": "2b08d23f0732"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_ag_nee.312cd7e8009d.mp3",
-        "bytes": 8745,
-        "hash": "312cd7e8009d"
+        "path": "assets/voice-en/audio/voice/en-bark_ag_nee.9b4b9441439d.mp3",
+        "bytes": 9059,
+        "hash": "9b4b9441439d"
       },
       "loop": false,
       "lufs": -16,
-      "peakDb": -1.4
+      "peakDb": -1.3
     },
     "voice/en/bark.aim": {
       "group": "voice-en",
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_aim.ba34f422945a.ogg",
-        "bytes": 11595,
-        "hash": "ba34f422945a"
+        "path": "assets/voice-en/audio/voice/en-bark_aim.fd2789addc79.ogg",
+        "bytes": 12423,
+        "hash": "fd2789addc79"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_aim.2f90ebed7115.mp3",
-        "bytes": 11974,
-        "hash": "2f90ebed7115"
+        "path": "assets/voice-en/audio/voice/en-bark_aim.7526cd4558dc.mp3",
+        "bytes": 12620,
+        "hash": "7526cd4558dc"
       },
       "loop": false,
-      "lufs": -16.9,
-      "peakDb": -1
+      "lufs": -16,
+      "peakDb": -1.2
     },
     "voice/en/bark.back_again": {
       "group": "voice-en",
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_back_again.71852a340b4a.ogg",
-        "bytes": 18207,
-        "hash": "71852a340b4a"
+        "path": "assets/voice-en/audio/voice/en-bark_back_again.1958f2755d6f.ogg",
+        "bytes": 18707,
+        "hash": "1958f2755d6f"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_back_again.f3ff28bd5783.mp3",
-        "bytes": 21655,
-        "hash": "f3ff28bd5783"
+        "path": "assets/voice-en/audio/voice/en-bark_back_again.8d43ae66ac09.mp3",
+        "bytes": 21729,
+        "hash": "8d43ae66ac09"
       },
       "loop": false,
-      "lufs": -17.7,
+      "lufs": -17.3,
       "peakDb": -1
     },
     "voice/en/bark.balloon": {
@@ -4362,17 +4362,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_blik_dans.739512ec7320.ogg",
-        "bytes": 18801,
-        "hash": "739512ec7320"
+        "path": "assets/voice-en/audio/voice/en-bark_blik_dans.9e5607de35d3.ogg",
+        "bytes": 11266,
+        "hash": "9e5607de35d3"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_blik_dans.82b6d5dbb493.mp3",
-        "bytes": 22202,
-        "hash": "82b6d5dbb493"
+        "path": "assets/voice-en/audio/voice/en-bark_blik_dans.b896b9934ab4.mp3",
+        "bytes": 11999,
+        "hash": "b896b9934ab4"
       },
       "loop": false,
-      "lufs": -18.1,
+      "lufs": -17.4,
       "peakDb": -1
     },
     "voice/en/bark.blik_lug": {
@@ -4380,18 +4380,18 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_blik_lug.2a08aa325853.ogg",
-        "bytes": 18366,
-        "hash": "2a08aa325853"
+        "path": "assets/voice-en/audio/voice/en-bark_blik_lug.c768e87a57ea.ogg",
+        "bytes": 9758,
+        "hash": "c768e87a57ea"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_blik_lug.aa0d929cb001.mp3",
-        "bytes": 20819,
-        "hash": "aa0d929cb001"
+        "path": "assets/voice-en/audio/voice/en-bark_blik_lug.71e1c1f9d6cb.mp3",
+        "bytes": 10676,
+        "hash": "71e1c1f9d6cb"
       },
       "loop": false,
-      "lufs": -17.6,
-      "peakDb": -1
+      "lufs": -16,
+      "peakDb": -1.9
     },
     "voice/en/bark.boss_big": {
       "group": "voice-en",
@@ -4470,17 +4470,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_egg.3f9bdf6f7841.ogg",
-        "bytes": 14585,
-        "hash": "3f9bdf6f7841"
+        "path": "assets/voice-en/audio/voice/en-bark_egg.ffd7cc52667f.ogg",
+        "bytes": 14596,
+        "hash": "ffd7cc52667f"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_egg.cb805b0fd89f.mp3",
-        "bytes": 16580,
-        "hash": "cb805b0fd89f"
+        "path": "assets/voice-en/audio/voice/en-bark_egg.7c1498eb7404.mp3",
+        "bytes": 16267,
+        "hash": "7c1498eb7404"
       },
       "loop": false,
-      "lufs": -17.4,
+      "lufs": -16.7,
       "peakDb": -1
     },
     "voice/en/bark.empty_gun": {
@@ -4488,17 +4488,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_empty_gun.e412628aae23.ogg",
-        "bytes": 16376,
-        "hash": "e412628aae23"
+        "path": "assets/voice-en/audio/voice/en-bark_empty_gun.805053abb751.ogg",
+        "bytes": 16748,
+        "hash": "805053abb751"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_empty_gun.3e884a79c0e1.mp3",
-        "bytes": 19210,
-        "hash": "3e884a79c0e1"
+        "path": "assets/voice-en/audio/voice/en-bark_empty_gun.fdb080af32f9.mp3",
+        "bytes": 19835,
+        "hash": "fdb080af32f9"
       },
       "loop": false,
-      "lufs": -18.4,
+      "lufs": -17.1,
       "peakDb": -1
     },
     "voice/en/bark.familiefoto": {
@@ -4506,17 +4506,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_familiefoto.c5d92f654def.ogg",
-        "bytes": 20961,
-        "hash": "c5d92f654def"
+        "path": "assets/voice-en/audio/voice/en-bark_familiefoto.abe5e535257b.ogg",
+        "bytes": 21622,
+        "hash": "abe5e535257b"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_familiefoto.0f2a0039afaf.mp3",
-        "bytes": 26417,
-        "hash": "0f2a0039afaf"
+        "path": "assets/voice-en/audio/voice/en-bark_familiefoto.31610bd18dc8.mp3",
+        "bytes": 26360,
+        "hash": "31610bd18dc8"
       },
       "loop": false,
-      "lufs": -19.3,
+      "lufs": -19.5,
       "peakDb": -1
     },
     "voice/en/bark.farmer_yet": {
@@ -4560,35 +4560,35 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_hele_swerm.91047bf9f9b0.ogg",
-        "bytes": 10744,
-        "hash": "91047bf9f9b0"
+        "path": "assets/voice-en/audio/voice/en-bark_hele_swerm.9ef4e65b72f7.ogg",
+        "bytes": 9595,
+        "hash": "9ef4e65b72f7"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_hele_swerm.0f092667af9b.mp3",
-        "bytes": 10693,
-        "hash": "0f092667af9b"
+        "path": "assets/voice-en/audio/voice/en-bark_hele_swerm.1b6efc65b310.mp3",
+        "bytes": 8871,
+        "hash": "1b6efc65b310"
       },
       "loop": false,
       "lufs": -16,
-      "peakDb": -1.9
+      "peakDb": -2.3
     },
     "voice/en/bark.jinne_hardloop": {
       "group": "voice-en",
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_jinne_hardloop.0a4573ca8ab5.ogg",
-        "bytes": 14264,
-        "hash": "0a4573ca8ab5"
+        "path": "assets/voice-en/audio/voice/en-bark_jinne_hardloop.dfeaa6e38af0.ogg",
+        "bytes": 12957,
+        "hash": "dfeaa6e38af0"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_jinne_hardloop.f5fe6dde7fbc.mp3",
-        "bytes": 15585,
-        "hash": "f5fe6dde7fbc"
+        "path": "assets/voice-en/audio/voice/en-bark_jinne_hardloop.c25185cc1fc3.mp3",
+        "bytes": 14164,
+        "hash": "c25185cc1fc3"
       },
       "loop": false,
-      "lufs": -17.4,
+      "lufs": -16.8,
       "peakDb": -1
     },
     "voice/en/bark.kettle": {
@@ -4614,17 +4614,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_kos_is_reg.87f1d00e37d2.ogg",
-        "bytes": 9963,
-        "hash": "87f1d00e37d2"
+        "path": "assets/voice-en/audio/voice/en-bark_kos_is_reg.fad82b33e49e.ogg",
+        "bytes": 9463,
+        "hash": "fad82b33e49e"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_kos_is_reg.acbe158b85bc.mp3",
-        "bytes": 9888,
-        "hash": "acbe158b85bc"
+        "path": "assets/voice-en/audio/voice/en-bark_kos_is_reg.08fce6939fb6.mp3",
+        "bytes": 9265,
+        "hash": "08fce6939fb6"
       },
       "loop": false,
-      "lufs": -16.8,
+      "lufs": -16,
       "peakDb": -1
     },
     "voice/en/bark.kwaak": {
@@ -4632,36 +4632,36 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_kwaak.03e59cd7180d.ogg",
-        "bytes": 7925,
-        "hash": "03e59cd7180d"
+        "path": "assets/voice-en/audio/voice/en-bark_kwaak.1a55f70923b6.ogg",
+        "bytes": 7819,
+        "hash": "1a55f70923b6"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_kwaak.79d76637e92b.mp3",
-        "bytes": 8730,
-        "hash": "79d76637e92b"
+        "path": "assets/voice-en/audio/voice/en-bark_kwaak.fc654d7fe79b.mp3",
+        "bytes": 9358,
+        "hash": "fc654d7fe79b"
       },
       "loop": false,
       "lufs": -16,
-      "peakDb": -2.2
+      "peakDb": -3
     },
     "voice/en/bark.laai": {
       "group": "voice-en",
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_laai.fd77fb731304.ogg",
-        "bytes": 9651,
-        "hash": "fd77fb731304"
+        "path": "assets/voice-en/audio/voice/en-bark_laai.c6ca6d123cbc.ogg",
+        "bytes": 13921,
+        "hash": "c6ca6d123cbc"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_laai.5ef88f3ce69a.mp3",
-        "bytes": 9312,
-        "hash": "5ef88f3ce69a"
+        "path": "assets/voice-en/audio/voice/en-bark_laai.9506350789ce.mp3",
+        "bytes": 15120,
+        "hash": "9506350789ce"
       },
       "loop": false,
-      "lufs": -16,
-      "peakDb": -2.7
+      "lufs": -16.4,
+      "peakDb": -1
     },
     "voice/en/bark.laughing": {
       "group": "voice-en",
@@ -4704,17 +4704,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_lekker.b42a5eec99c8.ogg",
-        "bytes": 13184,
-        "hash": "b42a5eec99c8"
+        "path": "assets/voice-en/audio/voice/en-bark_lekker.6c4d21cf6373.ogg",
+        "bytes": 12035,
+        "hash": "6c4d21cf6373"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_lekker.36fdf6e50085.mp3",
-        "bytes": 12907,
-        "hash": "36fdf6e50085"
+        "path": "assets/voice-en/audio/voice/en-bark_lekker.fa94fc63ea46.mp3",
+        "bytes": 12783,
+        "hash": "fa94fc63ea46"
       },
       "loop": false,
-      "lufs": -16.7,
+      "lufs": -16.9,
       "peakDb": -1
     },
     "voice/en/bark.los_kwevoel": {
@@ -4722,17 +4722,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_los_kwevoel.231a51d0c0ab.ogg",
-        "bytes": 12877,
-        "hash": "231a51d0c0ab"
+        "path": "assets/voice-en/audio/voice/en-bark_los_kwevoel.328dba63ec77.ogg",
+        "bytes": 14602,
+        "hash": "328dba63ec77"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_los_kwevoel.aee1653f2113.mp3",
-        "bytes": 14210,
-        "hash": "aee1653f2113"
+        "path": "assets/voice-en/audio/voice/en-bark_los_kwevoel.ee1c7277f950.mp3",
+        "bytes": 16422,
+        "hash": "ee1c7277f950"
       },
       "loop": false,
-      "lufs": -17,
+      "lufs": -16.4,
       "peakDb": -1
     },
     "voice/en/bark.makalani": {
@@ -4740,17 +4740,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_makalani.3f0ed2e1cf8b.ogg",
-        "bytes": 26815,
-        "hash": "3f0ed2e1cf8b"
+        "path": "assets/voice-en/audio/voice/en-bark_makalani.1752b15bb094.ogg",
+        "bytes": 17612,
+        "hash": "1752b15bb094"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_makalani.30f9cb7180e5.mp3",
-        "bytes": 33837,
-        "hash": "30f9cb7180e5"
+        "path": "assets/voice-en/audio/voice/en-bark_makalani.46c6933348ec.mp3",
+        "bytes": 21373,
+        "hash": "46c6933348ec"
       },
       "loop": false,
-      "lufs": -16.7,
+      "lufs": -17.4,
       "peakDb": -1
     },
     "voice/en/bark.meerkat_scold": {
@@ -4794,17 +4794,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_mooi_skoot.3fbcc938dfd9.ogg",
-        "bytes": 12277,
-        "hash": "3fbcc938dfd9"
+        "path": "assets/voice-en/audio/voice/en-bark_mooi_skoot.3fa63096a601.ogg",
+        "bytes": 12061,
+        "hash": "3fa63096a601"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_mooi_skoot.f9aad77c35a4.mp3",
-        "bytes": 13538,
-        "hash": "f9aad77c35a4"
+        "path": "assets/voice-en/audio/voice/en-bark_mooi_skoot.5081f63b436f.mp3",
+        "bytes": 12572,
+        "hash": "5081f63b436f"
       },
       "loop": false,
-      "lufs": -16.9,
+      "lufs": -17.3,
       "peakDb": -1
     },
     "voice/en/bark.morning": {
@@ -4812,17 +4812,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_morning.3777a56dc624.ogg",
-        "bytes": 18527,
-        "hash": "3777a56dc624"
+        "path": "assets/voice-en/audio/voice/en-bark_morning.5809bad14611.ogg",
+        "bytes": 21648,
+        "hash": "5809bad14611"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_morning.27ba3125219c.mp3",
-        "bytes": 22542,
-        "hash": "27ba3125219c"
+        "path": "assets/voice-en/audio/voice/en-bark_morning.99fd0648eeb2.mp3",
+        "bytes": 26679,
+        "hash": "99fd0648eeb2"
       },
       "loop": false,
-      "lufs": -17.6,
+      "lufs": -16.2,
       "peakDb": -1
     },
     "voice/en/bark.neighbour": {
@@ -4830,17 +4830,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_neighbour.c5d0898ecd5a.ogg",
-        "bytes": 13641,
-        "hash": "c5d0898ecd5a"
+        "path": "assets/voice-en/audio/voice/en-bark_neighbour.9166bdfb1743.ogg",
+        "bytes": 13505,
+        "hash": "9166bdfb1743"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_neighbour.f750d4dc51c9.mp3",
-        "bytes": 15255,
-        "hash": "f750d4dc51c9"
+        "path": "assets/voice-en/audio/voice/en-bark_neighbour.48ae56582318.mp3",
+        "bytes": 14289,
+        "hash": "48ae56582318"
       },
       "loop": false,
-      "lufs": -17.3,
+      "lufs": -18.1,
       "peakDb": -1
     },
     "voice/en/bark.new_best": {
@@ -4902,17 +4902,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_bigshot.076f65cf71a8.ogg",
-        "bytes": 15641,
-        "hash": "076f65cf71a8"
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_bigshot.fb68d9976a75.ogg",
+        "bytes": 16197,
+        "hash": "fb68d9976a75"
       },
       "mp3": {
-        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_bigshot.bd3b622eb504.mp3",
-        "bytes": 18274,
-        "hash": "bd3b622eb504"
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_bigshot.63cf86dae02c.mp3",
+        "bytes": 18531,
+        "hash": "63cf86dae02c"
       },
       "loop": false,
-      "lufs": -16.5,
+      "lufs": -17.3,
       "peakDb": -1
     },
     "voice/en/bark.ny_countdown": {
@@ -4920,17 +4920,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_countdown.50918378b1ac.ogg",
-        "bytes": 32715,
-        "hash": "50918378b1ac"
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_countdown.8169476e1bb6.ogg",
+        "bytes": 29495,
+        "hash": "8169476e1bb6"
       },
       "mp3": {
-        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_countdown.a816df5ee1ed.mp3",
-        "bytes": 41137,
-        "hash": "a816df5ee1ed"
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_countdown.04e32252f594.mp3",
+        "bytes": 38022,
+        "hash": "04e32252f594"
       },
       "loop": false,
-      "lufs": -18.2,
+      "lufs": -19.4,
       "peakDb": -1
     },
     "voice/en/bark.ny_end": {
@@ -4938,17 +4938,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_end.de598fd542c0.ogg",
-        "bytes": 22746,
-        "hash": "de598fd542c0"
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_end.869e68fd911c.ogg",
+        "bytes": 22954,
+        "hash": "869e68fd911c"
       },
       "mp3": {
-        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_end.45753de53198.mp3",
-        "bytes": 28631,
-        "hash": "45753de53198"
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_end.9ab67f1f919b.mp3",
+        "bytes": 29016,
+        "hash": "9ab67f1f919b"
       },
       "loop": false,
-      "lufs": -18.6,
+      "lufs": -18.8,
       "peakDb": -1
     },
     "voice/en/bark.ny_start": {
@@ -4956,17 +4956,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_start.f20faaddeb8e.ogg",
-        "bytes": 22526,
-        "hash": "f20faaddeb8e"
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_start.599aee470d5c.ogg",
+        "bytes": 23147,
+        "hash": "599aee470d5c"
       },
       "mp3": {
-        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_start.fc791608ee0e.mp3",
-        "bytes": 26853,
-        "hash": "fc791608ee0e"
+        "path": "assets/feesdae-voice-newyear-en/audio/voice/en-bark_ny_start.8fa4718a5989.mp3",
+        "bytes": 28448,
+        "hash": "8fa4718a5989"
       },
       "loop": false,
-      "lufs": -17.7,
+      "lufs": -18.3,
       "peakDb": -1
     },
     "voice/en/bark.on_fire": {
@@ -5010,17 +5010,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_oupa_laai.e4c68f178fee.ogg",
-        "bytes": 13265,
-        "hash": "e4c68f178fee"
+        "path": "assets/voice-en/audio/voice/en-bark_oupa_laai.582ca35415bc.ogg",
+        "bytes": 13381,
+        "hash": "582ca35415bc"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_oupa_laai.019d0b33379f.mp3",
-        "bytes": 14391,
-        "hash": "019d0b33379f"
+        "path": "assets/voice-en/audio/voice/en-bark_oupa_laai.1ec6876682a5.mp3",
+        "bytes": 14912,
+        "hash": "1ec6876682a5"
       },
       "loop": false,
-      "lufs": -17.2,
+      "lufs": -16.8,
       "peakDb": -1
     },
     "voice/en/bark.quota_met": {
@@ -5118,14 +5118,14 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_run_won.4a163647c4bb.ogg",
-        "bytes": 19175,
-        "hash": "4a163647c4bb"
+        "path": "assets/voice-en/audio/voice/en-bark_run_won.b106326e136e.ogg",
+        "bytes": 19411,
+        "hash": "b106326e136e"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_run_won.0d1374a422e3.mp3",
-        "bytes": 21781,
-        "hash": "0d1374a422e3"
+        "path": "assets/voice-en/audio/voice/en-bark_run_won.ee15fdd35cb4.mp3",
+        "bytes": 22692,
+        "hash": "ee15fdd35cb4"
       },
       "loop": false,
       "lufs": -17,
@@ -5136,14 +5136,14 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_sign.912224d93222.ogg",
-        "bytes": 17223,
-        "hash": "912224d93222"
+        "path": "assets/voice-en/audio/voice/en-bark_sign.1a3142a18e18.ogg",
+        "bytes": 17297,
+        "hash": "1a3142a18e18"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_sign.4e08ad7a3b65.mp3",
-        "bytes": 19805,
-        "hash": "4e08ad7a3b65"
+        "path": "assets/voice-en/audio/voice/en-bark_sign.8bda48f83263.mp3",
+        "bytes": 20040,
+        "hash": "8bda48f83263"
       },
       "loop": false,
       "lufs": -17.8,
@@ -5154,17 +5154,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_slaap.c5ca2f482739.ogg",
-        "bytes": 12914,
-        "hash": "c5ca2f482739"
+        "path": "assets/voice-en/audio/voice/en-bark_slaap.a90b38797775.ogg",
+        "bytes": 13307,
+        "hash": "a90b38797775"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_slaap.42ecce2af8b4.mp3",
-        "bytes": 13583,
-        "hash": "42ecce2af8b4"
+        "path": "assets/voice-en/audio/voice/en-bark_slaap.603b6dedc8f9.mp3",
+        "bytes": 14001,
+        "hash": "603b6dedc8f9"
       },
       "loop": false,
-      "lufs": -16.5,
+      "lufs": -16.7,
       "peakDb": -1
     },
     "voice/en/bark.spook_bat": {
@@ -5172,17 +5172,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_bat.512fbfaca7d9.ogg",
-        "bytes": 14500,
-        "hash": "512fbfaca7d9"
+        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_bat.f41ae9414d43.ogg",
+        "bytes": 14649,
+        "hash": "f41ae9414d43"
       },
       "mp3": {
-        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_bat.963fb2ab5be2.mp3",
-        "bytes": 16406,
-        "hash": "963fb2ab5be2"
+        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_bat.1b4225408cad.mp3",
+        "bytes": 17288,
+        "hash": "1b4225408cad"
       },
       "loop": false,
-      "lufs": -17.6,
+      "lufs": -17.1,
       "peakDb": -1
     },
     "voice/en/bark.spook_end": {
@@ -5190,14 +5190,14 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_end.25d663d25748.ogg",
-        "bytes": 23762,
-        "hash": "25d663d25748"
+        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_end.84e17510d831.ogg",
+        "bytes": 22552,
+        "hash": "84e17510d831"
       },
       "mp3": {
-        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_end.54500ef8f47b.mp3",
-        "bytes": 29223,
-        "hash": "54500ef8f47b"
+        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_end.91245a096b15.mp3",
+        "bytes": 27506,
+        "hash": "91245a096b15"
       },
       "loop": false,
       "lufs": -17.3,
@@ -5226,17 +5226,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_owl.e06e9310512d.ogg",
-        "bytes": 19803,
-        "hash": "e06e9310512d"
+        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_owl.8db1b9a6aaeb.ogg",
+        "bytes": 19358,
+        "hash": "8db1b9a6aaeb"
       },
       "mp3": {
-        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_owl.e3892d3e4216.mp3",
-        "bytes": 23890,
-        "hash": "e3892d3e4216"
+        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_owl.9f37073b8778.mp3",
+        "bytes": 22824,
+        "hash": "9f37073b8778"
       },
       "loop": false,
-      "lufs": -18.6,
+      "lufs": -17.8,
       "peakDb": -1
     },
     "voice/en/bark.spook_start": {
@@ -5244,17 +5244,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_start.8487d55c658c.ogg",
-        "bytes": 22728,
-        "hash": "8487d55c658c"
+        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_start.6b64e3cc5f01.ogg",
+        "bytes": 23275,
+        "hash": "6b64e3cc5f01"
       },
       "mp3": {
-        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_start.35489849de75.mp3",
-        "bytes": 27981,
-        "hash": "35489849de75"
+        "path": "assets/feesdae-voice-en/audio/voice/en-bark_spook_start.b0ef62aef738.mp3",
+        "bytes": 28395,
+        "hash": "b0ef62aef738"
       },
       "loop": false,
-      "lufs": -18.4,
+      "lufs": -16.9,
       "peakDb": -1
     },
     "voice/en/bark.stadsjapie": {
@@ -5262,18 +5262,18 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_stadsjapie.ecd124f364bc.ogg",
-        "bytes": 9820,
-        "hash": "ecd124f364bc"
+        "path": "assets/voice-en/audio/voice/en-bark_stadsjapie.b093e5a09af0.ogg",
+        "bytes": 10005,
+        "hash": "b093e5a09af0"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_stadsjapie.46a6eb05d015.mp3",
-        "bytes": 9603,
-        "hash": "46a6eb05d015"
+        "path": "assets/voice-en/audio/voice/en-bark_stadsjapie.968ce9095da9.mp3",
+        "bytes": 9785,
+        "hash": "968ce9095da9"
       },
       "loop": false,
-      "lufs": -17,
-      "peakDb": -1
+      "lufs": -16,
+      "peakDb": -1.2
     },
     "voice/en/bark.stampede": {
       "group": "voice-en",
@@ -5334,18 +5334,18 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_twee_vliee.59bc86acbabc.ogg",
-        "bytes": 13658,
-        "hash": "59bc86acbabc"
+        "path": "assets/voice-en/audio/voice/en-bark_twee_vliee.262e6ad3882c.ogg",
+        "bytes": 12956,
+        "hash": "262e6ad3882c"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_twee_vliee.ca3dd510e9dd.mp3",
-        "bytes": 15849,
-        "hash": "ca3dd510e9dd"
+        "path": "assets/voice-en/audio/voice/en-bark_twee_vliee.a9835528bb3b.mp3",
+        "bytes": 14733,
+        "hash": "a9835528bb3b"
       },
       "loop": false,
-      "lufs": -16,
-      "peakDb": -1.3
+      "lufs": -16.6,
+      "peakDb": -1
     },
     "voice/en/bark.up_up": {
       "group": "voice-en",
@@ -5406,18 +5406,18 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-bark_whole_lot.06e8f4777873.ogg",
-        "bytes": 11722,
-        "hash": "06e8f4777873"
+        "path": "assets/voice-en/audio/voice/en-bark_whole_lot.05e92d204ceb.ogg",
+        "bytes": 12400,
+        "hash": "05e92d204ceb"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-bark_whole_lot.7faee2df1f9d.mp3",
-        "bytes": 12099,
-        "hash": "7faee2df1f9d"
+        "path": "assets/voice-en/audio/voice/en-bark_whole_lot.58764f4e4a60.mp3",
+        "bytes": 13481,
+        "hash": "58764f4e4a60"
       },
       "loop": false,
       "lufs": -16,
-      "peakDb": -1.4
+      "peakDb": -1.3
     },
     "voice/en/bark.wont_shoot": {
       "group": "voice-en",
@@ -5442,17 +5442,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_all.26cbed4b8f23.ogg",
-        "bytes": 23301,
-        "hash": "26cbed4b8f23"
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_all.5aff13cf80c5.ogg",
+        "bytes": 23199,
+        "hash": "5aff13cf80c5"
       },
       "mp3": {
-        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_all.566a6744f7eb.mp3",
-        "bytes": 28573,
-        "hash": "566a6744f7eb"
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_all.b8b0d369dfa0.mp3",
+        "bytes": 28028,
+        "hash": "b8b0d369dfa0"
       },
       "loop": false,
-      "lufs": -18.3,
+      "lufs": -18.2,
       "peakDb": -1
     },
     "voice/en/bark.xmas_dry": {
@@ -5460,17 +5460,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_dry.da3306fb5ed8.ogg",
-        "bytes": 21531,
-        "hash": "da3306fb5ed8"
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_dry.b70c447a97d6.ogg",
+        "bytes": 22433,
+        "hash": "b70c447a97d6"
       },
       "mp3": {
-        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_dry.4fd484905d76.mp3",
-        "bytes": 25787,
-        "hash": "4fd484905d76"
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_dry.0070e41c16e5.mp3",
+        "bytes": 27454,
+        "hash": "0070e41c16e5"
       },
       "loop": false,
-      "lufs": -18.3,
+      "lufs": -17.5,
       "peakDb": -1
     },
     "voice/en/bark.xmas_end": {
@@ -5478,17 +5478,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_end.14e63b92fa9b.ogg",
-        "bytes": 22695,
-        "hash": "14e63b92fa9b"
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_end.96b2637bac94.ogg",
+        "bytes": 23225,
+        "hash": "96b2637bac94"
       },
       "mp3": {
-        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_end.26906bc6d327.mp3",
-        "bytes": 28316,
-        "hash": "26906bc6d327"
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_end.89a996dc5522.mp3",
+        "bytes": 28676,
+        "hash": "89a996dc5522"
       },
       "loop": false,
-      "lufs": -18.8,
+      "lufs": -19.6,
       "peakDb": -1
     },
     "voice/en/bark.xmas_present": {
@@ -5496,17 +5496,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_present.c613fcf7b082.ogg",
-        "bytes": 15525,
-        "hash": "c613fcf7b082"
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_present.6bf0ea94114b.ogg",
+        "bytes": 14894,
+        "hash": "6bf0ea94114b"
       },
       "mp3": {
-        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_present.86d9cf602445.mp3",
-        "bytes": 17723,
-        "hash": "86d9cf602445"
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_present.963c47b0da89.mp3",
+        "bytes": 17176,
+        "hash": "963c47b0da89"
       },
       "loop": false,
-      "lufs": -17.6,
+      "lufs": -17.8,
       "peakDb": -1
     },
     "voice/en/bark.xmas_start": {
@@ -5514,17 +5514,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_start.d8d204f0c509.ogg",
-        "bytes": 25768,
-        "hash": "d8d204f0c509"
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_start.51ec9a937716.ogg",
+        "bytes": 24865,
+        "hash": "51ec9a937716"
       },
       "mp3": {
-        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_start.3ecb6454319b.mp3",
-        "bytes": 33421,
-        "hash": "3ecb6454319b"
+        "path": "assets/feesdae-voice-christmas-en/audio/voice/en-bark_xmas_start.26a22094a9c3.mp3",
+        "bytes": 30629,
+        "hash": "26a22094a9c3"
       },
       "loop": false,
-      "lufs": -17.9,
+      "lufs": -17.6,
       "peakDb": -1
     },
     "voice/en/braai.say.blikkies": {
@@ -5586,17 +5586,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_perfect.a02a96bb1e1d.ogg",
-        "bytes": 25552,
-        "hash": "a02a96bb1e1d"
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_perfect.b7ac4311e975.ogg",
+        "bytes": 23584,
+        "hash": "b7ac4311e975"
       },
       "mp3": {
-        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_perfect.69b4a8525c15.mp3",
-        "bytes": 31917,
-        "hash": "69b4a8525c15"
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_perfect.b07b8d7032bc.mp3",
+        "bytes": 30117,
+        "hash": "b07b8d7032bc"
       },
       "loop": false,
-      "lufs": -17.4,
+      "lufs": -17.9,
       "peakDb": -1
     },
     "voice/en/braai.say.close_rank_up": {
@@ -5604,17 +5604,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_rank_up.6e58a873e7a3.ogg",
-        "bytes": 23325,
-        "hash": "6e58a873e7a3"
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_rank_up.46c6bf804640.ogg",
+        "bytes": 22130,
+        "hash": "46c6bf804640"
       },
       "mp3": {
-        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_rank_up.c7733835b0c7.mp3",
-        "bytes": 29198,
-        "hash": "c7733835b0c7"
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_close_rank_up.460bb2a2be6f.mp3",
+        "bytes": 28633,
+        "hash": "460bb2a2be6f"
       },
       "loop": false,
-      "lufs": -19,
+      "lufs": -19.2,
       "peakDb": -1
     },
     "voice/en/braai.say.close_try": {
@@ -5748,17 +5748,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_many.99024c4cffeb.ogg",
-        "bytes": 18129,
-        "hash": "99024c4cffeb"
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_many.e6607bfdccd1.ogg",
+        "bytes": 17325,
+        "hash": "e6607bfdccd1"
       },
       "mp3": {
-        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_many.63f77a608f57.mp3",
-        "bytes": 22042,
-        "hash": "63f77a608f57"
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_many.f7e1c2fe1e00.mp3",
+        "bytes": 20976,
+        "hash": "f7e1c2fe1e00"
       },
       "loop": false,
-      "lufs": -17.2,
+      "lufs": -17.3,
       "peakDb": -1
     },
     "voice/en/braai.say.open_none": {
@@ -5766,17 +5766,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_none.78f1f19b4180.ogg",
-        "bytes": 22632,
-        "hash": "78f1f19b4180"
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_none.276680638299.ogg",
+        "bytes": 21641,
+        "hash": "276680638299"
       },
       "mp3": {
-        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_none.924d5a645402.mp3",
-        "bytes": 27348,
-        "hash": "924d5a645402"
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_open_none.4a314d1a204e.mp3",
+        "bytes": 26177,
+        "hash": "4a314d1a204e"
       },
       "loop": false,
-      "lufs": -18.2,
+      "lufs": -18.3,
       "peakDb": -1
     },
     "voice/en/braai.say.open_some": {
@@ -5838,17 +5838,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/braai-voice-en/audio/voice/en-braai_say_ver.d367a1c1a079.ogg",
-        "bytes": 22638,
-        "hash": "d367a1c1a079"
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_ver.610a2977de1b.ogg",
+        "bytes": 22063,
+        "hash": "610a2977de1b"
       },
       "mp3": {
-        "path": "assets/braai-voice-en/audio/voice/en-braai_say_ver.7233ea72e5b4.mp3",
-        "bytes": 28235,
-        "hash": "7233ea72e5b4"
+        "path": "assets/braai-voice-en/audio/voice/en-braai_say_ver.b540ecc9a73a.mp3",
+        "bytes": 26569,
+        "hash": "b540ecc9a73a"
       },
       "loop": false,
-      "lufs": -17.9,
+      "lufs": -18.8,
       "peakDb": -1
     },
     "voice/en/braai.say.whole_flock": {
@@ -5982,17 +5982,17 @@
       "origin": "interim",
       "kind": "voice",
       "ogg": {
-        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_moon.f48abae2aace.ogg",
-        "bytes": 18852,
-        "hash": "f48abae2aace"
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_moon.6247afc679a0.ogg",
+        "bytes": 18638,
+        "hash": "6247afc679a0"
       },
       "mp3": {
-        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_moon.5aa2bce1081e.mp3",
-        "bytes": 22799,
-        "hash": "5aa2bce1081e"
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_moon.6651e6cc04de.mp3",
+        "bytes": 23010,
+        "hash": "6651e6cc04de"
       },
       "loop": false,
-      "lufs": -17.2,
+      "lufs": -17.5,
       "peakDb": -1
     },
     "voice/en/guide.baboon.raid_tap": {

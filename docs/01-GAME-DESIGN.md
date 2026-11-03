@@ -53,7 +53,8 @@ Everything else supports them. If scope must shrink, protect those two.
 - **Oupa:** off-screen narrator voice. Dry, proud, occasionally scandalised. Afrikaans-English barks
   ("Mooi skoot, my kind!", "Ag nee man!", "Jinne, kyk hoe hardloop hulle!"). Never mean.
   v1.5 (D-041): he speaks English, Afrikaans or German (Settings → voice language), keeping his
-  Afrikaans exclamations in each; his lines are subtitled in the text language.
+  Afrikaans exclamations where selected; D-073 makes English captions and speech fully English.
+  His lines are subtitled in the text language.
 - **Die Tarentaal:** the star. Plump, polka-dotted, blue-faced, red-wattled, bony casque, enormous
   panicked eyes, legs that blur when it runs. Comically dignified until it panics (always).
 - **Generaal Tarentaal & friends:** boss birds with accessories (pot helmet, eye patch, crest crown).
@@ -1476,6 +1477,11 @@ size of the standard art.
 v1.5 (D-041): **Sound & game** has six rows a column: master / SFX / music / voice volume,
 **voice language** and privacy on the left; **text language**, **Afrikaans names**, aim assist,
 left-handed, hold to fire and offset crosshair on the right.
+- **Startup language (D-073):** new saves start in English, independent of browser language.
+  The loading/title screen offers English / Afrikaans / Deutsch and remembers the selection.
+  Choosing here also sets the voice to Same as text and turns Afrikaans names off.
+  Older saves on the former Auto default adopt English once; explicit saved languages remain. Advanced
+  Settings retains Auto and Nederlands for players who explicitly choose them.
 - **Text language** (Auto / English / Afrikaans / Deutsch / Nederlands) is every word on screen:
   menus, the tally, captions and Oupa's speech bubbles (his subtitles), share cards, the Daily
   share text.
@@ -1538,6 +1544,6 @@ Have a native speaker review every player-facing string before launch.
 v1.5 (D-041): this glossary is the Afrikaans side. English, German and Dutch players see their
 own names (Double Barrel / Doppelflinte, Further / Weiter, Gun Shed / Waffenschuppen, …): the
 full table, with the meaning of each pun, is `docs/i18n-names.md`. Place names stay (Karoo,
-Kalahari, Okavango; Namibië → Namibia), so do Oupa and Ouma; Oupa's spoken lines keep his
-Afrikaans exclamations in every language. Settings → Afrikaans names brings the Afrikaans names
+Kalahari, Okavango; Namibië → Namibia), so do Oupa and Ouma; D-073 translates Oupa's catchphrases in English captions and speech.
+Afrikaans retains the original phrases. Settings → Afrikaans names brings the Afrikaans names
 back in any language.

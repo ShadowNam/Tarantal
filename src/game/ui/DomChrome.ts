@@ -62,6 +62,8 @@ export class DomChrome {
   }
 
   private sync(): void {
+    const language = document.getElementById('startup-language');
+    if (language) language.hidden = !this.onTitle;
     const caps = this.platform.capabilities();
     if (this.fullscreen) this.fullscreen.hidden = !this.onTitle || !caps.fullscreen;
     if (this.banner) {

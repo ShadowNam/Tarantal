@@ -193,14 +193,13 @@ a comma in af, de and nl ("0,6 s").
 
 ### Special days (Feesdae, D-048)
 
-The special's name stays Afrikaans in every language, like the Gun Shed's names: "Spookjag" (spook
-= ghost, jag = hunt) is the Halloween Daily's name on the title, the HUD, the tally and the share
-card. Oupa's Spookjag lines keep his Afrikaans exclamations ("Spookjag, my kind!").
+D-073 translates the English Halloween Daily name to "Ghost Hunt" and its English catchphrases.
+Afrikaans, German and Dutch retain "Spookjag" (spook = ghost, jag = hunt).
 
 | Key | af | en | de | nl | Note |
 |---|---|---|---|---|---|
-| `feesdag.halloween.name` | Spookjag | Spookjag | Spookjag | Spookjag | spook + jag = ghost hunt |
-| `feesdag.halloween.badge` | Spookjag vanaand! | Spookjag tonight! | Heute Nacht: Spookjag! | Vanavond Spookjag! | the title's badge |
+| `feesdag.halloween.name` | Spookjag | Ghost Hunt | Spookjag | Spookjag | spook + jag = ghost hunt |
+| `feesdag.halloween.badge` | Spookjag vanaand! | Ghost Hunt tonight! | Heute Nacht: Spookjag! | Vanavond Spookjag! | the title's badge |
 | `feesdag.lanterns_out` | Lanterns uit! | Lanterns out! | Laternen aus! | Lantaarns uit! | every lantern shot dark |
 | `feesdag.bat` | Vlermuis! | Bat! | Fledermaus! | Vleermuis! | a bat's +15 pop |
 | `feesdag.owl` | Uil! Beskermd | Owl! Protected | Eule! Geschützt | Uil! Beschermd | the owl's −10 pop |
@@ -216,9 +215,8 @@ card. Oupa's Spookjag lines keep his Afrikaans exclamations ("Spookjag, my kind!
 | `feesdag.happy_new_year` | Gelukkige Nuwejaar! | Happy New Year! | Frohes neues Jahr! | Gelukkig Nieuwjaar! | the New Year tally's title |
 
 Christmas's name is translated in each language ("Christmas in the sun 2026" on the share card);
-Oupa's Christmas lines keep his Afrikaans ("Geseënde Kersfees, my kind!", "Lekker Kersfees!") in
-every language, like his Spookjag lines. New Year's name is translated too ("Nuwejaar 2027"); his New Year
-countdown line keeps "Gelukkige Nuwejaar, my kind!" in every language.
+D-073 translates English Christmas and New Year speech as well as captions. Other language
+versions retain their existing catchphrases. New Year's name is translated too ("New Year 2027").
 
 ### Ranks
 
