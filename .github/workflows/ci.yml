@@ -62,8 +62,9 @@ jobs:
         run: |
           # desktop-chromium runs in 6 shards (was 4 until v1.11): with 4, two shards ran 41–45 min of
           # the job's 45-min limit and a slower runner timed one out; 6 keeps each near 30 min.
-          # pixel7-landscape runs in 4 shards (was 3 until v1.12): 3/3 took 37 min with Brakkie's
-          # specs (D-069); the 45-min limit is unchanged and nothing is skipped.
+          # pixel7-landscape runs in 5 shards (3 until v1.12, 4 until v1.13): 3/3 took 37 min with
+          # Brakkie's specs (D-069), and with the cameos 2/4 took 41.8 min, its Halloween hunt timing
+          # out under two workers (D-075); the 45-min limit is unchanged and nothing is skipped.
           SKIP_LONG='**/season-*.spec.ts,**/perf.spec.ts'
           quick=$(cat <<JSON
           [
@@ -73,10 +74,11 @@ jobs:
             {"project":"desktop-chromium","browser":"chromium","shard":"4/6","skip":"$SKIP_LONG"},
             {"project":"desktop-chromium","browser":"chromium","shard":"5/6","skip":"$SKIP_LONG"},
             {"project":"desktop-chromium","browser":"chromium","shard":"6/6","skip":"$SKIP_LONG"},
-            {"project":"pixel7-landscape","browser":"chromium","shard":"1/4","skip":"$SKIP_LONG"},
-            {"project":"pixel7-landscape","browser":"chromium","shard":"2/4","skip":"$SKIP_LONG"},
-            {"project":"pixel7-landscape","browser":"chromium","shard":"3/4","skip":"$SKIP_LONG"},
-            {"project":"pixel7-landscape","browser":"chromium","shard":"4/4","skip":"$SKIP_LONG"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"1/5","skip":"$SKIP_LONG"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"2/5","skip":"$SKIP_LONG"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"3/5","skip":"$SKIP_LONG"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"4/5","skip":"$SKIP_LONG"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"5/5","skip":"$SKIP_LONG"},
             {"project":"iphone14-landscape","browser":"webkit","shard":"1/1","skip":"$SKIP_LONG"},
             {"project":"pixel7-landscape","browser":"chromium","shard":"android","only":"**/android-app.spec.ts","workers":1,"platform":"capacitor"}
           ]
@@ -94,10 +96,11 @@ jobs:
             {"project":"desktop-chromium","browser":"chromium","shard":"perf","only":"**/perf.spec.ts","workers":1},
             {"project":"desktop-webkit","browser":"webkit","shard":"1/2"},
             {"project":"desktop-webkit","browser":"webkit","shard":"2/2"},
-            {"project":"pixel7-landscape","browser":"chromium","shard":"1/4","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
-            {"project":"pixel7-landscape","browser":"chromium","shard":"2/4","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
-            {"project":"pixel7-landscape","browser":"chromium","shard":"3/4","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
-            {"project":"pixel7-landscape","browser":"chromium","shard":"4/4","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"1/5","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"2/5","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"3/5","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"4/5","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"5/5","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
             {"project":"pixel7-landscape","browser":"chromium","shard":"season","only":"**/season-*.spec.ts","workers":1},
             {"project":"pixel7-landscape","browser":"chromium","shard":"perf","only":"**/perf.spec.ts","workers":1},
             {"project":"iphone14-landscape","browser":"webkit","shard":"1/1"},
