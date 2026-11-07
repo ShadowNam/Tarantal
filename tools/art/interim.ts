@@ -102,6 +102,8 @@ import { BRAAI_SHEET } from '../../src/game/braai/braaiKeys';
 import { renderBraaiSheet } from './braai';
 import { BRAKKIE_SHEET } from '../../src/game/brakkie/brakkieKeys';
 import { renderBrakkieSheet } from './brakkie';
+import { CAMEO_SHEETS, CAMEO_SHEET_AREAS } from '../../src/game/cameos/cameoKeys';
+import { renderCameoSheet } from './cameos';
 import { renderHalloweenSheet } from './halloween';
 import { CAN_MASTER, renderCanSheet } from './blikkies';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
@@ -754,6 +756,25 @@ if (wants('brakkie') && !hdOnly) {
     );
     rmSync(join(hdSrc, 'sprites', `${BRAKKIE_SHEET}.png`), { force: true });
     console.log(`sprites/${BRAKKIE_SHEET}`);
+  }
+}
+if (wants('cameos') && !hdOnly) {
+  // v1.13 (D-075): each area's cameo sheet as a 2× master in its own lazy group (the catalog's
+  // `cameos-<area>`): the pack serves it at 1× (Standard) and the master as its HD twin.
+  // Layout: src/game/cameos/cameoSheet.ts.
+  for (const area of CAMEO_SHEET_AREAS) {
+    const key = CAMEO_SHEETS[area];
+    const png = join(src, 'sprites', `${key}.png`);
+    if (!oursFile(png)) console.warn(`skip sprites/${key}: a human delivery is there`);
+    else {
+      put(png, encodePng8(renderCameoSheet(area, 2)));
+      put(
+        png.replace(/\.png$/, '.json'),
+        await json({ origin: 'interim', encode: 'png8', master: 2, originX: 0, originY: 0 }),
+      );
+      rmSync(join(hdSrc, 'sprites', `${key}.png`), { force: true });
+      console.log(`sprites/${key}`);
+    }
   }
 }
 if (wants('blikkies')) {

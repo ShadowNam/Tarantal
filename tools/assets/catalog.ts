@@ -71,6 +71,15 @@ import {
   BRAKKIE_SHEET_W,
   BRAKKIE_SOUNDS,
 } from '../../src/game/brakkie/brakkieKeys';
+import {
+  CAMEO_AREA_OF,
+  CAMEO_AREA_SOUNDS,
+  CAMEO_SHEETS,
+  CAMEO_SHEET_AREAS,
+  CAMEO_SHEET_SIZE,
+  CAMEO_SOUNDS,
+  cameoGroup,
+} from '../../src/game/cameos/cameoKeys';
 import { STORY_LINE_IDS, sayKey } from '../../src/game/braai/story';
 
 export interface CatalogEntry {
@@ -230,6 +239,31 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   });
   for (const key of Object.values(BRAKKIE_SOUNDS))
     entries.set(key, { key, kind: 'sound', group: BRAKKIE_GROUP, biomes: everyBiome });
+  // v1.13 (D-075): each area's cameo sheet and sounds in a lazy group of its own (its HD twin
+  // cameos-<area>-hd), fetched by the cameos' chunk when a hunt on that area starts.
+  const biomeOfArea = (area: string): string[] =>
+    Object.entries(CAMEO_AREA_OF).flatMap(([b, a]) => (a === area ? [b] : []));
+  for (const area of CAMEO_SHEET_AREAS) {
+    const key = CAMEO_SHEETS[area];
+    entries.set(key, {
+      key,
+      kind: 'texture',
+      group: cameoGroup(area),
+      biomes: biomeOfArea(area),
+      width: CAMEO_SHEET_SIZE[area].w,
+      height: CAMEO_SHEET_SIZE[area].h,
+    });
+  }
+  for (const [area, sounds] of Object.entries(CAMEO_AREA_SOUNDS))
+    for (const id of sounds) {
+      const key = CAMEO_SOUNDS[id];
+      entries.set(key, {
+        key,
+        kind: 'sound',
+        group: cameoGroup(area as keyof typeof CAMEO_AREA_SOUNDS),
+        biomes: biomeOfArea(area),
+      });
+    }
   // Oupa's story phrases at the braai, one lazy pack per voice language.
   for (const lang of VOICE_LANGUAGES)
     for (const id of STORY_LINE_IDS) {
