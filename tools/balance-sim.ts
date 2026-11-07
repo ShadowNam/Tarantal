@@ -88,6 +88,13 @@ export interface HuntRow {
   readonly dogBarks?: number;
   readonly dogFlushes?: number;
   readonly dogFetches?: number;
+  /** v1.13 (D-075): the cameos — hits aimed (they cost points: −10 outside the cooldown, counted
+   *  even on the cooldown) and stray (a pellet that struck one without that), the springbok's
+   *  alarms and the visits (0 on a hunt without cameos). */
+  readonly cameoAimed?: number;
+  readonly cameoStray?: number;
+  readonly cameoAlarms?: number;
+  readonly cameoVisits?: number;
 }
 
 export interface BotSummary {
@@ -140,6 +147,10 @@ export function playRows(job: Job): HuntRow[] {
     let dogBarks = 0;
     let dogFlushes = 0;
     let dogFetches = 0;
+    let cameoAimed = 0;
+    let cameoStray = 0;
+    let cameoAlarms = 0;
+    let cameoVisits = 0;
     while (!sim.isOver()) {
       sim.step(bot.next(sim.snapshot()));
       for (const e of sim.drainEvents()) {
@@ -153,6 +164,11 @@ export function playRows(job: Job): HuntRow[] {
         } else if (e.type === 'brakkieBarked') dogBarks++;
         else if (e.type === 'brakkieFlushed' && e.flockId !== null) dogFlushes++;
         else if (e.type === 'brakkieFetched') dogFetches++;
+        else if (e.type === 'cameoHit') {
+          if (e.aimed) cameoAimed++;
+          else cameoStray++;
+        } else if (e.type === 'cameoAlarm') cameoAlarms++;
+        else if (e.type === 'cameoArrived') cameoVisits++;
       }
     }
     const r = sim.result();
@@ -184,6 +200,9 @@ export function playRows(job: Job): HuntRow[] {
       ...(sim.snapshot().brakkie === null
         ? {}
         : { dogAimed, dogStray, dogBarks, dogFlushes, dogFetches }),
+      ...(sim.snapshot().cameos === null
+        ? {}
+        : { cameoAimed, cameoStray, cameoAlarms, cameoVisits }),
       ...(hv === null
         ? {}
         : {
