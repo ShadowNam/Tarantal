@@ -598,18 +598,24 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   if (cameos.preview !== undefined)
     err('cameos.json', 'preview is for test builds only (?cameoPreview=)');
   if (cameos.nearGroundY > 1080) err('cameos.json', 'nearGroundY is below the screen');
+  // The last stretch with no new visits fits inside the shortest hunt they come to.
+  for (const m of cameos.modes) {
+    const secs =
+      m === 'classic' || m === 'daily' ? modes.modes[m].huntSeconds : m === 'seasonHunt' ? run.huntSeconds : undefined;
+    if (secs !== undefined && cameos.lastStretchSeconds >= secs)
+      err('cameos.json', `lastStretchSeconds leaves no time for a visit in a ${m} hunt`);
+  }
   for (const k of ['warthogs', 'dungBeetle', 'tortoise', 'ostrich', 'springbok', 'gemsbok'] as const) {
     const w = cameos.kinds[k];
-    if (w.enter === 'edge' && w.edgeDxPx === undefined)
-      err('cameos.json', `${k} walks in from the edge: it needs edgeDxPx`);
-    if (w.enter === 'grass' && (w.bandPx === undefined || w.distancePx === undefined || w.fadeSeconds === undefined))
-      err('cameos.json', `${k} comes out of the grass: it needs bandPx, distancePx and fadeSeconds`);
     // Off every screen: the widest landscape view (21:9 at 1080 tall) is ±1260 px round its centre.
-    if (w.edgeDxPx !== undefined && w.edgeDxPx < 1300)
+    if (w.enter === 'edge' && w.edgeDxPx < 1300)
       err('cameos.json', `${k}'s edgeDxPx starts it on screen on wide phones`);
     // The near ones keep inside Brakkie's band round the centre (clear of the HUD's corners, D-069).
-    if (w.plane === 'near' && (w.bandPx ?? 0) + (w.distancePx?.[1] ?? 0) / 2 > brakkie.roam.scamperHalfPx)
+    if (w.enter === 'grass' && w.plane === 'near' && w.bandPx + w.distancePx[1] / 2 > brakkie.roam.scamperHalfPx)
       err('cameos.json', `${k} wanders into the HUD's corners (bandPx + distance)`);
+    // A grass walker goes back into the grass: it never bolts or pronks off across the screen.
+    if (w.enter === 'grass' && (w.reaction.kind === 'bolt' || w.reaction.kind === 'pronk'))
+      err('cameos.json', `${k} comes out of the grass: its reaction can't be a flight`);
     if (w.group.some((g) => g.role === 'young') && w.hitboxes.young === undefined)
       err('cameos.json', `${k} has young but no young hitboxes`);
     if (w.alarm !== undefined && w.plane !== 'mid')

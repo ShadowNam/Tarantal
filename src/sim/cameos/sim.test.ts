@@ -4,6 +4,7 @@
 // springbok alarm, the elephants' trumpet, the per-tick caps and their own stream.
 import { describe, expect, it } from 'vitest';
 import { quiet } from '../../../tools/simHarness';
+import { CAMEO_PREVIEW_SPOT } from '../../content/cameoPreview';
 import { loadContent } from '../../../tools/testContent';
 import type { ContentBundle } from '../../content/schemas';
 import type { SimEvent } from '../events';
@@ -42,7 +43,12 @@ function withPreview(
     ...noDog,
     cameos: {
       ...C,
-      preview: { atSeconds: at, kinds, ...(react === undefined ? {} : { reactSeconds: react }) },
+      preview: {
+        atSeconds: at,
+        kinds,
+        ...CAMEO_PREVIEW_SPOT,
+        ...(react === undefined ? {} : { reactSeconds: react }),
+      },
     },
   };
 }
@@ -259,7 +265,7 @@ describe('the veld cameos through the real hit test (D-075, review)', () => {
   /** A world with no birds (nothing near the aim point), the cameos back on, these kinds out. */
   function birdless(biome: string, kinds: ContentBundle['cameos']['areas'][number]['cameos']) {
     const c = quiet(biome) as unknown as { -readonly [K in keyof ContentBundle]: ContentBundle[K] };
-    c.cameos = { ...C, preview: { atSeconds: 0.5, kinds } };
+    c.cameos = { ...C, preview: { atSeconds: 0.5, kinds, ...CAMEO_PREVIEW_SPOT } };
     return c as ContentBundle;
   }
 

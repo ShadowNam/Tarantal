@@ -7,6 +7,7 @@ import {
   type ContentBundle,
   type ReenbuiPhase,
 } from '../content/schemas';
+import { CAMEO_PREVIEW_SPOT } from '../content/cameoPreview';
 
 /**
  * ?crate=<id>: every crate holds this power-up or crate weapon, and the first crate drops in the
@@ -531,6 +532,7 @@ export function withCameoPreview(
             preview: {
               atSeconds: 0.5,
               kinds: [...kinds],
+              ...CAMEO_PREVIEW_SPOT,
               ...(reactSeconds === null ? {} : { reactSeconds }),
             },
           }),

@@ -14,6 +14,7 @@
   "midGroundDy": 0,
   "maxActive": 2,
   "retrySeconds": 3,
+  "lastStretchSeconds": 12,
   "clear": { "pathPx": 160, "pathStepPx": 100 },
   "hit": { "penalty": 10, "cooldownSeconds": 2, "guardPx": 120 },
   "kinds": {

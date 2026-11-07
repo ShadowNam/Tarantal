@@ -2220,11 +2220,16 @@ export type CameoKind = z.infer<typeof CameoKindSchema>;
 /** A hit shape from the feet, facing right (drawn px on its plane). */
 const cameoEllipse = obj({ ox: z.number(), oy: z.number(), rx: pos, ry: pos });
 
-const cameoWalker = obj({
+const cameoSchedule = obj({
+  /** The first visit this long into the hunt, then one every so often, at most maxVisits. */
+  firstSeconds: range(pos),
+  everySeconds: range(pos),
+  maxVisits: posInt,
+});
+
+/** What every walking cameo has, whichever way it comes in. */
+const cameoWalkerBase = {
   plane: z.enum(['near', 'mid']),
-  /** `edge`: walks in from off the screen on one side and out on the other (the mid ones);
-   *  `grass`: comes out of the grass near the view's centre, goes a short way and back in. */
-  enter: z.enum(['edge', 'grass']),
   /** The herd or family: each role's count (the first role leads). */
   group: z
     .array(obj({ role: z.enum(['adult', 'young']), count: range(posInt) }))
@@ -2233,17 +2238,10 @@ const cameoWalker = obj({
    *  depth (px down the screen, 0 = all on the ground line). */
   spacingPx: nonNeg,
   depthPx: nonNeg,
-  /** Hit shapes per role (drawn px from the feet, facing right). */
+  /** Hit shapes per role (drawn px from the feet, facing right); the first adult shape is the
+   *  body (the springbok alarm measures from its centre). */
   hitboxes: obj({ adult: z.array(cameoEllipse).min(1), young: z.array(cameoEllipse).optional() }),
   speeds: obj({ walkPx: pos, fleePx: pos }),
-  /** edge: starts this far from the view's centre (screen px: beyond every device's half width)
-   *  and walks to the same distance on the other side. */
-  edgeDxPx: pos.optional(),
-  /** grass: comes out within this of the view's centre (screen px) and goes this far. */
-  bandPx: pos.optional(),
-  distancePx: range(pos).optional(),
-  /** grass: fades in and out of the grass this long. */
-  fadeSeconds: pos.optional(),
   /** On the way it stops now and then (warthogs kneel to feed, springbok graze, the tortoise
    *  rests): after every `everyPx` (a range) a stop of `seconds`, with this chance. */
   pause: obj({ chance: fraction, everyPx: range(pos), seconds: range(pos) }).optional(),
@@ -2254,11 +2252,34 @@ const cameoWalker = obj({
     /** The reaction's own part (the tumble, the hide, the veer, the alert before a bolt). */
     seconds: pos,
   }),
-  /** The springbok: a shot landing this close to a member (px on its layer) or on one sets off
-   *  their alarm whistle — they pronk away, and the nearest mid flock within maxDxPx (screen px)
-   *  hears it `threatAtSeconds` later (one threat, like Brakkie's bark). */
+  /** The springbok: a shot landing this close to a member's body (px on its layer) or on one sets
+   *  off their alarm whistle — they pronk away, and the nearest mid flock within maxDxPx (screen
+   *  px) hears it `threatAtSeconds` later (one threat, like Brakkie's bark). */
   alarm: obj({ radiusPx: pos, maxDxPx: pos, threatAtSeconds: nonNeg }).optional(),
+  schedule: cameoSchedule,
+};
+
+/** `edge`: walks in from off the screen on one side and out on the other (the mid ones). */
+const cameoEdgeWalker = obj({
+  ...cameoWalkerBase,
+  enter: z.literal('edge'),
+  /** Starts this far from the view's centre (screen px: beyond every device's half width) and
+   *  walks to the same distance on the other side; a flight leaves the same way. */
+  edgeDxPx: pos,
 });
+
+/** `grass`: comes out of the grass near the view's centre, goes a short way and back in. */
+const cameoGrassWalker = obj({
+  ...cameoWalkerBase,
+  enter: z.literal('grass'),
+  /** Comes out within this of the view's centre (screen px) and goes this far. */
+  bandPx: pos,
+  distancePx: range(pos),
+  /** Fades in and out of the grass this long. */
+  fadeSeconds: pos,
+});
+
+const cameoWalker = z.discriminatedUnion('enter', [cameoEdgeWalker, cameoGrassWalker]);
 
 const cameoHerd = obj({
   /** The far herd (view-only scenery, src/game/view/faunaHerds.ts) that answers: its layer and u. */
@@ -2273,13 +2294,6 @@ const cameoHerd = obj({
   maxPerHunt: posInt,
   /** The ear-flapping lasts this long. */
   flapSeconds: pos,
-});
-
-const cameoSchedule = obj({
-  /** The first visit this long into the hunt, then one every so often, at most maxVisits. */
-  firstSeconds: range(pos),
-  everySeconds: range(pos),
-  maxVisits: posInt,
 });
 
 export const CameosSchema = obj({
@@ -2297,6 +2311,8 @@ export const CameosSchema = obj({
   maxActive: posInt,
   /** Visits too busy to start (no clear route) try again after this. */
   retrySeconds: pos,
+  /** No visit starts in the hunt's last stretch, this long (it must have time to cross). */
+  lastStretchSeconds: pos,
   clear: obj({
     /** A visit starts only when its route keeps this far (px on its layer) from anything a player
      *  aims at there (secret parts, tells, colonies, tin-can fences, crates) and from Brakkie,
@@ -2314,12 +2330,12 @@ export const CameosSchema = obj({
     guardPx: pos,
   }),
   kinds: obj({
-    warthogs: cameoWalker.extend({ schedule: cameoSchedule }),
-    dungBeetle: cameoWalker.extend({ schedule: cameoSchedule }),
-    tortoise: cameoWalker.extend({ schedule: cameoSchedule }),
-    ostrich: cameoWalker.extend({ schedule: cameoSchedule }),
-    springbok: cameoWalker.extend({ schedule: cameoSchedule }),
-    gemsbok: cameoWalker.extend({ schedule: cameoSchedule }),
+    warthogs: cameoWalker,
+    dungBeetle: cameoWalker,
+    tortoise: cameoWalker,
+    ostrich: cameoWalker,
+    springbok: cameoWalker,
+    gemsbok: cameoWalker,
     elephants: obj({ herd: cameoHerd }),
   }),
   /** Test builds only (?cameoPreview=, the screenshot spec and e2e): every listed kind out this
@@ -2329,6 +2345,10 @@ export const CameosSchema = obj({
     kinds: z.array(CameoKindSchema).min(1),
     /** Then each preview visit reacts as if a stray pellet hit it (the reaction shots). */
     reactSeconds: pos.optional(),
+    /** Where a preview visit starts on each plane (screen px from the centre: clear of the gun's
+     *  barrel on screen, D-075 review), walking this much slower than in play, never leaving. */
+    startDxPx: obj({ near: z.number(), mid: z.number() }),
+    speedMul: fraction,
   }).optional(),
 });
 export type Cameos = z.infer<typeof CameosSchema>;

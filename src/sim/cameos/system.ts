@@ -139,6 +139,13 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
   const rangeTicks = (r: readonly [number, number]): number => ticks(rng.range(r[0], r[1]));
   const cooldownTicks = ticks(C.hit.cooldownSeconds);
   const retryTicks = ticks(C.retrySeconds);
+  const lastStretchTicks = ticks(C.lastStretchSeconds);
+  /** Ticks a second (a speed in px a second → px a tick, a gait offset within a second). */
+  const TPS = ticks(1);
+  const perTick = (pxPerSecond: number): number => pxPerSecond / TPS;
+  /** Walking speed (px a tick); a preview visit walks at the preview's speed. */
+  const walkSpeed = (w: CameoWalker, asPreview: boolean): number =>
+    perTick(w.speeds.walkPx * (asPreview ? (C.preview?.speedMul ?? 1) : 1));
   const herdCfg = C.kinds.elephants.herd;
   const herd = geo.kinds.includes('elephants') ? geo.herd : null;
   const hasElephants = herd !== null;
@@ -193,24 +200,24 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
     const tail = (roles.length - 1) * w.spacingPx;
     let start: number;
     let goal: number;
-    if (asPreview) {
-      // In view, walking slowly towards the centre (the screenshot spec holds it there).
-      start = c - dir * 160;
-      goal = c + dir * 4000;
+    if (preview !== null && asPreview) {
+      // In view at the preview's spot for its plane (clear of the gun on screen), never leaving
+      // (the screenshot spec holds it there).
+      start = c + preview.startDxPx[plane];
+      goal = dir * Infinity;
     } else if (w.enter === 'edge') {
-      const edge = w.edgeDxPx ?? 1350;
-      start = c - dir * edge;
-      goal = c + dir * (edge + tail);
+      start = c - dir * w.edgeDxPx;
+      goal = c + dir * (w.edgeDxPx + tail);
     } else {
-      const band = w.bandPx ?? 380;
-      const dist = w.distancePx ?? [120, 200];
-      const at = c + rng.range(-band, band);
+      const at = c + rng.range(-w.bandPx, w.bandPx);
+      const dist = w.distancePx;
       // Towards the centre: a near one never wanders off into the HUD's corners.
       const toward: 1 | -1 = at < c ? 1 : at > c ? -1 : dir;
       start = at;
       goal = at + toward * rng.range(dist[0], dist[1]);
     }
     const facing: 1 | -1 = goal > start ? 1 : -1;
+    const fadeIn = w.enter === 'grass' && !asPreview ? ticks(w.fadeSeconds) : 0;
     // A near one's short way keeps clear of what a player aims at there (and of Brakkie); a mid
     // crossing passes in front of things (pellets go through it) but never stops there.
     if (!asPreview && w.enter === 'grass' && !routeClear(plane, start, goal)) return null;
@@ -218,7 +225,7 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
       role,
       x: start - facing * i * w.spacingPx,
       dy: i === 0 || w.depthPx === 0 ? 0 : rng.range(-w.depthPx, w.depthPx),
-      gaitOff: rng.int(0, 59),
+      gaitOff: rng.int(0, TPS - 1),
       gaitT: 0,
     }));
     const v: Visit = {
@@ -228,12 +235,12 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
       plane,
       layerId: geo.layers[plane].id,
       preview: asPreview,
-      phase: w.enter === 'grass' && !asPreview ? 'fadeIn' : 'walk',
+      phase: fadeIn > 0 ? 'fadeIn' : 'walk',
       reaction: null,
       t: 0,
-      dur: w.enter === 'grass' && !asPreview ? ticks(w.fadeSeconds ?? 0.6) : 0,
+      dur: fadeIn,
       facing,
-      speed: (w.speeds.walkPx * (asPreview ? 0.25 : 1)) / 60,
+      speed: walkSpeed(w, asPreview),
       goal,
       after: 'walk',
       fromX: null,
@@ -266,13 +273,18 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
 
   /** Off at a run, away from layer x `from` (or on the way it was going), out of the view. */
   function flee(v: Visit, from: number | null): void {
+    const w = v.w;
+    // A grass walker never flees across the screen (cross-refs): it goes back into the grass.
+    if (w.enter !== 'edge') {
+      setPhase(v, 'fadeOut', ticks(w.fadeSeconds));
+      return;
+    }
     const lead = v.members[0]?.x ?? 0;
     const dir: 1 | -1 = from === null ? v.facing : lead >= from ? 1 : -1;
     const c = centre(v.plane);
-    const edge = v.w.edgeDxPx ?? 1350;
     v.facing = dir;
-    v.goal = c + dir * (edge + (v.members.length - 1) * v.w.spacingPx + v.w.spacingPx);
-    v.speed = v.w.speeds.fleePx / 60;
+    v.goal = c + dir * (w.edgeDxPx + v.members.length * w.spacingPx);
+    v.speed = perTick(w.speeds.fleePx);
     setPhase(v, 'flee', 0);
   }
 
@@ -294,7 +306,7 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
       // The ostrich swerves at a run and kicks up dust, and goes on its way.
       v.after = 'walk';
       setPhase(v, 'react', ticks(r.seconds));
-      v.speed = v.w.speeds.fleePx / 60;
+      v.speed = perTick(v.w.speeds.fleePx);
       return;
     }
     // tumble, hide: stops, then goes on.
@@ -340,7 +352,7 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
       case 'pause':
         if (v.t >= v.dur) {
           setPhase(v, 'walk', 0);
-          v.speed = (v.w.speeds.walkPx * (v.preview ? 0.25 : 1)) / 60;
+          v.speed = walkSpeed(v.w, v.preview);
         }
         return true;
       case 'react':
@@ -350,7 +362,7 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
         else {
           v.reaction = null;
           setPhase(v, 'walk', 0);
-          v.speed = (v.w.speeds.walkPx * (v.preview ? 0.25 : 1)) / 60;
+          v.speed = walkSpeed(v.w, v.preview);
         }
         return true;
       case 'fadeOut':
@@ -366,7 +378,7 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
         const past = v.members.every((m) => v.facing * (m.x - v.goal) >= 0);
         if (past) {
           if (v.w.enter === 'grass' && v.phase === 'walk') {
-            setPhase(v, 'fadeOut', ticks(v.w.fadeSeconds ?? 0.6));
+            setPhase(v, 'fadeOut', ticks(v.w.fadeSeconds));
             return true;
           }
           return false;
@@ -428,7 +440,7 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
         continue;
       }
       // Too late for a visit now: look again later (a time bonus may extend the hunt).
-      if (tick + retryTicks * 4 >= geo.durationTicks()) {
+      if (tick + lastStretchTicks >= geo.durationTicks()) {
         s.next = tick + retryTicks;
         continue;
       }
@@ -523,10 +535,13 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
       if (a === undefined || v.alarmed || !hittable(v)) continue;
       const pts = s.impactsOn(v.layerId);
       const y0 = geo.groundY[v.plane];
+      // From each member's body centre (its first hitbox; the schema keeps one).
+      const body = v.w.hitboxes.adult[0];
+      if (body === undefined) continue;
       const near = pts.find((p) =>
         v.members.some((m) => {
           const dx = p.x - m.x;
-          const dy = p.y - (y0 + m.dy - 40);
+          const dy = p.y - (y0 + m.dy + body.oy);
           return dx * dx + dy * dy <= a.radiusPx * a.radiusPx;
         }),
       );
