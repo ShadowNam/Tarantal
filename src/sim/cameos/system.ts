@@ -146,7 +146,11 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
   const perTick = (pxPerSecond: number): number => pxPerSecond / TPS;
   /** Walking speed (px a tick); a preview visit walks at the preview's speed. */
   const walkSpeed = (w: CameoWalker, asPreview: boolean): number =>
-    perTick(w.speeds.walkPx * (asPreview ? (C.preview?.speedMul ?? 1) : 1));
+    perTick(
+      asPreview && C.preview !== undefined
+        ? Math.min(w.speeds.walkPx * C.preview.speedMul, C.preview.maxWalkPx)
+        : w.speeds.walkPx,
+    );
   const herdCfg = C.kinds.elephants.herd;
   const herd = geo.kinds.includes('elephants') ? geo.herd : null;
   const hasElephants = herd !== null;

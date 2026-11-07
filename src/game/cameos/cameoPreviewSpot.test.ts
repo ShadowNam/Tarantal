@@ -9,6 +9,9 @@ import { CAMEO_PREVIEW_SPOT } from '../../content/cameoPreview';
 
 const GUN_COLUMN = 0.62;
 const GUN_HALF_PX = 130;
+/** Seconds a preview visit walks before the screenshot spec's last grab (out at 0.5 s, the last
+ *  reaction held at 4 s + 20 ticks). */
+const WINDOW_S = 4;
 
 describe('cameo preview spots are clear of the gun (D-075)', () => {
   const c = loadContent().cameos;
@@ -31,6 +34,14 @@ describe('cameo preview spots are clear of the gun (D-075)', () => {
         const reach = Math.max(...w.hitboxes.adult.map((h) => Math.abs(h.ox) + h.rx));
         const right = start + (members - 1) * w.spacingPx + reach;
         expect(right, `${k} reaches ${String(right)}`).toBeLessThan(gunLo);
+        // Walking right for the screenshot spec's window (out at 0.5 s, the last grab ~4.5 s in),
+        // the leader still ends left of the gun (review round 2: the ostrich crossed it).
+        const walk = Math.min(
+          w.speeds.walkPx * CAMEO_PREVIEW_SPOT.speedMul,
+          CAMEO_PREVIEW_SPOT.maxWalkPx,
+        );
+        const lead = start + walk * WINDOW_S + reach;
+        expect(lead, `${k}'s leader walks to ${String(lead)}`).toBeLessThan(gunLo);
         // And on the screen, clear of the left edge's HUD corner (the belt starts 568 px out).
         expect(start - reach).toBeGreaterThan(-width / 2 + 100);
       }

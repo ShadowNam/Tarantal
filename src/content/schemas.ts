@@ -2350,6 +2350,9 @@ export const CameosSchema = obj({
      *  barrel on screen, D-075 review), walking this much slower than in play, never leaving. */
     startDxPx: obj({ near: z.number(), mid: z.number() }),
     speedMul: fraction,
+    /** And never faster than this (px a second): the ostrich's sprint, slowed, still crossed the
+     *  gun's column within the screenshot spec's few seconds. */
+    maxWalkPx: pos,
   }).optional(),
 });
 export type Cameos = z.infer<typeof CameosSchema>;
