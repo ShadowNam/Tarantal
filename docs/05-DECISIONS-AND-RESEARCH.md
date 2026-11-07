@@ -3975,7 +3975,7 @@ Baboon art keeps the existing deterministic poses, frame bounds and hitboxes. Ad
 
 English also translates the formerly retained Afrikaans catchphrases in barks, seasonal labels and braai narration. Regenerate the affected English interim voice clips so captions and speech agree. Character and place names remain proper names.
 
-Supervisor follow-up at merge (7 Nov 2026): the privacy reset succeeds when the browser has no storage at all (nothing reached disk, so the memory wipe is the whole clear; D-071's failure message stays for a store that refuses to list or remove keys); the language picker hides behind the portrait rotate card and in capture mode, and its label comes from i18n; the Halloween e2e expects the English "Ghost Hunt" text. Version 1.16.0.
+Supervisor follow-up at merge (7 Nov 2026): the privacy reset succeeds when the browser has no storage at all (nothing reached disk, so the memory wipe is the whole clear; D-071's failure message stays for a store that refuses to list or remove keys); the language picker hides behind the portrait rotate card and in capture mode, and its label comes from i18n; the Halloween e2e expects the English "Ghost Hunt" text; the baboon art keeps its shaded masses, fur and necks but its edges are back to a shade darker (−0.42) at full width, the eye 0.022 × 0.014, and the hat at its v1.8b height (the 3 Nov edges, eye and hat left the near raider faceless on phones). Version 1.16.0.
 
 ## 3. Research notes (with sources)
 
