@@ -3900,6 +3900,12 @@ hunt"). GDD §8.
   only when they change (≤ 7 calls a frame, was ≤ 10); the braai perf case measures ≥ 60 frames so
   one GC pause can't decide it (the failing sample had 28); the 0.3 ms budget stays.
 
+- *CI check job split (supervisor, 7 Nov).* `check, build, size` ran the web, Poki, CrazyGames
+  and Android builds with a `size` check each (~2¼ min apiece) and reached 14.7–15.2 min of its
+  15-min limit (cancelled once on this PR). The portal and Android builds and their size checks now
+  run in a parallel job, `portal and app builds, size`, with the same steps and the same 15-min
+  limit; nothing is skipped.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
