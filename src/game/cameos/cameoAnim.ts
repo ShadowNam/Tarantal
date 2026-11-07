@@ -138,5 +138,7 @@ export function cameoCalling(state: Pick<SimState, 'tick' | 'cameos'>): boolean 
     state.tick < c.trumpetTick + c.flapTicks
   )
     return true;
-  return c.visits.some((v) => v.phase === 'react');
+  // A plain loop: called every frame (no closure, lesson 33).
+  for (const v of c.visits) if (v.phase === 'react') return true;
+  return false;
 }

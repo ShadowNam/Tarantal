@@ -409,7 +409,9 @@ export class ParallaxView {
 
   /** v1.13 (D-075): an elephant flapping for the trumpet was drawn on screen this frame. */
   faunaTrumpetSeen(): boolean {
-    return this.fauna.some((f) => f.trumpetSeen);
+    // A plain loop: called every frame (no closure, lesson 33).
+    for (const f of this.fauna) if (f.trumpetSeen) return true;
+    return false;
   }
 
   /** D-054 (test hook): every far-animal part as drawn. */

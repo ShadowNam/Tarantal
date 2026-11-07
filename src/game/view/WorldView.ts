@@ -45,6 +45,17 @@ const FLASH_ALPHA_REDUCED = 0.15;
 const MAX_SCREEN_WIDTH = 2520;
 
 export class WorldView {
+  /** v1.13 (D-075): the far elephants' trumpet window, one object reused (no allocation a frame). */
+  private readonly trumpet = { tick: 0, ticks: 0 };
+
+  private trumpetWindow(s: SimState): { readonly tick: number; readonly ticks: number } | null {
+    const c = s.cameos;
+    if (c === null || c.trumpetTick === null) return null;
+    this.trumpet.tick = c.trumpetTick;
+    this.trumpet.ticks = c.flapTicks;
+    return this.trumpet;
+  }
+
   private readonly scene: Phaser.Scene;
   private readonly feel: Feel;
   private readonly parallax: ParallaxView;
@@ -158,14 +169,7 @@ export class WorldView {
       s.tick,
       s.rain || s.lightning || (reenbui !== null && reenbui !== undefined && reenbui !== 'easing'),
     );
-    this.parallax.animateFauna(
-      s.tick,
-      this.reducedMotion,
-      width,
-      s.cameos?.trumpetTick == null
-        ? null
-        : { tick: s.cameos.trumpetTick, ticks: s.cameos.flapTicks },
-    );
+    this.parallax.animateFauna(s.tick, this.reducedMotion, width, this.trumpetWindow(s));
     this.drawSecrets(s);
     this.drawCrates(s);
     this.drawDevils(s);
