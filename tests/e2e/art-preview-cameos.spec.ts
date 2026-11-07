@@ -105,10 +105,14 @@ function sideBySide(a: Rgba, b: Rgba): Rgba {
   return out;
 }
 
+/** On desktop the real mouse rests straight above the gun's own column (0.62 of the width, a
+ *  third down: outside both edge-pan bands), so the gun stands upright at the right and leaves the
+ *  cameos' preview spots (left of the centre) clear. On touch the gun rests upright there anyway.
+ *  (Review round 2: resting at the bottom centre, the gun leaned over the beetle.) */
 async function park(page: Page, touch: boolean): Promise<void> {
   if (touch) return;
   const box = await page.locator('#game canvas').boundingBox();
-  if (box !== null) await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.97);
+  if (box !== null) await page.mouse.move(box.x + box.width * 0.62, box.y + box.height * 0.33);
 }
 
 interface Member {
@@ -238,6 +242,19 @@ async function visitBox(page: Page, kind: string): Promise<Box> {
   ).find((x) => x.kind === kind);
   const ms = (v?.members ?? []).filter((m) => m.visible);
   if (ms.length === 0) throw new Error(`no ${kind} drawn on screen`);
+  // Lesson 11: a shot whose cameo is under the gun is a missing shot (review round 2).
+  const gun = (await hook(page)).gunRect;
+  if (gun !== null) {
+    const fx0 = Math.min(...ms.map((m) => m.x)) - 30;
+    const fx1 = Math.max(...ms.map((m) => m.x)) + 30;
+    const top = Math.max(...ms.map((m) => m.groundY)) - (TALL[kind] ?? 120);
+    const under =
+      fx1 > gun.x &&
+      fx0 < gun.x + gun.w &&
+      gun.y < Math.max(...ms.map((m) => m.groundY)) &&
+      gun.y + gun.h > top;
+    if (under) throw new Error(`the ${kind} is under the gun on screen`);
+  }
   const tall = TALL[kind] ?? 120;
   const pad = Math.max(60, tall * 0.7);
   const x0 = Math.min(...ms.map((m) => m.x)) - pad;
