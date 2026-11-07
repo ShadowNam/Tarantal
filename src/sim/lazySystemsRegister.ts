@@ -2,6 +2,7 @@
 // the chunk is in). See lazySystems.ts.
 import { createBaboonSystem } from './baboons/system';
 import { createBrakkieSystem } from './brakkie/system';
+import { createCameoSystem } from './cameos/system';
 import { createHarvestSystem } from './harvest/system';
 import { registerLazySystems } from './lazySystems';
 import { createOstrichSystem } from './ostriches/system';
@@ -13,4 +14,5 @@ registerLazySystems({
   tells: createTellSystem,
   harvest: createHarvestSystem,
   brakkie: createBrakkieSystem,
+  cameos: createCameoSystem,
 });

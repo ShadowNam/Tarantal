@@ -81,6 +81,8 @@ export function parseContent(raw: RawContent): ParseResult {
     errors,
   );
 
+  const cameos = parseFile(CONTENT_FILES['cameos.json'], 'cameos.json', f['cameos.json'], errors);
+
   for (const name of Object.keys(f)) {
     if (!(name in CONTENT_FILES)) errors.push({ file: name, message: 'unknown content file' });
   }
@@ -107,9 +109,10 @@ export function parseContent(raw: RawContent): ParseResult {
     modes === undefined ||
     feesdae === undefined ||
     reenbui === undefined ||
-    brakkie === undefined
+    brakkie === undefined ||
+    cameos === undefined
   ) {
     return { ok: false, errors };
   }
-  return { ok: true, bundle: { scoring, birds, weapons, powerups, charms, run, modes, feesdae, reenbui, brakkie, biomes }, errors: [] };
+  return { ok: true, bundle: { scoring, birds, weapons, powerups, charms, run, modes, feesdae, reenbui, brakkie, cameos, biomes }, errors: [] };
 }

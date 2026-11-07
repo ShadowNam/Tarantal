@@ -1,7 +1,12 @@
 // e2e/dev-only content tweaks from URL parameters (main.ts allows them only in dev/test builds
 // and with ?e2e=1). They change the content, so the hunt's contentHash changes too: such hunts
 // are never official.
-import { REENBUI_PHASES, type ContentBundle, type ReenbuiPhase } from '../content/schemas';
+import {
+  REENBUI_PHASES,
+  type CameoKind,
+  type ContentBundle,
+  type ReenbuiPhase,
+} from '../content/schemas';
 
 /**
  * ?crate=<id>: every crate holds this power-up or crate weapon, and the first crate drops in the
@@ -465,6 +470,91 @@ export function withBrakkieParams(b: ContentBundle, params: URLSearchParams): Co
     : null;
   if (flag === '0') return withNoBrakkie(b);
   if (flag === '1' || preview !== null) return withBrakkiePreview(b, preview);
+  return b;
+}
+
+/**
+ * v1.13 (D-075, lesson 17) e2e only: no cameos on any map — `?cameos=0`, for the specs that pin a
+ * seed (tests/e2e/helpers.ts boot() adds it unless a spec names `cameos=`).
+ */
+export function withNoCameos(b: ContentBundle): ContentBundle {
+  return { ...b, cameos: { ...b.cameos, areas: [] } };
+}
+
+const CAMEO_KINDS: readonly CameoKind[] = [
+  'warthogs',
+  'dungBeetle',
+  'tortoise',
+  'ostrich',
+  'springbok',
+  'gemsbok',
+  'elephants',
+];
+
+/**
+ * v1.13 (D-075) e2e/dev only: `?cameos=1` — each area's cameos come 2–3 s in and again every
+ * 6–8 s (up to 4 visits); `?cameoPreview=all|<kind>,<kind>…` — those kinds (where the map has them)
+ * out in view 0.5 s in, walking slowly towards the centre (the elephants trumpet then), and with
+ * `?cameoReact=<s>` they react that many seconds in (the screenshot spec's reactions, lesson 11).
+ */
+export function withCameoPreview(
+  b: ContentBundle,
+  kinds: readonly CameoKind[] | null,
+  reactSeconds: number | null,
+): ContentBundle {
+  const c = b.cameos;
+  const soon = (k: (typeof c.kinds)['warthogs']): typeof k => ({
+    ...k,
+    schedule: { firstSeconds: [2, 3], everySeconds: [6, 8], maxVisits: 4 },
+  });
+  return {
+    ...b,
+    cameos: {
+      ...c,
+      kinds: {
+        warthogs: soon(c.kinds.warthogs),
+        dungBeetle: soon(c.kinds.dungBeetle),
+        tortoise: soon(c.kinds.tortoise),
+        ostrich: soon(c.kinds.ostrich),
+        springbok: soon(c.kinds.springbok),
+        gemsbok: soon(c.kinds.gemsbok),
+        elephants: { herd: { ...c.kinds.elephants.herd, chance: 1, cooldownSeconds: 4 } },
+      },
+      ...(kinds === null
+        ? {}
+        : {
+            preview: {
+              atSeconds: 0.5,
+              kinds: [...kinds],
+              ...(reactSeconds === null ? {} : { reactSeconds }),
+            },
+          }),
+    },
+  };
+}
+
+/**
+ * v1.13 (D-075): the content a test-hook build plays for the URL's cameo flags — `cameos=1` or
+ * `cameoPreview=` the preview, `cameos=0` none, anything else (no flag, `cameos=content`) the
+ * bundle as it is: `?e2e` alone never changes the content or its hash (lesson 37).
+ */
+export function withCameoParams(b: ContentBundle, params: URLSearchParams): ContentBundle {
+  const flag = params.get('cameos');
+  const p = params.get('cameoPreview');
+  const kinds =
+    p === null
+      ? null
+      : p === 'all'
+        ? CAMEO_KINDS
+        : CAMEO_KINDS.filter((k) => p.split(',').includes(k));
+  const react = Number(params.get('cameoReact') ?? NaN);
+  if (flag === '0') return withNoCameos(b);
+  if (flag === '1' || (kinds !== null && kinds.length > 0))
+    return withCameoPreview(
+      b,
+      kinds !== null && kinds.length > 0 ? kinds : null,
+      Number.isFinite(react) && react > 0 ? react : null,
+    );
   return b;
 }
 

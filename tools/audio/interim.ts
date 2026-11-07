@@ -3,7 +3,7 @@
 // each WAV with a `<name>.json` sidecar `{ "origin": "interim" }`. Then run `npm run assets:pack`.
 // A WAV without an interim sidecar is a human delivery and is never overwritten: delete it and
 // its sidecar to go back to the interim one, or drop a recording in to replace it.
-//   --only sfx|music|ambience|soundscape|braai|brakkie   one part
+//   --only sfx|music|ambience|soundscape|braai|brakkie|cameos   one part
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { writeWav } from '../assets/wav';
@@ -12,6 +12,7 @@ import { AMB_RATE, MUSIC_BIOMES, MUSIC_RATE, renderAmbience, renderStem, STEM_ID
 import { renderCall, SOUNDSCAPE_CALLS, SOUNDSCAPE_RATE } from './soundscape';
 import { BRAAI_CALLS, BRAAI_RATE, renderBraai } from './braai';
 import { BRAKKIE_CALLS, BRAKKIE_RATE, renderBrakkie } from './brakkie';
+import { CAMEO_CALLS, CAMEO_RATE, renderCameo } from './cameos';
 import type { Buf } from './dsp';
 
 const root = join(import.meta.dirname, '..', '..');
@@ -56,6 +57,9 @@ if (wants('braai')) for (const id of BRAAI_CALLS) put(`sfx/${id}.wav`, renderBra
 // v1.12 (D-069): Brakkie's barks, yelp and panting (sfx/brakkie_*, group `brakkie`).
 if (wants('brakkie'))
   for (const id of BRAKKIE_CALLS) put(`sfx/${id}.wav`, renderBrakkie(id), BRAKKIE_RATE);
+// v1.13 (D-075): the veld cameos' calls and knocks (sfx/cameo_*).
+if (wants('cameos'))
+  for (const id of CAMEO_CALLS) put(`sfx/${id}.wav`, renderCameo(id), CAMEO_RATE);
 if (wants('music'))
   for (const b of MUSIC_BIOMES)
     for (const s of STEM_IDS) put(`music/${b}/${s}.wav`, renderStem(b, s), MUSIC_RATE);

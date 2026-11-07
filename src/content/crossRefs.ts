@@ -55,7 +55,7 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     (options.strict === true ? errors : warnings).push({ file, message });
   };
 
-  const { scoring, birds, weapons, powerups, charms, run, modes, biomes, feesdae, reenbui, brakkie } = bundle;
+  const { scoring, birds, weapons, powerups, charms, run, modes, biomes, feesdae, reenbui, brakkie, cameos } = bundle;
 
   // --- unique ids --------------------------------------------------------------------------
   checkUnique('birds.json', 'creature', birds.creatures.map((c) => c.id), err);
@@ -567,6 +567,62 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       );
       if (mid !== undefined && brakkie.groundY + top(brakkie.hitboxes.stand) - mid[1] <= spread)
         err('brakkie.json', `on ${b.id} his head is within a pellet spread of the mid ground`);
+    }
+  }
+
+  // --- cameos.json (D-075) -----------------------------------------------------------------
+  checkUnique('cameos.json', 'area', cameos.areas.map((a) => a.biome), err);
+  for (const a of cameos.areas) {
+    const b = loadedBiomes.get(a.biome);
+    checkUnique('cameos.json', `${a.biome} cameo`, a.cameos, err);
+    if (b === undefined) err('cameos.json', `area at unknown biome "${a.biome}"`);
+    else if (b.harvest !== undefined) err('cameos.json', `the Harvest's map "${a.biome}" has no cameos`);
+    else {
+      if (a.cameos.includes('elephants')) {
+        const herd = cameos.kinds.elephants.herd;
+        if (!b.layers.some((l) => l.id === herd.layer))
+          err('cameos.json', `the elephants' herd layer "${herd.layer}" is not on ${a.biome}`);
+      }
+      for (const k of a.cameos) {
+        if (k === 'elephants') continue;
+        const w = cameos.kinds[k];
+        if (w.plane === 'mid' && b.lanes.mid?.groundY === undefined)
+          err('cameos.json', `${k} walks the mid plane, which ${a.biome} has no ground for`);
+      }
+    }
+  }
+  for (const m of cameos.modes)
+    if (m === 'ftue' || m === 'range' || m === 'harvest')
+      err('cameos.json', `mode "${m}" never has cameos (GDD §11.3g)`);
+  if (cameos.seasonKinds.includes('boss')) err('cameos.json', 'no cameos in a boss hunt (GDD §11.3g)');
+  if (cameos.preview !== undefined)
+    err('cameos.json', 'preview is for test builds only (?cameoPreview=)');
+  if (cameos.nearGroundY > 1080) err('cameos.json', 'nearGroundY is below the screen');
+  for (const k of ['warthogs', 'dungBeetle', 'tortoise', 'ostrich', 'springbok', 'gemsbok'] as const) {
+    const w = cameos.kinds[k];
+    if (w.enter === 'edge' && w.edgeDxPx === undefined)
+      err('cameos.json', `${k} walks in from the edge: it needs edgeDxPx`);
+    if (w.enter === 'grass' && (w.bandPx === undefined || w.distancePx === undefined || w.fadeSeconds === undefined))
+      err('cameos.json', `${k} comes out of the grass: it needs bandPx, distancePx and fadeSeconds`);
+    // Off every screen: the widest landscape view (21:9 at 1080 tall) is ±1260 px round its centre.
+    if (w.edgeDxPx !== undefined && w.edgeDxPx < 1300)
+      err('cameos.json', `${k}'s edgeDxPx starts it on screen on wide phones`);
+    // The near ones keep inside Brakkie's band round the centre (clear of the HUD's corners, D-069).
+    if (w.plane === 'near' && (w.bandPx ?? 0) + (w.distancePx?.[1] ?? 0) / 2 > brakkie.roam.scamperHalfPx)
+      err('cameos.json', `${k} wanders into the HUD's corners (bandPx + distance)`);
+    if (w.group.some((g) => g.role === 'young') && w.hitboxes.young === undefined)
+      err('cameos.json', `${k} has young but no young hitboxes`);
+    if (w.alarm !== undefined && w.plane !== 'mid')
+      err('cameos.json', `${k}'s alarm alerts a mid flock: it must walk the mid plane`);
+    if (w.plane === 'near') {
+      // Below the pop-ups' grass line's top (shots at a pop-up pass over them).
+      const top = cameos.nearGroundY + Math.min(...w.hitboxes.adult.map((h) => h.oy - h.ry));
+      for (const b of biomes) {
+        if (!cameos.areas.some((a) => a.biome === b.id && a.cameos.includes(k))) continue;
+        const popTop = b.lanes.near?.popupY?.[0];
+        if (popTop !== undefined && top < popTop)
+          err('cameos.json', `on ${b.id} ${k} stands up into the pop-ups' band`);
+      }
     }
   }
 

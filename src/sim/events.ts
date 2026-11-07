@@ -18,7 +18,9 @@ export type ThreatSource =
   // v1.8b (D-062): a raiding baboon threw fruit at a flock or chased it.
   | 'baboon'
   // v1.12 (D-069): Brakkie barked at it.
-  | 'dog';
+  | 'dog'
+  // v1.13 (D-075): a springbok herd's alarm whistle.
+  | 'cameo';
 /** Why a flock changed state. */
 export type FlockCause =
   'threat' | 'window' | 'timeout' | 'landed' | 'settled' | 'gadget' | 'event' | 'stampede';
@@ -938,7 +940,54 @@ export type SimEvent =
       readonly x: number;
       readonly y: number;
       readonly points: number;
-    };
+    }
+  /** v1.13 (D-075): a cameo visit comes in (a mid herd from off the screen, a near one out of the
+   *  grass). `visitId` is unique in the hunt. */
+  | {
+      readonly type: 'cameoArrived';
+      readonly tick: number;
+      readonly visitId: number;
+      readonly kind: CameoKindId;
+      readonly plane: 'near' | 'mid';
+      readonly x: number;
+      readonly members: number;
+    }
+  /** v1.13 (D-075): it has gone (off the screen, or back into the grass). */
+  | {
+      readonly type: 'cameoLeft';
+      readonly tick: number;
+      readonly visitId: number;
+      readonly kind: CameoKindId;
+    }
+  /** v1.13 (D-075): a shot's pellet hit a cameo (it reacts). `aimed`: aimed at it with no target
+   *  hit and no bird near the aim point; points: the penalty, or 0 (a stray pellet, the cooldown). */
+  | {
+      readonly type: 'cameoHit';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly visitId: number;
+      readonly kind: CameoKindId;
+      readonly aimed: boolean;
+      readonly plane: 'near' | 'mid';
+      readonly x: number;
+      readonly y: number;
+      readonly points: number;
+    }
+  /** v1.13 (D-075): the springbok's alarm whistle (they pronk away); the flock that hears it
+   *  (null: none in reach). */
+  | {
+      readonly type: 'cameoAlarm';
+      readonly tick: number;
+      readonly visitId: number;
+      readonly flockId: number | null;
+      readonly x: number;
+    }
+  /** v1.13 (D-075): the far elephants answer a flush near them: ear flaps and a trumpet. */
+  | { readonly type: 'cameoTrumpeted'; readonly tick: number; readonly x: number };
+
+/** v1.13 (D-075): the cameo kinds (content/cameos.json; kept here so the events need no schema). */
+export type CameoKindId =
+  'warthogs' | 'dungBeetle' | 'tortoise' | 'ostrich' | 'springbok' | 'gemsbok' | 'elephants';
 
 /** 1.9.3 (D-056): what nutKnocked and nutJuggled carry. */
 export interface NutHitFields {

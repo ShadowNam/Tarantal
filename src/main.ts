@@ -22,6 +22,7 @@ import {
   withNoBaboons,
   withReenbuiParams,
   withBrakkieParams,
+  withCameoParams,
   withAgamaBefore,
   withHarvestPreview,
   withNoPalms,
@@ -585,7 +586,10 @@ const noTroops = testHooks && params.get('baboons') === '0' ? withNoBaboons(with
 const withRainOnly = testHooks ? withReenbuiParams(noTroops, params) : noTroops;
 // e2e/dev only (v1.12, D-069): ?brakkie=0 no Brakkie (specs that pin a seed, lesson 17), ?brakkie=1
 // out at once and fetching every bag, ?brakkiePreview=bark|flush that moment within seconds.
-const withDog = testHooks ? withBrakkieParams(withRainOnly, params) : withRainOnly;
+const withBrakkie = testHooks ? withBrakkieParams(withRainOnly, params) : withRainOnly;
+// e2e/dev only (v1.13, D-075): ?cameos=0 no cameos (specs that pin a seed, lesson 17), ?cameos=1
+// sooner and more often, ?cameoPreview=all|<kinds>[&cameoReact=<s>] out in view at once.
+const withDog = testHooks ? withCameoParams(withBrakkie, params) : withBrakkie;
 // art previews only (v1.12 polish b): ?agamaBefore=1 — the agama on its old seat.
 const withRain =
   testHooks && params.get('agamaBefore') === '1' ? withAgamaBefore(withDog) : withDog;
