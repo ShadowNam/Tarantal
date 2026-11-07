@@ -2,6 +2,7 @@
 // change to him moves no other system's draws before he acts), and a shot through the real hit
 // test: aimed at him −25 (the nest's cooldown), a pellet that strikes him without that, nothing.
 import { describe, expect, it } from 'vitest';
+import { createBot } from '../../../tools/bots';
 import { loadContent } from '../../../tools/testContent';
 import type { SimEvent } from '../events';
 import { hashEvents } from '../events';
@@ -99,6 +100,24 @@ describe('Brakkie in the hunt (D-069)', () => {
     expect(s.snapshot().score).toBe(score0 - B.hit.penalty);
     expect(s.snapshot().brakkie?.phase).toBe('yelp');
     expect(s.result().penalties).toBeGreaterThanOrEqual(1);
+  });
+
+  it('a real bag sends him to fetch it: a whole Classic hunt with the shipped content', () => {
+    // The decision the fetch e2e no longer drives by shooting (it was timing-bound on CI): bots
+    // bag birds through the real hit test; he starts a fetch, picks the bird up and brings it
+    // home at least once a hunt (the balance doc's 0.6–2.6 fetches a hunt).
+    const s = sim({ id: 'classic', biome: 'karoo-autumn' }, 42);
+    const bot = createBot('competent', 42, content, 'pointer');
+    const types: string[] = [];
+    while (!s.isOver()) {
+      s.step(bot.next(s.snapshot()));
+      for (const e of s.drainEvents()) if (e.type.startsWith('brakkie')) types.push(e.type);
+    }
+    const started = types.indexOf('brakkieFetchStarted');
+    expect(started).toBeGreaterThanOrEqual(0);
+    const picked = types.indexOf('brakkiePickedUp', started);
+    expect(picked).toBeGreaterThan(started);
+    expect(types.indexOf('brakkieFetched', picked)).toBeGreaterThan(picked);
   });
 
   it('his events come only on a hunt he is on', () => {

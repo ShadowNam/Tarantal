@@ -1,6 +1,6 @@
 // v1.12 (D-069): Brakkie, the farm dog. On the Karoo's Monday with the baboons off and the test flag
 // ?brakkie=1 (he comes out half a second in, fetches every bag in view, back from the bakkie in
-// 2 s): a fetch happens on a fixed seed — he races to a bagged bird and carries it home, really
+// 2 s): a fetch (?brakkiePreview=fetch: a bird placed beside him) — he carries it home, really
 // drawn on the canvas (pixels with him vs the same held tick without him; their centroid on his
 // feet, lessons 14 and 22); a shot aimed at him costs 25 and gets Oupa's scold, and he yelps,
 // bolts and comes back (never removed); with no delivery he isn't drawn and the hunt never waits;
@@ -11,16 +11,7 @@ import { expect, test, type Page } from '@playwright/test';
 import brakkie from '../../content/brakkie.json' with { type: 'json' };
 import { decodePng } from '../../tools/assets/image';
 import { fireAt, reloadIfEmpty } from './feesdaeHelpers';
-import {
-  boot,
-  burstAtFlock,
-  hook,
-  isLandscape,
-  isTouchProject,
-  startHunt,
-  tapAt,
-  waitTicks,
-} from './helpers';
+import { boot, hook, isLandscape, isTouchProject, startHunt, tapAt, waitTicks } from './helpers';
 
 const BASE =
   'biome=karoo-autumn&layout=mon&seed=42&huntSeconds=300&graphics=standard&baboons=0&faunaIdle=0';
@@ -74,72 +65,20 @@ async function dogOnScreen(page: Page): Promise<void> {
 
 test.use({ serviceWorkers: 'block' });
 
-test('a fetch on a fixed seed: he races to a bagged bird and carries it home, drawn on the canvas', async ({
+test('a fetch drawn on the canvas: he carries a bird home on the near plane', async ({
   page,
 }, info) => {
   test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
   test.setTimeout(900_000);
   const touch = isTouchProject(info);
-  await boot(page, `${BASE}&brakkie=1`);
+  // ?brakkie=1&brakkiePreview=fetch (boot() adds brakkie=0 without a brakkie= flag): 3 s in he
+  // fetches a bird placed beside him. Bagging one by shooting flocks in a real hunt was bound to
+  // the runner's timing (CI on 33c434d5: no fetch in 80 tries on Pixel 7, green on f7adbce7);
+  // the decision itself — a real bag sends him to fetch it — is proven on a whole Classic hunt
+  // in src/sim/brakkie/sim.test.ts.
+  await boot(page, `${BASE}&brakkie=1&brakkiePreview=fetch`);
   await startHunt(page, touch);
   await dogOnScreen(page);
-  // Shoot one mid flock in his fetch band until he goes: a mid-plane fetch waits (4 s) until no
-  // live bird is near the fallen one (lesson 21), so the flock must be shot out or flushed away
-  // from its spot — the rest of it foraging round the bird kept him back (CI on 1e6ae5a9). The
-  // same flock while it lives; bounded by tries and by the hunt's ticks.
-  let fetching = false;
-  let target: number | null = null;
-  const going = (): Promise<boolean> =>
-    page.evaluate(() => {
-      const p = (window as unknown as Hooked).__TM__?.brakkie?.phase;
-      return p === 'fetch' || p === 'cross' || p === 'pickup' || p === 'carry';
-    });
-  for (let attempt = 0; attempt < 80 && !fetching; attempt++) {
-    await reloadIfEmpty(page, touch);
-    const h = await hook(page);
-    const w = h.designWidth / 2;
-    // Inside his fetch band (brakkie.json fetch.maxDxPx: ±520 from the screen's centre on every
-    // device; ±30 % of a 20:9 screen reached 720 and he never went).
-    const inBand = h.flockSpots.filter(
-      (f) => f.plane === 'mid' && f.alive > 0 && Math.abs(f.x - w) < brakkie.fetch.maxDxPx - 120,
-    );
-    const flock = inBand.find((f) => f.id === target) ?? inBand[0];
-    if (flock === undefined) {
-      // None in his band: pan a little toward the nearest mid flock (A/D on every profile), or
-      // wait for one to come.
-      const near = h.flockSpots
-        .filter((f) => f.plane === 'mid' && f.alive > 0)
-        .sort((p, q) => Math.abs(p.x - w) - Math.abs(q.x - w))[0];
-      if (near === undefined) await waitTicks(page, 120);
-      else {
-        const key = near.x > w ? 'KeyD' : 'KeyA';
-        await page.keyboard.down(key);
-        await page.waitForTimeout(150);
-        await page.keyboard.up(key);
-        await waitTicks(page, 20);
-      }
-      fetching = await going();
-      continue;
-    }
-    target = flock.id;
-    await burstAtFlock(page, touch, flock.id, 2, 20);
-    await waitTicks(page, 60);
-    fetching = await going();
-  }
-  // A last bag may have queued him: give him his wait (4 s) to go.
-  if (!fetching)
-    fetching = await page
-      .waitForFunction(
-        () => {
-          const p = (window as unknown as Hooked).__TM__?.brakkie?.phase;
-          return p === 'fetch' || p === 'cross' || p === 'pickup' || p === 'carry';
-        },
-        null,
-        { timeout: 120_000 },
-      )
-      .then(() => true)
-      .catch(() => false);
-  expect(fetching, 'he went for a bagged bird within 80 tries').toBe(true);
   // Carrying it home on the near plane: hold the sim the moment he is drawn with the bird.
   const held = (await (
     await page.waitForFunction(
