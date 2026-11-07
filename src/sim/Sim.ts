@@ -1957,6 +1957,32 @@ export function createSim(config: SimConfig): Sim {
     return out;
   }
 
+  /** v1.13 (D-075): a live bird, or anything else a player aims at, within the cameos'
+   *  hit.guardPx of the screen point (dx, sy) for camera centre cx: a shot there is never charged
+   *  to a cameo (the benefit of the doubt). */
+  function cameoTargetNearAim(cx: number, dx: number, sy: number): boolean {
+    const guard2 = content.cameos.hit.guardPx * content.cameos.hit.guardPx;
+    const near = (sdx: number, ssy: number): boolean =>
+      (sdx - dx) * (sdx - dx) + (ssy - sy) * (ssy - sy) <= guard2;
+    for (const b of birds) {
+      if (!canHit(b)) continue;
+      // From the bird's body centre (its hitbox body on its plane).
+      const k = geometry.planeScale[b.plane];
+      const body = b.creature.hitbox.body;
+      const bx = b.x + hazeDx(b) + body.ox * k * b.facing;
+      if (near(planeToDx(cx, planeGeo[b.plane].scrollFactor, bx), b.y + body.oy * k)) return true;
+    }
+    for (const [layerId, list] of hitExtras()) {
+      const sf = layerById.get(layerId)?.scrollFactor ?? 1;
+      for (const e of list) {
+        if (e.kind === 'cameo' || e.kind === 'dog') continue;
+        if (e.kind === 'meerkat' || e.kind === 'ostrich' || e.kind === 'tell') continue;
+        if (near(planeToDx(cx, sf, e.x), e.y)) return true;
+      }
+    }
+    return false;
+  }
+
   /** Birds as hit-test targets, front-most first per plane (higher ids are drawn on top). */
   function hitBirds(): Record<PlaneId, HitBird[]> {
     const byPlane: Record<PlaneId, HitBird[]> = { near: [], mid: [], far: [], ver: [] };
@@ -2681,10 +2707,9 @@ export function createSim(config: SimConfig): Sim {
           tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
       );
     // v1.13 (D-075): the cameos react to a pellet (and the springbok to a shot close by); −10
-    // only for a shot aimed at one that hit no target with no live bird near the aim point.
+    // only for a shot aimed at one that hit no target with nothing aimed at near the aim point.
     if (cameos !== null) {
       const sfOf = (layerId: string): number => layerById.get(layerId)?.scrollFactor ?? 1;
-      const guard = cameoCfg.hit.guardPx;
       cameos.shot({
         shotId,
         hitVisits: cameoHits,
@@ -2695,18 +2720,7 @@ export function createSim(config: SimConfig): Sim {
           spookHits.length > 0 ||
           canHits.size > 0 ||
           baboonHits.some((id) => baboons?.isRaider(id) === true),
-        birdNearAim:
-          cameoHits.length > 0 &&
-          birds.some((b) => {
-            if (!canHit(b)) return false;
-            // From the bird's body centre (its hitbox body on its plane).
-            const k = geometry.planeScale[b.plane];
-            const body = b.creature.hitbox.body;
-            const bx = b.x + hazeDx(b) + body.ox * k * b.facing;
-            const bdx = planeToDx(shotCx, planeGeo[b.plane].scrollFactor, bx) - ctx.aim.dx;
-            const bdy = b.y + body.oy * k - ctx.aim.sy;
-            return bdx * bdx + bdy * bdy <= guard * guard;
-          }),
+        targetNearAim: cameoHits.length > 0 && cameoTargetNearAim(shotCx, ctx.aim.dx, ctx.aim.sy),
         aimOn: (layerId) => tapToPlane(shotCx, sfOf(layerId), ctx.aim.dx, ctx.aim.sy),
         impactsOn: (layerId) => impacts.map((p) => tapToPlane(shotCx, sfOf(layerId), p.dx, p.sy)),
       });

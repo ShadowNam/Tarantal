@@ -43,8 +43,9 @@ export interface CameoShot {
   readonly hitVisits: readonly number[];
   /** The shot hit a target elsewhere (then it wasn't aimed at a cameo). */
   readonly hitTarget: boolean;
-  /** A live bird was within hit.guardPx of the aim point on screen. */
-  readonly birdNearAim: boolean;
+  /** A live bird, or anything else a player aims at (a secret's part, a crate, a tell, a tin can),
+   *  was within hit.guardPx of the aim point on screen: the benefit of the doubt. */
+  readonly targetNearAim: boolean;
   /** The shot's aim point (a rifle's before the sway) on a layer. */
   aimOn(layerId: string): { readonly x: number; readonly y: number };
   /** Where its pellets landed on a layer. */
@@ -209,7 +210,9 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
       goal = at + toward * rng.range(dist[0], dist[1]);
     }
     const facing: 1 | -1 = goal > start ? 1 : -1;
-    if (!asPreview && !routeClear(plane, start - facing * tail, goal)) return null;
+    // A near one's short way keeps clear of what a player aims at there (and of Brakkie); a mid
+    // crossing passes in front of things (pellets go through it) but never stops there.
+    if (!asPreview && w.enter === 'grass' && !routeClear(plane, start, goal)) return null;
     const members: Member[] = roles.map((role, i) => ({
       role,
       x: start - facing * i * w.spacingPx,
@@ -371,7 +374,13 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
           const p = v.w.pause;
           v.walked = 0;
           v.pauseAt = rng.range(p.everyPx[0], p.everyPx[1]);
-          if (rng.chance(p.chance)) setPhase(v, 'pause', rangeTicks(p.seconds));
+          const lead = v.members[0]?.x ?? 0;
+          const tail = v.members[v.members.length - 1]?.x ?? lead;
+          if (
+            rng.chance(p.chance) &&
+            routeClear(v.plane, Math.min(lead, tail), Math.max(lead, tail))
+          )
+            setPhase(v, 'pause', rangeTicks(p.seconds));
         }
         return true;
       }
@@ -477,7 +486,7 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
               }),
             ),
           );
-        const aimed = onIt && !s.birdNearAim;
+        const aimed = onIt && !s.targetNearAim;
         let points = 0;
         if (aimed && cooldown === 0) {
           points = -C.hit.penalty;
