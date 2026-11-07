@@ -10,6 +10,7 @@ import type { FruitHookSpot } from './view/fruit/FruitView';
 import type { TreeLifeHook } from './view/tree/TreeLifeView';
 import type { TellHook } from './view/tell/TellView';
 import type { BaboonHook } from './view/baboon/BaboonView';
+import type { BrakkieHook, TitleBrakkieHook } from './brakkie/BrakkieView';
 import type { HarvestHook } from './view/harvest/HarvestView';
 import type { ReenbuiHook } from './view/reenbui/ReenbuiView';
 import type { BaboonsView, HarvestView, PlaneId, ReenbuiView as ReenbuiState } from '../sim/types';
@@ -295,6 +296,9 @@ export interface TestHook {
   /** D-029: RGBA bytes of all textures (GPU memory estimate) during a hunt, and when the
    *  Skiet-Skuur opens (D-035 review); 0 before. */
   textureBytes: number;
+  /** v1.12 (D-069): Brakkie's sheet is in the texture manager (sampled with textureBytes; the
+   *  tally must show false: it goes with the hunt, lesson 40). */
+  brakkieTexture: boolean;
   /** D-053: the largest textures (key, MB), sampled with textureBytes. */
   textureTop: { key: string; mb: number }[];
   /** v1.3: delivered gun atlases in the texture manager (sampled with textureBytes). */
@@ -514,6 +518,12 @@ export interface TestHook {
   baboons: readonly BaboonHook[] | null;
   baboonRaid: BaboonsView['raid'];
   baboonMs: number;
+  /** v1.12 (D-069): Brakkie as drawn (null: not on this hunt, or his chunk isn't in). */
+  brakkie: BrakkieHook | null;
+  /** v1.12 (D-069): ms his view took this frame (perf: ≤ 0.3 at 4× throttle). */
+  brakkieMs: number;
+  /** v1.12 (D-069): the title's Brakkie (null: not drawn). */
+  titleBrakkie: TitleBrakkieHook | null;
   /** v1.8c (D-063): the Harvest's actors drawn this frame (null: not the Harvest, or the chunk
    *  not in yet), its state from the snapshot (phase, crop, repair, counts; null outside the
    *  Harvest), and the ms its view took (perf.spec: per scenery frame). */

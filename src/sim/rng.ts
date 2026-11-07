@@ -68,7 +68,9 @@ export type StreamName =
   // v1.8c (D-063): the Harvest's warthogs and piglets.
   | 'harvest'
   // v1.10 (D-067): Reënbui (whether it comes, when, its columns and the extra flocks).
-  | 'reenbui';
+  | 'reenbui'
+  // v1.12 (D-069): Brakkie, the farm dog (spots, rests, fetches, barks, flushes and their flocks).
+  | 'dog';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {

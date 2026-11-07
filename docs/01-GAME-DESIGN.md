@@ -840,6 +840,50 @@ stream `reenbui`, at most **once a hunt**; every number in `content/reenbui.json
 - **Notaboek:** "Fees in die reën": bag 10 during one Reënbui swarm. **Bird Book:** a note on the
   alates (flying termites) after the first Reënbui.
 
+### 11.3f Brakkie, the farm dog (1.15.0, D-069)
+Oupa's Jack Russell: white with tan patches, brave, busy, cheeky and always in the way. He comes
+along on the hunt as a deterministic sim entity on his own stream `dog`; every number is in
+`content/brakkie.json`. A beloved farm dog: **never a target, never hurt, never removed, no blood.**
+(Bles, the dog of Oupa se Les and the Season Run charm "Bles die Plaashond", stays as he is: Oupa
+has two dogs. Bles never shows on screen; Brakkie does.)
+- **Modes:** Classic, the Daily (a special day too) and the bonus maps, and the Season Run's plain
+  and omen hunts. Not the Season Run's boss hunts (the boss is that hunt's show), not Oupa se Les
+  (the first hunt stays plain), not the Skietbaan and not the Harvest (its warthogs, piglets and
+  workers already crowd the near plane).
+- **Where:** he roams the **near plane**, low on the ground in front (his feet at the near plane's
+  `groundY`, below the pop-ups), and goes onto the **mid plane** only to fetch a bird bagged there.
+  He trots in from the **bakkie side** (off the panorama's end where Oupa's bakkie is parked: the
+  left on most maps, the right on the Karoo, where the bakkie stands) a few seconds into the hunt.
+- **Idle:** sniffs, trots to a new spot, sits, lies down in the shade. **Out of the line of fire on
+  purpose** (lesson 21): he stands only where nothing a player aims at is in front of or behind
+  him — never within `clearPx` of a pop-up, a crate, a secret's part, a tell animal, a meerkat
+  colony or a tin can on his layer, never under a flock's band (his top stays below the mid
+  ground), and on the mid plane only where no live bird is near; while the gun is up (a held rifle
+  sight or fire, and for `holdBackSeconds` after any shot) he holds still instead of starting a new
+  trot.
+- **Fetch (visual only, no points):** after a bag on the near or mid plane, once the spot is clear
+  of live birds, he races to where the bird fell, picks it up and carries it back to Oupa, off
+  the panorama at the bakkie side; he comes back a while later. A mid-plane fetch runs into the
+  scene (he can't be hit while crossing between planes).
+- **Bark:** now and then he barks at a flock foraging on the mid plane in view, which **alerts it**
+  (one threat, like a shot's; a small, tuned effect).
+- **Flush:** now and then he dives into the grass in front of a hidden flock and **flushes it**: a
+  small flock bursts up flushing on the mid plane above him (wing shots for the player; inside the
+  map's flock and bird caps).
+- **Shooting at him:** a shot **aimed at him** (its aim point on his body or head, for every gun:
+  the aimed-at rule of D-062/D-063; a shot that hit a target elsewhere never counts) costs **−25**
+  with Oupa's furious scold, at most once per 2 s (the weaver nest's cooldown). Any hit — aimed or
+  a stray pellet — makes him yelp and bolt back to the bakkie; he is back after 12–18 s, never
+  hurt. Like a hit on the nest, it doesn't break the Frenzy streak.
+- **Oupa:** a gruff, loving scold when Brakkie is shot at, a proud line after a fetch, and a
+  greeting on the title screen. On the title Brakkie sits beside Oupa; tap him and he wags.
+- **Notaboek:** "Beste maats" (Best mates): a whole hunt with Brakkie out and never shot at.
+- **Balance:** the fetch scores nothing, so only the bark (alerts) and the flush (extra wing shots)
+  move scores: within ±3 % on every map (`docs/balance/v1.12-brakkie.md`); accidental hits on him
+  < 0.1 a hunt for every gun.
+- **Accessibility:** "reduce motion" keeps him calm (no blurred wag); "reduce flashes" changes
+  nothing here.
+
 ### 11.5 Day-of-week maps and bonus map Verder (v1.2, D-033)
 
 Every biome has **seven layouts, one per UTC weekday** (`content/biomes/<biome>.json → layouts`,

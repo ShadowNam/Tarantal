@@ -237,7 +237,10 @@ export class SoundscapeRuntime implements SoundscapeSink {
     now: number,
     /** v1.10 (D-067): the hunt's Reënbui from its snapshot (null: none; absent: the title). */
     reenbui?: ReenbuiTiming | null,
+    /** v1.12 (D-069): Brakkie is barking, yelping or digging now (the snapshot's phase). */
+    dogLoud = false,
   ): void {
+    this.dogLoud = dogLoud;
     if (
       !this.titleLoadTried &&
       this.loading === null &&
@@ -290,10 +293,14 @@ export class SoundscapeRuntime implements SoundscapeSink {
     return this.warn.quiet(creature, tick);
   }
 
-  /** v1.10 (D-067): every call makes room for a Reënbui's storm and rain. */
+  /** v1.10 (D-067): every call makes room for a Reënbui's storm and rain; v1.12 (D-069) and for
+   *  Brakkie's bark, yelp or dig (his sounds are never masked by a far call). */
   room(tick: number): boolean {
-    return makingRoom(this.sc.reenbui, this.reenbui, tick);
+    return this.dogLoud || makingRoom(this.sc.reenbui, this.reenbui, tick);
   }
+
+  /** v1.12 (D-069): Brakkie loud this frame (from the snapshot, read only: lesson 36). */
+  private dogLoud = false;
 
   /** v1.10 (D-067): the hunt's Reënbui from its snapshot: a new one gets its cues and its sounds
    *  decoded (with the area's); none keeps them released. */

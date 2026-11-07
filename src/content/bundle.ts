@@ -74,6 +74,13 @@ export function parseContent(raw: RawContent): ParseResult {
     errors,
   );
 
+  const brakkie = parseFile(
+    CONTENT_FILES['brakkie.json'],
+    'brakkie.json',
+    f['brakkie.json'],
+    errors,
+  );
+
   for (const name of Object.keys(f)) {
     if (!(name in CONTENT_FILES)) errors.push({ file: name, message: 'unknown content file' });
   }
@@ -99,9 +106,10 @@ export function parseContent(raw: RawContent): ParseResult {
     run === undefined ||
     modes === undefined ||
     feesdae === undefined ||
-    reenbui === undefined
+    reenbui === undefined ||
+    brakkie === undefined
   ) {
     return { ok: false, errors };
   }
-  return { ok: true, bundle: { scoring, birds, weapons, powerups, charms, run, modes, feesdae, reenbui, biomes }, errors: [] };
+  return { ok: true, bundle: { scoring, birds, weapons, powerups, charms, run, modes, feesdae, reenbui, brakkie, biomes }, errors: [] };
 }

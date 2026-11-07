@@ -65,6 +65,8 @@ function metricValue(m: NotaboekMetric, log: HuntLog): number {
       return log.canChain ?? 0;
     case 'reenbuiBags':
       return log.reenbuiBags ?? 0;
+    case 'brakkieMates':
+      return log.brakkieMates ?? 0;
   }
 }
 

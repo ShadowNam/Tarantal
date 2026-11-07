@@ -124,6 +124,11 @@
     "stampMs": 220,
     "newsDelayMs": 300
   },
+  "brakkie": {
+    "$comment": "v1.12 Brakkie on screen (GDD §11.3f, D-069; the sim's numbers are content/brakkie.json). hd: his HD twin only while the textures in use plus its own stay within budgetMiB − headroomMiB (else the Standard sheet). title: he sits beside Oupa heightPx tall, gapPx from Oupa's feet; a tap wags his tail for wagMs (a swish every swishMs; one calm frame with reduce motion); greetChance: Oupa's title greeting when Brakkie first shows in a session.",
+    "hd": { "budgetMiB": 256, "headroomMiB": 6 },
+    "title": { "wagMs": 1400, "swishMs": 110, "heightPx": 120, "gapPx": 12, "greetChance": 1 }
+  },
   "braai": {
     "$comment": "v1.11 Die Braai (GDD §8, D-068): the tally's night setting at Oupa's fire. perfect: a perfect hunt is the top rank, or no miss (every shot bagged) with at least minBagged birds; it (or a rank up) earns the vastrap (danceMs, a frame every danceFrameMs). story: after the count-up Oupa tells the hunt in at most maxLines lines (an opener, the best moments, a closer), each shown lineMs with gapMs between; manyBirds splits the opener's buckets; a hunt within nearRecordFrac of the area's best (not a new one) is a near miss. fire: the flames' baked frames every flameFrameMs, the sparks' every sparkFrameMs, the glow's slow pulse (glowPulseMs, ± glowPulse alpha; steady with reduce flashes). idle: Oupa sips his coffee and pokes the coals in turn, one every idleEveryMs, held poseMs. hd: the HD sheet is used only while the texture memory in use plus its own stays within budgetMiB − headroomMiB. horizons: the dark skyline per area (style hills|dunes|flat|ridge, trees acacia|palm|baobab|none); unknown areas use default.",
     "perfect": { "minBagged": 10 },

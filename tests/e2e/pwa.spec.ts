@@ -15,7 +15,7 @@ test.describe('PWA', () => {
   });
 
   test('manifest is served with name, icons, display and start_url', async ({ page, request }) => {
-    await page.goto('/?e2e=1&reenbui=0');
+    await page.goto('/?e2e=1&reenbui=0&brakkie=0');
     const href = await page.locator('link[rel="manifest"]').getAttribute('href');
     expect(href).toBe('manifest.webmanifest');
     const res = await request.get(`/${href ?? ''}`);
@@ -48,7 +48,7 @@ test.describe('PWA', () => {
   }) => {
     test.setTimeout(180_000);
     const errors = collectErrors(page);
-    await page.goto('/?e2e=1&reenbui=0&ftue=0');
+    await page.goto('/?e2e=1&reenbui=0&brakkie=0&ftue=0');
     await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 60_000 });
     const scope = await page.evaluate(async () => {
       const reg = await navigator.serviceWorker.ready;
@@ -70,7 +70,7 @@ test.describe('PWA', () => {
     await context.setOffline(true);
     try {
       // A different query string still loads (navigations fall back to the cached index.html).
-      await page.goto('/?e2e=1&reenbui=0&ftue=0&seed=5');
+      await page.goto('/?e2e=1&reenbui=0&brakkie=0&ftue=0&seed=5');
       await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 60_000 });
       await expect(page.locator('#game canvas')).toHaveCount(1);
       expect(await page.evaluate(() => navigator.onLine)).toBe(false);

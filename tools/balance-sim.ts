@@ -80,6 +80,14 @@ export interface HuntRow {
   readonly cropBonus?: number;
   readonly workerHits?: number;
   readonly pigletHits?: number;
+  /** v1.12 (D-069): Brakkie — hits on him aimed (they cost points) and stray (a pellet that struck
+   *  him without aiming: the accidental hits the gate counts), his barks, flushes (a flock out)
+   *  and fetches (0 on a hunt without him). */
+  readonly dogAimed?: number;
+  readonly dogStray?: number;
+  readonly dogBarks?: number;
+  readonly dogFlushes?: number;
+  readonly dogFetches?: number;
 }
 
 export interface BotSummary {
@@ -127,6 +135,11 @@ export function playRows(job: Job): HuntRow[] {
     let workerHits = 0;
     let pigletHits = 0;
     let raiders = 0;
+    let dogAimed = 0;
+    let dogStray = 0;
+    let dogBarks = 0;
+    let dogFlushes = 0;
+    let dogFetches = 0;
     while (!sim.isOver()) {
       sim.step(bot.next(sim.snapshot()));
       for (const e of sim.drainEvents()) {
@@ -134,6 +147,12 @@ export function playRows(job: Job): HuntRow[] {
           if (e.who === 'worker') workerHits++;
           else pigletHits++;
         } else if (e.type === 'baboonBagged') raiders++;
+        else if (e.type === 'brakkieHit') {
+          if (e.aimed) dogAimed++;
+          else dogStray++;
+        } else if (e.type === 'brakkieBarked') dogBarks++;
+        else if (e.type === 'brakkieFlushed' && e.flockId !== null) dogFlushes++;
+        else if (e.type === 'brakkieFetched') dogFetches++;
       }
     }
     const r = sim.result();
@@ -162,6 +181,9 @@ export function playRows(job: Job): HuntRow[] {
       nutKnocks: r.nuts?.knocks ?? 0,
       nutAirHits: r.nuts?.airHits ?? 0,
       nutPops: r.nuts?.pops ?? 0,
+      ...(sim.snapshot().brakkie === null
+        ? {}
+        : { dogAimed, dogStray, dogBarks, dogFlushes, dogFetches }),
       ...(hv === null
         ? {}
         : {

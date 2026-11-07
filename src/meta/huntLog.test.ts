@@ -73,6 +73,30 @@ describe('hunt log', () => {
     ).toBe(0);
   });
 
+  it('v1.12 (D-069): Beste maats — Brakkie out and never hit; a stray pellet spoils it too', () => {
+    const r = { baggedByPlane: { far: 0, ver: 0 } } as unknown as HuntResult;
+    const out = createHuntLogger();
+    out.add([{ type: 'brakkieArrived', tick: 200, x: -480 }]);
+    expect(out.finish(r).brakkieMates).toBe(1);
+    const hit = createHuntLogger();
+    hit.add([
+      { type: 'brakkieArrived', tick: 200, x: -480 },
+      {
+        type: 'brakkieHit',
+        tick: 900,
+        shotId: 4,
+        aimed: false,
+        plane: 'near',
+        x: 1,
+        y: 1,
+        points: 0,
+      },
+    ]);
+    expect(hit.finish(r).brakkieMates).toBe(0);
+    // No Brakkie on this hunt (a boss hunt, Oupa se Les): nothing to count.
+    expect(createHuntLogger().finish(r).brakkieMates).toBe(0);
+  });
+
   it('records a perching creature only once it lands and calls (same rule as the ⛔ call-out)', () => {
     const log = createHuntLogger((c) => c === 'kwevoel');
     log.add([

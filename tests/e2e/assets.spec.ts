@@ -153,7 +153,7 @@ test('a delivered file that keeps failing stops the start with a Retry message',
   await page.route(/\/layers\/mid-1\./, (r) =>
     broken ? r.fulfill({ status: 404, body: '' }) : r.fallback(),
   );
-  await page.goto('/?e2e=1&reenbui=0&seed=42&layout=none&ftue=0');
+  await page.goto('/?e2e=1&reenbui=0&brakkie=0&seed=42&layout=none&ftue=0');
   await expect(page.locator('#tm-art-error')).toBeVisible({ timeout: 90_000 });
   expect(warnings.some((w) => /layers\/mid-1\..*HTTP 404|mid-1\..*failed/.test(w))).toBe(true);
   expect(await page.evaluate(() => window.__TM__?.ready === true)).toBe(false);
@@ -169,7 +169,7 @@ test('a corrupt bird atlas stops the start with a Retry message', async ({ page 
   test.setTimeout(180_000);
   // The mid-plane atlas data arrives as {} (no frames): it can't be used, so it counts as missing.
   await serveStandins(page, null, { match: /tarentaal-mid@1x-0\..*\.json$/, edit: () => ({}) });
-  await page.goto('/?e2e=1&reenbui=0&seed=42&layout=none&ftue=0');
+  await page.goto('/?e2e=1&reenbui=0&brakkie=0&seed=42&layout=none&ftue=0');
   await expect(page.locator('#tm-art-error')).toBeVisible({ timeout: 90_000 });
 });
 

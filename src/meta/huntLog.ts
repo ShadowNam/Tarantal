@@ -29,6 +29,8 @@ export interface HuntLog {
   readonly canChain?: number;
   /** v1.10 (D-067): birds bagged in the hunt's Reënbui swarm (0 without one). */
   readonly reenbuiBags?: number;
+  /** v1.12 (D-069): Brakkie was out this hunt and no shot ever hit him (1), else 0. */
+  readonly brakkieMates?: number;
 }
 
 export interface HuntLogger {
@@ -49,6 +51,8 @@ export function createHuntLogger(
   const creatures = new Set<string>();
   const secrets = new Set<string>();
   let reenbuiBags = 0;
+  let dogOut = false;
+  let dogHit = false;
   return {
     creaturesSeen: creatures,
     add(events) {
@@ -63,6 +67,9 @@ export function createHuntLogger(
         // v1.10 (D-067): the alates' Bird Book note once a swarm rose; its bags (Notaboek).
         else if (e.type === 'alatesSwarm') creatures.add('rysmier');
         else if (e.type === 'rainEased') reenbuiBags = Math.max(reenbuiBags, e.bagged);
+        // v1.12 (D-069): Brakkie came out, and whether any shot hit him (aimed or stray).
+        else if (e.type === 'brakkieArrived') dogOut = true;
+        else if (e.type === 'brakkieHit') dogHit = true;
       }
     },
     finish(r, bonusUnlocked = null) {
@@ -85,6 +92,7 @@ export function createHuntLogger(
         secretsFound: [...secrets].sort(),
         canChain: r.cans?.bestChain ?? 0,
         reenbuiBags,
+        brakkieMates: dogOut && !dogHit ? 1 : 0,
       };
     },
   };

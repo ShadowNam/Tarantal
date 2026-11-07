@@ -17,6 +17,7 @@
     { "id": "bag_10_ver", "metric": "baggedVer", "scope": "total", "target": 10, "reward": { "type": "sight", "id": "peep" } },
     { "id": "familiefoto", "metric": "familiefotos", "scope": "total", "target": 1, "reward": { "type": "none" } },
     { "id": "blik_5", "metric": "canChain", "scope": "hunt", "target": 5, "reward": { "type": "none" } },
+    { "id": "brakkie_mates", "metric": "brakkieMates", "scope": "hunt", "target": 1, "reward": { "type": "none" } },
     { "id": "reenbui_10", "metric": "reenbuiBags", "scope": "hunt", "target": 10, "reward": { "type": "none" } },
     { "id": "score_4000", "metric": "score", "scope": "hunt", "target": 4000, "reward": { "type": "charm", "id": "geheime_resep" } }
   ]

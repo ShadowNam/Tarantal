@@ -2085,6 +2085,117 @@ export const ReenbuiSchema = obj({
 });
 export type Reenbui = z.infer<typeof ReenbuiSchema>;
 
+// brakkie.json — v1.12 (D-069, GDD §11.3f): Brakkie, Oupa's Jack Russell. A sim entity on his own
+// stream `dog`; never a target, never hurt. Px are near-plane design px at his scale 1 (the mid
+// plane converts by plane scale, D-049), times in seconds.
+
+const dogEllipse = obj({ ox: z.number(), oy: z.number(), rx: pos, ry: pos });
+const dogHead = obj({ ox: z.number(), oy: z.number(), r: pos });
+const dogHitbox = obj({ body: dogEllipse, head: dogHead });
+
+export const BrakkieSchema = obj({
+  version,
+  /** Modes he comes along in (the Season Run only in `seasonKinds` hunts). */
+  modes: z.array(ModeIdSchema).min(1),
+  seasonKinds: z.array(z.enum(['plain', 'omen', 'boss'])),
+  /** The maps he comes to, and the side of the panorama the bakkie (his home) is on. */
+  areas: z.array(obj({ biome: id, homeSide: z.union([z.literal(-1), z.literal(1)]) })).min(1),
+  /** His feet on the near plane (design px from the top); the mid plane: its groundY's front. */
+  groundY: pos,
+  /** Home: this far past the panorama's end (off every screen, LAYER_BLEED_PX + the widest view). */
+  homeOffPx: pos,
+  /** Standing (trot, run, sniff, sit, bark, carry, yelp) and lying (lie, dig). */
+  hitboxes: obj({ stand: dogHitbox, low: dogHitbox }),
+  /** runBeyondPx: a new spot farther than this he runs to instead of trotting. */
+  speeds: obj({ trotPx: pos, runPx: pos, boltPx: pos, runBeyondPx: pos }),
+  /** He trots in from the bakkie this long into the hunt. */
+  enterSeconds: range(nonNeg),
+  roam: obj({
+    /** New spots lie within this of the view's centre on his layer: clear of the screen's
+     *  corners, where the HUD's belt and gadget sit on every device (the sim never sees the
+     *  viewport, so it is a fixed band round the centre). */
+    viewHalfPx: pos,
+    /** Scampering away from something aimed at may use this wider band. */
+    scamperHalfPx: pos,
+    /** Resting this far outside his band (the view panned), he gets up and comes back in. */
+    driftPx: nonNeg,
+    /** And this far from where he stands. */
+    stepPx: range(pos),
+    /** Spots tried before he rests where he is. */
+    tries: posInt,
+    restSeconds: range(pos),
+    restWeights: obj({ sniff: nonNeg, sit: nonNeg, lie: nonNeg }),
+  }),
+  clear: obj({
+    /** Nothing a player aims at on his layer within this of a spot he stands on. */
+    aimPx: pos,
+    /** How often he checks that where he stands is still clear. */
+    checkSeconds: pos,
+    /** After a shot he holds still this long (and while a sight or fire is held). */
+    holdBackSeconds: nonNeg,
+    /** A tin-can fence on his plane: he keeps this far from its end posts (its knocked cans fly
+     *  and land round it; a player juggles them there). */
+    fencePx: nonNeg,
+    /** His way to a new spot is clear too: nothing aimed at within pathPx of it, checked every
+     *  pathStepPx. */
+    pathPx: pos,
+    pathStepPx: pos,
+    /** A gun in hand with a pellet spread over this (a crate gun like the Voorlaaier, screen px):
+     *  he keeps to the bakkie while it is out. */
+    wideSpreadPx: pos,
+  }),
+  fetch: obj({
+    chance: fraction,
+    planes: z.array(z.enum(['near', 'mid'])).min(1),
+    /** The bird is down after this. */
+    delaySeconds: nonNeg,
+    /** He goes only when no live bird is within this of the spot (plane px; mid converts). */
+    clearPx: pos,
+    /** He waits this long for that, else gives up. */
+    waitSeconds: nonNeg,
+    /** Only for a bag this close to the view's centre (screen px). */
+    maxDxPx: pos,
+    pickupSeconds: pos,
+    /** Crossing between the near and the mid plane. */
+    crossSeconds: pos,
+    /** At the bakkie with the bird before he comes back. */
+    awaySeconds: range(pos),
+  }),
+  bark: obj({
+    everySeconds: range(pos),
+    barkSeconds: pos,
+    /** The flock hears it this far into the bark. */
+    threatAtSeconds: nonNeg,
+    /** At a mid flock this close to him on screen (screen px). */
+    maxDxPx: pos,
+    /** No flock to bark at, or busy: try again after this. */
+    retrySeconds: pos,
+  }),
+  flush: obj({
+    firstSeconds: range(pos),
+    everySeconds: range(pos),
+    chance: fraction,
+    digSeconds: pos,
+    size: range(posInt),
+    /** The flock bursts up within this of the view's centre (screen px). */
+    maxDxPx: pos,
+    retrySeconds: pos,
+  }),
+  /** Test builds only (?brakkiePreview=fetch, the screenshot spec): this many seconds in he
+   *  fetches a bird placed beside him (visual only). Never in shipped content (cross-refs). */
+  demoFetchSeconds: pos.optional(),
+  hit: obj({
+    /** Points off for a shot aimed at him. */
+    penalty: posInt,
+    /** At most once per this (the weaver nest's cooldown). */
+    cooldownSeconds: pos,
+    yelpSeconds: pos,
+    /** Back at the bakkie this long before he comes out again. */
+    awaySeconds: range(pos),
+  }),
+});
+export type Brakkie = z.infer<typeof BrakkieSchema>;
+
 // ---------------------------------------------------------------------------------------------
 // The whole bundle
 
@@ -2099,6 +2210,7 @@ export const CONTENT_FILES = {
   'modes.json': ModesSchema,
   'feesdae.json': FeesdaeSchema,
   'reenbui.json': ReenbuiSchema,
+  'brakkie.json': BrakkieSchema,
 } as const;
 
 export interface ContentBundle {
@@ -2113,6 +2225,8 @@ export interface ContentBundle {
   readonly feesdae: Feesdae;
   /** D-067: Reënbui, the first rain and the flying ants. */
   readonly reenbui: Reenbui;
+  /** D-069: Brakkie, the farm dog. */
+  readonly brakkie: Brakkie;
   readonly biomes: readonly Biome[];
 }
 
@@ -2661,6 +2775,21 @@ export const FeelSchema = obj({
     stampMs: pos,
     newsDelayMs: nonNeg,
   }),
+  /** v1.12 (D-069): Brakkie on screen (the sim's numbers are content/brakkie.json). */
+  brakkie: obj({
+    /** The HD twin only while the textures in use plus its own stay within budgetMiB − headroomMiB. */
+    hd: obj({ budgetMiB: pos, headroomMiB: nonNeg }),
+    title: obj({
+      /** A tap on him wags his tail this long, a swish every swishMs. */
+      wagMs: pos,
+      swishMs: pos,
+      /** His height on the title (design px) and the gap to Oupa's feet. */
+      heightPx: pos,
+      gapPx: nonNeg,
+      /** Oupa's greeting the first time the title shows him in a session (a lazy guide line). */
+      greetChance: fraction,
+    }),
+  }),
   /** v1.11 (D-068): Die Braai, the tally's night setting at Oupa's fire (GDD §8). */
   braai: obj({
     /** The top rank, or no miss with at least minBagged birds, is a perfect hunt (the vastrap). */
@@ -3049,6 +3178,8 @@ export const NotaboekMetricSchema = z.enum([
   'canChain',
   /** v1.10 (D-067): birds bagged during one Reënbui's swarm (scope hunt). */
   'reenbuiBags',
+  /** v1.12 (D-069): a whole hunt with Brakkie out and never shot at (1 or 0; scope hunt). */
+  'brakkieMates',
 ]);
 export type NotaboekMetric = z.infer<typeof NotaboekMetricSchema>;
 

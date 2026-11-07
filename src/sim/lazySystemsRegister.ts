@@ -1,6 +1,7 @@
 // v1.8b (D-062): importing this registers the lazy sim systems (tools, tests, and the game once
 // the chunk is in). See lazySystems.ts.
 import { createBaboonSystem } from './baboons/system';
+import { createBrakkieSystem } from './brakkie/system';
 import { createHarvestSystem } from './harvest/system';
 import { registerLazySystems } from './lazySystems';
 import { createOstrichSystem } from './ostriches/system';
@@ -11,4 +12,5 @@ registerLazySystems({
   ostriches: createOstrichSystem,
   tells: createTellSystem,
   harvest: createHarvestSystem,
+  brakkie: createBrakkieSystem,
 });

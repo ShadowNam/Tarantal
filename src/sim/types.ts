@@ -156,6 +156,64 @@ export type BirdPhase =
 /** Flock FSM states (GDD §6.1, Tech §3.5). Roost (dusk hunts) arrives with the dusk biomes. */
 export type FlockState = 'forage' | 'alert' | 'run' | 'flush' | 'settle';
 
+/** v1.12 (D-069): the planes Brakkie walks on. */
+export type DogPlane = 'near' | 'mid';
+/** v1.12 (D-069): what Brakkie is doing (GDD §11.3f). */
+export type DogPhase =
+  | 'away'
+  | 'trot'
+  | 'rest'
+  | 'fetch'
+  | 'cross'
+  | 'pickup'
+  | 'carry'
+  | 'bark'
+  | 'toDig'
+  | 'dig'
+  | 'yelp'
+  | 'bolt';
+/** v1.12 (D-069): how he is drawn (a baked frame strip each). */
+export type DogPose = 'trot' | 'run' | 'sniff' | 'sit' | 'lie' | 'bark' | 'dig' | 'carry' | 'yelp';
+
+/** v1.12 (D-069): Brakkie as drawn. Positions are his feet on his layer. */
+export interface BrakkieView {
+  /** False while he is away at the bakkie (off the panorama). */
+  readonly present: boolean;
+  readonly phase: DogPhase;
+  readonly pose: DogPose;
+  readonly plane: DogPlane;
+  readonly layerId: string;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: 1 | -1;
+  /** His size against the near plane's (mid: the mid plane's scale / the near plane's). */
+  readonly scale: number;
+  /** Ticks into the phase, and its length (0 for a moving phase). */
+  readonly t: number;
+  readonly dur: number;
+  /** A bird in his mouth (his own frame; visual only). */
+  readonly carrying: boolean;
+  readonly hittable: boolean;
+  /** Crossing between the near and the mid plane (drawn between the two points by `p`). */
+  readonly cross: {
+    readonly from: DogPlane;
+    readonly fromLayerId: string;
+    readonly fromX: number;
+    readonly fromY: number;
+    readonly fromScale: number;
+    readonly to: DogPlane;
+    readonly toLayerId: string;
+    readonly toX: number;
+    readonly toY: number;
+    readonly toScale: number;
+    readonly p: number;
+  } | null;
+  readonly hits: number;
+  readonly fetches: number;
+  readonly barks: number;
+  readonly flushes: number;
+}
+
 /** v1.10 (D-067): a Reënbui as drawn (phase ticks, the alate columns, the swarm's bags). */
 export interface ReenbuiView {
   /** Null before the build-up and once it is over. */
@@ -544,6 +602,8 @@ export interface SimState {
   readonly harvest: HarvestView | null;
   /** v1.10 (D-067): this hunt's Reënbui (null when it has none). */
   readonly reenbui: ReenbuiView | null;
+  /** v1.12 (D-069): Brakkie (null: he isn't on this hunt). */
+  readonly brakkie: BrakkieView | null;
   readonly powerups: readonly PowerupView[];
   /** Null when the omen is off or the biome has no wind. */
   readonly wind: WindView | null;

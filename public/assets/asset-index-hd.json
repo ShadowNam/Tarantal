@@ -21,6 +21,16 @@
       "height": 864,
       "scale": 0.5
     },
+    "brakkie/sheet": {
+      "file": {
+        "path": "assets/brakkie-hd/img/brakkie_sheet.a6b74a164aa8.png",
+        "bytes": 66009,
+        "hash": "a6b74a164aa8"
+      },
+      "width": 1024,
+      "height": 512,
+      "scale": 0.5
+    },
     "bushveld/aloe_a": {
       "file": {
         "path": "assets/bushveld-winter-hd/img/bushveld_aloe_a.88aa1e5bb4aa.png",

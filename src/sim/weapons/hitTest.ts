@@ -137,6 +137,8 @@ export interface PelletResult {
   readonly baboonId?: number;
   /** v1.8c (D-063): a Harvest actor (a warthog is a target; a piglet or a worker is not). */
   readonly harvestId?: number;
+  /** v1.12 (D-069): Brakkie, the farm dog (never a target; absent everywhere else). */
+  readonly dogId?: number;
 }
 
 /** 1.9.3 (D-056): a result that is something to shoot (not a plain prop occluder, not nothing). */
@@ -151,6 +153,7 @@ export function isTarget(r: PelletResult): boolean {
     r.spookId !== undefined ||
     r.baboonId !== undefined ||
     r.harvestId !== undefined ||
+    r.dogId !== undefined ||
     (r.canId !== undefined && r.passThrough !== true)
   );
 }
@@ -239,6 +242,14 @@ export type HitExtra =
       readonly y: number;
       readonly shape: OccluderShape;
     }
+  /** v1.12 (D-069): Brakkie (body or head). */
+  | {
+      readonly kind: 'dog';
+      readonly dogId: number;
+      readonly x: number;
+      readonly y: number;
+      readonly shape: OccluderShape;
+    }
   /** D-048: a Spookjag bat, owl or pumpkin lantern. */
   | {
       readonly kind: 'spook';
@@ -316,6 +327,7 @@ export function resolvePellet(
       if (e.kind === 'tell') return after({ ...NOTHING, tellId: e.tellId });
       if (e.kind === 'baboon') return after({ ...NOTHING, baboonId: e.baboonId });
       if (e.kind === 'harvest') return after({ ...NOTHING, harvestId: e.harvestId });
+      if (e.kind === 'dog') return after({ ...NOTHING, dogId: e.dogId });
       return after(
         e.kind === 'crate'
           ? { ...NOTHING, crateId: e.crateId }
@@ -430,6 +442,7 @@ export function resolvePattern(
       p.r.spookId !== undefined ||
       p.r.baboonId !== undefined ||
       p.r.harvestId !== undefined ||
+      p.r.dogId !== undefined ||
       (p.r.canId !== undefined && p.r.passThrough !== true),
   );
   if (hit) return pellets;

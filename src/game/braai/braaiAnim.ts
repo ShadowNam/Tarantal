@@ -152,9 +152,16 @@ export function applyAnim(p: AnimState | null, st: AnimState, t: AnimTargets): n
       oupa.setOrigin(f.ox / f.w, f.oy / f.h);
       n += 2;
     }
-    oupa.setFlipX(st.flip);
-    oupa.setY(t.oupaY - (st.hop ? 8 * t.scale : 0));
-    n += 2;
+    // v1.12 (polish e): the flip and the hop only when they change (each was set on every pose
+    // change before: two of the calls in a dance frame for nothing).
+    if (p === null || p.flip !== st.flip) {
+      oupa.setFlipX(st.flip);
+      n++;
+    }
+    if (p === null || p.hop !== st.hop) {
+      oupa.setY(t.oupaY - (st.hop ? 8 * t.scale : 0));
+      n++;
+    }
     const poke = st.pose === 'sit_poke';
     if (p === null || (p.pose === 'sit_poke') !== poke) {
       t.poker?.setVisible(poke);

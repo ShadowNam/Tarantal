@@ -58,7 +58,7 @@ test('title and both Settings pages and privacy', async ({ page }, info) => {
   // default 90 s timed out on loaded runners (CI pixel7 2/2 and locally).
   test.setTimeout(180_000);
   const touch = isTouchProject(info);
-  await boot(page, `today=${EPOCH}&seed=42&stamp=0&reenbui=0`);
+  await boot(page, `today=${EPOCH}&seed=42&stamp=0&reenbui=0&brakkie=0`);
   await page.waitForFunction(() => window.__TM__?.rects['settings'] !== undefined);
   await herdsDrawn(page);
   await settled(page);
@@ -84,7 +84,7 @@ test('title and both Settings pages and privacy', async ({ page }, info) => {
 
 test('hunt held at a fixed tick', async ({ page }, info) => {
   baselineProfile(info);
-  await boot(page, `today=${EPOCH}&seed=42&holdAt=300&stamp=0&reenbui=0`);
+  await boot(page, `today=${EPOCH}&seed=42&holdAt=300&stamp=0&reenbui=0&brakkie=0`);
   await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
     timeout: 60_000,
   });
@@ -114,7 +114,10 @@ test('tally after a short hunt', async ({ page }, info) => {
   // v1.11 (D-068): the tally at the braai. The hunt is held at its start until the braai's lazy
   // files are in (the tally shows the braai only then), and the braai's clock is held at 2.4 s
   // (?braaiAt): the same fire, sparks, pose and story line in every run.
-  await boot(page, `today=${EPOCH}&seed=42&huntSeconds=2&stamp=0&reenbui=0&holdAt=20&braaiAt=2400`);
+  await boot(
+    page,
+    `today=${EPOCH}&seed=42&huntSeconds=2&stamp=0&reenbui=0&brakkie=0&holdAt=20&braaiAt=2400`,
+  );
   await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
     timeout: 60_000,
   });
@@ -139,7 +142,10 @@ test('Padstal', async ({ page }, info) => {
   baselineProfile(info);
   test.setTimeout(180_000);
   const touch = isTouchProject(info);
-  await boot(page, `today=${EPOCH}&seed=4&huntSeconds=1&quotaMul=0&doppies=1&stamp=0&reenbui=0`);
+  await boot(
+    page,
+    `today=${EPOCH}&seed=4&huntSeconds=1&quotaMul=0&doppies=1&stamp=0&reenbui=0&brakkie=0`,
+  );
   await page.waitForFunction(() => window.__TM__?.rects['seasonRun'] !== undefined);
   await tapRect(page, touch, 'seasonRun');
   await page.waitForFunction(() => window.__TM__?.run?.view === 'intro', null, { timeout: 60_000 });

@@ -238,7 +238,12 @@ test.describe('portal build', () => {
       weapon: 'dubbelloop',
       score: 1234,
     });
-    await boot(page, PLATFORM === 'poki' ? `gdc=${c}&reenbui=content` : `c=${c}&reenbui=content`);
+    await boot(
+      page,
+      PLATFORM === 'poki'
+        ? `gdc=${c}&reenbui=content&brakkie=content`
+        : `c=${c}&reenbui=content&brakkie=content`,
+    );
     await waitScene(page, 'challenge');
   });
 });

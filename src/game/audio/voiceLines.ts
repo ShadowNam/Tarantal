@@ -65,6 +65,12 @@ export function harvestBarks(): string[] {
   );
 }
 
+/** v1.12 (D-069): Oupa's Brakkie lines (lazy guide tables): the scold when he is shot at, the
+ *  proud line after a fetch, the title's greeting. */
+export function brakkieBarks(): string[] {
+  return ['scold', 'fetched', 'title'].map((k) => `guide.brakkie.${k}`);
+}
+
 /**
  * Every voiced key: Oupa's trigger lines, plus each secret's bark (the weavers' "Tsk-tsk-tsk!"
  * scold, the windpomp sign, the egg…), and (v1.7, D-044) the meerkats' scold and Oupa's

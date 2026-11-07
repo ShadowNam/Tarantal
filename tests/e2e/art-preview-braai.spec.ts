@@ -188,7 +188,8 @@ test('an average Daily at the braai: the story, Oupa and the fire, the share car
   // (tens of seconds at ~1 fps on software GL), while the braai clock keeps real time — a clock
   // held from boot stopped before the story began. Instead, the moment line 1 is told (in-page,
   // on that frame) the clock is held at line 1's time + one line + gap + 200 ms: line 2 comes
-  // out, and it and its bubble stay on screen (the bubble hides on the braai clock).
+  // out; the moment it is told, the hold moves to its time + 200 ms, so it and its bubble stay
+  // on screen (the bubble hides on the braai clock, lineMs after its line).
   await boot(page, `${BASE}&today=2026-11-04&graphics=standard`);
   await huntToBraai(page, touch, 'daily', 6);
   const pace = feel.braai.story;
@@ -197,10 +198,18 @@ test('an average Daily at the braai: the story, Oupa and the fire, the share car
       (step) => {
         const b = window.__TM__?.braai;
         if (b == null) return false;
-        const w = window as { __TM_BRAAI_AT__?: number };
+        const w = window as { __TM_BRAAI_AT__?: number; __TM_BRAAI_AT2__?: boolean };
         const first = b.story.at[0];
         if (w.__TM_BRAAI_AT__ === undefined && first !== undefined)
           w.__TM_BRAAI_AT__ = first + step;
+        // v1.12 (polish c): once line 2 is told, hold 200 ms after it — inside its bubble's show
+        // window. On software GL line 1 can be told a second late, and a hold from its time
+        // alone landed after line 2's bubble had hidden (both lines told, bubble null).
+        const second = b.story.at[1];
+        if (second !== undefined && w.__TM_BRAAI_AT2__ !== true) {
+          w.__TM_BRAAI_AT2__ = true;
+          w.__TM_BRAAI_AT__ = second + 200;
+        }
         return b.story.shown >= 2 && b.bubble !== null;
       },
       pace.lineMs + pace.gapMs + 200,

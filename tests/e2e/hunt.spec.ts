@@ -75,7 +75,7 @@ test.describe('Classic hunt', () => {
     const errors = collectErrors(page);
     // 60 s, not 15: under software-rendered WebGL (CI, sandboxes) each harness tap round trip
     // costs ~80 ticks, so a 15 s hunt (900 ticks) only fits ~10 taps.
-    await boot(page, 'seed=7&huntSeconds=60&reenbui=content');
+    await boot(page, 'seed=7&huntSeconds=60&reenbui=content&brakkie=content');
     await startHunt(page, touch);
     const started = await hook(page);
     expect(started.inputKind).toBe(touch ? 'touch' : 'pointer');
@@ -175,7 +175,7 @@ test.describe('Classic hunt', () => {
     test.setTimeout(1_800_000);
     const touch = isTouchProject(info);
     const errors = collectErrors(page);
-    await boot(page, 'seed=2026&reenbui=content');
+    await boot(page, 'seed=2026&reenbui=content&brakkie=content');
     await startHunt(page, touch);
     // Shoot steadily for the whole hunt, reloading when the belt is empty.
     while (!(await quick(page)).over) {

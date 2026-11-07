@@ -84,6 +84,37 @@ describe('braai view (D-068)', () => {
     }
   });
 
+  it('v1.12 (polish e): the flip and the hop are set only when they change — ≤ 7 calls a frame (≤ 10 before)', () => {
+    for (const dt of [16.7, 333, 1000 / 30])
+      expect(run(dt, 60_000, 3000), `dt ${dt}`).toBeLessThanOrEqual(7);
+  });
+
+  it('v1.12 (polish e): braaiParts.anim — the per-frame animation timed over 2 000 frames', () => {
+    // The anim part of the braai's frame (animStateInto + applyAnim) in the perf smoke's regime
+    // (~333 ms frames) with the dance, on stubs: its mean and its worst frame, logged for the
+    // report. The browser's CI sample (0.193 vs 0.075 ms over 28 frames) was one GC pause.
+    const o = { reducedMotion: false, reduceFlashes: false, danceFrom: 3000 };
+    const a = newAnimState();
+    const b = newAnimState();
+    let last: AnimState | null = null;
+    const times: number[] = [];
+    for (let i = 0; i < 2000; i++) {
+      const ms = (i * 333) % 20_000;
+      const t0 = performance.now();
+      const st = animStateInto(ms, tuning, o, last === a ? b : a);
+      applyAnim(last, st, targets);
+      times.push(performance.now() - t0);
+      last = st;
+    }
+    times.sort((x, y) => x - y);
+    const mean = times.reduce((x, y) => x + y, 0) / times.length;
+    const median = times[Math.floor(times.length / 2)] ?? 0;
+    console.log(
+      `braaiParts.anim (node, stubs): mean ${(mean * 1000).toFixed(2)} µs, median ${(median * 1000).toFixed(2)} µs, worst ${((times.at(-1) ?? 0) * 1000).toFixed(1)} µs`,
+    );
+    expect(median).toBeLessThan(0.05);
+  });
+
   it('a held clock makes no calls', () => {
     expect(run(16.7, 2000, null, true)).toBe(0);
   });

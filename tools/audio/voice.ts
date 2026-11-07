@@ -14,6 +14,7 @@ import { join } from 'node:path';
 import {
   baboonBarks,
   harvestBarks,
+  brakkieBarks,
   veldLifeBarks,
   voicedLines,
 } from '../../src/game/audio/voiceLines';
@@ -52,6 +53,8 @@ const lines = voicedLines(
     ...veldLifeBarks(loadContent().birds),
     ...baboonBarks(RaidActionSchema.options),
     ...harvestBarks(),
+    // v1.12 (D-069): Oupa's Brakkie lines.
+    ...brakkieBarks(),
     // v1.11 (D-068): Oupa's story phrases at the braai (lazy table src/i18n/braai/).
     ...STORY_LINE_IDS.map(sayKey),
   ],

@@ -16,7 +16,9 @@ export type ThreatSource =
   // v1.7 (D-044): a meerkat sentinel's alarm bark (the nearest flock listens).
   | 'meerkatAlarm'
   // v1.8b (D-062): a raiding baboon threw fruit at a flock or chased it.
-  | 'baboon';
+  | 'baboon'
+  // v1.12 (D-069): Brakkie barked at it.
+  | 'dog';
 /** Why a flock changed state. */
 export type FlockCause =
   'threat' | 'window' | 'timeout' | 'landed' | 'settled' | 'gadget' | 'event' | 'stampede';
@@ -123,6 +125,8 @@ export type SimEvent =
       readonly baboonId?: number;
       /** v1.8c (D-063): a Harvest warthog, piglet or worker. */
       readonly harvestId?: number;
+      /** v1.12 (D-069): Brakkie. */
+      readonly dogId?: number;
     }
   /** v1.3x (D-037) Skietbaan only: a shot's aim point on the range's plane (plane px; a rifle's
    *  before the sway), the point its group is measured from. */
@@ -892,6 +896,48 @@ export type SimEvent =
       readonly tick: number;
       readonly crop: number;
       readonly bonus: number;
+    }
+  /** v1.12 (D-069): Brakkie trots in from the bakkie (at the start, and back after a fetch or a
+   *  hit). */
+  | { readonly type: 'brakkieArrived'; readonly tick: number; readonly x: number }
+  /** v1.12 (D-069): he races off to fetch a bird bagged on `plane` (visual only, no points). */
+  | {
+      readonly type: 'brakkieFetchStarted';
+      readonly tick: number;
+      readonly plane: 'near' | 'mid';
+      readonly x: number;
+      readonly y: number;
+    }
+  /** v1.12 (D-069): he has the bird in his mouth (he carries it back to Oupa). */
+  | { readonly type: 'brakkiePickedUp'; readonly tick: number; readonly plane: 'near' | 'mid' }
+  /** v1.12 (D-069): back at the bakkie with the bird (Oupa's proud line). */
+  | { readonly type: 'brakkieFetched'; readonly tick: number }
+  /** v1.12 (D-069): he barks at a mid flock; it hears it `threatTick` (one threat, 'dog'). */
+  | {
+      readonly type: 'brakkieBarked';
+      readonly tick: number;
+      readonly flockId: number;
+      readonly plane: 'near' | 'mid';
+      readonly x: number;
+    }
+  /** v1.12 (D-069): he digs in the grass and a hidden flock bursts up flushing (null: no room). */
+  | {
+      readonly type: 'brakkieFlushed';
+      readonly tick: number;
+      readonly flockId: number | null;
+      readonly x: number;
+    }
+  /** v1.12 (D-069): a shot hit him (`aimed`: the shot was aimed at him; points: the penalty or
+   *  0 on the cooldown or a stray pellet). He yelps and bolts to the bakkie, never hurt. */
+  | {
+      readonly type: 'brakkieHit';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly aimed: boolean;
+      readonly plane: 'near' | 'mid';
+      readonly x: number;
+      readonly y: number;
+      readonly points: number;
     };
 
 /** 1.9.3 (D-056): what nutKnocked and nutJuggled carry. */

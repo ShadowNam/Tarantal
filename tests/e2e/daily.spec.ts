@@ -65,7 +65,7 @@ test.describe('Daily Hunt', () => {
     const widths = info.project.use.isMobile === true ? [null] : [1440, 1920, 2520];
     for (const w of widths) {
       if (w !== null) await page.setViewportSize({ width: w, height: 1080 });
-      await boot(page, `today=${GOLDEN_DAY}&reenbui=content`);
+      await boot(page, `today=${GOLDEN_DAY}&reenbui=content&brakkie=content`);
       const h = await hook(page);
       if (w !== null) expect(h.designWidth).toBe(designSizeFor(w, 1080).width);
       const got = await page.evaluate(
@@ -97,7 +97,7 @@ test.describe('Daily Hunt', () => {
     const touch = isTouchProject(info);
     const errors = collectErrors(page);
     await stubClipboard(page);
-    await boot(page, `huntSeconds=3&today=${EPOCH}&reenbui=content`);
+    await boot(page, `huntSeconds=3&today=${EPOCH}&reenbui=content&brakkie=content`);
     await page.waitForFunction(() => window.__TM__?.rects['daily'] !== undefined);
     await page.screenshot({ path: `${SCREENSHOTS}/daily-title-${info.project.name}.png` });
     await tapRect(page, touch, 'daily');
@@ -175,7 +175,7 @@ test.describe('Daily Hunt', () => {
       loadContentHash(),
       'Oom Koos',
     );
-    await boot(page, `huntSeconds=3&c=${encodeChallenge(c)}&reenbui=content`);
+    await boot(page, `huntSeconds=3&c=${encodeChallenge(c)}&reenbui=content&brakkie=content`);
     await waitScene(page, 'challenge');
     expect(page.url()).not.toContain('c=');
     let h = await hook(page);
@@ -204,7 +204,7 @@ test.describe('Daily Hunt', () => {
   }, info) => {
     test.skip(!isLandscape(info), 'portrait shows the rotate card');
     const errors = collectErrors(page);
-    await boot(page, 'c=bm90IGpzb24&reenbui=content');
+    await boot(page, 'c=bm90IGpzb24&reenbui=content&brakkie=content');
     await waitScene(page, 'start');
     const h = await hook(page);
     expect(h.notice).toBe("That challenge link doesn't work.");

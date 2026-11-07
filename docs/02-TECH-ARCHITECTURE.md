@@ -698,6 +698,48 @@ Test flags (test builds only): `?harvestDuck=<s>` (a struck worker stays down), 
   (new biomes from existing behaviours, new charms via the DSL, reskins). Mods mark the session
   "modded" (no leaderboard submission).
 
+### 3.12f Brakkie, the farm dog (1.15.0, D-069)
+`src/sim/brakkie/system.ts` lives in the lazy systems chunk (`LazySystems.brakkie`) and talks to
+the hunt through `BrakkieHost` (tick, emit, penalty, the camera, `gunUp` — a held sight or fire,
+or a shot within `clear.holdBackSeconds` —, `wideGun` — a crate gun with a pellet spread over
+`clear.wideSpreadPx` —, `busyNear`/`busyAt` — a bird on that plane or any other hit extra on the
+layer within px —, `barkTarget`, `threaten`, `flush`). Own stream `dog` (`StreamName`): every
+draw — his spots, rests, the fetch chance, the bark and flush timings, the flushed flock's size,
+its spawn, twist and flush state, the bark's threat — comes from it. Content `content/brakkie.json`
+(`BrakkieSchema`; cross-references: areas are known non-Harvest biomes, modes never `ftue`, `range`
+or `harvest`, no `boss` Season kind, and his head stays more than any primary gun's pellet spread
+below every area's mid ground). He is on a hunt when the area is listed, the mode is listed, the
+Season Run hunt's kind is, and it is not the Skietbaan, Oupa se Les or the Harvest
+(`SimState.brakkie`, null otherwise). Phases (`DogPhase`): `away` at the bakkie (off the panorama's
+`homeSide` end by `homeOffPx`), `trot`/`rest` (sniff, sit, lie), `fetch` → `pickup` → `carry`
+home, `cross` between the near and the mid plane (not hittable; the view draws him between the two
+points), `bark`, `toDig` → `dig` (the flush), `yelp` → `bolt` home. Hit extras of kind `dog`
+(`PelletResult.dogId`), body and head ellipses (`hitboxes.stand`/`low`) × his plane's scale, added
+last on his layer: anything else there takes a pellet first. A shot's dog hit comes with its aim
+point on his layer and whether it hit a target elsewhere (bird damage, a secret part, a crate, a
+spook thing, a can, a raider): −`hit.penalty` only when aimed at him and no target was hit, at most
+once per `hit.cooldownSeconds`; any hit sends him yelping home (`hit.awaySeconds`), never removed.
+A dog-only shot is a "thing" hit (the Frenzy streak is untouched, like the nest's). Events
+`brakkieArrived`, `brakkieFetchStarted`, `brakkiePickedUp`, `brakkieFetched`, `brakkieBarked`,
+`brakkieFlushed`, `brakkieHit`; threat source `dog`. Tests that need a quiet world drop him
+(`quiet()`, `flockContent`, `busyContent`, the Reënbui caps). Test flags (test builds only):
+`?brakkie=0` none (boot() adds it unless a spec names `brakkie=`), `?brakkie=content` the real
+content (specs that compare with Node), `?brakkie=1` out at once and fetching every bag,
+`?brakkiePreview=bark|flush` that moment within seconds; plain `?e2e` keeps the real content hash.
+The view (`src/game/brakkie/BrakkieView.ts`, a lazy chunk with its frame table and the title's
+`TitleBrakkie`; the first download has only `brakkieChunk.ts` and `brakkieKeys.ts`) loads its own
+files like the braai: the Standard sheet always, the HD twin only when HD is chosen and the textures
+in use plus its own stay within `feel.brakkie.hd` (else Standard), the sounds; the delivery switch
+holds (no index, or none of his files: nothing loads, he isn't drawn, nothing waits). A hunt asks
+for it at START; the view polls every 30 frames until the sheet is in. **Texture memory:** the
+sheet becomes a texture when a hunt (or the title) first draws him and is removed when the hunt
+ends (`HuntScene.releaseBrakkie`, before the tally launches) and when the title closes: the
+heaviest HD hunt (Okavango with the Reënbui) is 254.8 + 0.5 = 255.3 MB with him, and the hunt →
+braai hand-over keeps its 255.7 MB (perf.spec checks the hook's `brakkieTexture` is false at the
+tally). One image for him and one for the bird he carries; properties set on change only (≤ 20
+Phaser calls in the worst frame at 20 ticks a frame, unit-tested), his own `brakkieMs`. The
+soundscape's calls make room while he barks, yelps or digs (the snapshot's phase, read only).
+
 ## 5. Rendering (`src/game/`)
 
 - **Phaser 4** WebGL. Verify API details against the Phaser 4 skills in `.claude/skills/` — v4 replaced

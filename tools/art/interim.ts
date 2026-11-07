@@ -100,6 +100,8 @@ import { REENBUI_SHEET } from '../../src/game/view/reenbui/reenbuiKeys';
 import { renderReenbuiSheet } from './reenbui';
 import { BRAAI_SHEET } from '../../src/game/braai/braaiKeys';
 import { renderBraaiSheet } from './braai';
+import { BRAKKIE_SHEET } from '../../src/game/brakkie/brakkieKeys';
+import { renderBrakkieSheet } from './brakkie';
 import { renderHalloweenSheet } from './halloween';
 import { CAN_MASTER, renderCanSheet } from './blikkies';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
@@ -730,6 +732,28 @@ if (wants('braai') && !hdOnly) {
     );
     rmSync(join(hdSrc, 'sprites', `${BRAAI_SHEET}.png`), { force: true });
     console.log(`sprites/${BRAAI_SHEET}`);
+  }
+}
+if (wants('brakkie') && !hdOnly) {
+  // v1.12 (D-069): Brakkie's sheet (the Jack Russell's poses and the bird he carries) as a 2×
+  // master in its own lazy group (the catalog's `brakkie`): the pack serves it at 1× (Standard)
+  // and the master as its HD twin (brakkie-hd). Layout: src/game/brakkie/brakkieSheet.ts.
+  const png = join(src, 'sprites', `${BRAKKIE_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${BRAKKIE_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderBrakkieSheet(2)));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({
+        origin: 'interim',
+        encode: 'png8',
+        master: 2,
+        originX: 0,
+        originY: 0,
+      }),
+    );
+    rmSync(join(hdSrc, 'sprites', `${BRAKKIE_SHEET}.png`), { force: true });
+    console.log(`sprites/${BRAKKIE_SHEET}`);
   }
 }
 if (wants('blikkies')) {

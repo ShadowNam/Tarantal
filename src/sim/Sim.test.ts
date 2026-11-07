@@ -78,6 +78,8 @@ function busyContent(
     }
     b.pacing.stampede = { flyoversPerMin: 120, popupsPerMin: 0 };
   }
+  // v1.12 (D-069): no Brakkie (his flush adds flocks to a sky of fly-overs).
+  c.brakkie.areas = [];
   return c;
 }
 
