@@ -1,9 +1,9 @@
 {
-  "updated": "2026-11-07T10:47:00Z",
-  "summary": "Live on the test build: v1.12 Brakkie, the farm dog (1.15.0, merged 12:47 Namibia time on 7 Nov). Oupa's Jack Russell comes along on Classic hunts, the Daily and the Season Run: he trots in from the bakkie, fetches a bagged guineafowl and carries it home, barks at a flock now and then (it gets nervous) or digs a hidden flock out of the grass. He keeps out of the line of fire; a shot aimed at him costs 25 points and a scolding, and he yelps and runs back to the bakkie, never hurt. Also fixed: HD Okavango hunts went over the phones' 256 MB texture limit when a rare lavender or white guineafowl appeared (#114: bird images packed tighter, same picture). Next: the English start and better baboons (Tank's work of 2–3 Nov, reviewed), then v1.13 veld cameos (Tank building); Oupa's new voices last.",
+  "updated": "2026-11-07T13:12:00Z",
+  "summary": "Live on the test build: the English start and better baboons (1.16.0, merged 15:04 Namibia time on 7 Nov). The game now opens in English, with an English / Afrikaans / Deutsch choice on the loading screen; the Karoo baboons have new faces, fur and shading (outlines and eyes restored for phones); Oupa's journal adds goals, rivals and keepsakes; the Harvest has its own music. Next: v1.13 veld cameos (built by Tank, now in screenshots, review and full CI); Oupa's new voices last.",
   "current": {
-    "version": "1.15.0",
-    "commit": "67dffcd"
+    "version": "1.16.0",
+    "commit": "63ee4c63"
   },
   "links": [
     {
@@ -34,23 +34,23 @@
   "numbers": [
     {
       "label": "Version on the test build",
-      "value": "1.15.0",
-      "note": "commit 67dffcd, merged 12:47 on 7 Nov"
+      "value": "1.16.0",
+      "note": "commit 63ee4c63, merged 15:04 on 7 Nov"
     },
     {
       "label": "Pull requests merged",
-      "value": "111",
-      "note": "#1 to #114"
+      "value": "112",
+      "note": "#1 to #116"
     },
     {
       "label": "Unit tests",
-      "value": "1,983",
+      "value": "2,006",
       "note": "plus the browser test suites on 3 devices"
     },
     {
       "label": "First download",
-      "value": "2.98 MB",
-      "note": "2,980.8 KB of the 3,072 KB budget"
+      "value": "2.99 MB",
+      "note": "2,988.4 KB of the 3,072 KB budget"
     },
     {
       "label": "Hunting areas",
@@ -68,8 +68,8 @@
     },
     {
       "label": "Decisions logged",
-      "value": "70",
-      "note": "D-001 to D-069 and D-074 on main"
+      "value": "74",
+      "note": "D-001 to D-074 on main"
     }
   ],
   "needsYou": [
@@ -1061,14 +1061,14 @@
       "status": "done"
     },
     "english-rollout": {
-      "owner": "Tank built it in your tasks of 2–3 Nov; Claude reviewed it, fixed five must-fix items and the baboon art's edges and eyes, and runs the screenshots and CI",
+      "owner": "Tank built it in your tasks of 2–3 Nov; Claude reviewed it, fixed five must-fix items, the baboon art's edges and eyes, and the language picker covering phone overlays, ran the screenshots on desktop, Pixel 7 and iPhone 14 and full CI, and merged it (#116)",
       "summary": "English start with an English / Afrikaans / Deutsch choice on the loading screen; better baboons; Oupa's journal, goals, rivals and keepsakes; the Harvest's music.",
       "requestedBy": "You, in Tank (2–3 Nov).",
-      "status": "next"
+      "status": "done"
     },
     "v1.13": {
-      "owner": "Tank builds it (task 5b2918eb, started 7 Nov 12:35 Namibia); Claude runs the screenshots and checks",
-      "summary": "Veld cameos: a warthog family, dung beetles, a leopard tortoise, ostriches sprinting, springbok pronking, trumpeting elephants, and a field guide.",
+      "owner": "Tank built it (task 5b2918eb, PR #115, ready 7 Nov 14:00 Namibia); Claude runs the screenshots, an independent review and full CI",
+      "summary": "Veld cameos: a warthog family, a dung beetle, a leopard tortoise, a sprinting ostrich, a pronking springbok herd, gemsbok, trumpeting elephants, and a \"Seen in the veld\" page in Oupa's journal; version 1.17.0.",
       "requestedBy": "You: the v1.9–v1.13 list, in your order.",
       "status": "running"
     }
@@ -2235,6 +2235,11 @@
       "at": "2026-11-07T10:47:00Z",
       "kind": "merge",
       "text": "v1.12 Brakkie, the farm dog is on the test build (1.15.0, #112): he fetches what you bag, barks and flushes, and keeps out of the line of fire. Also merged today: #114 (HD hunts stay under the 256 MB phone limit with the rare guineafowl) and #113 (the WhatsApp update format). Full CI green; screenshots reviewed on desktop, Pixel 7 and iPhone 14."
+    },
+    {
+      "at": "2026-11-07T13:04:15Z",
+      "kind": "merge",
+      "text": "The English start and better baboons are on the test build (1.16.0, #116): English by default with a language choice on the loading screen, new baboon faces and fur, Oupa's journal with goals, rivals and keepsakes, and the Harvest's music. Full CI green (28 jobs); screenshots checked on desktop, Pixel 7 and iPhone 14."
     }
   ]
 }
