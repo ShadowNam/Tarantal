@@ -3,6 +3,7 @@
 // aimed at one (through the real hit test), the benefit of the doubt, pass-through pellets, the
 // springbok alarm, the elephants' trumpet, the per-tick caps and their own stream.
 import { describe, expect, it } from 'vitest';
+import { quiet } from '../../../tools/simHarness';
 import { loadContent } from '../../../tools/testContent';
 import type { ContentBundle } from '../../content/schemas';
 import type { SimEvent } from '../events';
@@ -251,5 +252,101 @@ describe('the veld cameos in the hunt (D-075)', () => {
     );
     runUntil(s, () => s.snapshot().cameos?.visits[0]?.reaction === 'tumble');
     expect(s.snapshot().cameos?.visits[0]?.members).toHaveLength(1);
+  });
+});
+
+describe('the veld cameos through the real hit test (D-075, review)', () => {
+  /** A world with no birds (nothing near the aim point), the cameos back on, these kinds out. */
+  function birdless(biome: string, kinds: ContentBundle['cameos']['areas'][number]['cameos']) {
+    const c = quiet(biome) as unknown as { -readonly [K in keyof ContentBundle]: ContentBundle[K] };
+    c.cameos = { ...C, preview: { atSeconds: 0.5, kinds } };
+    return c as ContentBundle;
+  }
+
+  it('a stray pellet (the aim point off it) plays the reaction and costs nothing', () => {
+    const c = birdless('bushveld-winter', ['warthogs']);
+    // Give the gun its spread back (quiet() zeroes it): pellets land round the aim point.
+    const spread = content.weapons.weapons.find((w) => w.id === 'dubbelloop');
+    const cw = c as unknown as { weapons: { weapons: { id: string; spreadPx: number }[] } };
+    for (const w of cw.weapons.weapons)
+      if (w.id === 'dubbelloop') w.spreadPx = spread?.kind === 'primary' ? spread.spreadPx : 70;
+    let stray = 0;
+    for (let seed = 1; seed <= 6 && stray === 0; seed++) {
+      const s = sim({ id: 'classic', biome: 'bushveld-winter', weapon: 'dubbelloop' }, seed, c);
+      runUntil(s, () => (s.snapshot().cameos?.visits.length ?? 0) > 0);
+      const v = s.snapshot().cameos?.visits[0];
+      if (v === undefined) continue;
+      const f = aimAt(s, v);
+      // Just above the sow's back: off her shapes, inside the pellets' spread.
+      s.step([{ ...f, sy: f.sy - 45 }]);
+      const h = s.drainEvents().find((e) => e.type === 'cameoHit');
+      if (h?.type !== 'cameoHit') continue;
+      expect(h.aimed).toBe(false);
+      expect(h.points).toBe(0);
+      expect(s.snapshot().score).toBe(0);
+      expect(s.snapshot().cameos?.visits[0]?.reaction).toBe('bolt');
+      stray++;
+    }
+    expect(stray).toBe(1);
+  });
+
+  it('a Kettie stone aimed at a cameo hits it: −10 and the reaction', () => {
+    const c = birdless('karoo-autumn', ['tortoise']);
+    let hit = false;
+    for (let seed = 1; seed <= 6 && !hit; seed++) {
+      const s = sim({ id: 'classic', biome: 'karoo-autumn', weapon: 'kettie' }, seed, c);
+      runUntil(s, () => (s.snapshot().cameos?.visits.length ?? 0) > 0);
+      const v = s.snapshot().cameos?.visits[0];
+      if (v === undefined) continue;
+      s.step([aimAt(s, v)]);
+      const got: SimEvent[] = [];
+      for (let i = 0; i < 90 && !s.isOver(); i++) {
+        s.step([]);
+        got.push(...s.drainEvents());
+      }
+      const h = got.find((e) => e.type === 'cameoHit');
+      if (h?.type !== 'cameoHit') continue;
+      expect(h.aimed).toBe(true);
+      expect(h.points).toBe(-C.hit.penalty);
+      hit = true;
+    }
+    expect(hit).toBe(true);
+  });
+
+  it('the Okavango elephants trumpet when a flock flushes near their herd (cooldown, max a hunt)', () => {
+    const herd = C.kinds.elephants.herd;
+    const c: ContentBundle = {
+      ...noDog,
+      cameos: {
+        ...C,
+        kinds: { ...C.kinds, elephants: { herd: { ...herd, chance: 1, nearPx: 5000 } } },
+      },
+    };
+    const s = sim({ id: 'classic', biome: 'okavango-spring' }, 3, c);
+    const ticks: number[] = [];
+    let flushes = 0;
+    let i = 0;
+    while (!s.isOver()) {
+      // Shoot at a mid flock now and then: threats make flocks run and flush.
+      const st = s.snapshot();
+      const b = st.birds.find((x) => x.plane === 'mid');
+      const sf = content.scoring.planes.mid.scrollFactor;
+      const cmd =
+        i++ % 90 === 0 && b !== undefined
+          ? [{ t: 'fire' as const, dx: b.x - ((st.cameraX - 960) * sf + 960), sy: b.y - 20 }]
+          : [];
+      s.step(cmd);
+      for (const e of s.drainEvents()) {
+        if (e.type === 'cameoTrumpeted') ticks.push(e.tick);
+        if (e.type === 'flockStateChanged' && e.to === 'flush') flushes++;
+      }
+    }
+    expect(flushes).toBeGreaterThan(0);
+    expect(ticks.length).toBeGreaterThanOrEqual(1);
+    expect(ticks.length).toBeLessThanOrEqual(herd.maxPerHunt);
+    for (let k = 1; k < ticks.length; k++)
+      expect((ticks[k] ?? 0) - (ticks[k - 1] ?? 0)).toBeGreaterThanOrEqual(
+        herd.cooldownSeconds * 60,
+      );
   });
 });

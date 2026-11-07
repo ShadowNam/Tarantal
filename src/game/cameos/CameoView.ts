@@ -431,7 +431,8 @@ export class CameoView {
           const pose = cameoPose(v, m, this.s.reducedMotion, this.pose);
           const y = m.y - pose.lift;
           const on = this.place(sl, v.layerId, pose.frame, v.facing, m.x, y, v.alpha);
-          if (on && v.alpha >= this.s.sightingAlpha) drawn = true;
+          // Seen (the field guide) only with its feet on the screen itself, not in the margin.
+          if (on && v.alpha >= this.s.sightingAlpha && this.onScreen(v.layerId, m.x)) drawn = true;
           if (on && pose.dust && this.dust !== null && !dustUsed) {
             dustUsed = this.place(
               this.dust,
@@ -469,6 +470,14 @@ export class CameoView {
       }
     }
     this.lastMs = this.s.now() - t0;
+  }
+
+  /** Layer x on the layer is inside the screen (design px). */
+  private onScreen(layerId: string, x: number): boolean {
+    const layer = this.s.parallax.layer(layerId);
+    if (layer === undefined) return false;
+    const sx = layer.root.x + x * layer.root.scaleX;
+    return sx >= 0 && sx <= designSize().width;
   }
 
   private addSlot(): Slot {

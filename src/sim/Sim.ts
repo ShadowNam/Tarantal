@@ -1200,7 +1200,7 @@ export function createSim(config: SimConfig): Sim {
                 scrollFactor: herdLayer.scrollFactor,
               },
         kinds: cameoArea.cameos,
-        durationTicks,
+        durationTicks: () => durationTicks,
       },
       cameoRng,
       {
@@ -2091,7 +2091,7 @@ export function createSim(config: SimConfig): Sim {
         ? plane === 'far' || plane === 'ver'
         : r.meerkatId !== undefined || r.ostrichId !== undefined || r.tellId !== undefined
           ? false
-          : r.harvestId !== undefined || r.dogId !== undefined
+          : r.harvestId !== undefined || r.dogId !== undefined || r.cameoId !== undefined
             ? false
             : r.baboonId !== undefined
               ? baboons?.plane(r.baboonId) === 'far' || baboons?.plane(r.baboonId) === 'ver'
@@ -2286,9 +2286,12 @@ export function createSim(config: SimConfig): Sim {
         // resolvePellet can't look past it): the first one is kept and the stone flies on; a bird
         // in a later band takes the stone, anything else (or nothing) gives it to the nut.
         const nutOnly = r.birdId === null && r.passThrough === true;
-        if (nutOnly) f.nut ??= { r, psy, drift };
+        // v1.13 (D-075): a veld cameo (near or mid) is passed through the same way: the first
+        // one is kept, and the stone ends on it only when nothing behind takes it.
+        const cameoOnly = r.cameoId !== undefined && !isTarget(r);
+        if (nutOnly || cameoOnly) f.nut ??= { r, psy, drift };
         const last = f.nut !== undefined && !isTarget(r) ? f.nut : null;
-        if (nutOnly && f.next < bands.length) continue;
+        if ((nutOnly || cameoOnly) && f.next < bands.length) continue;
         // A paper target or steel plate (the range only) stops a stone too.
         const stopped =
           r.birdId !== null ||

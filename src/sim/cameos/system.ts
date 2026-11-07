@@ -74,8 +74,9 @@ export interface CameoGeometry {
   readonly herd: { readonly x: number; readonly scrollFactor: number } | null;
   /** The cameos that come to this map, in content order. */
   readonly kinds: readonly CameoKindId[];
-  /** The hunt's length (ticks): no visit starts in its last stretch. */
-  readonly durationTicks: number;
+  /** The hunt's length now (ticks; a time bonus can extend it): no visit starts in its last
+   *  stretch. */
+  readonly durationTicks: () => number;
 }
 
 export type CameoSystemFactory = (
@@ -422,8 +423,13 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
     for (const s of schedules) {
       if (tick < s.next) continue;
       const sch = C.kinds[s.kind].schedule;
-      if (s.visits >= sch.maxVisits || tick + retryTicks * 4 >= geo.durationTicks) {
-        s.next = geo.durationTicks;
+      if (s.visits >= sch.maxVisits) {
+        s.next = Infinity;
+        continue;
+      }
+      // Too late for a visit now: look again later (a time bonus may extend the hunt).
+      if (tick + retryTicks * 4 >= geo.durationTicks()) {
+        s.next = tick + retryTicks;
         continue;
       }
       if (visits.filter((v) => !v.preview).length >= C.maxActive) {
