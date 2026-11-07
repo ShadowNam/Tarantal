@@ -17,7 +17,7 @@ import {
 import { fireAt, reloadIfEmpty } from './feesdaeHelpers';
 
 const HASH = loadContentHash();
-const QUERY = 'seed=42&graphics=standard&brakkie=content&reenbui=content';
+const QUERY = 'seed=42&graphics=standard&brakkie=content&cameos=content&reenbui=content';
 function collection(): SaveData {
   const save = defaultSave();
   save.ftue = { done: true, skipped: true, step: '' };
