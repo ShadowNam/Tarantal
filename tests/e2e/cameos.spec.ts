@@ -55,8 +55,10 @@ type Hooked = {
   __TM_CAMEOS_HIDE__?: (on: boolean) => void;
 };
 
+// `cameos=1` names the cameos for boot() (helpers.ts adds `cameos=0` unless the query names
+// `cameos=`, and `cameos=0` wins over the preview); with a preview it plays the same content.
 const base = (biome: string, kind: string): string =>
-  `biome=${biome}&layout=none&seed=42&huntSeconds=300&graphics=standard&baboons=0&faunaIdle=0&omen=0&cameoPreview=${kind}`;
+  `biome=${biome}&layout=none&seed=42&huntSeconds=300&graphics=standard&baboons=0&faunaIdle=0&omen=0&cameos=1&cameoPreview=${kind}`;
 
 /** Waits (bounded) until the area's sheet is in and a member of a visit of `kind` is drawn; holds
  *  the sim right there and returns that member (its feet in design px). */
@@ -106,7 +108,15 @@ for (const [biome, kind, box] of [
     await page.mouse.move(0, 0);
     await freshFrames(page);
     const c = (await page.evaluate(() => (window as unknown as Hooked).__TM__?.cameos)) ?? null;
-    const m = c?.visits.find((v) => v.kind === kind)?.members.find((x) => x.visible) ?? first;
+    const drawn = c?.visits.find((v) => v.kind === kind)?.members.filter((x) => x.visible) ?? [];
+    const m = drawn[0] ?? first;
+    // A herd of one role (springbok, gemsbok) stands closer than a body's width: the sampled box
+    // takes in the whole herd, measured against the mean of their bodies (a lone member's box
+    // would hold most of the next one and pull the centre back, review round 2).
+    const herd =
+      new Set(cameos.kinds[kind].group.map((g) => g.role)).size === 1 && drawn.length > 1
+        ? drawn
+        : [m];
     // Nothing floating: its feet on its ground line (lessons 8, 18).
     expect(Math.abs(m.y - m.groundY)).toBeLessThanOrEqual(2);
     const shot = async (): Promise<ReturnType<typeof decodePng>> =>
@@ -125,8 +135,9 @@ for (const [biome, kind, box] of [
     const k = all.width / h.designWidth;
     let n = 0;
     let sx = 0;
+    const xs = herd.map((x) => x.x);
     for (let y = m.y - box.h; y <= m.y + 4; y += 2)
-      for (let x = m.x - box.w; x <= m.x + box.w; x += 2) {
+      for (let x = Math.min(...xs) - box.w; x <= Math.max(...xs) + box.w; x += 2) {
         const i = (Math.round(y * k) * all.width + Math.round(x * k)) * 4;
         const d =
           Math.abs((all.data[i] ?? 0) - (none.data[i] ?? 0)) +
@@ -141,7 +152,7 @@ for (const [biome, kind, box] of [
     // Lesson 22: facing either way, its drawn pixels' centre (across) sits on its body's hit shape.
     const body = cameos.kinds[kind].hitboxes.adult[0];
     if (body === undefined) throw new Error('no hitbox');
-    const cx = m.x + body.ox * m.facing;
+    const cx = herd.reduce((a, x) => a + x.x + body.ox * x.facing, 0) / herd.length;
     expect(
       Math.abs(sx / n - cx),
       `centre ${String(sx / n)} vs body ${String(cx)}`,
