@@ -101,6 +101,46 @@
       "height": 500,
       "scale": 0.5
     },
+    "cameos/bushveld": {
+      "file": {
+        "path": "assets/cameos-bushveld-hd/img/cameos_bushveld.114e048eff25.png",
+        "bytes": 21566,
+        "hash": "114e048eff25"
+      },
+      "width": 512,
+      "height": 256,
+      "scale": 0.5
+    },
+    "cameos/kalahari": {
+      "file": {
+        "path": "assets/cameos-kalahari-hd/img/cameos_kalahari.58f39cd819f1.png",
+        "bytes": 17760,
+        "hash": "58f39cd819f1"
+      },
+      "width": 512,
+      "height": 256,
+      "scale": 0.5
+    },
+    "cameos/karoo": {
+      "file": {
+        "path": "assets/cameos-karoo-hd/img/cameos_karoo.5c71afd1ac52.png",
+        "bytes": 29742,
+        "hash": "5c71afd1ac52"
+      },
+      "width": 1024,
+      "height": 512,
+      "scale": 0.5
+    },
+    "cameos/namibie": {
+      "file": {
+        "path": "assets/cameos-namibie-hd/img/cameos_namibie.db46e1db37bb.png",
+        "bytes": 28428,
+        "hash": "db46e1db37bb"
+      },
+      "width": 1024,
+      "height": 512,
+      "scale": 0.5
+    },
     "crate/box": {
       "file": {
         "path": "assets/common-hd/img/crate_box.c61a57384102.png",

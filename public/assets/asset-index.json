@@ -150,6 +150,58 @@
       "originX": 0.5,
       "originY": 0.6333333333333333
     },
+    "cameos/bushveld": {
+      "group": "cameos-bushveld",
+      "origin": "interim",
+      "file": {
+        "path": "assets/cameos-bushveld/img/cameos_bushveld.f68a394f5366.png",
+        "bytes": 8006,
+        "hash": "f68a394f5366"
+      },
+      "width": 256,
+      "height": 128,
+      "originX": 0,
+      "originY": 0
+    },
+    "cameos/kalahari": {
+      "group": "cameos-kalahari",
+      "origin": "interim",
+      "file": {
+        "path": "assets/cameos-kalahari/img/cameos_kalahari.5d196d79fe54.png",
+        "bytes": 7163,
+        "hash": "5d196d79fe54"
+      },
+      "width": 256,
+      "height": 128,
+      "originX": 0,
+      "originY": 0
+    },
+    "cameos/karoo": {
+      "group": "cameos-karoo",
+      "origin": "interim",
+      "file": {
+        "path": "assets/cameos-karoo/img/cameos_karoo.af3f643b33cb.png",
+        "bytes": 11929,
+        "hash": "af3f643b33cb"
+      },
+      "width": 512,
+      "height": 256,
+      "originX": 0,
+      "originY": 0
+    },
+    "cameos/namibie": {
+      "group": "cameos-namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/cameos-namibie/img/cameos_namibie.ee9dd82202cd.png",
+        "bytes": 12061,
+        "hash": "ee9dd82202cd"
+      },
+      "width": 512,
+      "height": 256,
+      "originX": 0,
+      "originY": 0
+    },
     "crate/box": {
       "group": "common",
       "origin": "interim",
@@ -9898,6 +9950,132 @@
       "loop": false,
       "lufs": -14,
       "peakDb": -6.3
+    },
+    "sfx/cameo_beetle_plop": {
+      "group": "cameos-bushveld",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/cameos-bushveld/audio/sfx/cameo_beetle_plop.02f39c4e7819.ogg",
+        "bytes": 5184,
+        "hash": "02f39c4e7819"
+      },
+      "mp3": {
+        "path": "assets/cameos-bushveld/audio/sfx/cameo_beetle_plop.09f32d361aa1.mp3",
+        "bytes": 2372,
+        "hash": "09f32d361aa1"
+      },
+      "loop": false,
+      "lufs": -17.6,
+      "peakDb": -1
+    },
+    "sfx/cameo_elephant_trumpet": {
+      "group": "cameos-okavango",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/cameos-okavango/audio/sfx/cameo_elephant_trumpet.49acb0ac590a.ogg",
+        "bytes": 22004,
+        "hash": "49acb0ac590a"
+      },
+      "mp3": {
+        "path": "assets/cameos-okavango/audio/sfx/cameo_elephant_trumpet.44b9099e1676.mp3",
+        "bytes": 22140,
+        "hash": "44b9099e1676"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -1.7
+    },
+    "sfx/cameo_gemsbok_snort": {
+      "group": "cameos-namibie",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/cameos-namibie/audio/sfx/cameo_gemsbok_snort.38144d6a1fd1.ogg",
+        "bytes": 7298,
+        "hash": "38144d6a1fd1"
+      },
+      "mp3": {
+        "path": "assets/cameos-namibie/audio/sfx/cameo_gemsbok_snort.2307a1f4cf95.mp3",
+        "bytes": 4276,
+        "hash": "2307a1f4cf95"
+      },
+      "loop": false,
+      "lufs": -17.5,
+      "peakDb": -1
+    },
+    "sfx/cameo_ostrich_boom": {
+      "group": "cameos-karoo",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/cameos-karoo/audio/sfx/cameo_ostrich_boom.234410f3c8ca.ogg",
+        "bytes": 11366,
+        "hash": "234410f3c8ca"
+      },
+      "mp3": {
+        "path": "assets/cameos-karoo/audio/sfx/cameo_ostrich_boom.fbf2f9508970.mp3",
+        "bytes": 13759,
+        "hash": "fbf2f9508970"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -2.7
+    },
+    "sfx/cameo_springbok_whistle": {
+      "group": "cameos-kalahari",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/cameos-kalahari/audio/sfx/cameo_springbok_whistle.9578e05503e0.ogg",
+        "bytes": 8262,
+        "hash": "9578e05503e0"
+      },
+      "mp3": {
+        "path": "assets/cameos-kalahari/audio/sfx/cameo_springbok_whistle.c239b2e0d0e7.mp3",
+        "bytes": 6911,
+        "hash": "c239b2e0d0e7"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -3.5
+    },
+    "sfx/cameo_tortoise_tok": {
+      "group": "cameos-karoo",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/cameos-karoo/audio/sfx/cameo_tortoise_tok.ee99fb5f11e8.ogg",
+        "bytes": 5641,
+        "hash": "ee99fb5f11e8"
+      },
+      "mp3": {
+        "path": "assets/cameos-karoo/audio/sfx/cameo_tortoise_tok.c92c1a0fbd15.mp3",
+        "bytes": 2892,
+        "hash": "c92c1a0fbd15"
+      },
+      "loop": false,
+      "lufs": -19.3,
+      "peakDb": -1
+    },
+    "sfx/cameo_warthog_grunt": {
+      "group": "cameos-bushveld",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/cameos-bushveld/audio/sfx/cameo_warthog_grunt.115decd08ac5.ogg",
+        "bytes": 11962,
+        "hash": "115decd08ac5"
+      },
+      "mp3": {
+        "path": "assets/cameos-bushveld/audio/sfx/cameo_warthog_grunt.e09f92a7dd35.mp3",
+        "bytes": 10687,
+        "hash": "e09f92a7dd35"
+      },
+      "loop": false,
+      "lufs": -20.4,
+      "peakDb": -1
     },
     "sfx/camera_click": {
       "group": "desert",
