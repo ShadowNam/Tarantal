@@ -199,7 +199,8 @@ export async function burstAtFlock(
         };
         const loop = (): void => {
           const last = ticks[ticks.length - 1];
-          if (ticks.length >= n) {
+          // The hunt may end mid-burst: the tick stops, so stop with the taps made so far.
+          if (ticks.length >= n || h.over) {
             resolve(ticks);
             return;
           }

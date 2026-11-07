@@ -54,6 +54,18 @@ describe('Brakkie test flags (D-069)', () => {
     expect(flushed).toBe(true);
   });
 
+  it('?brakkiePreview=bark,fetch combines both (the perf spec): barks every 3–4 s and the demo fetch', () => {
+    const c = withBrakkieParams(base, new URLSearchParams('brakkie=1&brakkiePreview=bark,fetch'));
+    expect(c.brakkie.bark.everySeconds).toEqual([3, 4]);
+    expect(c.brakkie.demoFetchSeconds).toBe(3);
+    expect(c.brakkie.flush).toEqual(base.brakkie.flush);
+    // An unknown name in the list is ignored.
+    expect(
+      withBrakkieParams(base, new URLSearchParams('brakkiePreview=nope,fetch')).brakkie
+        .demoFetchSeconds,
+    ).toBe(3);
+  });
+
   it('?brakkiePreview=fetch fetches a bird placed beside him within seconds (no bag)', () => {
     const c = withBrakkieParams(base, new URLSearchParams('brakkiePreview=fetch'));
     expect(c.brakkie.demoFetchSeconds).toBe(3);

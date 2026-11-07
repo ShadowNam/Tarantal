@@ -135,8 +135,25 @@ jobs:
       - run: npm run content:validate -- --strict
       - run: npm run build
       # M9: the initial download (first playable hunt) must be ≤ 5 MB gzip on every build;
-      # --strict fails above it (8 MB fails always). One build per portal (VITE_PLATFORM).
+      # --strict fails above it (8 MB fails always). The portal/app builds: the `builds` job.
       - run: npm run size -- --strict
+
+  builds:
+    # The portal and Android builds and their size checks, beside `check` (until v1.12 they ran
+    # in it: each `size` takes ~2¼ min, and the one job reached 14.7–15.2 min of its 15-min limit
+    # on 7 Nov 2026). Same steps and the same limit, in parallel.
+    name: portal and app builds, size
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # M9: one build per portal (VITE_PLATFORM), each within the download budget (--strict).
       - run: npm run build:poki
       - run: npm run size -- --strict --dir dist-poki
       - run: npm run build:crazygames

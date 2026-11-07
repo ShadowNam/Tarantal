@@ -125,6 +125,31 @@ for (const gfx of ['standard', 'hd'] as const)
     expect(errors).toEqual([]);
   });
 
+/**
+ * v1.12 (supervisor, 7 Nov): the rare morphs (lavender, white) load mid-hunt, when one first
+ * spawns, so a hunt's first texture samples never had them; every area's spawn table has both.
+ * An Okavango HD hunt with a lavender bird held 257 MB. Puts their atlases on the GPU as a spawn
+ * would (mid and far: they have no near atlas), so the budget is judged with them in.
+ */
+async function rareMorphsOnGpu(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => {
+      const ensure = (
+        window as {
+          __TM_ENSURE_BIRD__?: (creature: string, plane: 'near' | 'mid' | 'far') => boolean;
+        }
+      ).__TM_ENSURE_BIRD__;
+      if (ensure === undefined) return false;
+      let all = true;
+      for (const c of ['tarentaal_lavendel', 'tarentaal_wit'])
+        for (const plane of ['mid', 'far'] as const) all = ensure(c, plane) && all;
+      return all;
+    },
+    null,
+    { timeout: 180_000 },
+  );
+}
+
 // D-054: every area's HD hunt within the medium tier's texture budget (Tech §9: 256 MB) on the
 // Pixel 7 profile, reached the way players reach it: boot on the Karoo title, then a Classic hunt
 // in the chosen area (the save's area choice). This path left the title's Karoo HD layers on the
@@ -203,6 +228,7 @@ for (const biome of AREAS)
       )
       .catch(() => undefined);
     // A few texture samples (the hook updates about twice a second), and a frame or two of play.
+    await rareMorphsOnGpu(page);
     await page.waitForTimeout(4000);
     const h = await hook(page);
     const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
@@ -265,6 +291,7 @@ test('HD texture memory, title → the Harvest (oes)', async ({ page, browserNam
       { timeout: 90_000 },
     )
     .catch(() => undefined);
+  await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
@@ -335,6 +362,7 @@ test('HD texture memory, a Christmas hunt on its heaviest map (okavango)', async
       { timeout: 90_000 },
     )
     .catch(() => undefined);
+  await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
@@ -493,6 +521,7 @@ test('HD texture memory, a New Year hunt on its heaviest map (okavango)', async 
       { timeout: 90_000 },
     )
     .catch(() => undefined);
+  await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
@@ -647,6 +676,7 @@ test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async 
       { timeout: 90_000 },
     )
     .catch(() => undefined);
+  await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
@@ -1406,7 +1436,9 @@ test('HD texture memory, the Okavango Reënbui hunt → the braai tally', async 
 
 // v1.12 (D-069): Brakkie fetching and barking on the Pixel 7 profile at 4× CPU throttle (the
 // smoke's regime: ~20 sim ticks a frame). ?brakkie=1 brings him out at once and fetches every bag
-// in view; ?brakkiePreview=bark has him bark every 3–4 s. Shots at the flocks in view bag birds.
+// in view; ?brakkiePreview=bark,fetch has him bark every 3–4 s and fetch a bird placed beside him
+// 3 s in (a fetch from shooting alone wasn't certain in 30 s). Shots at the flocks in view bag
+// birds (burstAtFlock stops when the hunt ends: a burst over the end hung the test on 33c434d5).
 // His view on its own timer (brakkieMs per scenery frame) ≤ 0.3 ms, the frame within the budget.
 test('perf: Brakkie fetching and barking at 4× CPU throttle (Pixel 7)', async ({
   page,
@@ -1422,7 +1454,7 @@ test('perf: Brakkie fetching and barking at 4× CPU throttle (Pixel 7)', async (
   await emulateCores(page);
   await boot(
     page,
-    'biome=karoo-autumn&layout=mon&seed=3&huntSeconds=30&graphics=standard&baboons=0&brakkie=1&brakkiePreview=bark',
+    'biome=karoo-autumn&layout=mon&seed=3&huntSeconds=30&graphics=standard&baboons=0&brakkie=1&brakkiePreview=bark,fetch',
   );
   await startHunt(page, touch);
   await page.waitForFunction(() => window.__TM__?.brakkie?.sheet != null, null, {

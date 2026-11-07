@@ -175,7 +175,7 @@ describe('sim performance budget', () => {
     expect(mean).toBeLessThan(1.5);
   });
   it('step() averages ≤ 1.5 ms with 60 birds plus Brakkie roaming, fetching and barking', () => {
-    const content = withBrakkiePreview(structuredClone(loadContent()), 'bark');
+    const content = withBrakkiePreview(structuredClone(loadContent()), ['bark']);
     for (const b of content.biomes) {
       for (const k of b.pacing.keyframes) {
         k.flyoversPerMin = 3000;
@@ -209,7 +209,7 @@ describe('sim performance budget', () => {
   it('step() averages ≤ 1.5 ms with 60 birds plus Brakkie plus the cameos', () => {
     for (const biome of ['bushveld-winter', 'kalahari-summer']) {
       const content = withCameoPreview(
-        withBrakkiePreview(structuredClone(loadContent()), 'bark'),
+        withBrakkiePreview(structuredClone(loadContent()), ['bark']),
         ['warthogs', 'dungBeetle', 'springbok'],
         null,
       );
