@@ -64,6 +64,32 @@ function scoped(art: CameoArt): CameoArt {
 // Warthogs: Die Oes's rig at the mid plane's size, with the eye and mane drawn bolder (the rig's
 // own are sized for the Harvest's near plane).
 
+/** v1.13 review round 2: the Bushveld family's own hides — darker and warmer than the Harvest's
+ *  grey (bushveld warthogs are dark and often red-brown with the mud they wallow in). In the
+ *  Harvest's grey, against the Bushveld's granite, the rig's light bristle specks and coat strokes
+ *  read as the rock's lichen and outline showing through the body; on a mud-brown coat they read
+ *  as hair, and the hog stands clearly in front of the rock. */
+const BUSH_ADULT: Hide = {
+  ...ADULT,
+  skin: '#64513F',
+  lit: '#917A63',
+  dark: '#211913',
+  belly: '#4A3C32',
+  mane: '#1E1712',
+  snout: '#3C3029',
+  mud: '#5E4630',
+};
+const BUSH_PIGLET: Hide = {
+  ...PIGLET,
+  skin: '#6E5644',
+  lit: '#937A62',
+  dark: '#2E231B',
+  belly: '#5E4A3A',
+  mane: '#33281F',
+  snout: '#4A3A30',
+  mud: '#6A503A',
+};
+
 /** Design px per hog unit (1 = feet to the top of the back), and the shift that centres it. */
 const HOG = { k: 57, dx: -4, w: EDGE_PX / 57 };
 const PIG = { k: 27, dx: -3, w: EDGE_PX / 27 };
@@ -121,7 +147,6 @@ function hogArt(p: HogPose, hide: Hide, young: boolean, seed: number): CameoArt 
         stroke: shade(hide.mane, -0.3),
         'stroke-width': r2(f.w * 0.6),
         'stroke-linejoin': 'round',
-        opacity: 0.9,
       });
   const body = g(
     { transform: `translate(${f.dx} -1) scale(${f.k})` },
@@ -135,23 +160,23 @@ function hogArt(p: HogPose, hide: Hide, young: boolean, seed: number): CameoArt 
 function hogFrame(name: CameoFrame): CameoArt {
   switch (name) {
     case 'hog_trot_a':
-      return hogArt(gaitPose(0, false, false), ADULT, false, 11);
+      return hogArt(gaitPose(0, false, false), BUSH_ADULT, false, 11);
     case 'hog_trot_b':
-      return hogArt(gaitPose(0.5, false, false), ADULT, false, 11);
+      return hogArt(gaitPose(0.5, false, false), BUSH_ADULT, false, 11);
     case 'hog_feed':
-      return hogArt(digPose(0), ADULT, false, 11);
+      return hogArt(digPose(0), BUSH_ADULT, false, 11);
     case 'hog_run_a':
-      return hogArt(gaitPose(0.12, true, false), ADULT, false, 11);
+      return hogArt(gaitPose(0.12, true, false), BUSH_ADULT, false, 11);
     case 'hog_run_b':
-      return hogArt(gaitPose(0.62, true, false), ADULT, false, 11);
+      return hogArt(gaitPose(0.62, true, false), BUSH_ADULT, false, 11);
     case 'pig_trot_a':
-      return hogArt(gaitPose(0, false, true), PIGLET, true, 23);
+      return hogArt(gaitPose(0, false, true), BUSH_PIGLET, true, 23);
     case 'pig_trot_b':
-      return hogArt(gaitPose(0.5, false, true), PIGLET, true, 23);
+      return hogArt(gaitPose(0.5, false, true), BUSH_PIGLET, true, 23);
     case 'pig_feed':
-      return hogArt(digPose(0), PIGLET, true, 23);
+      return hogArt(digPose(0), BUSH_PIGLET, true, 23);
     default:
-      return hogArt(gaitPose(0.12, true, true), PIGLET, true, 23);
+      return hogArt(gaitPose(0.12, true, true), BUSH_PIGLET, true, 23);
   }
 }
 
