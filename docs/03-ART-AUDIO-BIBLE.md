@@ -749,6 +749,26 @@ wide), and the guineafowl he carries (limp and whole, no blood), held at his mou
 frames. On the near plane he is a little smaller than a standing guineafowl (his head ~150 px up
 at 1×); on the mid plane by its plane scale; tinted with the layer's map light.
 
+### 5.7 Veld cameos (1.17.0, D-075)
+Interim at the D-035 bar, inked Bosveld Comic in daylight; true to each area's wildlife, never shown
+hurt, no blood. One sheet per area (`cameos/<area>`, its own lazy group `cameos-<area>`, the HD twin
+`cameos-<area>-hd` its 2× master; ≤ 0.5 MiB each on the GPU at 1×, a unit test caps them at 1 MiB;
+the Okavango has none): every frame authored at half size and drawn ×2, facing right with the origin
+at the feet (boxes with a 6 px margin; art tests check the margins, that the feet reach the ground
+line and that the edges are a shade darker than the body), sized as drawn on its plane (true height
+× the plane's scale × the far herds' 0.57; the ostrich at Namibië's mid size; the beetle about twice
+its true size). **Bushveld:** a warthog sow (trot ×2 tail straight up with its tuft, kneeling on her
+front knees to feed, bolt ×2) and piglets (Die Oes's rig at mid size, faint stripes); a glossy
+black-bronze dung beetle head down pushing its straw-flecked ball with its hind legs (four frames
+roll the ball a quarter turn), tipped on its back, righting itself. **Karoo:** a leopard tortoise
+(high cream dome, a dark blotch in every scute, scaly column legs; walk ×2, pulled in, peeking); the
+ostrich cock sprinting (Namibië's run cycle) and veering, with a pale dust puff. **Kalahari:**
+springbok (cinnamon back, dark flank band, white face and rump, lyre horns; walk ×2, graze, alert,
+pronk: bunched stiff-legged with the white fan up, and landing; the game lifts the pronk on sim
+time). **Namibië:** gemsbok (grey-fawn, black flank stripe and face mask, rapier horns; walk ×2,
+graze, alert, canter ×2). **Okavango:** the far elephants (the herd's own parts) flap their ears out
+fast and lift their trunks for the trumpet. Tinted with the layer's map light.
+
 ## 6. HUD and UI
 
 **Materials:** weathered wood signs (`#8B5A2B`), cream enamel with blue rim (`#F3EAD3` / `#2D5DA8`),
@@ -1038,6 +1058,18 @@ line after his first fetch of a hunt ("Good boy, Brakkie! Bring it here."), and 
 greeting when the player first taps him ("Come, Brakkie! We're going hunting.") — 9 clips in
 en/af/de with the interim voice pipeline (§10.1), Dutch text. "Brakkie" is his name in every
 language; "the farm dog" is translated.
+
+### 10.6 The veld cameos' sounds and Oupa's scold (1.17.0, D-075)
+
+Made in code (`tools/audio/cameos.ts`, in each area's lazy group): the warthog sow's soft nasal
+grunts (on arrival and when startled), the dung beetle's tiny "plop" as it tumbles, the tortoise's
+dry shell "tok" as it pulls in, the ostrich cock's deep "boo-boooom" (with upper harmonics so it
+carries on phone speakers), the springbok's whistling alarm snort, the gemsbok's short snort, and a
+far elephant's brassy trumpet with an outdoor tail. The soundscape's far calls hold off while a
+cameo reacts or the elephants trumpet (read from the sim's state, lesson 36). **Oupa:** one shared
+scold for a shot aimed at a cameo ("Hey! Leave the veld's animals be — shoot the tarentaal!"),
+3 clips (en/af/de) with the interim voice pipeline, Dutch text. The field guide's "Did you know?"
+facts and Oupa's notes are text only.
 
 ## 11. Special days (Feesdae, D-048)
 

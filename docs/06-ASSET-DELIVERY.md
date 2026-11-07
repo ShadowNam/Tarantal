@@ -437,6 +437,23 @@ startled yelp, never a cry of pain, ≤ 0.4 s), `sfx/brakkie_pant` (happy pantin
 three lines are voiced per language (`audio/voice/<lang>/guide.brakkie.{scold,fetched,title}.wav`,
 the voice packs; text in `src/i18n/guide/<lang>.json`).
 
+**Veld cameos (v1.13, D-075; art bible §5.7, §10.6).** Interim, awaiting real art and recordings:
+one sheet per area `sprites/cameos/<area>.png` for `bushveld`, `karoo`, `kalahari`, `namibie` (2×
+masters: 512 × 256, 1024 × 512, 512 × 256, 1024 × 512; the pack serves each at 1× and the master as
+its HD twin `cameos-<area>-hd`; the catalog's lazy groups `cameos-<area>`; boxes, origins and `res`
+in `src/game/cameos/cameoSheet.ts`, packed by its skyline packer, sizes in `cameoKeys.ts`). Frames
+(facing right, origin at the feet, authored at half size, `res` 0.5): Bushveld `hog_trot_a/b`,
+`hog_feed`, `hog_run_a/b`, `pig_trot_a/b`, `pig_feed`, `pig_run`, `beetle_push_a–d`,
+`beetle_tumble`, `beetle_right`; Karoo `ost_run_a/b/c`, `ost_veer`, `dust`, `tort_walk_a/b`,
+`tort_hide`, `tort_peek`; Kalahari `sb_walk_a/b`, `sb_graze`, `sb_alert`, `sb_pronk_a/b`; Namibië
+`gb_walk_a/b`, `gb_graze`, `gb_alert`, `gb_run_a/b`. A delivery keeps the boxes (or updates the
+table) and stays ≤ 1 MiB on the GPU at 1× (`GPU_BYTES_CAP`). Sounds (never the first download):
+`sfx/cameo_warthog_grunt` and `sfx/cameo_beetle_plop` (`cameos-bushveld`),
+`sfx/cameo_tortoise_tok` and `sfx/cameo_ostrich_boom` (`cameos-karoo`),
+`sfx/cameo_springbok_whistle` (`cameos-kalahari`), `sfx/cameo_gemsbok_snort` (`cameos-namibie`),
+`sfx/cameo_elephant_trumpet` (`cameos-okavango`, its only file). Oupa's scold is voiced per language
+(`audio/voice/<lang>/guide.cameo.scold.wav`, the voice packs; text in `src/i18n/guide/<lang>.json`).
+
 **Desert group (v1.7, D-044).** The meerkat colonies' sheet `desert/meerkats` and their four
 sounds (`sfx/meerkat_chirp`, `sfx/meerkat_alarm`, `sfx/meerkat_dig`, `sfx/camera_click`) are
 shared by the Kalahari and Namibië. They load in their own lazy group, `desert`, with either map,
