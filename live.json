@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-07T17:22:00Z",
+  "updated": "2026-11-07T18:12:00Z",
   "summary": "Live on the test build: v1.13 veld cameos (1.17.0, merged 19:14 Namibia time on 7 Nov). Every area now has its own visitors: a warthog family and a dung beetle in the Bushveld, a leopard tortoise and a sprinting ostrich in the Karoo, a pronking springbok herd in the Kalahari (its alarm makes the nearest flock nervous), gemsbok in Namibië, and Okavango elephants that flap and trumpet when a flock flushes. Pellets pass through them; a shot aimed at one costs 10 points and a scolding. Oupa's journal has a new \"Seen in the veld\" page. Next: Oupa's new voices (needs the OpenRouter key), then a final phone playtest and the store releases.",
   "current": {
     "version": "1.17.0",
@@ -39,8 +39,8 @@
     },
     {
       "label": "Pull requests merged",
-      "value": "113",
-      "note": "#1 to #116"
+      "value": "114",
+      "note": "#1 to #117"
     },
     {
       "label": "Unit tests",
@@ -2245,6 +2245,11 @@
       "at": "2026-11-07T17:14:16Z",
       "kind": "merge",
       "text": "v1.13 veld cameos are on the test build (1.17.0, #115): warthogs, a dung beetle, a leopard tortoise, an ostrich, springbok, gemsbok and trumpeting elephants, plus the \"Seen in the veld\" field guide. Full CI green (28 jobs; phones' HD memory at most 247 MB of 256); screenshots checked on desktop, Pixel 7 and iPhone 14."
+    },
+    {
+      "at": "2026-11-07T18:10:00Z",
+      "kind": "merge",
+      "text": "CI: the Pixel 7 browser tests now run in 5 parts instead of 4 (#117); the slowest part takes 24 min instead of up to 42 of the 45-min limit, nothing skipped."
     }
   ]
 }
