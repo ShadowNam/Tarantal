@@ -4061,6 +4061,43 @@ GDD §11.3g, Tech §3.12g, art bible §5.7. Version 1.17.0.
   (the Okavango's group holds only the trumpet), requested at START and never waited for: until
   they arrive a cameo is not drawn (the sim runs it all the same). Nothing new in the first
   download but strings and a little code.
+- *Balance (final content, `docs/balance/v1.13-cameos.md`).* Competent bot, each area's Monday,
+  every gun (the Dubbelloop 500 seeds, the others 100), before = the same build without cameos:
+  area means −0.2 … +0.3 % (gate ±3 %), single cells −1.5 … +1.8 %; hits that cost points
+  ≤ 0.06 a hunt in every cell (gate < 0.1); stray pellets on a cameo (free, pass-through) up to
+  0.8 a hunt for the Dubbelloop where the mid herds cross the flocks' band. The springbok alarm
+  fires 1.2–1.7 times a Kalahari hunt; the Okavango is unchanged.
+- *Sizes (gzip, rollout + main → this release).* First download: web 2,988.4 → 2,994.0 KB (+5.6:
+  the sim wiring, the content file, strings and the view's handles; budget 3,072), Poki 2,980.1 →
+  2,985.4, CrazyGames 2,980.2 → 2,985.6; new lazy groups `cameos-bushveld` 23.2 KB (+ `-hd` 20.9),
+  `cameos-karoo` 28.8 (28.4), `cameos-kalahari` 14.4 (17.2), `cameos-namibie` 18.0 (27.2),
+  `cameos-okavango` 20.9 (the trumpet only); voice packs +28.0 (en), +28.0 (af), +31.0 (de) for
+  Oupa's one scold (3 clips); lazy JS +8.3 KB; every other group unchanged. `size --strict`
+  passes on all three builds.
+- *Texture memory (lessons 29, 38, 42).* The sheets are 0.125 / 0.5 / 0.125 / 0.5 MiB at 1×
+  (Bushveld, Karoo, Kalahari, Namibië; a unit test caps each at 1 MiB) and 0.5 / 2 / 0.5 / 2 MiB as
+  HD twins, used only while the textures in use plus the twin stay within 250 MiB
+  (`feel.cameos.hd`); the Okavango, the heaviest HD hunt, adds nothing. A sheet becomes a texture
+  when its hunt first draws a cameo and is removed when the hunt ends, before the tally. perf.spec's
+  HD memory cases now bring the area's cameos out (`?cameoPreview=all`) and load both rare morphs
+  before measuring; the → braai case checks no cameo sheet is left.
+- *Phones (lessons 32–33).* Pooled images set only on change, one reused pose, nothing built a
+  frame; their own hook timer `cameoMs` in the [perf] JSON (≤ 0.3 ms a frame at 4× throttle with
+  several cameos out, perf.spec on the Bushveld and the Kalahari; a stub unit test holds ≤ 40 Phaser
+  calls a frame at 20 sim ticks a frame). `step()` with 60 birds, Brakkie and the cameos ≈ 117 µs
+  (budget 1.5 ms).
+- *Polish (v1.12 screenshot review).* In Brakkie's trot shot the first-person gun's barrel covered
+  his head. The gun stands at 0.62 × the screen's width (0.38 left-handed) and leans toward the aim:
+  at his head height its barrel sweeps 85–340 px from the screen's centre on 16:9 to 21:9 for aims
+  within ±500 px. The sim never sees the device or the hand, so his rest spots now keep his head out
+  of both stripes (`roam.gunStripePx` 65–360) and a pan that leaves it there gets him up; golden
+  replays re-recorded for his spots. Screenshot before | after: `art-preview-cameos.spec.ts`
+  (`?brakkieGunStripe=0`, test builds only, is the old rule).
+- *Review round 1 (playtest reviewer).* A Kettie stone flew through a cameo without hitting it
+  (bands see one plane at a time): it now keeps the first cameo like a makalani nut and ends on it
+  when nothing behind takes it; a pellet on a cameo lands without the far plane's wind drift;
+  sightings need the feet on screen; schedules keep looking after a time bonus; the pose picker
+  builds nothing a frame.
 
 ## 3. Research notes (with sources)
 
