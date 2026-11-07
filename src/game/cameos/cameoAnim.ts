@@ -45,9 +45,27 @@ export interface CameoPose {
 const PRONK_TICKS = 34;
 const PRONK_PX = 30;
 
-/** The frame for member `m` of visit `v` (`calm`: reduce motion — lower pronks). */
-export function cameoPose(v: CameoVisitView, m: CameoMemberView, calm = false): CameoPose {
-  const p = (frame: CameoFrame, lift = 0, dust = false): CameoPose => ({ frame, lift, dust });
+/** A pose the view reuses (no allocation a frame, lesson 33). */
+export interface MutableCameoPose {
+  frame: CameoFrame;
+  lift: number;
+  dust: boolean;
+}
+
+/** The frame for member `m` of visit `v` (`calm`: reduce motion — lower pronks), written into
+ *  `out` when given (the view passes one reused object), else a new one. */
+export function cameoPose(
+  v: CameoVisitView,
+  m: CameoMemberView,
+  calm = false,
+  out: MutableCameoPose = { frame: 'gb_walk_a', lift: 0, dust: false },
+): CameoPose {
+  const p = (frame: CameoFrame, lift = 0, dust = false): CameoPose => {
+    out.frame = frame;
+    out.lift = lift;
+    out.dust = dust;
+    return out;
+  };
   const frac = v.dur > 0 ? v.t / v.dur : 0;
   const g = m.gaitT;
   const young = m.role === 'young';

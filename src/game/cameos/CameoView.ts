@@ -25,7 +25,7 @@ import type { AudioDirector } from '../audio/AudioDirector';
 import { designSize } from '../layout';
 import { setFootOrigin } from '../view/footOrigin';
 import type { ParallaxView } from '../view/ParallaxView';
-import { CAMEO_KIND_AREA, CAMEO_SPECIES, cameoPose } from './cameoAnim';
+import { CAMEO_KIND_AREA, CAMEO_SPECIES, cameoPose, type MutableCameoPose } from './cameoAnim';
 import {
   CAMEO_AREA_SOUNDS,
   CAMEO_SHEETS,
@@ -272,6 +272,8 @@ export class CameoView {
   private readonly seenSet = new Set<string>();
   /** Each plane's layer (learnt from the visits drawn), for the sounds' stereo pan. */
   private readonly planeLayer = new Map<string, string>();
+  /** The pose each animal is drawn in (reused: no allocation a frame). */
+  private readonly pose: MutableCameoPose = { frame: 'gb_walk_a', lift: 0, dust: false };
   /** Milliseconds the last update took (perf.spec: cameoMs). */
   lastMs = 0;
   readonly hook: CameoHook;
@@ -426,7 +428,7 @@ export class CameoView {
           // The pool grows only when a bigger herd first comes (never a frame after).
           const sl = this.slots[used] ?? this.addSlot();
           used++;
-          const pose = cameoPose(v, m, this.s.reducedMotion);
+          const pose = cameoPose(v, m, this.s.reducedMotion, this.pose);
           const y = m.y - pose.lift;
           const on = this.place(sl, v.layerId, pose.frame, v.facing, m.x, y, v.alpha);
           if (on && v.alpha >= this.s.sightingAlpha) drawn = true;
