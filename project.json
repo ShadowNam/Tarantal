@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-11-07T18:12:00Z",
+ "updated": "2026-11-07T18:56:00Z",
  "by": "Claude",
  "summary": "Live on the test build: v1.13 veld cameos (1.17.0, merged 19:14 Namibia time on 7 Nov). Every area now has its own visitors: a warthog family and a dung beetle in the Bushveld, a leopard tortoise and a sprinting ostrich in the Karoo, a pronking springbok herd in the Kalahari (its alarm makes the nearest flock nervous), gemsbok in Namibië, and Okavango elephants that flap and trumpet when a flock flushes. Pellets pass through them; a shot aimed at one costs 10 points and a scolding. Oupa's journal has a new \"Seen in the veld\" page. Next: Oupa's new voices (needs the OpenRouter key), then a final phone playtest and the store releases.",
  "current": {
   "version": "1.17.0",
-  "commit": "ff009f4"
+  "commit": "c9a6135"
  },
  "links": [
   {
@@ -37,12 +37,12 @@
   {
    "label": "Version on the test build",
    "value": "1.17.0",
-   "note": "commit ff009f4, merged 7 Nov, 20:08 Namibia time (the test build deploys a few minutes after)"
+   "note": "commit c9a6135, merged 7 Nov, 20:53 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "114",
-   "note": "#1 to #117"
+   "value": "115",
+   "note": "#1 to #118"
   },
   {
    "label": "Unit tests",
@@ -2792,6 +2792,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-11-07T18:54:00Z",
+   "kind": "merge",
+   "text": "Test added (#118): the language picker on the loading screen never covers a title button and hides under the admin page, so phone taps always land."
+  },
   {
    "at": "2026-11-07T18:10:00Z",
    "kind": "merge",
