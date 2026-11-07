@@ -177,6 +177,27 @@ const STYLES: Readonly<Record<string, Style>> = {
       shaker: 0.7,
     },
   },
+  // The Harvest's late-summer field: bright guitar, mbira and a light working rhythm.
+  oes: {
+    root: 55,
+    chords: [
+      [0, 4, 7],
+      [5, 9, 12],
+      [9, 12, 16],
+      [7, 11, 14],
+    ],
+    lead: 'guitarMarimba',
+    seed: 606,
+    colour: {
+      whistle: 0.32,
+      mbira: 0.22,
+      marimba: 0.24,
+      drums: 0.3,
+      drumsInBuild: true,
+      lead: 0.4,
+      shaker: 0.65,
+    },
+  },
 };
 
 export const MUSIC_BIOMES: readonly string[] = Object.keys(STYLES);
@@ -642,6 +663,12 @@ export function renderAmbience(biome: string): Buf {
       wind(620, 0.9, [1, 2]);
       insects(6200, 0.07, 22);
       birds(4, 3400, 0.07);
+      break;
+    case 'oes':
+      // Dry crops rustle in the breeze, with insects and a few field birds.
+      wind(850, 0.85, [1, 2, 3]);
+      insects(4800, 0.1, 28);
+      birds(5, 2800, 0.1);
       break;
     default:
       throw new Error(`no interim ambience for ${biome}`);

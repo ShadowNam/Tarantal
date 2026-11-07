@@ -1,7 +1,8 @@
 // Privacy (M9, Tech §17, Poki "in-game privacy policy"): what the game stores on this device,
 // what it sends (nothing of its own; on a games site the site's own service runs ads and
 // statistics), no personal data, and [Clear my data] (tap twice) which removes every key the
-// game stored and restarts as a new player. Opened from Settings; Esc or [Back] closes it.
+// game stored and restarts as a new player on success. A rejected deletion keeps the current
+// session open and explains how to remove browser data. Esc or [Back] closes it.
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -69,17 +70,26 @@ export class PrivacyScene extends Phaser.Scene {
       }),
       key: body,
     }));
+    let clearFailed = false;
     const layout = (failed: boolean): void => {
+      if (this.ctx.hook) this.ctx.hook.privacyClearFailed = clearFailed;
       let y = py + 130;
       texts.forEach((x, i) => {
-        x.head.setText(privacyString(getLanguage(), x.headKey)).setY(y);
+        x.head
+          .setText(
+            clearFailed && i === 0 ? t('privacy.clear') : privacyString(getLanguage(), x.headKey),
+          )
+          .setY(y);
         y += 48;
         // On failure the first paragraph says so (Back still works).
-        const text = failed
-          ? i === 0
-            ? t('privacy.load_failed')
-            : ''
-          : privacyString(getLanguage(), x.key);
+        const text =
+          clearFailed && i === 0
+            ? privacyString(getLanguage(), 'privacy.clear_failed') || t('privacy.clear_failed')
+            : failed
+              ? i === 0
+                ? t('privacy.load_failed')
+                : ''
+              : privacyString(getLanguage(), x.key);
         x.body.setText(text).setY(y);
         y += x.body.height + 28;
       });
@@ -114,7 +124,16 @@ export class PrivacyScene extends Phaser.Scene {
             clearBtn = drawButton(this, clear, t('privacy.clear_confirm'), 'primary', 30);
             return;
           }
-          this.ctx.save.clear();
+          if (!this.ctx.save.clear()) {
+            // A reload would discard the fallback and restore the browser's undeleted save.
+            clearFailed = true;
+            armed = false;
+            clearBtn.g.destroy();
+            clearBtn.text.destroy();
+            clearBtn = drawButton(this, clear, t('privacy.clear'), 'secondary', 34);
+            layout(false);
+            return;
+          }
           this.ctx.platform.analytics('privacy_clear');
           data.restart();
         },
@@ -136,6 +155,7 @@ export class PrivacyScene extends Phaser.Scene {
     });
     if (this.ctx.hook) this.ctx.hook.menu = 'privacy';
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      if (this.ctx.hook) this.ctx.hook.privacyClearFailed = false;
       if (this.ctx.hook?.menu === 'privacy') this.ctx.hook.menu = 'settings';
     });
   }

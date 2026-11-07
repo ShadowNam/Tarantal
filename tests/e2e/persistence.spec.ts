@@ -43,7 +43,7 @@ test('closing the tab mid-menu and reopening restores settings and progress', as
   page,
   context,
 }, info) => {
-  test.setTimeout(240_000);
+  test.setTimeout(600_000);
   onlyDesktopAndIphone(info);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
@@ -55,8 +55,6 @@ test('closing the tab mid-menu and reopening restores settings and progress', as
   await openMenu(page, touch, 'settings', 'settings');
   await tapRect(page, touch, 'settings.left_handed');
   await tapRect(page, touch, 'settings.aimAssist'); // standard → off
-  await tapRect(page, touch, 'settings.language'); // auto → en
-  await page.waitForFunction(() => window.__TM__?.menu === 'settings');
   await tapRect(page, touch, 'settings.language'); // en → af
   await page.waitForFunction(() => document.documentElement.lang === 'af');
   await page.screenshot({

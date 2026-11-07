@@ -13,6 +13,7 @@ import { ColonyView, type ColonyHook } from './ColonyView';
 import { WeaverView } from '../WeaverView';
 
 export interface TreeLifeArgs {
+  readonly onSighted?: (id: string) => void;
   /** The hunt's seed (set when the hunt starts). */
   readonly seed: () => number;
   readonly lightIds: readonly string[];
@@ -62,6 +63,7 @@ export class TreeLifeView {
           preview: preview,
           farFactor: a.farFactor,
           cameraAt: a.cameraAt,
+          ...(a.onSighted === undefined ? {} : { onSighted: a.onSighted }),
         })
       : null;
     this.colony = ColonyView.wants(biome, feel)
@@ -72,6 +74,7 @@ export class TreeLifeView {
           falconPreview: a.preview === 'falcon',
           farFactor: a.farFactor,
           cameraAt: a.cameraAt,
+          ...(a.onSighted === undefined ? {} : { onSighted: a.onSighted }),
         })
       : null;
     this.weavers = ColonyView.wants(biome, feel)

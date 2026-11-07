@@ -185,6 +185,19 @@ else if (hookPolicy.namespace !== null) setStorageNamespace(hookPolicy.namespace
 else if (capture) setStorageNamespace(CAPTURE_NAMESPACE);
 
 const save = new SaveStore();
+// Older saves inherited Auto without choosing a language. Adopt the new English default
+// once; explicit saved languages and later choices of Auto remain the player's choice.
+const ENGLISH_STARTUP_NOTICE = 'english-startup-v1';
+if (!save.data.notices.includes(ENGLISH_STARTUP_NOTICE)) {
+  save.update((d) => ({
+    ...d,
+    settings: {
+      ...d.settings,
+      language: d.settings.language === 'auto' ? 'en' : d.settings.language,
+    },
+    notices: [...d.notices, ENGLISH_STARTUP_NOTICE],
+  }));
+}
 // e2e/dev only: ?ftue=0 starts as a returning player (older specs test Classic hunts).
 // M10 capture mode: no tutorial on the capture save (its prompts would be hidden).
 if (capture && !save.data.ftue.done) save.update((d) => captureSave(d));
@@ -207,6 +220,16 @@ function applyLanguage(): void {
   setLanguage(lang);
   setAfrikaansNames(save.data.settings.afrikaansNames);
   document.documentElement.lang = lang;
+  const picker = document.getElementById('startup-language-select');
+  if (picker instanceof HTMLSelectElement) {
+    if (lang === 'nl' && !picker.querySelector('option[value="nl"]')) {
+      const option = document.createElement('option');
+      option.value = 'nl';
+      option.textContent = t('settings.lang.nl');
+      picker.appendChild(option);
+    }
+    picker.value = lang;
+  }
   for (const el of document.querySelectorAll<HTMLElement>('[data-i18n]')) {
     const key = el.dataset['i18n'];
     if (key !== undefined && isI18nKey(key)) el.textContent = t(key);
@@ -216,8 +239,29 @@ function applyLanguage(): void {
     const key = el.dataset['i18nLabel'];
     if (key !== undefined && isI18nKey(key)) el.setAttribute('aria-label', t(key));
   }
+  document.dispatchEvent(new Event('tm-language-change'));
 }
 applyLanguage();
+let refreshStartupLanguage = (): void => {};
+const startupLanguage = document.getElementById('startup-language-select');
+if (startupLanguage instanceof HTMLSelectElement) {
+  // Native select keys must not also activate the canvas title menu.
+  for (const event of ['keydown', 'keyup', 'pointerup']) {
+    startupLanguage.addEventListener(event, (e) => {
+      e.stopPropagation();
+    });
+  }
+  startupLanguage.addEventListener('change', () => {
+    const language = startupLanguage.value;
+    if (language !== 'en' && language !== 'af' && language !== 'de' && language !== 'nl') return;
+    save.update((d) => ({
+      ...d,
+      settings: { ...d.settings, language, voiceLanguage: 'same', afrikaansNames: false },
+    }));
+    applyLanguage();
+    refreshStartupLanguage();
+  });
+}
 
 function viewport(): { width: number; height: number } {
   return { width: window.innerWidth, height: window.innerHeight };
@@ -1226,21 +1270,19 @@ async function boot(): Promise<void> {
       hook.graphics.weak = advice.weak;
       hook.graphics.cardMb = mb;
       const { showGraphicsCard, gt } = await import('./game/ui/graphicsCard');
-      const answer = await showGraphicsCard(
-        {
-          title: t('app.title'),
-          question: gt('graphics.question'),
-          standard: gt('graphics.standard'),
-          standardDesc: gt('graphics.standard_desc'),
-          hd: gt('graphics.hd'),
-          hdDesc: fill(gt('graphics.hd_desc'), { mb }),
-          weak: advice.weak ? gt('graphics.hd_weak') : null,
-          recommended: gt('graphics.recommended'),
-          remember: gt('graphics.remember'),
-          later: gt('graphics.later'),
-        },
-        advice.pick,
-      );
+      const cardText = () => ({
+        title: t('app.title'),
+        question: gt('graphics.question'),
+        standard: gt('graphics.standard'),
+        standardDesc: gt('graphics.standard_desc'),
+        hd: gt('graphics.hd'),
+        hdDesc: fill(gt('graphics.hd_desc'), { mb }),
+        weak: advice.weak ? gt('graphics.hd_weak') : null,
+        recommended: gt('graphics.recommended'),
+        remember: gt('graphics.remember'),
+        later: gt('graphics.later'),
+      });
+      const answer = await showGraphicsCard(cardText(), advice.pick, cardText);
       hook.graphics.card = false;
       mode = answer.mode;
       const setting = settingAfterCard(answer.mode, answer.remember);
@@ -1284,6 +1326,11 @@ async function boot(): Promise<void> {
       new AdminScene(ctx),
     ],
   });
+  refreshStartupLanguage = () => {
+    ctx.applyLanguage();
+    const title = game.scene.getScene('Title');
+    if (game.scene.isActive('Title') && title instanceof TitleScene) title.refreshLanguage();
+  };
 
   // D-058, the Android app: the back button means Escape (pause in a hunt, Back in menus); on the
   // title screen the app goes to the background. The raw flag (a literal after Vite's replacement)

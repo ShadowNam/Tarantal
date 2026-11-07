@@ -53,7 +53,8 @@ Everything else supports them. If scope must shrink, protect those two.
 - **Oupa:** off-screen narrator voice. Dry, proud, occasionally scandalised. Afrikaans-English barks
   ("Mooi skoot, my kind!", "Ag nee man!", "Jinne, kyk hoe hardloop hulle!"). Never mean.
   v1.5 (D-041): he speaks English, Afrikaans or German (Settings → voice language), keeping his
-  Afrikaans exclamations in each; his lines are subtitled in the text language.
+  Afrikaans exclamations where selected; D-073 makes English captions and speech fully English.
+  His lines are subtitled in the text language.
 - **Die Tarentaal:** the star. Plump, polka-dotted, blue-faced, red-wattled, bony casque, enormous
   panicked eyes, legs that blur when it runs. Comically dignified until it panics (always).
 - **Generaal Tarentaal & friends:** boss birds with accessories (pot helmet, eye patch, crest crown).
@@ -1194,6 +1195,30 @@ hunt" / "Some farm secrets give it too") and one tip. Ones not picked up yet on 
 darker and say "Not found yet", but explain themselves all the same. The list scrolls (drag,
 wheel, or ↑/↓ through the cards) and is sized for an iPhone 14 in landscape (32 px sentences).
 
+#### The journal rollout (D-072, R1–R6)
+
+The shed has a Journal tab: a living field guide, personal goals, optional short lessons,
+a friendly-rival notebook and cosmetic keepsakes. Eight existing baobab/colony residents unlock
+illustrated facts and Oupa notes when actually visible during a completed normal hunt. Merely
+spawning off screen, aiming through a scope, the FTUE, admin/capture and training do not unlock
+entries. Looking never scores points. Oupa's off setting hides the optional personal comments.
+
+Personal records compare the same mode, area, weekday/bonus map, gun, sight and rules version.
+Accuracy needs at least 10 shots (client/journal.json wins); practice Dailies do not overwrite
+records. Old-rule records are labelled as historical. Suggested goals rise from the player's
+own bests, with capped accuracy, flock and clean-bag goals. A few early Classic results offer a
+short result-based coaching nudge; the full lessons remain available on demand.
+
+Shared challenge links feed a bounded local rival notebook with each target and the player's
+best attempt. Equal-rule links can earn a friendly win; changed-rule links keep the existing
+warning and do not count as fair rivalry wins. A rematch opens the existing challenge card.
+These shared scores have the same informal trust model as existing challenge links.
+
+Discoveries and hunt achievements earn permanent cosmetic plaques. One can be displayed in the
+shed; it survives pruning of old records. No plaque grants points, damage or currency. Clearing
+saved data clears these additions too. New species, hosted scoreboards, a weekly shared Season
+Run and richer gun/cabin cosmetics follow in later releases.
+
 ### 13.8 Balance tooling
 A headless balance simulator plays the deterministic sim over thousands of seeds with bots:
 `random`, `plinker` (never escalates on purpose; waits out alert windows), `competent` (escalates
@@ -1452,6 +1477,11 @@ size of the standard art.
 v1.5 (D-041): **Sound & game** has six rows a column: master / SFX / music / voice volume,
 **voice language** and privacy on the left; **text language**, **Afrikaans names**, aim assist,
 left-handed, hold to fire and offset crosshair on the right.
+- **Startup language (D-073):** new saves start in English, independent of browser language.
+  The loading/title screen offers English / Afrikaans / Deutsch and remembers the selection.
+  Choosing here also sets the voice to Same as text and turns Afrikaans names off.
+  Older saves on the former Auto default adopt English once; explicit saved languages remain. Advanced
+  Settings retains Auto and Nederlands for players who explicitly choose them.
 - **Text language** (Auto / English / Afrikaans / Deutsch / Nederlands) is every word on screen:
   menus, the tally, captions and Oupa's speech bubbles (his subtitles), share cards, the Daily
   share text.
@@ -1514,6 +1544,6 @@ Have a native speaker review every player-facing string before launch.
 v1.5 (D-041): this glossary is the Afrikaans side. English, German and Dutch players see their
 own names (Double Barrel / Doppelflinte, Further / Weiter, Gun Shed / Waffenschuppen, …): the
 full table, with the meaning of each pun, is `docs/i18n-names.md`. Place names stay (Karoo,
-Kalahari, Okavango; Namibië → Namibia), so do Oupa and Ouma; Oupa's spoken lines keep his
-Afrikaans exclamations in every language. Settings → Afrikaans names brings the Afrikaans names
+Kalahari, Okavango; Namibië → Namibia), so do Oupa and Ouma; D-073 translates Oupa's catchphrases in English captions and speech.
+Afrikaans retains the original phrases. Settings → Afrikaans names brings the Afrikaans names
 back in any language.

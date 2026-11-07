@@ -1,0 +1,98 @@
+{
+  "maxRecords": 64,
+  "maxRivals": 16,
+  "minAccuracyShots": 10,
+  "scoreStep": 25,
+  "scoreGrowth": 0.05,
+  "accuracyStep": 0.05,
+  "maxFlockGoal": 3,
+  "minCleanBag": 5,
+  "maxCleanBagGoal": 30,
+  "coachHunts": 8,
+  "lowAccuracy": 0.35,
+  "feedbackCooldownTicks": 180,
+  "fileTimeoutMs": 15000,
+  "species": [
+    {
+      "id": "galago",
+      "habitat": "baobab",
+      "sheet": "bushveld/baobab_life",
+      "frame": "galago_out"
+    },
+    {
+      "id": "squirrel",
+      "habitat": "baobab",
+      "sheet": "bushveld/baobab_life",
+      "frame": "squirrel_sit"
+    },
+    {
+      "id": "owl",
+      "habitat": "baobab",
+      "sheet": "bushveld/baobab_life",
+      "frame": "owl_front"
+    },
+    {
+      "id": "hornbill",
+      "habitat": "baobab",
+      "sheet": "bushveld/baobab_life",
+      "frame": "hornbill_feed"
+    },
+    {
+      "id": "buffaloWeaver",
+      "habitat": "baobab",
+      "sheet": "bushveld/baobab_life",
+      "frame": "buffalo_perch"
+    },
+    {
+      "id": "weaver",
+      "habitat": "colony",
+      "sheet": "desert/colony",
+      "frame": "weaver_perch"
+    },
+    {
+      "id": "falcon",
+      "habitat": "colony",
+      "sheet": "desert/colony",
+      "frame": "falcon_perch"
+    },
+    {
+      "id": "lovebirds",
+      "habitat": "namibie",
+      "sheet": "desert/colony",
+      "frame": "lovebird_perch"
+    }
+  ],
+  "plaques": [
+    {
+      "id": "observer",
+      "metric": "sightings",
+      "target": 3
+    },
+    {
+      "id": "hunter",
+      "metric": "bagged",
+      "target": 10
+    },
+    {
+      "id": "marksman",
+      "metric": "accuracy",
+      "target": 0.8
+    },
+    {
+      "id": "flock",
+      "metric": "wholeFlocks",
+      "target": 1
+    },
+    {
+      "id": "guardian",
+      "metric": "cleanBag",
+      "target": 10
+    },
+    {
+      "id": "rival",
+      "metric": "rivalWins",
+      "target": 1
+    }
+  ],
+  "sightingAlpha": 0.5
+}

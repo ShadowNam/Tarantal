@@ -161,6 +161,7 @@ export default tseslint.config(
       'coverage/**',
       'playwright-report/**',
       'test-results/**',
+      'tmp/**',
       '.claude/**',
       // The development-history Word generator (docs/history/README.md), not game code.
       'docs/history/**',

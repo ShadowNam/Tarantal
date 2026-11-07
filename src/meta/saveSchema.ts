@@ -63,7 +63,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reduceFlashes: false,
   aimAssist: 'standard',
   leftHanded: false,
-  language: 'auto',
+  language: 'en',
   voiceLanguage: 'same',
   afrikaansNames: false,
   quality: 'auto',
@@ -182,7 +182,49 @@ export const RunAdsSchema = z.object({
 });
 export type RunAds = z.infer<typeof RunAdsSchema>;
 
+export const JournalRecordSchema = z.object({
+  mode: z.enum(['classic', 'daily']),
+  biome: z.string().max(80),
+  layout: z.string().max(80).nullable(),
+  bonus: z.string().max(80).nullable(),
+  weapon: z.string().max(80),
+  sight: z.string().max(80).nullable(),
+  rules: z.string().max(80),
+  hunts: count,
+  score: z.number().int(),
+  accuracy: z.number().min(0).max(1),
+  wholeFlocks: count,
+  cleanBag: count,
+  bagged: count,
+  tip: z.enum(['steady', 'reload', 'flock', 'distance', 'weapon']),
+  highlight: z.enum(['whole', 'double', 'horizon', 'long', 'clean', 'bag']).nullable(),
+});
+export const JournalSaveSchema = z.object({
+  earned: ids.default([]),
+  records: z
+    .record(z.string().max(640), JournalRecordSchema)
+    .refine((r) => Object.keys(r).length <= 128, 'Too many journal records'),
+  latest: z.string().max(640).nullable(),
+  plaque: z.string().max(80).nullable(),
+  rivals: z
+    .array(
+      z.object({
+        link: z.string().max(2048),
+        best: z.number().int(),
+        target: z.number().int(),
+        by: z.string().max(64).nullable(),
+        biome: z.string().max(80),
+        weapon: z.string().max(80),
+        mode: z.enum(['classic', 'daily']),
+      }),
+    )
+    .max(32),
+});
+export type JournalSave = z.infer<typeof JournalSaveSchema>;
+export type JournalRecord = z.infer<typeof JournalRecordSchema>;
+
 const sections = {
+  journal: JournalSaveSchema,
   settings: SettingsSchema,
   ftue: z.object({ done: z.boolean(), skipped: z.boolean(), step: z.string().max(40) }),
   /** One-time UI notices (e.g. the iOS Add to Home Screen banner) already dismissed. */
@@ -246,6 +288,7 @@ export const SAVE_SECTIONS = sections;
 export function defaultSave(): SaveData {
   return {
     v: SAVE_VERSION,
+    journal: { earned: [], records: {}, latest: null, plaque: null, rivals: [] },
     settings: { ...DEFAULT_SETTINGS },
     ftue: { done: false, skipped: false, step: '' },
     notices: [],

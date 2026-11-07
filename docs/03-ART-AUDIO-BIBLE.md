@@ -659,7 +659,10 @@ pad; the tail in its typical "broken" arch (up from the rump, a sharp bend, then
 adult male has a darker shoulder mane; a mother is a little smaller and paler with her small dark
 baby (pink face) riding jockey-style on her back, so the player sees at once she is not a target.
 No ink: edges a shade darker than the part; lit from the upper left; a soft contact shadow.
-Drawn from a posed skeleton (`tools/art/baboons.ts`) so every frame is the same animal. One sheet
+Drawn from a posed skeleton (`tools/art/baboons.ts`) so every frame is the same animal.
+D-073 refines connected necks, softly shaded anatomical masses, cheek/neck fur and distant
+coat texture. Body-height coordinates retain four decimals so fine strokes and highlights
+survive serialization before scaling. One sheet
 (`baboons/sheet`, its own background group `baboons`, a 2× master: Standard gets the pack's 1×,
 HD the 2× in `baboons-hd`), frames facing
 right with the origin at the feet, each box fitted to its drawing (`tools/art/baboonBoxes.ts`
@@ -701,7 +704,10 @@ ground (`tools/art/harvestGround.test.ts`), frames clear of their box edges
 (`tools/art/harvestArt.test.ts`). **Sounds** (synths in the lazy view until recordings are
 delivered under `sfx/harvest_*`): the wire snapping, a warthog's grunt, a piglet's squeal, the thump
 of a bagged one, the workers' hammering, the crop warning's two soft beeps and a four-note harvest
-jingle when the fence is whole. Oupa's Harvest lines (`guide.harvest.*`): en/af/de voiced, nl text.
+jingle when the fence is whole. The field's music and ambience (D-070) are delivered interim
+loops in the lazy `oes` group: guitar and marimba in G with mbira, pennywhistle and light hand
+drums, with calm/build/Stampede stems on the common 16-second, 120-bpm grid; wind through dry
+crops, insects and field birds underneath. No silent music slots. Oupa's Harvest lines (`guide.harvest.*`): en/af/de voiced, nl text.
 
 ### 5.5 Reënbui: the storm, the rain and the alate columns (1.13.0, D-067)
 Interim at the D-035 bar, soft weather in gradients and layered tones (no ink on vapour). **One

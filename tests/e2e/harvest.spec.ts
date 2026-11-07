@@ -136,6 +136,7 @@ test.use({ serviceWorkers: 'block' });
 
 test('from the title: the intro, the rush, the fence closes, the Harvest tally and a best', async ({
   page,
+  browserName,
 }, info) => {
   test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
   test.setTimeout(600_000);
@@ -146,6 +147,22 @@ test('from the title: the intro, the rush, the fence closes, the Harvest tally a
   expect(h0.rects['harvest'], 'the Die Oes button').toBeDefined();
   expect(h0.rects['harvestStatus'], 'its line').toBeDefined();
   await startHarvest(page, touch);
+  // D-070: the field's beds must be delivered, rather than silently falling back to nothing.
+  // Like audio.spec.ts, check playback in Chromium: Linux WebKit may lack the audio codecs
+  // (its loader skips unsupported files); real Safari plays the MP3 alternative.
+  if (browserName === 'chromium') {
+    expect((await hook(page)).assets.recorded).toEqual(
+      expect.arrayContaining([
+        'amb/oes',
+        'music/oes/calm',
+        'music/oes/build',
+        'music/oes/stampede',
+      ]),
+    );
+    await page.waitForFunction(() => window.__TM__?.music?.id === 'oes', null, {
+      timeout: 30_000,
+    });
+  }
   // Review round 1: the crop and fence bars overlap no other HUD element (the pause button above).
   await page.waitForFunction(() => window.__TM__?.rects['harvestCrop'] !== undefined, null, {
     timeout: 120_000,

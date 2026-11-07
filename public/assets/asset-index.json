@@ -9,9 +9,9 @@
       "group": "baboons",
       "origin": "interim",
       "file": {
-        "path": "assets/baboons/img/baboons_sheet.ccae6d6fa7d8.png",
-        "bytes": 85824,
-        "hash": "ccae6d6fa7d8"
+        "path": "assets/baboons/img/baboons_sheet.06ea6d2de522.png",
+        "bytes": 103481,
+        "hash": "06ea6d2de522"
       },
       "width": 756,
       "height": 910,
@@ -9449,6 +9449,24 @@
       "lufs": -20,
       "peakDb": -4.3
     },
+    "amb/oes": {
+      "group": "oes",
+      "origin": "interim",
+      "kind": "ambience",
+      "ogg": {
+        "path": "assets/oes/audio/ambience/oes.100996d41729.ogg",
+        "bytes": 52956,
+        "hash": "100996d41729"
+      },
+      "mp3": {
+        "path": "assets/oes/audio/ambience/oes.d5d5d4348640.mp3",
+        "bytes": 64044,
+        "hash": "d5d5d4348640"
+      },
+      "loop": true,
+      "lufs": -20,
+      "peakDb": -6.2
+    },
     "amb/okavango-spring": {
       "group": "okavango-spring",
       "origin": "interim",
@@ -9682,6 +9700,60 @@
       "loop": true,
       "lufs": -16,
       "peakDb": -7.4
+    },
+    "music/oes/build": {
+      "group": "oes",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/oes/audio/music/oes-build.27b7eff792d8.ogg",
+        "bytes": 76128,
+        "hash": "27b7eff792d8"
+      },
+      "mp3": {
+        "path": "assets/oes/audio/music/oes-build.500597c84c4e.mp3",
+        "bytes": 125009,
+        "hash": "500597c84c4e"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -6.1
+    },
+    "music/oes/calm": {
+      "group": "oes",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/oes/audio/music/oes-calm.d0b94f667bef.ogg",
+        "bytes": 70122,
+        "hash": "d0b94f667bef"
+      },
+      "mp3": {
+        "path": "assets/oes/audio/music/oes-calm.898a49d50a28.mp3",
+        "bytes": 129945,
+        "hash": "898a49d50a28"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -6.5
+    },
+    "music/oes/stampede": {
+      "group": "oes",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/oes/audio/music/oes-stampede.a872fd3498bf.ogg",
+        "bytes": 81475,
+        "hash": "a872fd3498bf"
+      },
+      "mp3": {
+        "path": "assets/oes/audio/music/oes-stampede.8c3e620ec6c7.mp3",
+        "bytes": 116406,
+        "hash": "8c3e620ec6c7"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -4.7
     },
     "music/okavango-spring/build": {
       "group": "okavango-spring",

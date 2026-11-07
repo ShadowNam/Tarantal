@@ -5,11 +5,39 @@
 import { describe, expect, it } from 'vitest';
 import { applyGain, integratedLufs, normaliseGainDb, truePeakDb } from '../assets/loudness';
 import { LOUDNESS, TRUE_PEAK_CEILING_DB } from '../assets/targets';
-import { MUSIC_BIOMES, MUSIC_RATE, renderStem, STEM_IDS } from './music';
+import { loadContent } from '../testContent';
+import {
+  AMB_RATE,
+  AMB_SEC,
+  MUSIC_BIOMES,
+  MUSIC_RATE,
+  renderAmbience,
+  renderStem,
+  STEM_IDS,
+} from './music';
 
 const rms = (a: Float32Array): number => Math.sqrt(a.reduce((s, v) => s + v * v, 0) / a.length);
 
 describe('interim music stems (D-066)', () => {
+  it('covers every content biome, including the Harvest field', () => {
+    expect([...MUSIC_BIOMES].sort()).toEqual(
+      loadContent()
+        .biomes.map((b) => b.id)
+        .sort(),
+    );
+  });
+
+  it('the Harvest has an audible, finite ambience loop at the delivery loudness', () => {
+    const x = renderAmbience('oes');
+    expect(x.length).toBe(AMB_RATE * AMB_SEC);
+    expect(x.every(Number.isFinite)).toBe(true);
+    expect(rms(x)).toBeGreaterThan(0.01);
+    const pcm = { sampleRate: AMB_RATE, channels: [x] };
+    const norm = applyGain(pcm, normaliseGainDb(pcm, LOUDNESS.ambience, TRUE_PEAK_CEILING_DB));
+    expect(Math.abs(integratedLufs(norm) - LOUDNESS.ambience)).toBeLessThanOrEqual(1);
+    expect(truePeakDb(norm)).toBeLessThanOrEqual(TRUE_PEAK_CEILING_DB + 0.05);
+  });
+
   for (const biome of MUSIC_BIOMES)
     it(`${biome}: seamless loops at −16 LUFS, ≤ −1 dBTP`, { timeout: 120_000 }, () => {
       for (const stem of STEM_IDS) {

@@ -404,6 +404,7 @@
   "privacy.load_failed": "Dit deel kon niet worden geladen. Controleer de verbinding en open deze pagina opnieuw.",
   "privacy.clear": "Wis mijn gegevens",
   "privacy.clear_confirm": "Tik nog eens: alles wissen",
+  "privacy.clear_failed": "Opgeslagen gegevens konden niet worden verwijderd.",
   "run.ad_retry_title": "Oupa's tweede kans!",
   "run.ad_retry": "▶ Advertentie: speel deze jacht opnieuw",
   "run.ad_double": "▶ Advertentie: dubbele dopjes (+{n})",
@@ -648,5 +649,15 @@
   "tally.harvest_new_best": "Nieuwe beste oogst!",
   "tally.harvest_best_row": "Je beste",
   "share.harvest": "De Oogst",
-  "share.harvest_crop": "oogst gered {pct} %"
+  "share.harvest_crop": "oogst gered {pct} %",
+  "shed.tab.journal": "Dagboek",
+  "journal.moment.double": "Twee vogels, één schot!",
+  "journal.moment.horizon": "Horizontschot!",
+  "journal.moment.long": "Ver schot!",
+  "journal.section.field": "Veldgids",
+  "journal.section.goals": "Jouw doelen",
+  "journal.section.coach": "Opa’s lessen",
+  "journal.section.rivals": "Vriendenstrijd",
+  "journal.section.plaques": "Aandenken",
+  "journal.loading": "Het dagboek wordt geladen… Open het opnieuw als dit zo blijft."
 }

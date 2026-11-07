@@ -404,6 +404,7 @@
   "privacy.load_failed": "Dieser Teil konnte nicht geladen werden. Prüfe die Verbindung und öffne die Seite erneut.",
   "privacy.clear": "Meine Daten löschen",
   "privacy.clear_confirm": "Nochmal tippen: alles löschen",
+  "privacy.clear_failed": "Gespeicherte Daten konnten nicht gelöscht werden.",
   "run.ad_retry_title": "Oupas zweite Chance!",
   "run.ad_retry": "▶ Werbung: Jagd nochmal spielen",
   "run.ad_double": "▶ Werbung: doppelte Kronkorken (+{n})",
@@ -648,5 +649,15 @@
   "tally.harvest_new_best": "Neuer Ernte-Rekord!",
   "tally.harvest_best_row": "Dein Rekord",
   "share.harvest": "Die Ernte",
-  "share.harvest_crop": "Ernte gerettet {pct} %"
+  "share.harvest_crop": "Ernte gerettet {pct} %",
+  "shed.tab.journal": "Tagebuch",
+  "journal.moment.double": "Zwei Vögel, ein Schuss!",
+  "journal.moment.horizon": "Horizonttreffer!",
+  "journal.moment.long": "Fernschuss!",
+  "journal.section.field": "Naturführer",
+  "journal.section.goals": "Deine Ziele",
+  "journal.section.coach": "Opas Lektionen",
+  "journal.section.rivals": "Freundschaftsduelle",
+  "journal.section.plaques": "Andenken",
+  "journal.loading": "Das Tagebuch lädt… Öffne es erneut, falls dieser Hinweis bleibt."
 }

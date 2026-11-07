@@ -5,6 +5,8 @@
 // the layer's birds, so they never stand in front of a shot at a bird. Sprites go in the layer's
 // prop-fruit container (above the tree, under its haze) and take the map light's tint.
 import { setFootOrigin } from '../footOrigin';
+import { designSize } from '../../layout';
+import { sightingVisible } from './sighting';
 import type * as Phaser from 'phaser';
 import type { Biome } from '../../../content/schemas';
 import type { SimEvent } from '../../../sim/events';
@@ -28,6 +30,7 @@ import { RESIDENT_SHEET, residentFrames, residentTexelsPerPx } from './residentS
 export const BAOBAB_ASSET = 'bushveld/baobab';
 
 export interface BaobabLifeOptions {
+  readonly onSighted?: (id: string) => void;
   /** The hunt's seed (the residents' schedule hashes it). */
   readonly seed: () => number;
   /** Dawn, dusk or golden light: the bushbaby comes out more. */
@@ -160,6 +163,7 @@ export class BaobabLifeView {
 
   /** Draws the residents out at this tick (fractional: interpolated like the birds). */
   update(s: SimState, alpha: number): void {
+    const view = designSize();
     const layer = this.parallax.layer(this.layerId);
     if (layer === undefined || !this.ensureSheet()) return;
     const tick = s.tick - 1 + alpha;
@@ -196,6 +200,10 @@ export class BaobabLifeView {
           x: Math.round(layer.root.x + (this.x + sp.x) * layer.root.scaleX),
           y: Math.round(layer.root.y + (this.y + sp.y) * layer.root.scaleY),
         });
+      const at = shown[shown.length - 1];
+      if (id !== null && at !== undefined && this.o.onSighted !== undefined) {
+        if (sightingVisible(at.x, at.y, sp.alpha, view.width, view.height)) this.o.onSighted(id);
+      }
     });
     for (let i = sprites.length; i < this.pool.length; i++) this.pool[i]?.setVisible(false);
     this.shown = shown;

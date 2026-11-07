@@ -1212,6 +1212,11 @@ The friends' Android app before any store account (docs/ANDROID-TEST-APP.md). Ca
   tier the HD option says it may be slow.
 - Safe areas (notches), dynamic viewport units (`100dvh`), no scroll/pinch.
 - `localStorage` can throw (blocked/private) → always via `meta/storage.ts` with in-memory fallback.
+  D-071: failed removals stay removed within the session; a failed namespace clear ignores old
+  disk values even if enumeration failed. Player and test namespaces stay separate in both
+  backends. `SaveStore.clear()` reports whether browser deletion succeeded: Privacy reloads
+  only on success, otherwise keeps the current session open and explains how to clear site data
+  in browser settings. An inaccessible browser store cannot be guaranteed erased across reloads.
 
 ## 10. Assets pipeline
 - Sources in `art-source/` (PSD/Krita/Spine) — keep them: they document human authorship (see art bible).
@@ -1484,3 +1489,23 @@ external CDNs at runtime) — the one exception is the portal's own SDK script i
 which the portal requires. Error reports (M9, `src/platform/errors.ts`) carry the error message
 and top stack frames with every URL cut to its file name (no origin, path, query or hash), capped
 per page.
+
+
+### D-072 journal implementation notes
+
+`content/client/journal.json` is Zod-validated client/meta tuning, outside the sim bundle/hash.
+`meta/journal.ts` computes bounded setup-specific records, next goals, permanent plaque awards
+and friendly-rival history. `SaveData.journal` is a new salvageable section: old saves default it
+without a version migration. Resident IDs use `veld_<id>` in the existing Bird Book collection.
+
+Tree views report only drawn, sufficiently opaque, on-screen sprites; HuntScene accepts these
+observations only for normal, unscoped play and merges them through the hunt logger at results.
+No sim commands, events, RNG streams or official scoring change. Personal records require an
+eligible result with a full setup/rules key; challenge history uses the existing validated codec.
+
+Journal prose stays in the lazy guide tables. Portraits load the existing small Standard resident
+sheets under journal-owned texture keys, never an entire biome; shutdown cancels pending paints
+and releases those textures. Menu items use the existing Pointer Events/keyboard Menu. Reopening
+a failed guide load can retry, and a missing picture leaves usable text and controls. The HUD's
+new shot callouts reuse existing banners, respect the FTUE and urgent feedback, rate-limit on
+sim ticks, and skip the banner's scale animation under reduce motion.

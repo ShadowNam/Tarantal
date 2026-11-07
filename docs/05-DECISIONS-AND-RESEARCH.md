@@ -3906,6 +3906,83 @@ hunt"). GDD §8.
   run in a parallel job, `portal and app builds, size`, with the same steps and the same 15-min
   limit; nothing is skipped.
 
+### D-070 — Complete the Harvest's missing audio beds (2 Nov 2026)
+
+The project audit found four silent placeholders: `amb/oes` and the three `music/oes/*` stems.
+The Harvest already declares these sounds and the runtime mixer supports them, but the interim
+music generator only covered the five other biomes. Add an original G-major guitar/marimba style
+and a dry-field ambience to that generator and deliver all four in Ogg and MP3 through the
+existing pack pipeline, with WAV masters and interim sidecars. Everything stays in the lazy `oes`
+group. No sim, scoring, content hash or golden replay changes. Music targets −16 LUFS, ambience
+−20 LUFS, true peaks ≤ −1 dBTP. Tests require coverage of every content biome and check the new
+music's seams and loudness plus an audible, finite ambience loop.
+
+Local verification also found ESLint scanning git-ignored scratch scripts and generated reports
+in `tmp/`. Exclude that directory from ESLint and Prettier, as for other generated output; keep
+all source and test checks enabled.
+
+### D-071 — Keep failed storage deletions consistent and report failed privacy resets (2 Nov 2026)
+
+The follow-up audit reproduced four failures: a failed key removal returned the old disk value;
+a failed namespace clear also returned old disk values; a failed key enumeration left old data
+readable after a clear; and clearing the player namespace deleted test saves in the memory
+fallback even though the persistent-store path preserved them.
+
+Keep pending removals and failed namespace clears in the session overlay. Writes can replace
+removed values, and a later successful clear can be retried. Use the same namespace ownership
+rule for memory and persistent keys. `removeAllKeys()` and `SaveStore.clear()` now return whether
+persistent deletion succeeded. Privacy must not reload on failure: that discards the overlay and
+can immediately restore the undeleted save. Show a localized explanation and browser-settings
+instructions, keep Back and retry available, and preserve the active save until deletion succeeds. Long
+instructions remain in the lazy privacy strings, with a short main-table fallback.
+
+Regression tests cover the failure cases, save reloading within the same session, successful
+retry, and the browser flow with a `removeItem` method that throws. No gameplay/content changes.
+
+### D-072 — Roll out the six approved improvements through the shed journal (2 Nov 2026)
+
+The product owner accepted the improvement ideas and requested a project plan and rollout.
+The six stages and their acceptance criteria are at the top of the build plan. This first
+release uses existing residents and artwork, locally saved goals and keepsakes, the existing
+challenge-link protocol and the current HUD/braai feedback. It does not require accounts or
+hosted services. Weekly shared runs, new cameo art, richer cabin/gun cosmetics and verified
+online scoreboards remain explicitly later expansions.
+
+- Resident discoveries are view/meta observations, not new sim events. A sprite must be drawn,
+  sufficiently opaque and in the design viewport; scoped viewing and sandbox/training are
+  excluded. The completed hunt's logger saves each species once. Facts have optional Oupa notes.
+- Setup-specific goals include weapon, sight, biome, layout/bonus, mode and rules. Qualified
+  accuracy requires enough shots; clean bags require no penalties. Old-rule goals are labelled
+  historical, and practice results cannot overwrite personal records.
+- Bounded records and rival history keep saves small. Earned plaques are stored separately so
+  pruning records never relocks a cosmetic. They confer no gameplay advantage.
+- Friendly rivalry records use validated existing links and equal content hashes. A rematch
+  returns through the existing challenge card; no public leaderboard or new data transmission.
+- Horizon, long and double-hit callouts are rate-limited. Existing whole-flock feedback and
+  urgent notices win; no large flashes are added. Optional early coaching uses actual results.
+- Text is localized in all four languages, with long prose in the lazy guide chunk. New notes
+  are captions; final Oupa recordings follow the finalized text.
+
+Field-guide fact sources (paraphrased; accessed 2 Nov 2026):
+[Smithsonian — southern lesser galago](https://nationalzoo.si.edu/animals/southern-lesser-galago),
+[Animal Diversity Web — tree squirrel](https://animaldiversity.org/accounts/Paraxerus_cepapi/),
+[Barn Owl Trust — hearing](https://www.barnowltrust.org.uk/owl-facts-for-kids/barn-owl-hearing/),
+[hornbill nesting research](https://pmc.ncbi.nlm.nih.gov/articles/PMC12689958/),
+[SANBI — red-billed buffalo weaver](https://www.sanbi.org/animal-of-the-week/red-billed-buffalo-weaver/),
+[San Diego Zoo — sociable weaver and its nest guests](https://animals.sandiegozoo.org/animals/sociable-weaver),
+[San Diego Zoo — pygmy falcon](https://animals.sandiegozoo.org/animals/african-pygmy-falcon).
+Oupa's notes are original character dialogue, not scientific quotations.
+
+### D-073 — English startup and baboon art refinement (3 Nov 2026)
+
+Product-owner request ("as default the game should load fully English"): fresh saves use English instead of browser detection, and existing saves still on Auto switch to English once (notice `english-startup-v1`, `src/main.ts`); a native keyboard/touch language selector on loading and title screens offers English, Afrikaans and Deutsch. Explicit saved choices remain. Selecting a startup language aligns voice and disables Afrikaans flavour names.
+
+Baboon art keeps the existing deterministic poses, frame bounds and hitboxes. Add connected muscular necks, shaded anatomical masses, finer cheek fur, textured distant coats and smaller eyes. Regenerate both delivered Standard and HD sheets from the same source. No sim or scoring changes.
+
+English also translates the formerly retained Afrikaans catchphrases in barks, seasonal labels and braai narration. Regenerate the affected English interim voice clips so captions and speech agree. Character and place names remain proper names.
+
+Supervisor follow-up at merge (7 Nov 2026): the privacy reset succeeds when the browser has no storage at all (nothing reached disk, so the memory wipe is the whole clear; D-071's failure message stays for a store that refuses to list or remove keys); the language picker hides behind the portrait rotate card and in capture mode, and its label comes from i18n; the Halloween e2e expects the English "Ghost Hunt" text; the baboon art keeps its shaded masses, fur and necks but its edges are back to a shade darker (−0.42) at full width, the eye 0.022 × 0.014, and the hat at its v1.8b height (the 3 Nov edges, eye and hat left the near raider faceless on phones). Version 1.16.0.
+
 **D-074 Atlas pages packed for the least GPU memory; the rare morphs counted in the HD budget (7 Nov 2026, supervisor):**
 an HD Okavango hunt held 257 MB once a lavender guineafowl spawned (budget 256 MB, Tech §9). The
 rare morphs (lavender weight 2, white 1, in every area's spawn table) are in the late group and go to

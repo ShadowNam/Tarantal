@@ -1,6 +1,10 @@
 // The only door to localStorage (CLAUDE.md: it can throw in private modes, when blocked, or
 // when full). Falls back to memory so the game keeps working; values are JSON or plain text.
 const memory = new Map<string, string>();
+/** Logical deletions must win over old disk values when the browser refuses to remove them. */
+const removed = new Set<string>();
+/** A failed clear can leave even unenumerated disk keys behind: use memory for that namespace. */
+const cleared = new Set<string>();
 const BASE_PREFIX = 'tm.';
 let PREFIX = BASE_PREFIX;
 
@@ -34,8 +38,10 @@ export function storageStatus(): StorageStatus {
   return failed || backend() === null ? 'memory' : 'local';
 }
 
-/** Raw text under `tm.<key>`, or null. The memory copy wins only when localStorage can't answer. */
+/** Raw text under `tm.<key>`, or null. Failed writes and deletions take precedence over disk. */
 export function readText(key: string): string | null {
+  if (removed.has(PREFIX + key)) return null;
+  if (cleared.has(PREFIX)) return memory.get(PREFIX + key) ?? null;
   let text: string | null | undefined;
   try {
     text = backend()?.getItem(PREFIX + key);
@@ -50,6 +56,7 @@ export function readText(key: string): string | null {
 }
 
 export function writeText(key: string, text: string): void {
+  removed.delete(PREFIX + key);
   memory.set(PREFIX + key, text);
   try {
     const b = backend();
@@ -63,8 +70,15 @@ export function writeText(key: string, text: string): void {
 
 export function removeKey(key: string): void {
   memory.delete(PREFIX + key);
+  removed.add(PREFIX + key);
   try {
-    backend()?.removeItem(PREFIX + key);
+    const b = backend();
+    if (b === null) {
+      failed = true;
+      return;
+    }
+    b.removeItem(PREFIX + key);
+    removed.delete(PREFIX + key);
   } catch {
     failed = true;
   }
@@ -85,26 +99,34 @@ export function writeValue(key: string, value: unknown): void {
   writeText(key, JSON.stringify(value));
 }
 
-/** Removes every key under the current prefix (privacy screen → clear my data). */
-export function removeAllKeys(): void {
-  for (const k of [...memory.keys()]) if (k.startsWith(PREFIX)) memory.delete(k);
+/** Clears this session's namespace; returns whether browser data was also removed. */
+export function removeAllKeys(): boolean {
+  // The player's namespace excludes test data in both backends, including memory-only saves.
+  const owns = (k: string): boolean =>
+    k.startsWith(PREFIX) && !(PREFIX === BASE_PREFIX && k.startsWith('tm.e2e.'));
+  for (const k of [...memory.keys()]) if (owns(k)) memory.delete(k);
+  for (const k of [...removed]) if (owns(k)) removed.delete(k);
+  cleared.delete(PREFIX);
   try {
     const b = backend();
-    if (b === null) return;
+    // No browser store at all (blocked or missing): nothing ever reached disk, so wiping memory
+    // is the whole clear — the privacy reset succeeds (D-071 keeps `false` for a store that
+    // refuses to list or remove keys).
+    if (b === null) {
+      cleared.add(PREFIX);
+      return true;
+    }
     const keys: string[] = [];
     for (let i = 0; i < b.length; i++) {
       const k = b.key(i);
-      // A namespace's keys never count as the plain prefix's (tm.e2e.* is not the player's).
-      if (
-        k !== null &&
-        k.startsWith(PREFIX) &&
-        !(PREFIX === BASE_PREFIX && k.startsWith('tm.e2e.'))
-      )
-        keys.push(k);
+      if (k !== null && owns(k)) keys.push(k);
     }
     for (const k of keys) b.removeItem(k);
+    return true;
   } catch {
     failed = true;
+    cleared.add(PREFIX);
+    return false;
   }
 }
 
@@ -113,6 +135,8 @@ export const isBoolean = (v: unknown): v is boolean => typeof v === 'boolean';
 /** Tests only: forget the in-memory copy and the failure flag. */
 export function resetStorageForTests(): void {
   memory.clear();
+  removed.clear();
+  cleared.clear();
   failed = false;
   PREFIX = BASE_PREFIX;
 }

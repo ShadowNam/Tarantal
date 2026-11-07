@@ -18,9 +18,15 @@ export function guideLoaded(): boolean {
 
 /** Starts (or joins) loading the guide's sentences. */
 export function loadGuide(): Promise<void> {
-  loading ??= import('./guideTables').then((m) => {
-    tables = m.GUIDE_TABLES;
-  });
+  loading ??= import('./guideTables').then(
+    (m) => {
+      tables = m.GUIDE_TABLES;
+    },
+    (error: unknown) => {
+      loading = null;
+      throw error;
+    },
+  );
   return loading;
 }
 

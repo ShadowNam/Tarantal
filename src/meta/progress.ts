@@ -13,9 +13,11 @@ import type {
 } from '../content/schemas';
 import type { HuntLog } from './huntLog';
 import { hasRank, higherRank } from './ranks';
+import { awardPlaques, recordHunt } from './journal';
 import type { SaveData } from './saveSchema';
 
 export interface HuntOutcome {
+  readonly personalRecords?: readonly string[];
   readonly save: SaveData;
   /** Challenges finished by this hunt. */
   readonly completed: readonly string[];
@@ -170,20 +172,24 @@ export function applyHunt(
     }
   }
 
-  return {
-    save: {
-      ...save,
-      stats: {
-        hunts: save.stats.hunts + 1,
-        bagged: save.stats.bagged + log.bagged,
-        shots: save.stats.shots + log.shots,
-      },
-      birdBook,
-      bests,
-      bestRank,
-      notaboek: { progress, done: [...done].sort() },
-      unlocks: { ...save.unlocks, weapons: [...unlocked].sort(), sights: [...sights].sort() },
+  const personal = recordHunt(save.journal, log, ranked);
+  const nextSave: SaveData = {
+    ...save,
+    journal: personal.journal,
+    stats: {
+      hunts: save.stats.hunts + 1,
+      bagged: save.stats.bagged + log.bagged,
+      shots: save.stats.shots + log.shots,
     },
+    birdBook,
+    bests,
+    bestRank,
+    notaboek: { progress, done: [...done].sort() },
+    unlocks: { ...save.unlocks, weapons: [...unlocked].sort(), sights: [...sights].sort() },
+  };
+  return {
+    personalRecords: personal.improved,
+    save: log.rules && !['ftue', 'range'].includes(log.mode) ? awardPlaques(nextSave) : nextSave,
     completed,
     unlockedWeapons,
     unlockedSights,

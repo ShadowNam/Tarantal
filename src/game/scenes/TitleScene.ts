@@ -71,6 +71,11 @@ export class TitleScene extends Phaser.Scene {
     this.ctx = ctx;
   }
 
+  /** Relabel the title while retaining the hunt/run callbacks supplied by HuntScene. */
+  refreshLanguage(): void {
+    if (this.data_) this.scene.restart(this.data_);
+  }
+
   create(data: TitleData): void {
     this.data_ = data;
     this.started = false;

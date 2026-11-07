@@ -35,11 +35,28 @@ describe('SaveData v1', () => {
     store.set('tm.notice.x', '1');
     const seen: number[] = [];
     save.onChange((d) => seen.push(d.stats.hunts));
-    save.clear();
+    expect(save.clear()).toBe(true);
     expect([...store.keys()]).toEqual([]);
     expect(save.data).toEqual(defaultSave());
     expect(seen).toEqual([0]);
     expect(loadSave().status).toBe('new');
+  });
+
+  it('a rejected browser deletion preserves the active save and allows a successful retry', () => {
+    const save = new SaveStore();
+    save.update((d) => ({ ...d, stats: { ...d.stats, hunts: 7 } }));
+    const removal = vi.spyOn(localStorage, 'removeItem').mockImplementation(() => {
+      throw new Error('SecurityError');
+    });
+    expect(save.clear()).toBe(false);
+    expect(save.data.stats.hunts).toBe(7);
+    expect(new SaveStore().data).toEqual(defaultSave());
+    expect(store.has('tm.save.v1')).toBe(true);
+    expect(storageStatus()).toBe('memory');
+    removal.mockRestore();
+    expect(save.clear()).toBe(true);
+    expect(loadSave().status).toBe('new');
+    expect(store.has('tm.save.v1')).toBe(false);
   });
 
   it('starts from defaults when nothing is stored', () => {

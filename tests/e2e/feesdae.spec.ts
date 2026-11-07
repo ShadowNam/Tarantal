@@ -1,7 +1,7 @@
 // D-048: the Halloween Spookjag Daily on desktop, Pixel 7 and iPhone 14 landscape, forced with
 // `?feesdag=halloween` (the real date logic is unit-tested): the title's badge; a dusk hunt with
 // lanterns and a bat; a lantern shot dark (in-page pointer events); Oupa's opening line; the
-// tally's Halloween frame and the share card's "Spookjag 2026"; with Oupa's comments Off no
+// tally's Halloween frame and the share card's "Ghost Hunt 2026" (English since D-073; "Spookjag" in af); with Oupa's comments Off no
 // Halloween line is shown or voiced. Transient hook values are read in the same waitForFunction
 // that sees them.
 import { expect, test, type Page } from '@playwright/test';
@@ -97,7 +97,7 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
       timeout: 60_000,
     });
     let h = await hook(page);
-    expect(h.feesdag).toEqual({ id: 'halloween', badge: 'Spookjag tonight!' });
+    expect(h.feesdag).toEqual({ id: 'halloween', badge: 'Ghost Hunt tonight!' });
     // The badge is the pill behind the Daily's status line: it holds the line and covers neither
     // the Daily button nor the hint line under the buttons (the map line is gone on a special day).
     const badge = h.rects['dailyBadge'];
@@ -121,7 +121,7 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
     h = await hook(page);
     expect(h.mode).toBe('daily');
     expect(h.map?.lights).toEqual([HALLOWEEN.light]);
-    expect(h.hudTag).toMatch(/^Spookjag · DAILY #\d+$/);
+    expect(h.hudTag).toMatch(/^Ghost Hunt · DAILY #\d+$/);
     const lanterns = h.spook?.things.filter((t) => t.kind === 'lantern') ?? [];
     expect(lanterns.length).toBeGreaterThanOrEqual(TWIST.lanterns.count[0]);
     expect(lanterns.length).toBeLessThanOrEqual(TWIST.lanterns.count[1]);
@@ -149,7 +149,7 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
     });
     h = await hook(page);
     expect(h.tally).toMatchObject({ frame: 'halloween', share: true });
-    expect(h.tally?.title).toMatch(/^Spookjag \d{4}$/);
+    expect(h.tally?.title).toMatch(/^Ghost Hunt \d{4}$/);
     const moon = h.rects['tallyMoon'];
     const tag = h.rects['tallyTag'];
     expect(moon).toBeDefined();
@@ -159,7 +159,7 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
     await tapRectInPage(page, touch, 'share');
     await page.waitForFunction(() => window.__TM__?.lastShare != null, null, { timeout: 30_000 });
     h = await hook(page);
-    expect(h.lastShare?.text).toMatch(/^🎃🦇 🐦 Tarantal Madness · Spookjag \d{4} · Daily #\d+/);
+    expect(h.lastShare?.text).toMatch(/^🎃🦇 🐦 Tarantal Madness · Ghost Hunt \d{4} · Daily #\d+/);
     expect(h.lastShare?.text).toContain('🦇🌕');
     expect(h.lastShare?.url).toContain('?c=');
     expect(errors).toEqual([]);

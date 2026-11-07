@@ -149,6 +149,22 @@ export interface TestHook {
   sightArt?: 'final' | 'placeholder' | null;
   /** Menu overlay on top of the scene: shed, settings, pause (null = none). */
   menu: string | null;
+  journal?: {
+    section: string;
+    page: number;
+    seen: string[];
+    earned: string[];
+    equipped: string | null;
+    records: number;
+    rivals: number;
+  };
+  journalGoals?: { id: string; best: number; target: number; complete: boolean }[];
+  journalSightings?: string[];
+  journalPortraits?: number;
+  shedPlaque?: string;
+  shotMoment?: string | null;
+  /** Whether Privacy is showing a rejected browser-data deletion (test builds only). */
+  privacyClearFailed?: boolean;
   /** M10: the self-hosted fonts loaded before the game drew any text. */
   fontsReady: boolean;
   /** M10 capture mode: speed (0 = frozen) and auto-pan, or null outside it. */
