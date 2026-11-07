@@ -76,7 +76,12 @@ test('a fetch drawn on the canvas: he carries a bird home on the near plane', as
   // the runner's timing (CI on 33c434d5: no fetch in 80 tries on Pixel 7, green on f7adbce7);
   // the decision itself — a real bag sends him to fetch it — is proven on a whole Classic hunt
   // in src/sim/brakkie/sim.test.ts.
-  await boot(page, `${BASE}&brakkie=1&brakkiePreview=fetch`);
+  // The art preview's fetch settings (art-preview-brakkie.spec.ts, green on all three profiles):
+  // no weekday layout, so no pop-up or tin can sends him off before the demo fetch.
+  await boot(
+    page,
+    'biome=karoo-autumn&layout=none&seed=42&huntSeconds=120&graphics=standard&baboons=0&reenbui=0&omen=0&faunaIdle=0&brakkie=1&brakkiePreview=fetch',
+  );
   await startHunt(page, touch);
   await dogOnScreen(page);
   // Carrying it home on the near plane: hold the sim the moment he is drawn with the bird.
