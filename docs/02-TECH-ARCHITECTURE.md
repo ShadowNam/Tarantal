@@ -1216,7 +1216,7 @@ The friends' Android app before any store account (docs/ANDROID-TEST-APP.md). Ca
 ## 10. Assets pipeline
 - Sources in `art-source/` (PSD/Krita/Spine) — keep them: they document human authorship (see art bible).
 - `tools/pack-atlases.ts` (`npm run assets:pack`, M10, D-027): turns `art-source/` into PNG
-  textures, layer tiles (≤ 2 048 px), multi-page bird atlases (JSON hash, @1x + @2x) and audio,
+  textures, layer tiles (≤ 2 048 px), multi-page bird atlases (JSON hash, @1x + @2x; pages split where that holds fewer GPU bytes, D-074) and audio,
   under `public/assets/<group>/` with content-hashed names, plus `public/assets/asset-index.json`
   (schema `src/game/assets/assetIndex.ts`). Rules for artists: `docs/06-ASSET-DELIVERY.md`.
 - **Final/placeholder switch:** the game fetches the index at boot. `AssetManifest` loads each

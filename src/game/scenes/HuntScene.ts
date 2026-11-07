@@ -692,6 +692,13 @@ export class HuntScene extends Phaser.Scene {
       (window as { __TM_GUN__?: WeaponView['pose'] }).__TM_GUN__ = (id, clip, frame) => {
         this.weapon.pose(id, clip, frame);
       };
+    // e2e/dev only (perf.spec): put a bird's atlas on the GPU as a spawn would (the rare morphs
+    // load mid-hunt, after a hunt's first texture sample); true once it is there.
+    if (this.ctx.hook)
+      (
+        window as { __TM_ENSURE_BIRD__?: (creature: string, plane: PlaneId) => boolean }
+      ).__TM_ENSURE_BIRD__ = (creature, plane) =>
+        this.manifest.ensureBird(this.textures, creature, plane) !== null;
     // e2e/dev only (v1.1 art previews): a gun's ammo with N rounds left and its crosshair, on top
     // of whatever is equipped (null = back to live). The hunt is held (?holdAt) meanwhile.
     if (this.ctx.hook)
