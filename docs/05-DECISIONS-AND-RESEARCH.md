@@ -4042,8 +4042,9 @@ GDD §11.3g, Tech §3.12g, art bible §5.7. Version 1.17.0.
   takes the pellet, so a cameo never hides a bird, a secret, a crate or a tin can. A pellet whose
   only hit is a cameo plays its reaction. −10 (Oupa's one scold line, the weaver nest's 2 s
   cooldown, `hit.cooldownSeconds`) only for a shot aimed at one (the aim point on its body) that
-  hit no target **and** had no live bird — nor a secret's part, a crate, a tin can or a raider —
-  within `hit.guardPx` of the aim point on screen: the mid cameos walk in the mid flocks' band, so a
+  hit no target **and** had nothing a player shoots at — a live bird, a secret's part, a crate, a
+  tin can or makalani nut, a Spookjag thing or a raiding baboon (not a tell, a meerkat, an ostrich,
+  a ridge baboon, Brakkie or another cameo) — within `hit.guardPx` of the aim point on screen: the mid cameos walk in the mid flocks' band, so a
   player aiming at a bird in front of a springbok and missing is never charged (the benefit of the
   doubt; the balance report measures accidental hits). The scold is a bark line on the hit event
   (the BarkDirector's cooldowns), not a new system.

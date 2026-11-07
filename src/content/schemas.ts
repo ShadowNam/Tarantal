@@ -2325,8 +2325,9 @@ export const CameosSchema = obj({
     penalty: posInt,
     /** At most once per this (the weaver nest's cooldown). */
     cooldownSeconds: pos,
-    /** Never charged when a live bird is within this of the aim point (screen px): the benefit
-     *  of the doubt for a shot at a bird in front of a cameo. */
+    /** Never charged when a live bird, a secret's part, a crate, a tin can or makalani nut, a
+     *  Spookjag thing or a raiding baboon is within this of the aim point (screen px): the benefit
+     *  of the doubt for a shot at something in front of a cameo. */
     guardPx: pos,
   }),
   kinds: obj({

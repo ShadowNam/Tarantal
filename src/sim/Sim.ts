@@ -1960,6 +1960,30 @@ export function createSim(config: SimConfig): Sim {
     return out;
   }
 
+  /** v1.13 (D-075): the hit extras a player shoots at — a secret's part, a crate, a tin can or
+   *  makalani nut, a Spookjag thing, a raiding baboon (and the Skietbaan's papers) — the cameos'
+   *  guard counts these and live birds; never the non-targets (a tell, a meerkat, an ostrich, a
+   *  ridge baboon, a Harvest bystander, Brakkie, another cameo). */
+  function cameoGuardKind(e: HitExtra): boolean {
+    switch (e.kind) {
+      case 'secret':
+      case 'crate':
+      case 'can':
+      case 'spook':
+      case 'paper':
+        return true;
+      case 'baboon':
+        return baboons?.isRaider(e.baboonId) === true;
+      case 'meerkat':
+      case 'ostrich':
+      case 'tell':
+      case 'harvest':
+      case 'dog':
+      case 'cameo':
+        return false;
+    }
+  }
+
   /** v1.13 (D-075): a live bird, or anything else a player aims at, within the cameos'
    *  hit.guardPx of the screen point (dx, sy) for camera centre cx: a shot there is never charged
    *  to a cameo (the benefit of the doubt). */
@@ -1978,8 +2002,8 @@ export function createSim(config: SimConfig): Sim {
     for (const [layerId, list] of hitExtras()) {
       const sf = layerById.get(layerId)?.scrollFactor ?? 1;
       for (const e of list) {
-        if (e.kind === 'cameo' || e.kind === 'dog') continue;
-        if (e.kind === 'meerkat' || e.kind === 'ostrich' || e.kind === 'tell') continue;
+        // Only what a player shoots at (cameoGuardKind): never the non-targets.
+        if (!cameoGuardKind(e)) continue;
         if (near(planeToDx(cx, sf, e.x), e.y)) return true;
       }
     }

@@ -43,8 +43,9 @@ export interface CameoShot {
   readonly hitVisits: readonly number[];
   /** The shot hit a target elsewhere (then it wasn't aimed at a cameo). */
   readonly hitTarget: boolean;
-  /** A live bird, or anything else a player aims at (a secret's part, a crate, a tell, a tin can),
-   *  was within hit.guardPx of the aim point on screen: the benefit of the doubt. */
+  /** A live bird, or anything else a player shoots at — a secret's part, a crate, a tin can or
+   *  makalani nut, a Spookjag thing, a raiding baboon — was within hit.guardPx of the aim point on
+   *  screen: the benefit of the doubt. */
   readonly targetNearAim: boolean;
   /** The shot's aim point (a rifle's before the sway) on a layer. */
   aimOn(layerId: string): { readonly x: number; readonly y: number };

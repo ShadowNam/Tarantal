@@ -763,7 +763,9 @@ per kind (`schedule`), none in the hunt's last stretch. Hit extras of kind `came
 **pass-through** (like a makalani nut): any target behind takes the pellet, only a pellet that meets
 no target ends on the cameo. A shot's cameo hit (`CameoShot`): the reaction always; −`hit.penalty`
 only when the aim point (a rifle's before the sway) is on one, no target was hit, and no live bird
-or other aimed-at thing is within `hit.guardPx` of the aim point on screen (`cameoTargetNearAim`);
+or other thing a player shoots at (`cameoGuardKind`: a secret's part, a crate, a tin can or nut, a
+Spookjag thing, a raiding baboon) is within `hit.guardPx` of the aim point on screen
+(`cameoTargetNearAim`);
 at most once per `hit.cooldownSeconds` (one cooldown for all). A cameo-only shot is a "thing" hit
 (the streak is untouched). The springbok's `alarm`: a pellet on them or an impact within `radiusPx`
 → `cameoAlarm`, they pronk away, and the nearest mid flock within `maxDxPx` gets one threat

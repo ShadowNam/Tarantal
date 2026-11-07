@@ -919,8 +919,9 @@ the Namib, elephants in the Okavango Delta.
   (or one on them) sets off their **alarm whistle**, which alerts the nearest mid flock (one threat,
   like Brakkie's bark; a small, content-tuned effect).
 - **Shooting at one:** a shot **aimed at** a cameo (the aim point on its body, a rifle's before the
-  sway; the aimed-at rule of D-062/D-063/D-069) that hit no target and had **no live bird (nor a
-  secret, crate or tin can) within `hit.guardPx` of the aim point** costs **−10** with Oupa's scold, at most once per 2 s (the weaver
+  sway; the aimed-at rule of D-062/D-063/D-069) that hit no target and had **nothing a player shoots
+  at — a live bird, a secret's part, a crate, a tin can or nut, a Spookjag thing or a raiding
+  baboon — within `hit.guardPx` of the aim point** costs **−10** with Oupa's scold, at most once per 2 s (the weaver
   nest's cooldown). A stray pellet only plays the reaction. Like a hit on the nest it doesn't break
   the Frenzy streak.
 - **Out of the line of fire (lesson 21):** a pellet goes **through** a cameo: anything behind it
