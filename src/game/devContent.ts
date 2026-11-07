@@ -468,9 +468,15 @@ export function withBrakkieParams(b: ContentBundle, params: URLSearchParams): Co
   const preview = (BRAKKIE_PREVIEWS as readonly (string | null)[]).includes(p)
     ? (p as BrakkiePreview)
     : null;
+  // v1.13 polish, art previews only: `?brakkieGunStripe=0` — his rest spots as before the fix
+  // (his head may rest in the gun's barrel on screen), the screenshot spec's "before".
+  const noStripe = (x: ContentBundle): ContentBundle =>
+    params.get('brakkieGunStripe') === '0'
+      ? { ...x, brakkie: { ...x.brakkie, roam: { ...x.brakkie.roam, gunStripePx: [0, 0] } } }
+      : x;
   if (flag === '0') return withNoBrakkie(b);
-  if (flag === '1' || preview !== null) return withBrakkiePreview(b, preview);
-  return b;
+  if (flag === '1' || preview !== null) return noStripe(withBrakkiePreview(b, preview));
+  return noStripe(b);
 }
 
 /**
