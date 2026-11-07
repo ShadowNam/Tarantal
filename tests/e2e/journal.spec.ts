@@ -152,8 +152,12 @@ test('journal: setup-specific goals, friendly rematch and actual shot recognitio
   await tapRect(page, touch, 'accept');
   await page.waitForFunction(() => window.__TM__?.scene === 'hunt' && window.__TM__.tick > 30);
   expect((await hook(page)).challenge?.score).toBe(150);
-  for (let i = 0; i < 10; i++) {
-    if ((await hook(page)).shotMoment != null) break;
+  // Bagging a far bird takes luck with the Dubbelloop's spread: 10 tries missed every time on
+  // desktop WebKit (run 42367243545). Bounded by tries and by the hunt; which events make which
+  // moment is unit-tested (src/meta/journal.test.ts shotMoment).
+  for (let i = 0; i < 60; i++) {
+    const now = await hook(page);
+    if (now.shotMoment != null || now.over) break;
     const h = await hook(page);
     const bird = h.targetBirds.find(
       (b) => b.plane === 'far' && b.x > 120 && b.x < h.designWidth - 120 && b.y > 160 && b.y < 900,
