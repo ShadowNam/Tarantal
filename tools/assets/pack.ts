@@ -1047,7 +1047,7 @@ export function propPlaneRes(content: ContentBundle, key: string): number {
   // v1.12 (D-069): Brakkie's sheet likewise (1× from its 2× master, the HD twin the master).
   if (key === BRAKKIE_SHEET) return 1;
   // v1.13 (D-075): the cameo sheets likewise (1× from their 2× masters, the HD twins the masters).
-  if ((Object.values(CAMEO_SHEETS) as string[]).includes(key)) return 1;
+  if (Object.values<string>(CAMEO_SHEETS).includes(key)) return 1;
   // v1.8 (D-050): the tin cans keep their 2× master (near cans are seen close up).
   if (key === CAN_SHEET) return CAN_MASTER;
   let res = 0;

@@ -127,7 +127,7 @@ function usages(
   if (dogSound !== undefined) needles.push(new RegExp(`BRAKKIE_SOUNDS\\.${dogSound}\\b`));
   // v1.13 (D-075): the cameo sheets by their table (CAMEO_SHEETS[area], CameoView) and the
   // sounds by their table key (CAMEO_SOUNDS.grunt …).
-  if ((Object.values(CAMEO_SHEETS) as string[]).includes(key)) needles.push(/\bCAMEO_SHEETS\[/);
+  if (Object.values<string>(CAMEO_SHEETS).includes(key)) needles.push(/\bCAMEO_SHEETS\[/);
   const cameoSound = Object.entries(CAMEO_SOUNDS).find(([, k]) => k === key)?.[0];
   if (cameoSound !== undefined) needles.push(new RegExp(`CAMEO_SOUNDS\\.${cameoSound}\\b`));
   const palm = /^okavango\/makalani_(trunk|crown)_(near|mid)$/.exec(key);
