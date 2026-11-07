@@ -144,3 +144,47 @@ test('portrait: the rotate card hides the language picker (it would sit above th
   await expect(page.locator('#rotate-card')).toBeVisible();
   await expect(page.locator('#startup-language')).toBeHidden();
 });
+
+test('the language picker covers nothing on the title and hides under the admin page', async ({
+  page,
+}, info) => {
+  // #116 review: the picker (fixed, top left, above the canvas) once sat on the Skietbaan bar and
+  // the admin and Project overview panels on phones, so their taps never landed.
+  test.skip(!isLandscape(info), 'landscape only: in portrait the rotate card covers the picker');
+  test.setTimeout(240_000);
+  await boot(page, 'seed=42&graphics=standard');
+  const picker = page.locator('#startup-language');
+  await expect(picker).toBeVisible();
+  const box = await picker.boundingBox();
+  if (box === null) throw new Error('no picker box');
+  // Every rect the title lays out, in client px.
+  const rects = await page.evaluate(() => {
+    const canvas = document.querySelector('#game canvas');
+    const h = window.__TM__;
+    if (!canvas || !h) throw new Error('game not booted');
+    const c = canvas.getBoundingClientRect();
+    const k = c.width / h.designWidth;
+    return Object.entries(h.rects).map(([id, r]) => ({
+      id,
+      x: c.left + r.x * k,
+      y: c.top + r.y * k,
+      w: r.w * k,
+      h: r.h * k,
+    }));
+  });
+  expect(rects.length).toBeGreaterThan(3);
+  const under = rects
+    .filter(
+      (r) =>
+        r.x < box.x + box.width &&
+        box.x < r.x + r.w &&
+        r.y < box.y + box.height &&
+        box.y < r.y + r.h,
+    )
+    .map((r) => r.id);
+  expect(under, 'title rects under the language picker').toEqual([]);
+  // The admin page opens over the title: the picker hides under it.
+  await page.goto('/?e2e=1&reenbui=0&brakkie=0&cameos=0&ftue=0&admin=1');
+  await expect(page.locator('#tm-admin')).toBeVisible({ timeout: 60_000 });
+  await expect(picker).toBeHidden();
+});
