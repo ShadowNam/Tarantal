@@ -4042,13 +4042,17 @@ GDD §11.3g, Tech §3.12g, art bible §5.7. Version 1.17.0.
   takes the pellet, so a cameo never hides a bird, a secret, a crate or a tin can. A pellet whose
   only hit is a cameo plays its reaction. −10 (Oupa's one scold line, the weaver nest's 2 s
   cooldown, `hit.cooldownSeconds`) only for a shot aimed at one (the aim point on its body) that
-  hit no target **and** had no live bird within `hit.guardPx` of the aim point on screen: the mid
-  cameos walk in the mid flocks' band, so a player aiming at a bird in front of a springbok and
-  missing is never charged (the benefit of the doubt; the balance report measures accidental hits).
-  The scold is a bark line on the hit event (the BarkDirector's cooldowns), not a new system.
-- *Line of fire (lesson 21).* A visit starts only when its route keeps `clear.pathPx` from the
-  secrets' parts, tells, colonies, tin-can fences and crates on its layer and from Brakkie (checked
-  every `clear.pathStepPx`); else it tries again later.
+  hit no target **and** had no live bird — nor a secret's part, a crate, a tin can or a raider —
+  within `hit.guardPx` of the aim point on screen: the mid cameos walk in the mid flocks' band, so a
+  player aiming at a bird in front of a springbok and missing is never charged (the benefit of the
+  doubt; the balance report measures accidental hits). The scold is a bark line on the hit event
+  (the BarkDirector's cooldowns), not a new system.
+- *Line of fire (lesson 21).* A near cameo's short way out of the grass must keep `clear.pathPx`
+  from the secrets' parts, tells, colonies, tin-can fences and crates on its layer and from Brakkie
+  (checked every `clear.pathStepPx`), else it tries again later. A mid crossing spans the whole
+  screen, and some secret or tell is always somewhere on it (the first build never started one), so
+  it walks past them — pellets go through it and the guard spares shots near them — but it stops
+  (to feed, to graze) only where nothing aimed at is near.
 - *Field guide.* The shed's Journal (D-072) already has the field page with discoveries recorded
   only when a sprite is drawn (view/meta, not sim events), so the cameos join its species list
   (new habitats per area) instead of a second page in the Notaboek. The Notaboek gets the secret

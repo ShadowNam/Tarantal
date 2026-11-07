@@ -919,16 +919,17 @@ the Namib, elephants in the Okavango Delta.
   (or one on them) sets off their **alarm whistle**, which alerts the nearest mid flock (one threat,
   like Brakkie's bark; a small, content-tuned effect).
 - **Shooting at one:** a shot **aimed at** a cameo (the aim point on its body, a rifle's before the
-  sway; the aimed-at rule of D-062/D-063/D-069) that hit no target and had **no live bird within
-  `hit.guardPx` of the aim point** costs **−10** with Oupa's scold, at most once per 2 s (the weaver
+  sway; the aimed-at rule of D-062/D-063/D-069) that hit no target and had **no live bird (nor a
+  secret, crate or tin can) within `hit.guardPx` of the aim point** costs **−10** with Oupa's scold, at most once per 2 s (the weaver
   nest's cooldown). A stray pellet only plays the reaction. Like a hit on the nest it doesn't break
   the Frenzy streak.
 - **Out of the line of fire (lesson 21):** a pellet goes **through** a cameo: anything behind it
   (a bird, a crate, a secret's part, a tin can) takes the pellet, so a cameo never hides a target;
-  on its own layer a cameo is drawn under the birds; a visit starts only when its whole route keeps
-  `clear.pathPx` from the secrets, tells, colonies, tin-can fences and Brakkie on its layer; the
-  near-plane ones keep below the pop-ups' grass line and inside the band round the screen's centre
-  that keeps clear of the HUD's corners (as Brakkie does).
+  on its own layer a cameo is drawn under the birds; a herd stops to feed or graze only where
+  nothing a player aims at is near, and a near one comes out only where its short way keeps
+  `clear.pathPx` from the secrets, tells, colonies, tin-can fences and Brakkie; the near-plane ones
+  keep below the pop-ups' grass line and inside the band round the screen's centre that keeps clear
+  of the HUD's corners (as Brakkie does).
 - **Field guide:** the shed's Journal (D-072) already has the "Seen in the veld" page (its
   `field` section, discoveries recorded when a sprite is drawn on screen): each cameo is added
   there once seen, with a short "Did you know?" fact (text only, en/af/de/nl).
