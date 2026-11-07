@@ -109,10 +109,12 @@ export function removeAllKeys(): boolean {
   cleared.delete(PREFIX);
   try {
     const b = backend();
+    // No browser store at all (blocked or missing): nothing ever reached disk, so wiping memory
+    // is the whole clear — the privacy reset succeeds (D-071 keeps `false` for a store that
+    // refuses to list or remove keys).
     if (b === null) {
       cleared.add(PREFIX);
-      failed = true;
-      return false;
+      return true;
     }
     const keys: string[] = [];
     for (let i = 0; i < b.length; i++) {

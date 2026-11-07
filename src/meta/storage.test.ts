@@ -113,7 +113,8 @@ describe('storage', () => {
     writeText('save.v1', 'test save');
     setStorageNamespace('');
     writeText('save.v1', 'player save');
-    expect(removeAllKeys()).toBe(false);
+    // No browser store: the memory wipe is the whole clear, so it succeeds.
+    expect(removeAllKeys()).toBe(true);
     expect(readText('save.v1')).toBeNull();
     setStorageNamespace('e2e.');
     expect(readText('save.v1')).toBe('test save');
