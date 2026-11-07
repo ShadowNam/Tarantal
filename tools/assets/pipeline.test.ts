@@ -104,6 +104,37 @@ describe('shelf packing', () => {
     expect(pages.length).toBe(8);
     expect(pages.reduce((n, p) => n + p.placed.length, 0)).toBe(30);
   });
+
+  it('splits a page that is just over a half when that holds fewer GPU bytes (v1.12)', () => {
+    // Five shelves of four 250 × 120 rects end at y 612: one page rounds up to 1024 × 1024;
+    // four shelves on a 1024 × 512 page and the fifth on 1024 × 128 hold 37.5 % fewer bytes.
+    const rows = (n: number): { id: string; width: number; height: number }[] =>
+      Array.from({ length: n * 4 }, (_, i) => ({ id: `r${String(i)}`, width: 250, height: 120 }));
+    const area = (ps: readonly { width: number; height: number }[]): number =>
+      ps.reduce((a, p) => a + p.width * p.height, 0);
+    const one = shelfPack(rows(5), 1024);
+    expect([one.width, one.height]).toEqual([1024, 1024]);
+    const pages = shelfPackPages(rows(5), 1024);
+    expect(area(pages)).toBeLessThan(one.width * one.height);
+    expect(pages.reduce((n, p) => n + p.placed.length, 0)).toBe(20);
+    // Every rect inside its page.
+    for (const p of pages)
+      for (const r of p.placed) {
+        expect(r.x + r.width).toBeLessThanOrEqual(p.width);
+        expect(r.y + r.height).toBeLessThanOrEqual(p.height);
+      }
+  });
+
+  it('keeps a tight page as it was (a split must be strictly smaller)', () => {
+    const rects = Array.from({ length: 4 }, (_, i) => ({
+      id: `t${String(i)}`,
+      width: 250,
+      height: 250,
+    }));
+    const pages = shelfPackPages(rects, 1024);
+    expect(pages).toHaveLength(1);
+    expect(pages[0]).toEqual(shelfPack(rects, 1024));
+  });
 });
 
 describe('pack-atlases', () => {

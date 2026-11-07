@@ -3900,6 +3900,12 @@ hunt"). GDD §8.
   only when they change (≤ 7 calls a frame, was ≤ 10); the braai perf case measures ≥ 60 frames so
   one GC pause can't decide it (the failing sample had 28); the 0.3 ms budget stays.
 
+- *CI check job split (supervisor, 7 Nov).* `check, build, size` ran the web, Poki, CrazyGames
+  and Android builds with a `size` check each (~2¼ min apiece) and reached 14.7–15.2 min of its
+  15-min limit (cancelled once on this PR). The portal and Android builds and their size checks now
+  run in a parallel job, `portal and app builds, size`, with the same steps and the same 15-min
+  limit; nothing is skipped.
+
 ### D-070 — Complete the Harvest's missing audio beds (2 Nov 2026)
 
 The project audit found four silent placeholders: `amb/oes` and the three `music/oes/*` stems.
@@ -3976,6 +3982,20 @@ Baboon art keeps the existing deterministic poses, frame bounds and hitboxes. Ad
 English also translates the formerly retained Afrikaans catchphrases in barks, seasonal labels and braai narration. Regenerate the affected English interim voice clips so captions and speech agree. Character and place names remain proper names.
 
 Supervisor follow-up at merge (7 Nov 2026): the privacy reset succeeds when the browser has no storage at all (nothing reached disk, so the memory wipe is the whole clear; D-071's failure message stays for a store that refuses to list or remove keys); the language picker hides behind the portrait rotate card and in capture mode, and its label comes from i18n; the Halloween e2e expects the English "Ghost Hunt" text; the baboon art keeps its shaded masses, fur and necks but its edges are back to a shade darker (−0.42) at full width, the eye 0.022 × 0.014, and the hat at its v1.8b height (the 3 Nov edges, eye and hat left the near raider faceless on phones). Version 1.16.0.
+
+**D-074 Atlas pages packed for the least GPU memory; the rare morphs counted in the HD budget (7 Nov 2026, supervisor):**
+an HD Okavango hunt held 257 MB once a lavender guineafowl spawned (budget 256 MB, Tech §9). The
+rare morphs (lavender weight 2, white 1, in every area's spawn table) are in the late group and go to
+the GPU on first spawn (4 MB each at mid @1x), after a hunt's first texture samples, so the HD
+memory tests never counted them; a content change that moved the 31 Dec Daily's seed showed it
+(v1.12's CI). Fixes: (1) `shelfPackPages` keeps the full-page packing unless a split with the
+first page capped at a half (a quarter, …) of its height holds strictly fewer bytes: power-of-two
+pages rounded a page just over a half up to double. The guineafowl's mid @2x goes 32 → 20 MB
+(4096 × 1024 + 4096 × 256), mid @1x 8 → 5, far @2x 4 → 3, the Dubbelloop @1x 16 → 12, the morphs'
+far @1x 1 → 0.6; every other atlas packs exactly as before. Same frames, same pixels; the first
+download +10.3 KB gzip (2,977.2 KB, budget 3 MB). (2) Every HD hunt memory test in perf.spec puts
+both morphs' atlases on the GPU first (`__TM_ENSURE_BIRD__`, test builds only), so ≤ 256 MB is
+judged with them in. No budget changed.
 
 ## 3. Research notes (with sources)
 

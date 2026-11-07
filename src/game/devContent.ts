@@ -425,12 +425,13 @@ export type BrakkiePreview = (typeof BRAKKIE_PREVIEWS)[number];
  * half a second in, fetching every bag in view and back from the bakkie in 2 s; with
  * `?brakkiePreview=bark` he barks at a mid flock every 3–4 s, `flush` digs a flock out 4 s in and
  * every 8–10 s, `fetch` fetches a bird placed beside him 3 s in (no bag needed: the screenshot
- * spec on software GL, lesson 11) (the e2e and screenshot moments).
+ * spec on software GL, lesson 11) (the e2e and screenshot moments); a comma list combines them.
  */
 export function withBrakkiePreview(
   b: ContentBundle,
-  preview: BrakkiePreview | null,
+  previews: readonly BrakkiePreview[],
 ): ContentBundle {
+  const on = (p: BrakkiePreview): boolean => previews.includes(p);
   const d = b.brakkie;
   return {
     ...b,
@@ -439,15 +440,13 @@ export function withBrakkiePreview(
       enterSeconds: [0.5, 0.5],
       fetch: { ...d.fetch, chance: 1, awaySeconds: [2, 2.5] },
       hit: { ...d.hit, awaySeconds: [3, 3.5] },
-      ...(preview === 'fetch' ? { demoFetchSeconds: 3 } : {}),
-      bark:
-        preview === 'bark'
-          ? { ...d.bark, everySeconds: [3, 4], maxDxPx: 1300, retrySeconds: 0.5 }
-          : d.bark,
-      flush:
-        preview === 'flush'
-          ? { ...d.flush, firstSeconds: [4, 4], everySeconds: [8, 10], chance: 1 }
-          : d.flush,
+      ...(on('fetch') ? { demoFetchSeconds: 3 } : {}),
+      bark: on('bark')
+        ? { ...d.bark, everySeconds: [3, 4], maxDxPx: 1300, retrySeconds: 0.5 }
+        : d.bark,
+      flush: on('flush')
+        ? { ...d.flush, firstSeconds: [4, 4], everySeconds: [8, 10], chance: 1 }
+        : d.flush,
     },
   };
 }
@@ -459,12 +458,12 @@ export function withBrakkiePreview(
  */
 export function withBrakkieParams(b: ContentBundle, params: URLSearchParams): ContentBundle {
   const flag = params.get('brakkie');
-  const p = params.get('brakkiePreview');
-  const preview = (BRAKKIE_PREVIEWS as readonly (string | null)[]).includes(p)
-    ? (p as BrakkiePreview)
-    : null;
+  // One preview or a comma list (`bark,fetch`: the perf spec's bark and fetch in one hunt).
+  const previews = (params.get('brakkiePreview') ?? '')
+    .split(',')
+    .filter((p): p is BrakkiePreview => (BRAKKIE_PREVIEWS as readonly string[]).includes(p));
   if (flag === '0') return withNoBrakkie(b);
-  if (flag === '1' || preview !== null) return withBrakkiePreview(b, preview);
+  if (flag === '1' || previews.length > 0) return withBrakkiePreview(b, previews);
   return b;
 }
 

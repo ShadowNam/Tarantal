@@ -26,6 +26,8 @@ Decision records D-070 … D-073. From the product owner's requests of 2–3 Nov
 - **The Harvest's music** (D-070): its calm, build and Stampede loops and a dry-crop ambience bed,
   as lazy Ogg/MP3 assets instead of four silent placeholders.
 - Local checks ignore the git-ignored `tmp/` scratch directory.
+- HD hunts stay under the phones' 256 MB texture limit when a rare lavender or white guineafowl
+  appears: atlas pages are packed for the least GPU memory, same pictures (D-074, #114).
 
 ## [1.15.0] — v1.12: Brakkie, the farm dog (1 Nov 2026)
 
