@@ -124,6 +124,31 @@ for (const gfx of ['standard', 'hd'] as const)
     expect(errors).toEqual([]);
   });
 
+/**
+ * v1.12 (supervisor, 7 Nov): the rare morphs (lavender, white) load mid-hunt, when one first
+ * spawns, so a hunt's first texture samples never had them; every area's spawn table has both.
+ * An Okavango HD hunt with a lavender bird held 257 MB. Puts their atlases on the GPU as a spawn
+ * would (mid and far: they have no near atlas), so the budget is judged with them in.
+ */
+async function rareMorphsOnGpu(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => {
+      const ensure = (
+        window as {
+          __TM_ENSURE_BIRD__?: (creature: string, plane: 'near' | 'mid' | 'far') => boolean;
+        }
+      ).__TM_ENSURE_BIRD__;
+      if (ensure === undefined) return false;
+      let all = true;
+      for (const c of ['tarentaal_lavendel', 'tarentaal_wit'])
+        for (const plane of ['mid', 'far'] as const) all = ensure(c, plane) && all;
+      return all;
+    },
+    null,
+    { timeout: 180_000 },
+  );
+}
+
 // D-054: every area's HD hunt within the medium tier's texture budget (Tech §9: 256 MB) on the
 // Pixel 7 profile, reached the way players reach it: boot on the Karoo title, then a Classic hunt
 // in the chosen area (the save's area choice). This path left the title's Karoo HD layers on the
@@ -199,6 +224,7 @@ for (const biome of AREAS)
       )
       .catch(() => undefined);
     // A few texture samples (the hook updates about twice a second), and a frame or two of play.
+    await rareMorphsOnGpu(page);
     await page.waitForTimeout(4000);
     const h = await hook(page);
     const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
@@ -260,6 +286,7 @@ test('HD texture memory, title → the Harvest (oes)', async ({ page, browserNam
       { timeout: 90_000 },
     )
     .catch(() => undefined);
+  await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
@@ -330,6 +357,7 @@ test('HD texture memory, a Christmas hunt on its heaviest map (okavango)', async
       { timeout: 90_000 },
     )
     .catch(() => undefined);
+  await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
@@ -488,6 +516,7 @@ test('HD texture memory, a New Year hunt on its heaviest map (okavango)', async 
       { timeout: 90_000 },
     )
     .catch(() => undefined);
+  await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
@@ -640,6 +669,7 @@ test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async 
       { timeout: 90_000 },
     )
     .catch(() => undefined);
+  await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
