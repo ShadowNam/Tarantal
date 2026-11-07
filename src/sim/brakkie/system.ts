@@ -264,9 +264,19 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       } else {
         x = rng.range(lo, hi);
       }
-      if (!host.busyNear(dog.plane, x, B.clear.aimPx * s) && pathClear(x)) return x;
+      const facing: 1 | -1 = x > dog.x ? 1 : x < dog.x ? -1 : dog.facing;
+      if (!host.busyNear(dog.plane, x, B.clear.aimPx * s) && pathClear(x) && !underGun(x, facing))
+        return x;
     }
     return null;
+  }
+
+  /** v1.13 polish: his head at layer x facing that way is in the gun's barrel on screen (either
+   *  hand's stripe; the near plane only: on the mid plane he is above the gun). */
+  function underGun(x: number, facing: 1 | -1): boolean {
+    if (dog.plane !== 'near') return false;
+    const hd = Math.abs(dxOf('near', x) + B.hitboxes.stand.head.ox * facing);
+    return hd >= B.roam.gunStripePx[0] && hd <= B.roam.gunStripePx[1];
   }
 
   function rest(): void {
@@ -451,7 +461,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
         // every device): he gets up and comes back into it.
         if (
           dog.phase === 'rest' &&
-          Math.abs(dxOf(dog.plane, dog.x)) > B.roam.viewHalfPx + B.roam.driftPx &&
+          (Math.abs(dxOf(dog.plane, dog.x)) > B.roam.viewHalfPx + B.roam.driftPx ||
+            underGun(dog.x, dog.facing)) &&
           roam()
         )
           return;

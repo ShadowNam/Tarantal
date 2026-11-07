@@ -2119,6 +2119,11 @@ export const BrakkieSchema = obj({
     scamperHalfPx: pos,
     /** Resting this far outside his band (the view panned), he gets up and comes back in. */
     driftPx: nonNeg,
+    /** v1.13 polish: where he rests his head stays out of the first-person gun's barrel on screen
+     *  (screen px from the centre, either side: the right-handed gun's stripe at his head height
+     *  on 16:9–21:9 for aims within ±500 px of the centre, and the left-handed mirror); a pan
+     *  that leaves his head in it gets him up. */
+    gunStripePx: range(nonNeg),
     /** And this far from where he stands. */
     stepPx: range(pos),
     /** Spots tried before he rests where he is. */

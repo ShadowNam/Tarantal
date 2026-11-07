@@ -111,3 +111,33 @@ describe('Brakkie in the hunt (D-069)', () => {
     expect([...types].some((t) => t.startsWith('brakkie'))).toBe(false);
   });
 });
+
+describe('v1.13 polish: Brakkie rests clear of the gun barrel on screen', () => {
+  it('when he stops at a rest spot his head is outside both hands’ gun stripes, and he still rests', () => {
+    const [lo, hi] = B.roam.gunStripePx;
+    let rests = 0;
+    for (const a of B.areas)
+      for (const seed of [1, 2]) {
+        const s = sim({ id: 'classic', biome: a.biome }, seed);
+        let prev = '';
+        while (!s.isOver()) {
+          s.step([]);
+          s.drainEvents();
+          const st = s.snapshot();
+          const d = st.brakkie;
+          const phase = d?.phase ?? '';
+          if (d !== null && phase === 'rest' && prev === 'trot' && d.plane === 'near') {
+            rests++;
+            // Near layer (scroll factor 1): screen dx = x − cameraX.
+            const head = Math.abs(d.x - st.cameraX + B.hitboxes.stand.head.ox * d.facing);
+            expect(
+              head < lo || head > hi,
+              `${a.biome} seed ${String(seed)} head ${String(head)}`,
+            ).toBe(true);
+          }
+          prev = phase;
+        }
+      }
+    expect(rests).toBeGreaterThan(20);
+  });
+});
