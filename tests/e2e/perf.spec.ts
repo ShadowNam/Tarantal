@@ -1401,7 +1401,9 @@ test('HD texture memory, the Okavango Reënbui hunt → the braai tally', async 
 
 // v1.12 (D-069): Brakkie fetching and barking on the Pixel 7 profile at 4× CPU throttle (the
 // smoke's regime: ~20 sim ticks a frame). ?brakkie=1 brings him out at once and fetches every bag
-// in view; ?brakkiePreview=bark has him bark every 3–4 s. Shots at the flocks in view bag birds.
+// in view; ?brakkiePreview=bark,fetch has him bark every 3–4 s and fetch a bird placed beside him
+// 3 s in (a fetch from shooting alone wasn't certain in 30 s). Shots at the flocks in view bag
+// birds (burstAtFlock stops when the hunt ends: a burst over the end hung the test on 33c434d5).
 // His view on its own timer (brakkieMs per scenery frame) ≤ 0.3 ms, the frame within the budget.
 test('perf: Brakkie fetching and barking at 4× CPU throttle (Pixel 7)', async ({
   page,
@@ -1417,7 +1419,7 @@ test('perf: Brakkie fetching and barking at 4× CPU throttle (Pixel 7)', async (
   await emulateCores(page);
   await boot(
     page,
-    'biome=karoo-autumn&layout=mon&seed=3&huntSeconds=30&graphics=standard&baboons=0&brakkie=1&brakkiePreview=bark',
+    'biome=karoo-autumn&layout=mon&seed=3&huntSeconds=30&graphics=standard&baboons=0&brakkie=1&brakkiePreview=bark,fetch',
   );
   await startHunt(page, touch);
   await page.waitForFunction(() => window.__TM__?.brakkie?.sheet != null, null, {
