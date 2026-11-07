@@ -3977,6 +3977,67 @@ English also translates the formerly retained Afrikaans catchphrases in barks, s
 
 Supervisor follow-up at merge (7 Nov 2026): the privacy reset succeeds when the browser has no storage at all (nothing reached disk, so the memory wipe is the whole clear; D-071's failure message stays for a store that refuses to list or remove keys); the language picker hides behind the portrait rotate card and in capture mode, and its label comes from i18n; the Halloween e2e expects the English "Ghost Hunt" text; the baboon art keeps its shaded masses, fur and necks but its edges are back to a shade darker (−0.42) at full width, the eye 0.022 × 0.014, and the hat at its v1.8b height (the 3 Nov edges, eye and hat left the near raider faceless on phones). Version 1.16.0.
 
+### D-075 — v1.13 Veld cameos: more wildlife in every area (7 Nov 2026)
+
+From the product owner's list of 24 Oct ("the veld must feel alive and African"), queued as v1.13.
+GDD §11.3g, Tech §3.12g, art bible §5.7. Version 1.17.0.
+- *Audit first.* The table in GDD §11.3g lists what each area already had. Two of the brief's
+  suggestions were already there and are not built again: Namibië's **ostrich** (D-059's pair and
+  nest on the mid plane — a second, sprinting ostrich there would stand in the same flocks' band
+  that made D-059 drop a second pair), so Namibië gets the gemsbok only and the sprint is the
+  Karoo's; and the Okavango's **elephants** already fan their ears on idle (FaunaView), so their
+  cameo is a reaction of the far herd itself (faster flaps and a trumpet), with no new sheet — the
+  Okavango is the heaviest HD hunt.
+- *Where each species lives (true to the area).* Common warthog (*Phacochoerus africanus*):
+  savanna of the bushveld, Kruger and Limpopo; dung beetles (Scarabaeinae) roll balls on the
+  bushveld's game paths, and some species steer by the Milky Way (Dacke et al. 2013, Wits); leopard
+  tortoise (*Stigmochelys pardalis*): the Karoo and the savannas, southern Africa's largest
+  tortoise; common ostrich: the Karoo (Oudtshoorn) and the arid west; springbok (*Antidorcas
+  marsupialis*): the Kalahari and Karoo, "pronk" being Afrikaans for its stiff-legged leaps;
+  gemsbok (*Oryx gazella*): the Namib and Kalahari, which can go long without drinking; African
+  bush elephant: the Okavango Delta holds one of the largest populations. Sources (accessed 7 Nov
+  2026): [Wikipedia — common warthog](https://en.wikipedia.org/wiki/Common_warthog),
+  [Wikipedia — dung beetle](https://en.wikipedia.org/wiki/Dung_beetle),
+  [Dacke et al. 2013, Current Biology — dung beetles use the Milky Way](https://doi.org/10.1016/j.cub.2012.12.034),
+  [Wikipedia — leopard tortoise](https://en.wikipedia.org/wiki/Leopard_tortoise),
+  [Wikipedia — common ostrich](https://en.wikipedia.org/wiki/Common_ostrich),
+  [Wikipedia — springbok](https://en.wikipedia.org/wiki/Springbok),
+  [Wikipedia — gemsbok](https://en.wikipedia.org/wiki/Gemsbok),
+  [Wikipedia — Okavango Delta](https://en.wikipedia.org/wiki/Okavango_Delta).
+  The field guide's facts are paraphrased from these; Oupa's notes are character dialogue.
+- *One sim system, one stream.* Every cameo lives in the sim on the stream `cameos` (never
+  shared: the springbok alarm's threat draws from it too), reading the flocks, the hit extras,
+  Brakkie's spot and the fire commands read-only. Content `content/cameos.json` (Zod schema,
+  cross-references to biomes, modes and the far herd). In the lazy sim-systems chunk with the
+  baboons and Brakkie (every map already needs it). Golden replays re-recorded on purpose: every
+  hunt with cameos gains their events and the springbok alarm alerts flocks.
+- *Modes.* As the baboons and Brakkie: Classic, the Daily and the bonus maps, the Season Run's
+  plain and omen hunts; not boss hunts, Oupa se Les, the Skietbaan or the Harvest.
+- *Planes.* The warthogs, ostrich, springbok and gemsbok walk the mid plane's ground at the
+  front (`groundY` per area), sized from the true heights × the mid plane's scale (D-049) with the
+  far herds' size factor; the beetle and the tortoise are near-plane, feet at Brakkie's 985,
+  inside the ±450 px band round the view's centre (clear of the HUD's corners on every device,
+  D-069). The elephants stay on the far plane (the far herd).
+- *The hit rule.* Pellets pass **through** a cameo (like a makalani nut, D-056): anything behind it
+  takes the pellet, so a cameo never hides a bird, a secret, a crate or a tin can. A pellet whose
+  only hit is a cameo plays its reaction. −10 (Oupa's one scold line, the weaver nest's 2 s
+  cooldown, `hit.cooldownSeconds`) only for a shot aimed at one (the aim point on its body) that
+  hit no target **and** had no live bird within `hit.guardPx` of the aim point on screen: the mid
+  cameos walk in the mid flocks' band, so a player aiming at a bird in front of a springbok and
+  missing is never charged (the benefit of the doubt; the balance report measures accidental hits).
+  The scold is a bark line on the hit event (the BarkDirector's cooldowns), not a new system.
+- *Line of fire (lesson 21).* A visit starts only when its route keeps `clear.pathPx` from the
+  secrets' parts, tells, colonies, tin-can fences and crates on its layer and from Brakkie (checked
+  every `clear.pathStepPx`); else it tries again later.
+- *Field guide.* The shed's Journal (D-072) already has the field page with discoveries recorded
+  only when a sprite is drawn (view/meta, not sim events), so the cameos join its species list
+  (new habitats per area) instead of a second page in the Notaboek. The Notaboek gets the secret
+  "Veldkenner": every cameo of the hunt's area seen in one hunt.
+- *Lazy groups, never waited for.* Per area `cameos-<area>` (+ `-hd`): the area's sheet and sounds
+  (the Okavango's group holds only the trumpet), requested at START and never waited for: until
+  they arrive a cameo is not drawn (the sim runs it all the same). Nothing new in the first
+  download but strings and a little code.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
