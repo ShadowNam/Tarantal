@@ -1,9 +1,9 @@
 {
-  "updated": "2026-11-01T01:13:41Z",
-  "summary": "Live on the test build: v1.11 Die Braai, the day ends at Oupa's fire (1.14.0, merged 03:13 Namibia time on 1 Nov). After a Classic hunt, the Daily or the Harvest the results slate now sits at Oupa's braai under the Milky Way and the Southern Cross: the fire crackles, a nightjar calls, and Oupa tells the hunt as a short story from what happened (the bag, the longest shot, a whole flock, a Reënbui swarm, a new best). A perfect hunt or a rank-up earns his vastrap dance. Every number and button of the tally stays; holiday Dailies bring their decorations to the fire. Next: v1.12 Brakkie (the farm dog), then v1.13 veld cameos; Oupa's new voices last.",
+  "updated": "2026-11-07T10:47:00Z",
+  "summary": "Live on the test build: v1.12 Brakkie, the farm dog (1.15.0, merged 12:47 Namibia time on 7 Nov). Oupa's Jack Russell comes along on Classic hunts, the Daily and the Season Run: he trots in from the bakkie, fetches a bagged guineafowl and carries it home, barks at a flock now and then (it gets nervous) or digs a hidden flock out of the grass. He keeps out of the line of fire; a shot aimed at him costs 25 points and a scolding, and he yelps and runs back to the bakkie, never hurt. Also fixed: HD Okavango hunts went over the phones' 256 MB texture limit when a rare lavender or white guineafowl appeared (#114: bird images packed tighter, same picture). Next: the English start and better baboons (Tank's work of 2–3 Nov, reviewed), then v1.13 veld cameos (Tank building); Oupa's new voices last.",
   "current": {
-    "version": "1.14.0",
-    "commit": "cb403d9"
+    "version": "1.15.0",
+    "commit": "67dffcd"
   },
   "links": [
     {
@@ -34,23 +34,23 @@
   "numbers": [
     {
       "label": "Version on the test build",
-      "value": "1.14.0",
-      "note": "commit cb403d9, merged 03:13 on 1 Nov"
+      "value": "1.15.0",
+      "note": "commit 67dffcd, merged 12:47 on 7 Nov"
     },
     {
       "label": "Pull requests merged",
-      "value": "108",
-      "note": "#1 to #111"
+      "value": "111",
+      "note": "#1 to #114"
     },
     {
       "label": "Unit tests",
-      "value": "1,926",
+      "value": "1,983",
       "note": "plus the browser test suites on 3 devices"
     },
     {
       "label": "First download",
-      "value": "2.97 MB",
-      "note": "2,966.7 KB of the 3,072 KB budget"
+      "value": "2.98 MB",
+      "note": "2,980.8 KB of the 3,072 KB budget"
     },
     {
       "label": "Hunting areas",
@@ -68,8 +68,8 @@
     },
     {
       "label": "Decisions logged",
-      "value": "68",
-      "note": "D-001 to D-068 on main"
+      "value": "70",
+      "note": "D-001 to D-069 and D-074 on main"
     }
   ],
   "needsYou": [
@@ -1055,8 +1055,20 @@
       "status": "done"
     },
     "v1.12": {
-      "owner": "Tank builds it (task 3303d368, started 03:16 Namibia); Claude runs the screenshots and checks",
+      "owner": "Tank built it (task 3303d368); Claude fixed the last tests, ran the screenshots on desktop, Pixel 7 and iPhone 14, an independent review and full CI, found and fixed a texture-memory bug on main on the way (#114), and merged it (#112)",
       "summary": "Brakkie, the farm dog: a little dog trots along on the hunt and fetches what you bag; shoot him and you lose 25 points and get a scolding.",
+      "requestedBy": "You: the v1.9–v1.13 list, in your order.",
+      "status": "done"
+    },
+    "english-rollout": {
+      "owner": "Tank built it in your tasks of 2–3 Nov; Claude reviewed it, fixed five must-fix items and the baboon art's edges and eyes, and runs the screenshots and CI",
+      "summary": "English start with an English / Afrikaans / Deutsch choice on the loading screen; better baboons; Oupa's journal, goals, rivals and keepsakes; the Harvest's music.",
+      "requestedBy": "You, in Tank (2–3 Nov).",
+      "status": "next"
+    },
+    "v1.13": {
+      "owner": "Tank builds it (task 5b2918eb, started 7 Nov 12:35 Namibia); Claude runs the screenshots and checks",
+      "summary": "Veld cameos: a warthog family, dung beetles, a leopard tortoise, ostriches sprinting, springbok pronking, trumpeting elephants, and a field guide.",
       "requestedBy": "You: the v1.9–v1.13 list, in your order.",
       "status": "running"
     }
@@ -2218,6 +2230,11 @@
       "at": "2026-11-01T01:16:00Z",
       "kind": "request",
       "text": "v1.12 Brakkie started in Tank (task 3303d368), with two small fixes (the agama's tail, the windpump discs over the kestrel) and a speed margin for the braai screen."
+    },
+    {
+      "at": "2026-11-07T10:47:00Z",
+      "kind": "merge",
+      "text": "v1.12 Brakkie, the farm dog is on the test build (1.15.0, #112): he fetches what you bag, barks and flushes, and keeps out of the line of fire. Also merged today: #114 (HD hunts stay under the 256 MB phone limit with the rare guineafowl) and #113 (the WhatsApp update format). Full CI green; screenshots reviewed on desktop, Pixel 7 and iPhone 14."
     }
   ]
 }
