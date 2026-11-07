@@ -77,7 +77,7 @@ import { JOURNAL } from '../../content/journal';
 import { cameoChunk, requestCameos } from '../cameos/cameoChunk';
 import { CAMEO_AREA_OF, CAMEO_SHEETS, type CameoArea } from '../cameos/cameoKeys';
 import type { CameoView } from '../cameos/CameoView';
-import { cameoCalling } from '../cameos/cameoAnim';
+import { CAMEO_SPECIES, cameoCalling } from '../cameos/cameoAnim';
 import { StoryFactsLog } from '../braai/storyFacts';
 import type { HarvestView } from '../view/harvest/HarvestView';
 import type { HarvestTally } from './TallyScene';
@@ -1816,6 +1816,11 @@ export class HuntScene extends Phaser.Scene {
               this.ctx.content.birds.creatures
                 .find((c) => c.id === id)
                 ?.behaviours.includes('perchHigh') === true,
+            // v1.13 (D-075): the area's cameos, for the Notaboek's Veldkenner.
+            (biome) =>
+              (this.ctx.content.cameos.areas.find((a) => a.biome === biome)?.cameos ?? []).map(
+                (k) => CAMEO_SPECIES[k],
+              ),
           )
         : null;
     if (this.ctx.hook) this.ctx.hook.journalSightings = [];

@@ -970,6 +970,11 @@ export class HudScene extends Phaser.Scene {
         // gruff, loving scold.
         this.pushPop(formatAward(e.points), '#FF6B5A');
         this.oupa('guide.brakkie.scold', banner);
+      } else if (e.type === 'cameoHit' && e.points < 0) {
+        // v1.13 (D-075): a shot aimed at a veld cameo — points off (the nest's cooldown) and
+        // Oupa's scold.
+        this.pushPop(formatAward(e.points), '#FF6B5A');
+        this.oupa('guide.cameo.scold', banner);
       } else if (e.type === 'brakkieFetched' && !this.brakkieProud) {
         // He's back at the bakkie with the bird: Oupa's proud line (once a hunt).
         this.brakkieProud = true;

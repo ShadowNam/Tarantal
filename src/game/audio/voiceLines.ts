@@ -71,6 +71,11 @@ export function brakkieBarks(): string[] {
   return ['scold', 'fetched', 'title'].map((k) => `guide.brakkie.${k}`);
 }
 
+/** v1.13 (D-075): Oupa's one scold for a shot aimed at a veld cameo (lazy guide tables). */
+export function cameoBarks(): string[] {
+  return ['guide.cameo.scold'];
+}
+
 /**
  * Every voiced key: Oupa's trigger lines, plus each secret's bark (the weavers' "Tsk-tsk-tsk!"
  * scold, the windpomp sign, the egg…), and (v1.7, D-044) the meerkats' scold and Oupa's

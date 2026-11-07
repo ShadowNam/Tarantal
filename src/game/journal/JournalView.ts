@@ -13,6 +13,28 @@ import { oupaShows } from '../audio/oupaMode';
 import { fetchAssetIndex, loadImage } from '../assets/finalLoader';
 import { residentFrames, RESIDENT_SHEET_W } from '../view/tree/residentSheet';
 import { colonyFrames, COLONY_SHEET_W } from '../view/tree/colonySheet';
+import { CAMEO_SHEET_SIZE, type CameoSheetArea } from '../cameos/cameoKeys';
+import { cameoFrames, sheetRect } from '../cameos/cameoSheet';
+
+/** A portrait's frame rect on its 1× sheet and that sheet's 1× width (null: unknown frame). */
+function portraitRect(
+  sheet: string,
+  frame: string,
+  habitat: string,
+): { x: number; y: number; w: number; h: number; sheetW: number } | null {
+  // v1.13 (D-075): a cameo's sheet (cameos/<area>), its frames at half size on the sheet.
+  if (sheet.startsWith('cameos/')) {
+    const area = sheet.slice('cameos/'.length) as CameoSheetArea;
+    const size = CAMEO_SHEET_SIZE[area] as (typeof CAMEO_SHEET_SIZE)[CameoSheetArea] | undefined;
+    const f = size === undefined ? undefined : cameoFrames(area).find((x) => x.name === frame);
+    return size === undefined || f === undefined ? null : { ...sheetRect(f), sheetW: size.w };
+  }
+  const baobab = habitat === 'baobab';
+  const f = (baobab ? residentFrames() : colonyFrames()).find((x) => x.name === frame);
+  return f === undefined
+    ? null
+    : { x: f.x, y: f.y, w: f.w, h: f.h, sheetW: baobab ? RESIDENT_SHEET_W : COLONY_SHEET_W };
+}
 
 export type JournalSection = 'field' | 'goals' | 'coach' | 'rivals' | 'plaques';
 const SECTIONS: readonly JournalSection[] = ['field', 'goals', 'coach', 'rivals', 'plaques'];
@@ -148,24 +170,26 @@ export function renderJournal(
         found ? '#FFD25A' : '#9A9A8A',
       );
       if (!found) return;
+      const sheet = species.sheet;
+      const frameName = species.frame;
+      if (sheet === undefined || frameName === undefined) return;
       // Unique journal keys prevent a portrait from retaining or removing a hunt's shared sheet.
       void fetchAssetIndex(JOURNAL.fileTimeoutMs)
         .then(async ({ index }) => {
-          const entry = index?.images[species.sheet];
+          const entry = index?.images[sheet];
           if (entry === undefined) return;
           const img = await loadImage(entry.file.path, JOURNAL.fileTimeoutMs);
           if (!alive || img === null) return;
-          const key = `journal-portrait:${species.sheet}`;
+          const key = `journal-portrait:${sheet}`;
           if (!scene.textures.exists(key)) scene.textures.addImage(key, img);
           textures.add(key);
-          const frames = species.habitat === 'baobab' ? residentFrames() : colonyFrames();
-          const frame = frames.find((f) => f.name === species.frame);
-          if (frame === undefined) return;
-          const k = img.width / (species.habitat === 'baobab' ? RESIDENT_SHEET_W : COLONY_SHEET_W);
+          const frame = portraitRect(sheet, frameName, species.habitat);
+          if (frame === null) return;
+          const k = img.width / frame.sheetW;
           const texture = scene.textures.get(key);
-          if (!texture.has(species.frame))
-            texture.add(species.frame, 0, frame.x * k, frame.y * k, frame.w * k, frame.h * k);
-          const portrait = scene.add.image(r.x + 78, r.y + r.h / 2, key, species.frame);
+          if (!texture.has(frameName))
+            texture.add(frameName, 0, frame.x * k, frame.y * k, frame.w * k, frame.h * k);
+          const portrait = scene.add.image(r.x + 78, r.y + r.h / 2, key, frameName);
           portrait.setScale(Math.min(116 / (frame.w * k), 136 / (frame.h * k)));
           mark.setVisible(false);
           if (ctx.hook) ctx.hook.journalPortraits = (ctx.hook.journalPortraits ?? 0) + 1;

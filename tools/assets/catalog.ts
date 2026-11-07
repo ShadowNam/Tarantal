@@ -40,6 +40,7 @@ import {
   baboonBarks,
   harvestBarks,
   brakkieBarks,
+  cameoBarks,
   voiceGroup,
   voicedLines,
 } from '../../src/game/audio/voiceLines';
@@ -293,6 +294,7 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
         ...baboonBarks(RaidActionSchema.options),
         ...harvestBarks(),
         ...brakkieBarks(),
+        ...cameoBarks(),
       ],
     )) {
       const key = voiceKey(lang, line);
