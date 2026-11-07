@@ -2926,6 +2926,12 @@ export const FeelSchema = obj({
       greetChance: fraction,
     }),
   }),
+  /** v1.13 (D-075): the veld cameos on screen (the sim's numbers are content/cameos.json). */
+  cameos: obj({
+    /** An area's HD twin only while the textures in use plus its own stay within
+     *  budgetMiB − headroomMiB. */
+    hd: obj({ budgetMiB: pos, headroomMiB: nonNeg }),
+  }),
   /** v1.11 (D-068): Die Braai, the tally's night setting at Oupa's fire (GDD §8). */
   braai: obj({
     /** The top rank, or no miss with at least minBagged birds, is a perfect hunt (the vastrap). */

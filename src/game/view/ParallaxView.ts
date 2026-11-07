@@ -394,8 +394,22 @@ export class ParallaxView {
   }
 
   /** D-054: poses the far animals for sim tick `tick` (a held frame holds still). */
-  animateFauna(tick: number, calm: boolean, viewWidth = Infinity): void {
-    for (const f of this.fauna) f.update(tick, calm, viewWidth);
+  animateFauna(
+    tick: number,
+    calm: boolean,
+    viewWidth = Infinity,
+    trumpet: { readonly tick: number; readonly ticks: number } | null = null,
+  ): void {
+    for (const f of this.fauna) {
+      // v1.13 (D-075): the elephants' answer to a flush (their trumpet window, on sim time).
+      f.trumpet = trumpet;
+      f.update(tick, calm, viewWidth);
+    }
+  }
+
+  /** v1.13 (D-075): an elephant flapping for the trumpet was drawn on screen this frame. */
+  faunaTrumpetSeen(): boolean {
+    return this.fauna.some((f) => f.trumpetSeen);
   }
 
   /** D-054 (test hook): every far-animal part as drawn. */

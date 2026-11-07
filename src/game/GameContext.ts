@@ -11,6 +11,7 @@ import type { TreeLifeHook } from './view/tree/TreeLifeView';
 import type { TellHook } from './view/tell/TellView';
 import type { BaboonHook } from './view/baboon/BaboonView';
 import type { BrakkieHook, TitleBrakkieHook } from './brakkie/BrakkieView';
+import type { CameoHook } from './cameos/CameoView';
 import type { HarvestHook } from './view/harvest/HarvestView';
 import type { ReenbuiHook } from './view/reenbui/ReenbuiView';
 import type { BaboonsView, HarvestView, PlaneId, ReenbuiView as ReenbuiState } from '../sim/types';
@@ -315,6 +316,8 @@ export interface TestHook {
   /** v1.12 (D-069): Brakkie's sheet is in the texture manager (sampled with textureBytes; the
    *  tally must show false: it goes with the hunt, lesson 40). */
   brakkieTexture: boolean;
+  /** v1.13 (D-075): a cameo sheet is in the texture manager (sampled with textureBytes). */
+  cameoTexture: boolean;
   /** D-053: the largest textures (key, MB), sampled with textureBytes. */
   textureTop: { key: string; mb: number }[];
   /** v1.3: delivered gun atlases in the texture manager (sampled with textureBytes). */
@@ -538,6 +541,10 @@ export interface TestHook {
   brakkie: BrakkieHook | null;
   /** v1.12 (D-069): ms his view took this frame (perf: ≤ 0.3 at 4× throttle). */
   brakkieMs: number;
+  /** v1.13 (D-075): the veld cameos as drawn (null: none on this hunt, or the chunk isn't in). */
+  cameos: CameoHook | null;
+  /** v1.13 (D-075): the cameos' view's time this frame (ms; perf.spec, [perf] JSON). */
+  cameoMs: number;
   /** v1.12 (D-069): the title's Brakkie (null: not drawn). */
   titleBrakkie: TitleBrakkieHook | null;
   /** v1.8c (D-063): the Harvest's actors drawn this frame (null: not the Harvest, or the chunk

@@ -73,6 +73,11 @@ import { brakkieChunk, requestBrakkie } from '../brakkie/brakkieChunk';
 import { BRAKKIE_SHEET } from '../brakkie/brakkieKeys';
 import { secretOwnsRotor } from '../view/windpompMotion';
 import type { BrakkieView } from '../brakkie/BrakkieView';
+import { JOURNAL } from '../../content/journal';
+import { cameoChunk, requestCameos } from '../cameos/cameoChunk';
+import { CAMEO_AREA_OF, CAMEO_SHEETS, type CameoArea } from '../cameos/cameoKeys';
+import type { CameoView } from '../cameos/CameoView';
+import { cameoCalling } from '../cameos/cameoAnim';
 import { StoryFactsLog } from '../braai/storyFacts';
 import type { HarvestView } from '../view/harvest/HarvestView';
 import type { HarvestTally } from './TallyScene';
@@ -200,6 +205,10 @@ export class HuntScene extends Phaser.Scene {
   private brakkie: BrakkieView | null = null;
   /** This hunt has Brakkie (the sim's snapshot): the view is built once the chunk is in. */
   private brakkieWanted = false;
+  /** v1.13 (D-075): the veld cameos (lazy chunk; null until it is in, or none on this hunt). */
+  private cameos: CameoView | null = null;
+  /** This hunt's cameo area (the sim has cameos): the view is built once the chunk is in. */
+  private cameoArea: CameoArea | null = null;
   private reenbuiGen = 0;
   private reenbuiBiome: Biome | null = null;
   private readonly feedingFlocks = new Set<number>();
@@ -859,6 +868,7 @@ export class HuntScene extends Phaser.Scene {
   private sampleTextures(hook: TestHook): void {
     hook.textureBytes = textureBytes(this.textures);
     hook.brakkieTexture = this.textures.exists(BRAKKIE_SHEET);
+    hook.cameoTexture = Object.values(CAMEO_SHEETS).some((k) => this.textures.exists(k));
     hook.textureTop = largestTextures(this.textures, 15);
     // D-053: HD textures in the texture manager, and sampled on-screen boxes (the same with
     // Standard and HD).
@@ -1828,6 +1838,11 @@ export class HuntScene extends Phaser.Scene {
     // they are in he isn't drawn (the sim runs him all the same).
     this.brakkieWanted = sim.snapshot().brakkie !== null;
     if (this.brakkieWanted) requestBrakkie(this.ctx.audio, this.ctx.graphics.hd);
+    // v1.13 (D-075): the area's cameo chunk and files, likewise asked for at START and never
+    // waited for (lessons 14, 19).
+    this.cameoArea = sim.snapshot().cameos === null ? null : (CAMEO_AREA_OF[this.biome.id] ?? null);
+    if (this.cameoArea !== null)
+      requestCameos(this.cameoArea, this.ctx.audio, this.ctx.graphics.hd);
     const durationTicks = sim.snapshot().durationTicks;
     this.ftue =
       modeId === 'ftue'
@@ -1998,6 +2013,8 @@ export class HuntScene extends Phaser.Scene {
       hook.baboonMs = 0;
       hook.brakkie = null;
       hook.brakkieMs = 0;
+      hook.cameos = null;
+      hook.cameoMs = 0;
       hook.harvestActors = null;
       hook.harvest = null;
       hook.harvestMs = 0;
@@ -2097,11 +2114,14 @@ export class HuntScene extends Phaser.Scene {
         events,
         now,
         state.reenbui,
-        // v1.12 (D-069): the calls make room while Brakkie barks, yelps or digs.
-        state.brakkie !== null &&
+        // v1.12 (D-069): the calls make room while Brakkie barks, yelps or digs;
+        // v1.13 (D-075): and while a cameo reacts (its grunt, tok, boom or alarm whistle) or the
+        // elephants trumpet (lesson 36: read from the sim's own state).
+        (state.brakkie !== null &&
           (state.brakkie.phase === 'bark' ||
             state.brakkie.phase === 'yelp' ||
-            state.brakkie.phase === 'dig'),
+            state.brakkie.phase === 'dig')) ||
+          cameoCalling(state),
       );
       if (hook && !this.ending) {
         hook.soundscapeMs += performance.now() - s0;
@@ -2236,6 +2256,27 @@ export class HuntScene extends Phaser.Scene {
     if (this.brakkie !== null) {
       this.brakkie.update(state);
       if (this.ctx.hook) this.ctx.hook.brakkieMs += this.brakkie.lastMs;
+    }
+    // v1.13 (D-075): the veld cameos, on their own timer (cameoMs); built once the chunk is in.
+    if (this.cameos === null && this.cameoArea !== null && !this.ending) {
+      const chunk = cameoChunk();
+      if (chunk !== null)
+        this.cameos = new chunk.CameoView({
+          scene: this,
+          parallax: this.parallax,
+          now: () => performance.now(),
+          tuning: this.ctx.feel.cameos,
+          hd: this.ctx.graphics.hd,
+          area: this.cameoArea,
+          reducedMotion: this.ctx.reducedMotion,
+          sightingAlpha: JOURNAL.sightingAlpha,
+          onSighted: (id) => this.sighted(id),
+          hooks: this.ctx.hook !== null,
+        });
+    }
+    if (this.cameos !== null) {
+      this.cameos.update(state);
+      if (this.ctx.hook) this.ctx.hook.cameoMs += this.cameos.lastMs;
     }
     // v1.8b (D-062): the baboons, on their own timer (outside the weavers + mirage window).
     if (this.baboons !== null) {
@@ -2530,6 +2571,7 @@ export class HuntScene extends Phaser.Scene {
       hook.tells = this.tells?.tells ?? null;
       hook.baboons = this.baboons?.baboons ?? null;
       hook.brakkie = this.brakkie?.hook ?? null;
+      hook.cameos = this.cameos?.hook ?? null;
       hook.baboonRaid = state.baboons?.raid ?? null;
       hook.harvestActors = this.harvest?.actors ?? null;
       hook.reenbui = state.reenbui;
@@ -2638,18 +2680,7 @@ export class HuntScene extends Phaser.Scene {
           cameraAt: (tick) => this.runner?.cameraAt(tick) ?? null,
           planeScale,
           onSighted: (id) => {
-            if (
-              this.ctx.daily.unranked ||
-              this.ftue !== null ||
-              this.range !== null ||
-              (this.runner?.state.aim ?? null) !== null
-            )
-              return;
-            const logger = this.logger;
-            if (logger?.observe(id) && this.ctx.hook)
-              this.ctx.hook.journalSightings = [...logger.creaturesSeen]
-                .filter((k) => k.startsWith('veld_'))
-                .map((k) => k.slice(5));
+            this.sighted(id);
           },
         });
       })
@@ -2679,6 +2710,35 @@ export class HuntScene extends Phaser.Scene {
       .catch(() => {
         // Offline without the chunk cached: the troops are simply not drawn.
       });
+  }
+
+  /**
+   * D-072: a resident (v1.13: a cameo) drawn on screen — the Journal's field guide records it once
+   * (not in an unranked Daily, Oupa se Les, the Skietbaan, or while looking through a scope).
+   * True when the sighting counted (or was already counted this hunt).
+   */
+  private sighted(id: string): boolean {
+    if (
+      this.ctx.daily.unranked ||
+      this.ftue !== null ||
+      this.range !== null ||
+      (this.runner?.state.aim ?? null) !== null
+    )
+      return false;
+    const logger = this.logger;
+    if (logger === null) return false;
+    if (logger.observe(id) && this.ctx.hook)
+      this.ctx.hook.journalSightings = [...logger.creaturesSeen]
+        .filter((k) => k.startsWith('veld_'))
+        .map((k) => k.slice(5));
+    return true;
+  }
+
+  /** v1.13 (D-075): the cameos' view and their sheet's texture, gone (hunt end, teardown). */
+  private releaseCameos(): void {
+    this.cameos?.destroy();
+    this.cameos = null;
+    if (this.ctx.hook) this.ctx.hook.cameos = null;
   }
 
   /** v1.12 (D-069): Brakkie's view and his sheet's texture, gone (hunt end, teardown). */
@@ -2895,6 +2955,8 @@ export class HuntScene extends Phaser.Scene {
     this.baboons?.handle(events, state, this.ctx.audio, width);
     // v1.12 (D-069): Brakkie's barks, yelp and panting.
     this.brakkie?.handle(events, this.ctx.audio, width);
+    // v1.13 (D-075): the cameos' grunts, plop, tok, boom, alarm whistle, snort and trumpet.
+    this.cameos?.handle(events, this.ctx.audio, width);
     this.harvest?.handle(events, state, this.ctx.audio, width);
     this.world.potjie.handle(events);
     if (this.ctx.hook) {
@@ -3039,6 +3101,8 @@ export class HuntScene extends Phaser.Scene {
     // v1.12 (D-069, lesson 40): Brakkie and his sheet go with the hunt, before the tally opens —
     // the hunt → (braai) tally hand-over carries none of his texture.
     this.releaseBrakkie();
+    // v1.13 (D-075): the cameos and their sheet likewise.
+    this.releaseCameos();
     this.mapper?.setEnabled(false);
     this.game.canvas.style.cursor = '';
     this.weapon.hideReticle();
@@ -3408,6 +3472,8 @@ export class HuntScene extends Phaser.Scene {
     this.baboonsGen++;
     this.releaseBrakkie();
     this.brakkieWanted = false;
+    this.releaseCameos();
+    this.cameoArea = null;
     this.harvest?.destroy();
     this.harvest = null;
     this.harvestGen++;

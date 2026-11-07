@@ -158,7 +158,14 @@ export class WorldView {
       s.tick,
       s.rain || s.lightning || (reenbui !== null && reenbui !== undefined && reenbui !== 'easing'),
     );
-    this.parallax.animateFauna(s.tick, this.reducedMotion, width);
+    this.parallax.animateFauna(
+      s.tick,
+      this.reducedMotion,
+      width,
+      s.cameos?.trumpetTick == null
+        ? null
+        : { tick: s.cameos.trumpetTick, ticks: s.cameos.flapTicks },
+    );
     this.drawSecrets(s);
     this.drawCrates(s);
     this.drawDevils(s);
