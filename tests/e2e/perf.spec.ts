@@ -159,8 +159,10 @@ for (const biome of AREAS)
       },
       ['tm.e2e.save.v1', biome, [...AREAS]] as const,
     );
-    // No ?biome=: the title is the Karoo, as for players.
-    await boot(page, `seed=3&huntSeconds=60&graphics=hd`);
+    // No ?biome=: the title is the Karoo, as for players. v1.13 (D-075, lesson 42): with the
+    // area's cameos out in view at once (their sheet adds to the hunt's peak), measured once the
+    // sheet is on the GPU (the Okavango has none: the far elephants answer).
+    await boot(page, `seed=3&huntSeconds=60&graphics=hd&cameos=1&cameoPreview=all`);
     await startHunt(page, isTouchProject(info));
     await page.waitForFunction(
       (want) => {
@@ -170,7 +172,8 @@ for (const biome of AREAS)
           tm?.biome === want &&
           tm.graphics.hdTextures > 0 &&
           fauna.length > 0 &&
-          fauna.every((b) => b.hd)
+          fauna.every((b) => b.hd) &&
+          (want === 'okavango-spring' || tm.cameos?.sheet != null)
         );
       },
       biome,
@@ -219,6 +222,7 @@ for (const biome of AREAS)
       STANDARD_IN_HD_LAYERS.some((id) => t.key.includes(`layer/${area}/${id}/hd/`)),
     );
     expect(standardOnly, 'HD tiles of a Standard-in-HD layer').toEqual([]);
+    expect(h.cameoTexture, "the area's cameo sheet in this hunt").toBe(biome !== 'okavango-spring');
     expect(mb, `${biome}: texture memory (MB) with HD`).toBeLessThanOrEqual(256);
   });
 
@@ -606,7 +610,7 @@ test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async 
   // v1.12 (D-069): with Brakkie out (his sheet adds to the hunt: 254.8 + 0.5 = 255.3 MB).
   await boot(
     page,
-    'biome=okavango-spring&layout=none&seed=3&huntSeconds=60&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm&brakkie=1',
+    'biome=okavango-spring&layout=none&seed=3&huntSeconds=60&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm&brakkie=1&cameos=1&cameoPreview=elephants',
   );
   await startHunt(page, isTouchProject(info));
   await page.waitForFunction(
@@ -1358,7 +1362,7 @@ test('HD texture memory, the Okavango Reënbui hunt → the braai tally', async 
   await emulateCores(page);
   await boot(
     page,
-    'biome=okavango-spring&layout=none&seed=3&huntSeconds=45&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm&brakkie=1',
+    'biome=okavango-spring&layout=none&seed=3&huntSeconds=45&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm&brakkie=1&cameos=1&cameoPreview=elephants',
   );
   await startHunt(page, isTouchProject(info));
   // v1.12 (D-069, lesson 40): Brakkie's sheet is in during the hunt and gone before the tally:
@@ -1396,6 +1400,7 @@ test('HD texture memory, the Okavango Reënbui hunt → the braai tally', async 
   expect(h.scene).toBe('tally');
   expect(h.braai, 'the braai shows').not.toBeNull();
   expect(h.brakkieTexture, "Brakkie's sheet went with the hunt").toBe(false);
+  expect(h.cameoTexture, 'no cameo sheet left from the hunt').toBe(false);
   expect(mb, 'okavango reenbui → braai: texture memory (MB) with HD').toBeLessThanOrEqual(256);
 });
 
@@ -1470,6 +1475,79 @@ test('perf: Brakkie fetching and barking at 4× CPU throttle (Pixel 7)', async (
   expect(cpu.avg, 'CPU cost per frame (ms), Brakkie, 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
   expect(errors).toEqual([]);
 });
+
+// v1.13 (D-075): several veld cameos out at once on the Pixel 7 profile at 4× CPU throttle (the
+// smoke's regime: ~20 sim ticks a frame). ?cameoPreview= brings the Bushveld's warthog family and
+// dung beetle out in view at once and ?cameos=1 sends more often; shots at the flocks in view make
+// them react. Their view on its own timer (cameoMs per scenery frame) ≤ 0.3 ms, ≤ 40 Phaser calls a
+// frame, the frame within the budget.
+for (const [biome, kinds] of [
+  ['bushveld-winter', 'warthogs,dungBeetle'],
+  ['kalahari-summer', 'springbok'],
+] as const)
+  test(`perf: veld cameos on ${biome} at 4× CPU throttle (Pixel 7)`, async ({
+    page,
+    browserName,
+  }, info) => {
+    test.skip(
+      info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+      'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+    );
+    test.setTimeout(400_000);
+    const touch = isTouchProject(info);
+    const errors = collectErrors(page);
+    await emulateCores(page);
+    await boot(
+      page,
+      `biome=${biome}&layout=mon&seed=3&huntSeconds=30&graphics=standard&baboons=0&cameos=1&cameoPreview=${kinds}`,
+    );
+    await startHunt(page, touch);
+    await page.waitForFunction(() => window.__TM__?.cameos?.sheet != null, null, {
+      timeout: 120_000,
+    });
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    const first = await hook(page);
+    let shown = 0;
+    let maxCalls = 0;
+    let maxMembers = 0;
+    while (!(await hook(page)).over) {
+      const h = await hook(page);
+      const drawn = (h.cameos?.visits ?? []).flatMap((v) => v.members).filter((m) => m.visible);
+      if (drawn.length > 0) shown++;
+      maxMembers = Math.max(maxMembers, drawn.length);
+      maxCalls = Math.max(maxCalls, h.cameos?.calls ?? 0);
+      const flock = h.flockSpots.find(
+        (f) => f.plane === 'mid' && f.alive > 0 && f.x > 100 && f.x < h.designWidth - 100,
+      );
+      if (flock !== undefined) await burstAtFlock(page, touch, flock.id, 2, 20);
+      else await waitTicks(page, 40);
+    }
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+    const h = await hook(page);
+    const frames = Math.max(1, h.sceneryFrames - first.sceneryFrames);
+    const cpu = stats(h.cpuFrameMs.slice(30));
+    const report = {
+      project: info.project.name,
+      biome,
+      tier: h.quality.tier,
+      throttle: 4,
+      frames,
+      cameoMsPerFrame: (h.cameoMs - first.cameoMs) / frames,
+      maxCallsPerFrame: maxCalls,
+      maxMembersDrawn: maxMembers,
+      samplesShown: shown,
+      cpuFrameMs: cpu,
+    };
+    console.log(`[perf] ${JSON.stringify(report)}`);
+    writeFileSync(info.outputPath(`perf-cameos-${biome}.json`), JSON.stringify(report, null, 2));
+    expect(shown, 'cameos were drawn on screen').toBeGreaterThan(0);
+    expect(maxMembers, 'several cameos out at once').toBeGreaterThanOrEqual(2);
+    expect(maxCalls).toBeLessThanOrEqual(40);
+    expect(report.cameoMsPerFrame, 'cameo view ms per frame, 4× throttle').toBeLessThanOrEqual(0.3);
+    expect(cpu.avg, 'CPU cost per frame (ms), cameos, 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
+    expect(errors).toEqual([]);
+  });
 
 // v1.11 (D-068): the braai tally on the Pixel 7 profile at 4× CPU throttle, medium tier, Oupa's
 // story told and his dance (?braaiDance=1): the braai view on its own timer (braaiMs per frame)
