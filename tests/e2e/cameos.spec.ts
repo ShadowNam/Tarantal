@@ -1,6 +1,6 @@
 // v1.13 (D-075): the veld cameos. Each area's cameo is brought out in view on a fixed seed with the
 // preview flag (?cameoPreview=<kind>: out 0.5 s in, walking slowly towards the centre; lesson 41: no
-// shooting luck) and held: it is really drawn on the canvas (pixels with it vs the same held tick
+// shooting luck) on the plain map (layout=none) and held: it is really drawn on the canvas (pixels with it vs the same held tick
 // without it, lesson 14), its feet are on the ground line (lessons 8, 18) and its drawn pixels'
 // centre sits on its hit shape facing either way (lesson 22); the field guide records it. A shot
 // aimed at one (no birds: nothing to give it the benefit of the doubt) costs 10 with Oupa's scold;
@@ -56,7 +56,7 @@ type Hooked = {
 };
 
 const base = (biome: string, kind: string): string =>
-  `biome=${biome}&layout=mon&seed=42&huntSeconds=300&graphics=standard&baboons=0&faunaIdle=0&omen=0&cameoPreview=${kind}`;
+  `biome=${biome}&layout=none&seed=42&huntSeconds=300&graphics=standard&baboons=0&faunaIdle=0&omen=0&cameoPreview=${kind}`;
 
 /** Waits (bounded) until the area's sheet is in and a member of a visit of `kind` is drawn; holds
  *  the sim right there and returns that member (its feet in design px). */
@@ -78,6 +78,15 @@ async function holdDrawn(page: Page, kind: string): Promise<Member> {
   return (await m.jsonValue()) as Member;
 }
 
+/** Waits (bounded) until a few frames have been drawn since now (the held tick redrawn), instead
+ *  of a fixed wait that a slow device could outrun. */
+async function freshFrames(page: Page): Promise<void> {
+  const f0 = await page.evaluate(() => window.__TM__?.sceneryFrames ?? 0);
+  await page.waitForFunction((f) => (window.__TM__?.sceneryFrames ?? 0) > f + 3, f0, {
+    timeout: 120_000,
+  });
+}
+
 test.use({ serviceWorkers: 'block' });
 
 for (const [biome, kind, box] of [
@@ -95,7 +104,7 @@ for (const [biome, kind, box] of [
     await startHunt(page, isTouchProject(info));
     const first = await holdDrawn(page, kind);
     await page.mouse.move(0, 0);
-    await page.waitForTimeout(1500);
+    await freshFrames(page);
     const c = (await page.evaluate(() => (window as unknown as Hooked).__TM__?.cameos)) ?? null;
     const m = c?.visits.find((v) => v.kind === kind)?.members.find((x) => x.visible) ?? first;
     // Nothing floating: its feet on its ground line (lessons 8, 18).
@@ -106,7 +115,7 @@ for (const [biome, kind, box] of [
       await page.evaluate((v) => {
         (window as unknown as Hooked).__TM_CAMEOS_HIDE__?.(v);
       }, on);
-      await page.waitForTimeout(1000);
+      await freshFrames(page);
     };
     const all = await shot();
     await hide(true);
