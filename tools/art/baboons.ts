@@ -460,8 +460,10 @@ function part(d: string, fillC: string, w: number, extra: Attrs = {}): string {
     el('path', {
       d,
       fill: `url(#${id})`,
-      stroke: shade(fillC, -0.22),
-      'stroke-width': w * 0.55,
+      // Edges a shade darker than the part at full width (art bible §5.3, "no ink"): the softer,
+      // half-width edge of 3 Nov let near raiders melt into the veld (7 Nov screenshots).
+      stroke: shade(fillC, -0.42),
+      'stroke-width': w,
       'stroke-linejoin': 'round',
       ...extra,
     })
@@ -638,8 +640,10 @@ function headParts(p: Pose, coat: Coat, small: boolean): string[] {
       }),
     );
   else {
-    out.push(el('path', { d: ellipseD(ex, ey, 0.018, 0.011), fill: coat.lid }));
-    out.push(el('path', { d: ellipseD(ex + 0.004, ey + 0.002, 0.007, 0.008), fill: '#2A1A10' }));
+    // Close-set, slightly smaller than the cartoon eye of v1.8b but large enough to read on a
+    // near raider at phone size (the 3 Nov 0.018 × 0.011 eye vanished there).
+    out.push(el('path', { d: ellipseD(ex, ey, 0.022, 0.014), fill: coat.lid }));
+    out.push(el('path', { d: ellipseD(ex + 0.005, ey + 0.003, 0.0095, 0.01), fill: '#2A1A10' }));
     if (!small)
       out.push(el('path', { d: ellipseD(ex + 0.002, ey, 0.004, 0.004), fill: '#F2E8D8' }));
   }
@@ -647,7 +651,9 @@ function headParts(p: Pose, coat: Coat, small: boolean): string[] {
   const cheek = clipOf([ellipseD(hx - 0.025, hy + 0.005, r * 0.88, r * 0.9)]);
   out.push(el('defs', {}, cheek.def));
   out.push(fur(cheek.id, { x0: hx - r, y0: hy - r, x1: hx + r * 0.6, y1: hy + r }, coat, 73, 0.5));
-  if (p.hatOn === true) out.push(...hat(hx - 0.01, hy - r * 0.8, 1));
+  // The hat keeps its v1.8b height (0.092 above the skull's centre): with the smaller 3 Nov skull
+  // at r × 0.8 its brim slid over the eye and the hat raider had no face (7 Nov screenshots).
+  if (p.hatOn === true) out.push(...hat(hx - 0.01, hy - 0.092, 1));
   return out;
 }
 
