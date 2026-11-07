@@ -1,28 +1,31 @@
 # Changelog
 
-- English startup default with a remembered English/Afrikaans/Deutsch loading-screen selector; translated English catchphrases and 45 refreshed English voice clips.
-- Refined baboon anatomy, connected necks, fur and soft shading in Standard and HD art.
-
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
-## [Unreleased]
+## [1.16.0] — English start, the journal, better baboons (7 Nov 2026)
 
-- Six-stage improvement rollout (D-072): the shed's new Journal has illustrated resident
-  discoveries, setup-specific personal goals, optional Oupa lessons, a local friend-challenge
-  notebook with rematches, and earnable cosmetic plaques. Great long/horizon/double shots get
-  clear, rate-limited banners; early Classic results offer a contextual coaching nudge.
-- Journal records and keepsakes use a new backwards-compatible save section. No sim, scores,
-  Daily attempt rules or golden replay events change. All new text is in en/af/de/nl.
+Decision records D-070 … D-073. From the product owner's requests of 2–3 Nov.
 
-- Failed browser-data deletions no longer resurrect old values within the session. Clearing
-  player data also preserves the test namespace in the memory fallback. If the browser refuses
-  a privacy reset, the game shows instructions instead of reloading the undeleted save (D-071).
-
-- The Harvest field now has its missing calm, build and Stampede music loops and a dry-crop
-  ambience bed, delivered as lazy Ogg/MP3 assets instead of four silent placeholders (D-070).
-- Local checks ignore the git-ignored `tmp/` scratch directory, including generated browser
-  reports, consistently with the existing exclusions for build and test output.
+- **English first:** the game starts in English, with an English / Afrikaans / Deutsch choice on
+  the loading and title screens (remembered). Saves still on Auto switch to English once; a
+  language a player picked stays. English now translates the old Afrikaans catchphrases in barks,
+  special-day names and the braai story, with 45 refreshed English voice clips (D-073).
+- **Baboons:** new anatomy — connected necks, faces, finer fur and soft shading — in Standard and
+  HD; same poses, frames and hit shapes (D-073).
+- **Oupa's journal** in the shed (D-072): illustrated resident discoveries, setup-specific
+  personal goals, optional Oupa lessons, a local friend-challenge notebook with rematches, and
+  earnable cosmetic plaques. Great long, horizon and double shots get clear, rate-limited
+  banners; early Classic results offer a coaching nudge. Journal records and keepsakes use a new
+  backwards-compatible save section. No sim, scores, Daily attempt rules or golden replay events
+  change. All new text is in en/af/de/nl.
+- **Privacy reset** (D-071): failed browser-data deletions no longer bring old values back in the
+  session; clearing player data keeps the test namespace in the memory fallback. If the browser
+  refuses a reset, the game says how to clear the site's data instead of reloading the old save.
+  With no browser storage at all, the reset simply succeeds (nothing ever reached disk).
+- **The Harvest's music** (D-070): its calm, build and Stampede loops and a dry-crop ambience bed,
+  as lazy Ogg/MP3 assets instead of four silent placeholders.
+- Local checks ignore the git-ignored `tmp/` scratch directory.
 
 ## [1.15.0] — v1.12: Brakkie, the farm dog (1 Nov 2026)
 
