@@ -4060,7 +4060,11 @@ GDD §11.3g, Tech §3.12g, art bible §5.7. Version 1.17.0.
 - *Lazy groups, never waited for.* Per area `cameos-<area>` (+ `-hd`): the area's sheet and sounds
   (the Okavango's group holds only the trumpet), requested at START and never waited for: until
   they arrive a cameo is not drawn (the sim runs it all the same). Nothing new in the first
-  download but strings and a little code.
+  download but strings and a little code. So while the sheet loads (or with no delivery at all) a
+  cameo walks the sim undrawn — it can react and be charged for an aimed shot — exactly as Brakkie
+  is while his sheet loads (D-069); it is never needed to start or play a hunt. Every area's kinds
+  must be on that area's sheet (`cameoSheetErrors`, run by `npm run content:validate` and a unit
+  test), so a tune can't make a cameo that never gets drawn.
 - *Balance (final content, `docs/balance/v1.13-cameos.md`).* Competent bot, each area's Monday,
   every gun (the Dubbelloop 500 seeds, the others 100), before = the same build without cameos:
   area means −0.2 … +0.3 % (gate ±3 %), single cells −1.5 … +1.8 %; hits that cost points
