@@ -144,7 +144,7 @@ const limbD = (joints: readonly P[], widths: readonly number[]): string =>
 // Warthogs and piglets: drawn in units of the animal's height (1 = WARTHOG_H or PIGLET_H, feet to
 // the top of the back), facing right.
 
-interface Hide {
+export interface Hide {
   readonly skin: string;
   readonly lit: string;
   readonly dark: string;
@@ -156,7 +156,7 @@ interface Hide {
   readonly tusk: string;
   readonly whisker: string;
 }
-const ADULT: Hide = {
+export const ADULT: Hide = {
   skin: '#7C7268',
   lit: '#A79D90',
   dark: '#4A423C',
@@ -168,7 +168,7 @@ const ADULT: Hide = {
   tusk: '#EEE4CC',
   whisker: '#D8D0C0',
 };
-const PIGLET: Hide = {
+export const PIGLET: Hide = {
   skin: '#9A8068',
   lit: '#C2AC90',
   dark: '#634F40',
@@ -181,7 +181,7 @@ const PIGLET: Hide = {
   whisker: '#E2D8C6',
 };
 
-interface HogPose {
+export interface HogPose {
   /** The torso's rump and shoulder ends and its depth. */
   readonly rear: V;
   readonly front: V;
@@ -218,7 +218,7 @@ function fore(sh: V, foot: V, k = 1): P[] {
 }
 
 /** A gait frame: `phase` 0..1 round the stride (diagonal pairs move together). */
-function gaitPose(phase: number, run: boolean, young: boolean): HogPose {
+export function gaitPose(phase: number, run: boolean, young: boolean): HogPose {
   const a = phase * Math.PI * 2;
   const stride = run ? 0.24 : 0.13;
   const lift = run ? 0.12 : 0.07;
@@ -260,7 +260,7 @@ function gaitPose(phase: number, run: boolean, young: boolean): HogPose {
 }
 
 /** Kneeling on the front knees, the snout in the soil (the warthog's feeding pose). */
-function digPose(shift: number): HogPose {
+export function digPose(shift: number): HogPose {
   const rear: V = [-0.48, -0.6];
   const front: V = [0.28, -0.42];
   return {
@@ -363,7 +363,10 @@ function hogTorsoD(p: HogPose): string {
 }
 
 /** The head's outline from nape to snout: the big flat wedge of a warthog's face. */
-function hogHead(p: HogPose, young: boolean): { d: string; at: (u: number, v: number) => V } {
+export function hogHead(
+  p: HogPose,
+  young: boolean,
+): { d: string; at: (u: number, v: number) => V } {
   const d = unit(sub(p.snout, p.nape));
   const n = nrm(d);
   const L = Math.hypot(p.snout[0] - p.nape[0], p.snout[1] - p.nape[1]);

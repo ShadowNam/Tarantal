@@ -164,7 +164,7 @@ test.describe('Die Langloop (v1.4)', () => {
     await langloopSave(page);
     await boot(
       page,
-      `seed=38&today=${DAY.key}&bonus=dieVerste&huntSeconds=12&reenbui=content&brakkie=content`,
+      `seed=38&today=${DAY.key}&bonus=dieVerste&huntSeconds=12&reenbui=content&brakkie=content&cameos=content`,
     );
     await startHunt(page, touch);
     let h = await hook(page);

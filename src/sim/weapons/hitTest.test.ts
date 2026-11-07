@@ -383,3 +383,52 @@ describe('baboons on the far ridge (D-062)', () => {
     expect(r.baboonId).toBe(77);
   });
 });
+
+describe('v1.13 (D-075): a pellet passes through a veld cameo', () => {
+  const geo: ShotGeometry = {
+    slices: [
+      { layerId: 'mid', scrollFactor: 1, plane: 'mid', occluders: [] },
+      { layerId: 'far', scrollFactor: 1, plane: 'far', occluders: [] },
+    ],
+    planeScale: { near: 1, mid: 1, far: 1, ver: 1 },
+    assistPx: { near: 0, mid: 0, far: 0, ver: 0 },
+  };
+  const box = { type: 'rect' as const, w: 60, h: 60, ox: 0, oy: 0 };
+  const cameo: HitExtra = {
+    kind: 'cameo',
+    cameoId: 9,
+    x: 960,
+    y: 500,
+    shape: { type: 'ellipse', rx: 40, ry: 30 },
+  };
+  it('a crate on the same layer listed after it takes the pellet', () => {
+    const r = resolvePellet(
+      0,
+      500,
+      960,
+      geo,
+      planes([]),
+      new Map([['mid', [cameo, { kind: 'crate', crateId: 4, x: 960, y: 500, shape: box }]]]),
+    );
+    expect(r.crateId).toBe(4);
+    expect(r.cameoId).toBeUndefined();
+  });
+  it('a secret part on the layer behind takes the pellet', () => {
+    const r = resolvePellet(
+      0,
+      500,
+      960,
+      geo,
+      planes([]),
+      new Map<string, HitExtra[]>([
+        ['mid', [cameo]],
+        ['far', [{ kind: 'secret', propId: 'p', partId: 'q', x: 960, y: 500, shape: box }]],
+      ]),
+    );
+    expect(r.partId).toBe('q');
+  });
+  it('nothing behind: the cameo is the result (its reaction plays)', () => {
+    const r = resolvePellet(0, 500, 960, geo, planes([]), new Map([['mid', [cameo]]]));
+    expect(r.cameoId).toBe(9);
+  });
+});

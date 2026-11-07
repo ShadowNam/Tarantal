@@ -8,6 +8,7 @@
 import type { Biome } from '../content/schemas';
 import type { BaboonSystemFactory } from './baboons/system';
 import type { BrakkieSystemFactory } from './brakkie/system';
+import type { CameoSystemFactory } from './cameos/system';
 import type { HarvestSystemFactory } from './harvest/system';
 import type { OstrichSystemFactory } from './ostriches/system';
 import type { TellSystemFactory } from './tells/system';
@@ -20,6 +21,8 @@ export interface LazySystems {
   readonly harvest: HarvestSystemFactory;
   /** v1.12 (D-069): Brakkie, the farm dog. */
   readonly brakkie: BrakkieSystemFactory;
+  /** v1.13 (D-075): the veld cameos. */
+  readonly cameos: CameoSystemFactory;
 }
 
 let registered: LazySystems | null = null;

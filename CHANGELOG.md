@@ -3,6 +3,30 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.17.0] — v1.13: Veld cameos, more wildlife in every area (7 Nov 2026)
+
+Decision record D-075. From the product owner's list of 24 Oct ("the veld must feel alive").
+
+- **Veld cameos:** living, reacting wildlife in every area — a warthog family trotting tails-up and
+  kneeling to feed, and a dung beetle rolling its ball (Bushveld); a leopard tortoise plodding past
+  and an ostrich sprinting by (Karoo); a springbok herd that pronks away and whose alarm alerts the
+  nearest flock (Kalahari); gemsbok crossing the dunes (Namibië); and the Okavango's far elephants,
+  who flap their ears and trumpet when a flock flushes near them. They come in Classic, the Daily
+  and the bonus maps and the Season Run's plain and omen hunts.
+- **Never targets, never hurt:** a pellet passes through a cameo (nothing behind it is ever hidden)
+  and only plays its reaction — they bolt, tumble and right themselves, pull in, veer, pronk away. A
+  shot aimed at one costs 10 with Oupa's scold (the nest's 2 s cooldown); a shot at a bird near one
+  is never charged.
+- **Field guide:** each cameo joins the shed Journal's "Seen in the veld" page once seen, with a
+  "Did you know?" fact (en/af/de/nl). **Notaboek:** "Veldkenner" — spot every cameo of an area in
+  one hunt.
+- **Sounds:** warthog grunts, the beetle's plop, the tortoise's tok, the ostrich's boom, the
+  springbok's alarm whistle, the gemsbok's snort and an elephant's trumpet (made in code), and
+  Oupa's scold (3 interim voice clips).
+- **Brakkie:** his rest spots keep his head out of the gun's barrel on screen (screenshot review).
+- Downloads: each area's cameo sheet and sounds are a small lazy group loaded with that area's hunt
+  and never waited for; nothing new in the first download but text and a little code.
+
 ## [1.16.0] — English start, the journal, better baboons (7 Nov 2026)
 
 Decision records D-070 … D-073. From the product owner's requests of 2–3 Nov.

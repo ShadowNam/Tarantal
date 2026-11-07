@@ -740,6 +740,53 @@ tally). One image for him and one for the bird he carries; properties set on cha
 Phaser calls in the worst frame at 20 ticks a frame, unit-tested), his own `brakkieMs`. The
 soundscape's calls make room while he barks, yelps or digs (the snapshot's phase, read only).
 
+### 3.12g Veld cameos (1.17.0, D-075)
+`src/sim/cameos/system.ts` lives in the lazy systems chunk (`LazySystems.cameos`) and talks to the
+hunt through `CameoHost` (tick, emit, penalty, the camera, `busyNear` — any hit extra on the layer
+within px but the cameos' own, and a tin-can fence —, `alarmTarget`, `threaten`). One stream
+`cameos` (`StreamName`) for every draw: schedules, the side a herd comes from, the group's make-up,
+depths, gait offsets, pauses, the springbok alarm's threat and the elephants' chance. Content
+`content/cameos.json` (`CameosSchema`; cross-references: areas are known non-Harvest biomes, the
+elephants' herd layer exists on its map, modes never `ftue`, `range` or `harvest`, no `boss`, edge
+walkers start off every screen (`edgeDxPx` ≥ 1300), the near ones stay inside Brakkie's band and
+below the pop-ups' grass line, an alarm only on a mid walker, `preview` never shipped). On a hunt
+when the area is listed, the mode is, and the Season Run hunt's kind is (`SimState.cameos`, null
+otherwise). A **visit** (`CameoVisitView`): an edge walker (warthogs, ostrich, springbok, gemsbok;
+mid plane at the front ground line `lanes.mid.groundY[1] + midGroundDy`) starts `edgeDxPx` from
+the view's centre on a side and walks a fixed layer path to the same distance on the other side;
+a grass walker (beetle, tortoise; near plane at `nearGroundY`) comes out within `bandPx` of the
+centre, walks `distancePx` towards the centre and fades back (`fadeSeconds`) — it starts only when
+its short way keeps `clear.pathPx` from anything aimed at (and Brakkie). Phases `fadeIn`, `walk`,
+`pause` (only where clear), `react`, `flee`, `fadeOut`; at most `maxActive` visits, a few a hunt
+per kind (`schedule`), none in the hunt's last stretch. Hit extras of kind `cameo`
+(`PelletResult.cameoId`) per member and hitbox, added last; `resolvePellet` treats them as
+**pass-through** (like a makalani nut): any target behind takes the pellet, only a pellet that meets
+no target ends on the cameo. A shot's cameo hit (`CameoShot`): the reaction always; −`hit.penalty`
+only when the aim point (a rifle's before the sway) is on one, no target was hit, and no live bird
+or other thing a player shoots at (`cameoGuardKind`: a secret's part, a crate, a tin can or nut, a
+Spookjag thing, a raiding baboon) is within `hit.guardPx` of the aim point on screen
+(`cameoTargetNearAim`);
+at most once per `hit.cooldownSeconds` (one cooldown for all). A cameo-only shot is a "thing" hit
+(the streak is untouched). The springbok's `alarm`: a pellet on them or an impact within `radiusPx`
+→ `cameoAlarm`, they pronk away, and the nearest mid flock within `maxDxPx` gets one threat
+(source `cameo`) `threatAtSeconds` later. The elephants: `flushed(plane, x)` from every flock
+transition to `flush`; within `nearPx` of the far herd on screen (its layer and u in content, kept
+equal to `faunaHerds.ts` by a test), with `chance`, at most once per cooldown and `maxPerHunt` →
+`cameoTrumpeted` (`trumpetTick`, `flapTicks` in the view). Events `cameoArrived`, `cameoLeft`,
+`cameoHit`, `cameoAlarm`, `cameoTrumpeted`. Test flags (test builds only): `?cameos=0` none (boot()
+adds it unless a spec names `cameos=`), `?cameos=content` the real content (specs that compare with
+Node), `?cameos=1` sooner and more often, `?cameoPreview=all|<kinds>` those kinds out in view at
+once walking slowly (the elephants trumpet), `?cameoReact=<s>` they react then; plain `?e2e` keeps
+the real content hash. The view (`src/game/cameos/CameoView.ts`, a lazy chunk with the frame tables;
+the first download has `cameoChunk.ts`, `cameoKeys.ts` and `cameoAnim.ts`; the Journal's
+portraits import `cameoSheet.ts` lazily, so the frame tables stay in the cameos' chunk) loads the hunt's area
+files itself (Standard sheet, the HD twin only when the textures in use plus its own stay within
+`feel.cameos.hd`, the sounds; the delivery switch holds), polls every 30 frames until the sheet is
+in, draws pooled images set on change from `cameoPose` (sim time: a held tick holds them), reports
+sightings to the Journal and its own `cameoMs`; the sheet is removed when the hunt ends
+(`HuntScene.releaseCameos`, before the tally). The far elephants' flap is `faunaIdle(…, flap)` in
+FaunaView. Balance: `tools/cameo-sweep.ts` (`docs/balance/v1.13-cameos.md`).
+
 ## 5. Rendering (`src/game/`)
 
 - **Phaser 4** WebGL. Verify API details against the Phaser 4 skills in `.claude/skills/` — v4 replaced

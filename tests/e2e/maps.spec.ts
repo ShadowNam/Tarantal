@@ -51,7 +51,7 @@ test.describe('maps (v1.2)', () => {
     const errors = collectErrors(page);
     await boot(
       page,
-      'seed=7&huntSeconds=4&layout=fri&bonus=verder&reenbui=content&brakkie=content',
+      'seed=7&huntSeconds=4&layout=fri&bonus=verder&reenbui=content&brakkie=content&cameos=content',
     );
     await startHunt(page, isTouchProject(info));
     let h = await hook(page);
@@ -93,7 +93,10 @@ test.describe('maps (v1.2)', () => {
     };
     const hash = loadContentHash();
     const withMap = challengeFor({ ...base, layout: 'thu', bonus: 'verder' }, hash);
-    await boot(page, `huntSeconds=3&c=${encodeChallenge(withMap)}&reenbui=content&brakkie=content`);
+    await boot(
+      page,
+      `huntSeconds=3&c=${encodeChallenge(withMap)}&reenbui=content&brakkie=content&cameos=content`,
+    );
     await waitScene(page, 'challenge');
     await tapRect(page, touch, 'accept');
     await waitScene(page, 'hunt');
@@ -111,7 +114,10 @@ test.describe('maps (v1.2)', () => {
 
     const old = challengeFor(base, hash);
     expect('l' in old).toBe(false);
-    await boot(page, `huntSeconds=3&c=${encodeChallenge(old)}&reenbui=content&brakkie=content`);
+    await boot(
+      page,
+      `huntSeconds=3&c=${encodeChallenge(old)}&reenbui=content&brakkie=content&cameos=content`,
+    );
     await waitScene(page, 'challenge');
     await tapRect(page, touch, 'accept');
     await waitScene(page, 'hunt');

@@ -22,6 +22,7 @@ import {
   withNoBaboons,
   withReenbuiParams,
   withBrakkieParams,
+  withCameoParams,
   withAgamaBefore,
   withHarvestPreview,
   withNoPalms,
@@ -481,6 +482,9 @@ const hook: TestHook = {
   brakkie: null,
   brakkieMs: 0,
   brakkieTexture: false,
+  cameos: null,
+  cameoMs: 0,
+  cameoTexture: false,
   titleBrakkie: null,
   feesdagMs: 0,
   feesdagDimMs: 0,
@@ -544,7 +548,14 @@ const loaded = loadGameContent();
 // e2e/dev only (D-049 "before" screenshots): ?planeScale=v17 — the old plane scales.
 const planeScaleParam = testHooks ? params.get('planeScale') : null;
 const planePreset = isPlaneScalePreset(planeScaleParam) ? planeScaleParam : null;
-const feel = loaded.feel;
+// e2e/dev only: ?maxSteps=30 raises the loop's sim catch-up per frame (feel.loop.maxStepsPerFrame),
+// so a hunt on a slow, software-rendered test machine keeps to real time and ends when a wall-clock
+// wait expects it. Client feel only: the content hash and every replay are unchanged.
+const maxStepsParam = testHooks && params.has('maxSteps') ? Number(params.get('maxSteps')) : NaN;
+const feel =
+  Number.isInteger(maxStepsParam) && maxStepsParam > 0
+    ? { ...loaded.feel, loop: { ...loaded.feel.loop, maxStepsPerFrame: maxStepsParam } }
+    : loaded.feel;
 // M10: the final-asset index, fetched while the platform SDK starts (absent = all placeholders).
 const indexLoad = fetchAssetIndex(feel.assets.indexTimeoutMs);
 const crateParam = testHooks ? params.get('crate') : null;
@@ -585,7 +596,10 @@ const noTroops = testHooks && params.get('baboons') === '0' ? withNoBaboons(with
 const withRainOnly = testHooks ? withReenbuiParams(noTroops, params) : noTroops;
 // e2e/dev only (v1.12, D-069): ?brakkie=0 no Brakkie (specs that pin a seed, lesson 17), ?brakkie=1
 // out at once and fetching every bag, ?brakkiePreview=bark|flush that moment within seconds.
-const withDog = testHooks ? withBrakkieParams(withRainOnly, params) : withRainOnly;
+const withBrakkie = testHooks ? withBrakkieParams(withRainOnly, params) : withRainOnly;
+// e2e/dev only (v1.13, D-075): ?cameos=0 no cameos (specs that pin a seed, lesson 17), ?cameos=1
+// sooner and more often, ?cameoPreview=all|<kinds>[&cameoReact=<s>] out in view at once.
+const withDog = testHooks ? withCameoParams(withBrakkie, params) : withBrakkie;
 // art previews only (v1.12 polish b): ?agamaBefore=1 — the agama on its old seat.
 const withRain =
   testHooks && params.get('agamaBefore') === '1' ? withAgamaBefore(withDog) : withDog;

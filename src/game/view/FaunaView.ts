@@ -278,9 +278,23 @@ export class FaunaView {
    * Per frame in a hunt: refresh(), then poses heads, tails and ears for sim tick `tick`
    * (`calm`: reduce motion) on the herds within `view` (design px across the screen).
    */
+  /** v1.13 (D-075): the far elephants' last trumpet (sim tick and how long they flap), from the
+   *  snapshot each frame (null: none). */
+  trumpet: { readonly tick: number; readonly ticks: number } | null = null;
+  /** v1.13: an elephant flapping for the trumpet was drawn on screen this frame (the field
+   *  guide's sighting). */
+  trumpetSeen = false;
+
   update(tick: number, calm: boolean, viewWidth = Infinity): void {
     if (this.o.before === true) return;
     this.refresh();
+    // v1.13 (D-075): the elephants' trumpet window (0…1 through it, else −1).
+    const tr = this.trumpet;
+    const flap =
+      tr === null || tick < tr.tick || tick >= tr.tick + tr.ticks
+        ? -1
+        : (tick - tr.tick) / tr.ticks;
+    this.trumpetSeen = false;
     if (tick === this.lastTick && calm === this.lastCalm) {
       this.drawDebug();
       return;
@@ -303,7 +317,8 @@ export class FaunaView {
         an.pose =
           this.o.still === true
             ? REST
-            : faunaIdle(tick, an.a, this.o.idle, calm, this.o.ticksPerSecond);
+            : faunaIdle(tick, an.a, this.o.idle, calm, this.o.ticksPerSecond, flap);
+        if (flap >= 0 && an.a.species === 'elephant') this.trumpetSeen = true;
         live.add(an);
       }
     }

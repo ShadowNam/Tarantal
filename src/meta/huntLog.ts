@@ -40,6 +40,9 @@ export interface HuntLog {
   readonly reenbuiBags?: number;
   /** v1.12 (D-069): Brakkie was out this hunt and no shot ever hit him (1), else 0. */
   readonly brakkieMates?: number;
+  /** v1.13 (D-075): every veld cameo of the hunt's area was seen (drawn on screen) in it (1),
+   *  else 0 (Notaboek "Veldkenner"). */
+  readonly veldkenner?: number;
 }
 
 export interface HuntLogger {
@@ -57,12 +60,18 @@ export interface HuntLogger {
  */
 export function createHuntLogger(
   sightedOnCall: (creature: string) => boolean = () => false,
+  /** v1.13 (D-075): the field-guide species of a biome's veld cameos (none: no Veldkenner). */
+  cameoSpecies: (biome: string) => readonly string[] = () => [],
 ): HuntLogger {
   const creatures = new Set<string>();
   const secrets = new Set<string>();
   let reenbuiBags = 0;
   let dogOut = false;
   let dogHit = false;
+  const veldkenner = (biome: string): number => {
+    const want = cameoSpecies(biome);
+    return want.length > 0 && want.every((id) => creatures.has(sightingKey(id))) ? 1 : 0;
+  };
   return {
     observe(id) {
       if (!isJournalSpecies(id) || creatures.has(sightingKey(id))) return false;
@@ -115,6 +124,7 @@ export function createHuntLogger(
         canChain: r.cans?.bestChain ?? 0,
         reenbuiBags,
         brakkieMates: dogOut && !dogHit ? 1 : 0,
+        veldkenner: veldkenner(r.biome),
       };
     },
   };

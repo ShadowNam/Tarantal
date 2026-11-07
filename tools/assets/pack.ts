@@ -61,6 +61,7 @@ import { CHRISTMAS_GROUP, CHRISTMAS_SHEET } from '../../src/game/feesdae/christm
 import { NEWYEAR_GROUP, NEWYEAR_SHEET } from '../../src/game/feesdae/newyearAssets';
 import { BRAAI_GROUP, BRAAI_SHEET } from '../../src/game/braai/braaiKeys';
 import { BRAKKIE_GROUP, BRAKKIE_SHEET } from '../../src/game/brakkie/brakkieKeys';
+import { CAMEO_SHEETS } from '../../src/game/cameos/cameoKeys';
 import { SOUNDSCAPE_GROUP } from '../../src/game/audio/soundscapeKeys';
 import { DESERT_GROUP, MEERKAT_SHEET, SHEET_MASTER } from '../../src/game/assets/desertAssets';
 import type { ContentBundle } from '../../src/content/schemas';
@@ -882,6 +883,9 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       if (o.catalog.entries.get(key)?.group === BRAAI_GROUP) group = BRAAI_GROUP;
       // v1.12 (D-069): Brakkie's with "brakkie".
       if (o.catalog.entries.get(key)?.group === BRAKKIE_GROUP) group = BRAKKIE_GROUP;
+      // v1.13 (D-075): the cameos' with their area's "cameos-<area>".
+      const cameoG = o.catalog.entries.get(key)?.group;
+      if (cameoG?.startsWith('cameos-') === true) group = cameoG;
       // v1.9 (D-066): the soundscape's calls with "soundscape".
       if (o.catalog.entries.get(key)?.group === SOUNDSCAPE_GROUP) group = SOUNDSCAPE_GROUP;
     } else if (parts[0] === 'voice' && parts.length === 3) {
@@ -1042,6 +1046,8 @@ export function propPlaneRes(content: ContentBundle, key: string): number {
   if (key === BRAAI_SHEET) return 1;
   // v1.12 (D-069): Brakkie's sheet likewise (1× from its 2× master, the HD twin the master).
   if (key === BRAKKIE_SHEET) return 1;
+  // v1.13 (D-075): the cameo sheets likewise (1× from their 2× masters, the HD twins the masters).
+  if (Object.values<string>(CAMEO_SHEETS).includes(key)) return 1;
   // v1.8 (D-050): the tin cans keep their 2× master (near cans are seen close up).
   if (key === CAN_SHEET) return CAN_MASTER;
   let res = 0;

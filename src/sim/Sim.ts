@@ -193,6 +193,7 @@ import {
 import type { TellSystem } from './tells/system';
 import type { BaboonSystem } from './baboons/system';
 import type { BrakkieSystem } from './brakkie/system';
+import type { CameoSystem } from './cameos/system';
 import { registeredLazySystems } from './lazySystems';
 import { overlapsReenbui, planReenbui, type ColumnPlaneGeo } from './reenbui/reenbui';
 import { createReenbuiSystem, type ReenbuiSystem } from './reenbui/system';
@@ -1092,7 +1093,10 @@ export function createSim(config: SimConfig): Sim {
         busyExtras = hitExtras();
       }
       const layerId = plane === 'near' ? dogNear : dogMid;
-      for (const e of busyExtras.get(layerId) ?? []) if (e.kind !== 'dog') consider(e.x);
+      // v1.13 (D-075 review round 2): not the cameos either — a dung beetle is no reason for the
+      // dog to bolt (the cameos keep clear of him instead).
+      for (const e of busyExtras.get(layerId) ?? [])
+        if (e.kind !== 'dog' && e.kind !== 'cameo') consider(e.x);
       return best;
     };
     brakkie = needLazy('Brakkie').brakkie(
@@ -1153,6 +1157,96 @@ export function createSim(config: SimConfig): Sim {
           addFlocks([f], dogRng);
           emitTransition(f, forceState(f, 'flush', x, 'event', fParams, dogRng));
           return f.id;
+        },
+      },
+    );
+  }
+  // v1.13 (D-075): the veld cameos, from their own stream `cameos` (where Brakkie comes: Classic,
+  // the Daily, the Season Run's plain and omen hunts). Lazy chunk like the baboons.
+  const cameoCfg = content.cameos;
+  const cameoArea = cameoCfg.areas.find((a) => a.biome === biome.id);
+  let cameos: CameoSystem | null = null;
+  if (
+    cameoArea !== undefined &&
+    dogNear !== undefined &&
+    dogMid !== undefined &&
+    dogMidGround !== undefined &&
+    !ranged &&
+    setup.tutorial === null &&
+    harvest === null &&
+    cameoCfg.modes.includes(mode.id) &&
+    (season === null || cameoCfg.seasonKinds.includes(season.kind))
+  ) {
+    const cameoRng = rng.stream('cameos');
+    let cameoBusyTick = -1;
+    let cameoBusyExtras: Map<string, HitExtra[]> = new Map();
+    const herdLayer = layerById.get(cameoCfg.kinds.elephants.herd.layer);
+    cameos = needLazy('cameos').cameos(
+      content,
+      {
+        layers: {
+          near: { id: dogNear, scrollFactor: planeGeo.near.scrollFactor },
+          mid: { id: dogMid, scrollFactor: planeGeo.mid.scrollFactor },
+        },
+        groundY: { near: cameoCfg.nearGroundY, mid: dogMidGround + cameoCfg.midGroundDy },
+        scrollFactor: {
+          near: planeGeo.near.scrollFactor,
+          mid: planeGeo.mid.scrollFactor,
+          far: planeGeo.far.scrollFactor,
+          ver: planeGeo.ver.scrollFactor,
+        },
+        herd:
+          herdLayer === undefined
+            ? null
+            : {
+                x: cameoCfg.kinds.elephants.herd.u * coreWidth(herdLayer.scrollFactor),
+                scrollFactor: herdLayer.scrollFactor,
+              },
+        kinds: cameoArea.cameos,
+        durationTicks: () => durationTicks,
+      },
+      cameoRng,
+      {
+        tick: () => tick,
+        emit: (e) => {
+          emit(e);
+        },
+        penalty: (points) => {
+          score += points;
+          stats.penalties++;
+        },
+        cameraX: () => cameraX,
+        busyNear: (plane, x, px) => {
+          // A tin-can fence on the plane is aimed at as a whole (as Brakkie keeps off it).
+          for (const fence of [blik?.fence, blikFar?.fence]) {
+            if (fence === undefined || fence.plane !== plane || fence.posts.length === 0) continue;
+            const xs = fence.posts.map((p) => p.x);
+            if (x >= Math.min(...xs) - px && x <= Math.max(...xs) + px) return true;
+          }
+          if (cameoBusyTick !== tick) {
+            cameoBusyTick = tick;
+            cameoBusyExtras = hitExtras();
+          }
+          const layerId = plane === 'near' ? dogNear : dogMid;
+          for (const e of cameoBusyExtras.get(layerId) ?? [])
+            if (e.kind !== 'cameo' && Math.abs(e.x - x) <= px) return true;
+          return false;
+        },
+        alarmTarget: (dx, maxDx) => {
+          let best: { flockId: number; x: number; d: number } | null = null;
+          for (const f of flocks) {
+            if (f.plane !== 'mid' || f.members.length === 0 || f.state === 'flush') continue;
+            const fx = centroid(f).x;
+            const d = Math.abs(planeToDx(cameraX, planeGeo.mid.scrollFactor, fx) - dx);
+            if (d <= maxDx && (best === null || d < best.d)) best = { flockId: f.id, x: fx, d };
+          }
+          return best === null ? null : { flockId: best.flockId, x: best.x };
+        },
+        threaten: (flockId, fromX) => {
+          const f = flocks.find((x) => x.id === flockId);
+          if (f === undefined || f.members.length === 0 || f.state === 'flush') return;
+          emit({ type: 'flockThreatened', tick, flockId: f.id, source: 'cameo' });
+          emitTransition(f, applyThreat(f, fromX, fParams, cameoRng));
         },
       },
     );
@@ -1384,6 +1478,8 @@ export function createSim(config: SimConfig): Sim {
     if (tr.to === 'flush') stats.flushes++;
     if (tr.to === 'run' || tr.to === 'flush') flockRan = true;
     const c = centroid(f);
+    // v1.13 (D-075): the Okavango's far elephants answer a flush near their herd.
+    if (tr.to === 'flush') cameos?.flushed(f.plane, c.x);
     emit({
       type: 'flockStateChanged',
       tick,
@@ -1859,7 +1955,59 @@ export function createSim(config: SimConfig): Sim {
     harvest?.extras(add);
     // v1.12 (D-069): Brakkie last on his layer: anything else there takes the pellet first.
     brakkie?.extras(add);
+    // v1.13 (D-075): the cameos last (pass-through: anything else on the way takes the pellet).
+    cameos?.extras(add);
     return out;
+  }
+
+  /** v1.13 (D-075): the hit extras a player shoots at — a secret's part, a crate, a tin can or
+   *  makalani nut, a Spookjag thing, a raiding baboon (and the Skietbaan's papers) — the cameos'
+   *  guard counts these and live birds; never the non-targets (a tell, a meerkat, an ostrich, a
+   *  ridge baboon, a Harvest bystander, Brakkie, another cameo). */
+  function cameoGuardKind(e: HitExtra): boolean {
+    switch (e.kind) {
+      case 'secret':
+      case 'crate':
+      case 'can':
+      case 'spook':
+      case 'paper':
+        return true;
+      case 'baboon':
+        return baboons?.isRaider(e.baboonId) === true;
+      case 'meerkat':
+      case 'ostrich':
+      case 'tell':
+      case 'harvest':
+      case 'dog':
+      case 'cameo':
+        return false;
+    }
+  }
+
+  /** v1.13 (D-075): a live bird, or anything else a player aims at, within the cameos'
+   *  hit.guardPx of the screen point (dx, sy) for camera centre cx: a shot there is never charged
+   *  to a cameo (the benefit of the doubt). */
+  function cameoTargetNearAim(cx: number, dx: number, sy: number): boolean {
+    const guard2 = content.cameos.hit.guardPx * content.cameos.hit.guardPx;
+    const near = (sdx: number, ssy: number): boolean =>
+      (sdx - dx) * (sdx - dx) + (ssy - sy) * (ssy - sy) <= guard2;
+    for (const b of birds) {
+      if (!canHit(b)) continue;
+      // From the bird's body centre (its hitbox body on its plane).
+      const k = geometry.planeScale[b.plane];
+      const body = b.creature.hitbox.body;
+      const bx = b.x + hazeDx(b) + body.ox * k * b.facing;
+      if (near(planeToDx(cx, planeGeo[b.plane].scrollFactor, bx), b.y + body.oy * k)) return true;
+    }
+    for (const [layerId, list] of hitExtras()) {
+      const sf = layerById.get(layerId)?.scrollFactor ?? 1;
+      for (const e of list) {
+        // Only what a player shoots at (cameoGuardKind): never the non-targets.
+        if (!cameoGuardKind(e)) continue;
+        if (near(planeToDx(cx, sf, e.x), e.y)) return true;
+      }
+    }
+    return false;
   }
 
   /** Birds as hit-test targets, front-most first per plane (higher ids are drawn on top). */
@@ -1970,7 +2118,7 @@ export function createSim(config: SimConfig): Sim {
         ? plane === 'far' || plane === 'ver'
         : r.meerkatId !== undefined || r.ostrichId !== undefined || r.tellId !== undefined
           ? false
-          : r.harvestId !== undefined || r.dogId !== undefined
+          : r.harvestId !== undefined || r.dogId !== undefined || r.cameoId !== undefined
             ? false
             : r.baboonId !== undefined
               ? baboons?.plane(r.baboonId) === 'far' || baboons?.plane(r.baboonId) === 'ver'
@@ -2165,9 +2313,12 @@ export function createSim(config: SimConfig): Sim {
         // resolvePellet can't look past it): the first one is kept and the stone flies on; a bird
         // in a later band takes the stone, anything else (or nothing) gives it to the nut.
         const nutOnly = r.birdId === null && r.passThrough === true;
-        if (nutOnly) f.nut ??= { r, psy, drift };
+        // v1.13 (D-075): a veld cameo (near or mid) is passed through the same way: the first
+        // one is kept, and the stone ends on it only when nothing behind takes it.
+        const cameoOnly = r.cameoId !== undefined && !isTarget(r);
+        if (nutOnly || cameoOnly) f.nut ??= { r, psy, drift };
         const last = f.nut !== undefined && !isTarget(r) ? f.nut : null;
-        if (nutOnly && f.next < bands.length) continue;
+        if ((nutOnly || cameoOnly) && f.next < bands.length) continue;
         // A paper target or steel plate (the range only) stops a stone too.
         const stopped =
           r.birdId !== null ||
@@ -2241,6 +2392,8 @@ export function createSim(config: SimConfig): Sim {
     const baboonHits: number[] = [];
     const harvestHits: number[] = [];
     let dogHit = false;
+    /** v1.13 (D-075): cameo visits a pellet hit (each once). */
+    const cameoHits: number[] = [];
     /** v1.8: pellets per tin can, their summed offsets and the dents (in landing order). */
     const canHits = new Map<
       number,
@@ -2289,6 +2442,7 @@ export function createSim(config: SimConfig): Sim {
       if (r.harvestId !== undefined && !harvestHits.includes(r.harvestId))
         harvestHits.push(r.harvestId);
       if (r.dogId !== undefined) dogHit = true;
+      if (r.cameoId !== undefined && !cameoHits.includes(r.cameoId)) cameoHits.push(r.cameoId);
       if (r.canId !== undefined) {
         const h = canHits.get(r.canId) ?? { n: 0, dx: 0, dy: 0, at: [] };
         h.n++;
@@ -2374,6 +2528,7 @@ export function createSim(config: SimConfig): Sim {
       baboonHits.length > 0 ||
       harvestHits.length > 0 ||
       dogHit ||
+      cameoHits.length > 0 ||
       canHits.size > 0;
 
     const targets = bagged.filter((x) => x.bird.creature.kind !== 'nonTarget');
@@ -2581,6 +2736,25 @@ export function createSim(config: SimConfig): Sim {
         (layerId) =>
           tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
       );
+    // v1.13 (D-075): the cameos react to a pellet (and the springbok to a shot close by); −10
+    // only for a shot aimed at one that hit no target with nothing aimed at near the aim point.
+    if (cameos !== null) {
+      const sfOf = (layerId: string): number => layerById.get(layerId)?.scrollFactor ?? 1;
+      cameos.shot({
+        shotId,
+        hitVisits: cameoHits,
+        hitTarget:
+          damage.outcomes.length > 0 ||
+          partHits.length > 0 ||
+          crateHits.length > 0 ||
+          spookHits.length > 0 ||
+          canHits.size > 0 ||
+          baboonHits.some((id) => baboons?.isRaider(id) === true),
+        targetNearAim: cameoHits.length > 0 && cameoTargetNearAim(shotCx, ctx.aim.dx, ctx.aim.sy),
+        aimOn: (layerId) => tapToPlane(shotCx, sfOf(layerId), ctx.aim.dx, ctx.aim.sy),
+        impactsOn: (layerId) => impacts.map((p) => tapToPlane(shotCx, sfOf(layerId), p.dx, p.sy)),
+      });
+    }
     const near = shotThreats(
       flocks,
       impacts,
@@ -3704,6 +3878,7 @@ export function createSim(config: SimConfig): Sim {
     harvest?.step();
     reenbui?.step();
     brakkie?.step();
+    cameos?.step();
     // v1.12 (D-069): a pop-up ducks back into the grass when Brakkie comes within his room (a
     // guineafowl would): never a bird standing beside him for a shot to stray onto him.
     const dogSpot = brakkie?.nearSpot() ?? null;
@@ -3901,6 +4076,7 @@ export function createSim(config: SimConfig): Sim {
         harvest: harvest?.view() ?? null,
         reenbui: reenbui?.view() ?? null,
         brakkie: brakkie?.view() ?? null,
+        cameos: cameos?.view() ?? null,
         powerups: powerups.map(powerupView),
         wind: windView(wind),
         dustDevils: dustDevils.map(dustDevilView),

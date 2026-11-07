@@ -139,6 +139,9 @@ export interface PelletResult {
   readonly harvestId?: number;
   /** v1.12 (D-069): Brakkie, the farm dog (never a target; absent everywhere else). */
   readonly dogId?: number;
+  /** v1.13 (D-075): a veld cameo visit (never a target; a pellet passes through it, so this is
+   *  the result only when nothing behind took the pellet). */
+  readonly cameoId?: number;
 }
 
 /** 1.9.3 (D-056): a result that is something to shoot (not a plain prop occluder, not nothing). */
@@ -250,6 +253,14 @@ export type HitExtra =
       readonly y: number;
       readonly shape: OccluderShape;
     }
+  /** v1.13 (D-075): a veld cameo (pass-through: anything behind it takes the pellet). */
+  | {
+      readonly kind: 'cameo';
+      readonly cameoId: number;
+      readonly x: number;
+      readonly y: number;
+      readonly shape: OccluderShape;
+    }
   /** D-048: a Spookjag bat, owl or pumpkin lantern. */
   | {
       readonly kind: 'spook';
@@ -297,7 +308,10 @@ export function resolvePellet(
    *  bird, a Spookjag thing, a crate, a secret part, a meerkat, a paper, a can — review M17);
    *  only a plain prop occluder, or nothing, leaves it to the nut. */
   let nut: PelletResult | null = null;
-  const after = (r: PelletResult): PelletResult => (nut === null || isTarget(r) ? r : nut);
+  /** v1.13 (D-075): the first cameo the pellet passed: a cameo never hides anything behind it
+   *  (a target); only when the pellet meets no target is the cameo its result. */
+  let cameo: PelletResult | null = null;
+  const after = (r: PelletResult): PelletResult => (isTarget(r) ? r : (nut ?? cameo ?? r));
   for (const slice of geometry.slices) {
     const p = tapToPlane(cx, slice.scrollFactor, dx + driftDx(slice.scrollFactor), sy);
     if (slice.plane !== null) {
@@ -320,6 +334,10 @@ export function resolvePellet(
         continue;
       }
       if (!pointInOccluder(p.x, p.y, { propId: '', x: e.x, y: e.y, shape: e.shape })) continue;
+      if (e.kind === 'cameo') {
+        cameo ??= { ...NOTHING, cameoId: e.cameoId };
+        continue;
+      }
       if (e.kind === 'paper') return after({ ...NOTHING, paperId: e.paperId });
       if (e.kind === 'meerkat') return after({ ...NOTHING, meerkatId: e.meerkatId });
       if (e.kind === 'ostrich') return after({ ...NOTHING, ostrichId: e.ostrichId });
@@ -338,7 +356,7 @@ export function resolvePellet(
       if (pointInOccluder(p.x, p.y, o)) return after({ ...NOTHING, propId: o.propId });
     }
   }
-  return nut ?? NOTHING;
+  return nut ?? cameo ?? NOTHING;
 }
 
 /**

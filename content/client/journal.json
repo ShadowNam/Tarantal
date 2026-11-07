@@ -60,7 +60,14 @@
       "habitat": "namibie",
       "sheet": "desert/colony",
       "frame": "lovebird_perch"
-    }
+    },
+    { "id": "warthog", "habitat": "veldBushveld", "sheet": "cameos/bushveld", "frame": "hog_trot_a" },
+    { "id": "dungBeetle", "habitat": "veldBushveld", "sheet": "cameos/bushveld", "frame": "beetle_push_a" },
+    { "id": "tortoise", "habitat": "veldKaroo", "sheet": "cameos/karoo", "frame": "tort_walk_a" },
+    { "id": "ostrich", "habitat": "veldKaroo", "sheet": "cameos/karoo", "frame": "ost_run_a" },
+    { "id": "springbok", "habitat": "veldKalahari", "sheet": "cameos/kalahari", "frame": "sb_pronk_a" },
+    { "id": "gemsbok", "habitat": "veldNamibie", "sheet": "cameos/namibie", "frame": "gb_walk_a" },
+    { "id": "elephant", "habitat": "veldOkavango" }
   ],
   "plaques": [
     {

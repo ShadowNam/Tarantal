@@ -2119,6 +2119,11 @@ export const BrakkieSchema = obj({
     scamperHalfPx: pos,
     /** Resting this far outside his band (the view panned), he gets up and comes back in. */
     driftPx: nonNeg,
+    /** v1.13 polish: where he rests his head stays out of the first-person gun's barrel on screen
+     *  (screen px from the centre, either side: the right-handed gun's stripe at his head height
+     *  on 16:9–21:9 for aims within ±500 px of the centre, and the left-handed mirror); a pan
+     *  that leaves his head in it gets him up. */
+    gunStripePx: range(nonNeg),
     /** And this far from where he stands. */
     stepPx: range(pos),
     /** Spots tried before he rests where he is. */
@@ -2196,6 +2201,163 @@ export const BrakkieSchema = obj({
 });
 export type Brakkie = z.infer<typeof BrakkieSchema>;
 
+// cameos.json — v1.13 (D-075, GDD §11.3g): the veld cameos, non-target wildlife that walks the mid
+// plane or comes out of the near grass. Sim entities on ONE stream `cameos`; never targets, never
+// hurt, never removed. Px are design px on the cameo's plane as drawn (a mid-plane px is already
+// at the mid plane's scale); speeds are layer px a second; times in seconds.
+
+export const CameoKindSchema = z.enum([
+  'warthogs',
+  'dungBeetle',
+  'tortoise',
+  'ostrich',
+  'springbok',
+  'gemsbok',
+  'elephants',
+]);
+export type CameoKind = z.infer<typeof CameoKindSchema>;
+
+/** A hit shape from the feet, facing right (drawn px on its plane). */
+const cameoEllipse = obj({ ox: z.number(), oy: z.number(), rx: pos, ry: pos });
+
+const cameoSchedule = obj({
+  /** The first visit this long into the hunt, then one every so often, at most maxVisits. */
+  firstSeconds: range(pos),
+  everySeconds: range(pos),
+  maxVisits: posInt,
+});
+
+/** What every walking cameo has, whichever way it comes in. */
+const cameoWalkerBase = {
+  plane: z.enum(['near', 'mid']),
+  /** The herd or family: each role's count (the first role leads). */
+  group: z
+    .array(obj({ role: z.enum(['adult', 'young']), count: range(posInt) }))
+    .min(1),
+  /** Gap between members along the way (px), and how far a member may stand off the line in
+   *  depth (px down the screen, 0 = all on the ground line). */
+  spacingPx: nonNeg,
+  depthPx: nonNeg,
+  /** Hit shapes per role (drawn px from the feet, facing right); the first adult shape is the
+   *  body (the springbok alarm measures from its centre). */
+  hitboxes: obj({ adult: z.array(cameoEllipse).min(1), young: z.array(cameoEllipse).optional() }),
+  speeds: obj({ walkPx: pos, fleePx: pos }),
+  /** On the way it stops now and then (warthogs kneel to feed, springbok graze, the tortoise
+   *  rests): after every `everyPx` (a range) a stop of `seconds`, with this chance. */
+  pause: obj({ chance: fraction, everyPx: range(pos), seconds: range(pos) }).optional(),
+  /** What a pellet on it does: bolt (all run off), tumble (stops, then goes on), hide (pulls in,
+   *  waits, then goes on), veer (swerves and kicks up dust, goes on), pronk (pronks away). */
+  reaction: obj({
+    kind: z.enum(['bolt', 'tumble', 'hide', 'veer', 'pronk']),
+    /** The reaction's own part (the tumble, the hide, the veer, the alert before a bolt). */
+    seconds: pos,
+  }),
+  /** The springbok: a shot landing this close to a member's body (px on its layer) or on one sets
+   *  off their alarm whistle — they pronk away, and the nearest mid flock within maxDxPx (screen
+   *  px) hears it `threatAtSeconds` later (one threat, like Brakkie's bark). */
+  alarm: obj({ radiusPx: pos, maxDxPx: pos, threatAtSeconds: nonNeg }).optional(),
+  schedule: cameoSchedule,
+};
+
+/** `edge`: walks in from off the screen on one side and out on the other (the mid ones). */
+const cameoEdgeWalker = obj({
+  ...cameoWalkerBase,
+  enter: z.literal('edge'),
+  /** Starts this far from the view's centre (screen px: beyond every device's half width) and
+   *  walks to the same distance on the other side; a flight leaves the same way. */
+  edgeDxPx: pos,
+});
+
+/** `grass`: comes out of the grass near the view's centre, goes a short way and back in. */
+const cameoGrassWalker = obj({
+  ...cameoWalkerBase,
+  enter: z.literal('grass'),
+  /** Comes out within this of the view's centre (screen px) and goes this far. */
+  bandPx: pos,
+  distancePx: range(pos),
+  /** Fades in and out of the grass this long. */
+  fadeSeconds: pos,
+});
+
+const cameoWalker = z.discriminatedUnion('enter', [cameoEdgeWalker, cameoGrassWalker]);
+
+const cameoHerd = obj({
+  /** The far herd (view-only scenery, src/game/view/faunaHerds.ts) that answers: its layer and u. */
+  layer: id,
+  u: fraction,
+  /** A flock bursting up within this of the herd on screen (screen px)… */
+  nearPx: pos,
+  /** …makes them flap their ears and one trumpet, with this chance, at most once per cooldown,
+   *  and at most `maxPerHunt` times. */
+  chance: fraction,
+  cooldownSeconds: pos,
+  maxPerHunt: posInt,
+  /** The ear-flapping lasts this long. */
+  flapSeconds: pos,
+});
+
+export const CameosSchema = obj({
+  version,
+  /** Modes they come along in (the Season Run only in `seasonKinds` hunts). */
+  modes: z.array(ModeIdSchema).min(1),
+  seasonKinds: z.array(z.enum(['plain', 'omen', 'boss'])),
+  /** Each area's cameos. */
+  areas: z.array(obj({ biome: id, cameos: z.array(CameoKindSchema).min(1) })).min(1),
+  /** The near ones' feet (design px from the top; Brakkie's ground line). */
+  nearGroundY: pos,
+  /** The mid ones' feet: the mid plane's front ground line (its lanes.mid.groundY[1]) + this. */
+  midGroundDy: z.number(),
+  /** At most this many visits out at once. */
+  maxActive: posInt,
+  /** Visits too busy to start (no clear route) try again after this. */
+  retrySeconds: pos,
+  /** No visit starts in the hunt's last stretch, this long (it must have time to cross). */
+  lastStretchSeconds: pos,
+  clear: obj({
+    /** A visit starts only when its route keeps this far (px on its layer) from anything a player
+     *  aims at there (secret parts, tells, colonies, tin-can fences, crates) and from Brakkie,
+     *  checked every pathStepPx. */
+    pathPx: pos,
+    pathStepPx: pos,
+  }),
+  hit: obj({
+    /** Points off for a shot aimed at one. */
+    penalty: posInt,
+    /** At most once per this (the weaver nest's cooldown). */
+    cooldownSeconds: pos,
+    /** Never charged when a live bird, a secret's part, a crate, a tin can or makalani nut, a
+     *  Spookjag thing or a raiding baboon is within this of the aim point (screen px): the benefit
+     *  of the doubt for a shot at something in front of a cameo. */
+    guardPx: pos,
+  }),
+  kinds: obj({
+    warthogs: cameoWalker,
+    dungBeetle: cameoWalker,
+    tortoise: cameoWalker,
+    ostrich: cameoWalker,
+    springbok: cameoWalker,
+    gemsbok: cameoWalker,
+    elephants: obj({ herd: cameoHerd }),
+  }),
+  /** Test builds only (?cameoPreview=, the screenshot spec and e2e): every listed kind out this
+   *  soon, walking slowly in view. Never in shipped content (cross-refs). */
+  preview: obj({
+    atSeconds: pos,
+    kinds: z.array(CameoKindSchema).min(1),
+    /** Then each preview visit reacts as if a stray pellet hit it (the reaction shots). */
+    reactSeconds: pos.optional(),
+    /** Where a preview visit starts on each plane (screen px from the centre: clear of the gun's
+     *  barrel on screen, D-075 review), walking this much slower than in play, never leaving. */
+    startDxPx: obj({ near: z.number(), mid: z.number() }),
+    speedMul: fraction,
+    /** And never faster than this (px a second): the ostrich's sprint, slowed, still crossed the
+     *  gun's column within the screenshot spec's few seconds. */
+    maxWalkPx: pos,
+  }).optional(),
+});
+export type Cameos = z.infer<typeof CameosSchema>;
+export type CameoWalker = Cameos['kinds']['warthogs'];
+
 // ---------------------------------------------------------------------------------------------
 // The whole bundle
 
@@ -2211,6 +2373,7 @@ export const CONTENT_FILES = {
   'feesdae.json': FeesdaeSchema,
   'reenbui.json': ReenbuiSchema,
   'brakkie.json': BrakkieSchema,
+  'cameos.json': CameosSchema,
 } as const;
 
 export interface ContentBundle {
@@ -2227,6 +2390,8 @@ export interface ContentBundle {
   readonly reenbui: Reenbui;
   /** D-069: Brakkie, the farm dog. */
   readonly brakkie: Brakkie;
+  /** D-075: the veld cameos. */
+  readonly cameos: Cameos;
   readonly biomes: readonly Biome[];
 }
 
@@ -2790,6 +2955,12 @@ export const FeelSchema = obj({
       greetChance: fraction,
     }),
   }),
+  /** v1.13 (D-075): the veld cameos on screen (the sim's numbers are content/cameos.json). */
+  cameos: obj({
+    /** An area's HD twin only while the textures in use plus its own stay within
+     *  budgetMiB − headroomMiB. */
+    hd: obj({ budgetMiB: pos, headroomMiB: nonNeg }),
+  }),
   /** v1.11 (D-068): Die Braai, the tally's night setting at Oupa's fire (GDD §8). */
   braai: obj({
     /** The top rank, or no miss with at least minBagged birds, is a perfect hunt (the vastrap). */
@@ -3180,6 +3351,8 @@ export const NotaboekMetricSchema = z.enum([
   'reenbuiBags',
   /** v1.12 (D-069): a whole hunt with Brakkie out and never shot at (1 or 0; scope hunt). */
   'brakkieMates',
+  /** v1.13 (D-075): every veld cameo of the hunt's area seen in it (1 or 0; scope hunt). */
+  'veldkenner',
 ]);
 export type NotaboekMetric = z.infer<typeof NotaboekMetricSchema>;
 

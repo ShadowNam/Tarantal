@@ -99,10 +99,12 @@ Priority order after this review:
 
 1. **Finish validation and repair concrete gaps first.** D-070 fills the Harvest's four missing
    audio beds; local lint/format checks now exclude ignored scratch output in `tmp/`.
-2. **Next feature: v1.13 veld cameos and field-guide entries.** The saved project log lists
-   warthogs, baboons, springbok, elephants, ostrich and dung beetle cameos. Tree residents' field
-   guide entries are also explicitly deferred here and in GDD §11.1b. Several of those animals
-   already have systems or scenery: reconcile those implementations before adding duplicates.
+2. **v1.13 veld cameos and field-guide entries — built, in review (PR #115, 1.17.0, D-075).**
+   The saved project log listed warthogs, baboons, springbok, elephants, ostrich and dung beetle
+   cameos; the audit (GDD §11.3g) kept what already existed (the baboons, Namibië's ostrich pair,
+   the far elephants' idle) and added the warthog family, dung beetle, leopard tortoise, Karoo
+   ostrich sprint, springbok, gemsbok and the elephants' trumpet, with their field-guide entries
+   in the shed Journal (the tree residents' entries came with D-072).
 3. **Final Oupa voices after the text is settled.** The saved plan calls for an en/af/de sample
    first and speech-to-text checks. Final voice selection and access to the chosen service remain
    external inputs.

@@ -14,6 +14,8 @@ import {
   sightingKey,
 } from './journal';
 import { defaultSave, JournalSaveSchema } from './saveSchema';
+import { cameoFrames } from '../game/cameos/cameoSheet';
+import type { CameoSheetArea } from '../game/cameos/cameoKeys';
 import { createHuntLogger, type HuntLog } from './huntLog';
 import { repairSave } from './save';
 import { applyHunt } from './progress';
@@ -214,12 +216,38 @@ describe('improvement rollout journal', () => {
     logger.observe('invalid');
     expect([...logger.creaturesSeen]).toEqual([sightingKey('galago')]);
     for (const species of JOURNAL.species) {
-      const frames = species.habitat === 'baobab' ? residentFrames() : colonyFrames();
+      // v1.13 (D-075): a cameo's portrait is a frame of its area's cameo sheet; the far elephants
+      // have none (the ★ only).
+      if (species.sheet === undefined) {
+        expect(species.id).toBe('elephant');
+        continue;
+      }
+      const frames = species.sheet.startsWith('cameos/')
+        ? cameoFrames(species.sheet.slice('cameos/'.length) as CameoSheetArea)
+        : species.habitat === 'baobab'
+          ? residentFrames()
+          : colonyFrames();
       expect(
         frames.some((f) => f.name === species.frame),
         species.id,
       ).toBe(true);
     }
+  });
+  it("v1.13 (D-075): Veldkenner — every cameo of the hunt's area seen in one hunt", () => {
+    const species = (b: string): string[] =>
+      b === 'bushveld-winter' ? ['warthog', 'dungBeetle'] : [];
+    const one = createHuntLogger(undefined, species);
+    one.observe('warthog');
+    const log = { biome: 'bushveld-winter', baggedByPlane: { far: 0, ver: 0 } } as never;
+    expect(one.finish(log).veldkenner).toBe(0);
+    const both = createHuntLogger(undefined, species);
+    both.observe('warthog');
+    both.observe('dungBeetle');
+    expect(both.finish(log).veldkenner).toBe(1);
+    expect(
+      createHuntLogger(undefined, species).finish({ ...(log as object), biome: 'oes' } as never)
+        .veldkenner,
+    ).toBe(0);
   });
   it('uses actual results for coaching and chooses the most important shot moment', () => {
     expect(coachTip(hunt({ emptyClicks: 1 }))).toBe('reload');

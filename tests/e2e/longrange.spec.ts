@@ -155,7 +155,7 @@ test.describe('long range (v1.3)', () => {
     const goldens = JSON.parse(
       readFileSync(join(ROOT, 'src', 'sim', 'replay', 'golden', 'replays.json'), 'utf8'),
     ) as GoldenReplay[];
-    await boot(page, `today=${TODAY}&reenbui=content&brakkie=content`);
+    await boot(page, `today=${TODAY}&reenbui=content&brakkie=content&cameos=content`);
     for (const name of [
       'classic-71-karoo-nogverder-tweetwee-iron-competent-pointer',
       'classic-72-karoo-dieverste-tweetwee-scope-aim-touch',
@@ -226,7 +226,7 @@ test.describe('long range (v1.3)', () => {
     await rifleSave(page, 'scope_small');
     await boot(
       page,
-      `seed=42&today=${TODAY}&bonus=nogVerder&huntSeconds=14&reenbui=content&brakkie=content`,
+      `seed=42&today=${TODAY}&bonus=nogVerder&huntSeconds=14&reenbui=content&brakkie=content&cameos=content`,
     );
     await startHunt(page, touch);
     let h = await hook(page);

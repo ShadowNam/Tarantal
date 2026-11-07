@@ -885,6 +885,61 @@ has two dogs. Bles never shows on screen; Brakkie does.)
 - **Accessibility:** "reduce motion" keeps him calm (no blurred wag); "reduce flashes" changes
   nothing here.
 
+### 11.3g Veld cameos: more wildlife in every area (1.17.0, D-075)
+From the product owner's list of 24 Oct ("the veld must feel alive and African"). A few of the
+distant animals become living, reacting **cameos**: deterministic sim entities on ONE stream
+`cameos`, every number in `content/cameos.json`. Like the meerkats, Brakkie and the ostrich pair
+they are **non-targets: never hurt, never removed, no blood.**
+
+**Audit first (what each area already had, kept as it is):**
+
+| Area | Already there | New in v1.13 |
+|---|---|---|
+| Bushveld | far giraffes, zebra, wildebeest, elephants (view-only); the dassie koppie's secret; tells (agama, skink, drongo); the baobab's residents (D-057); a baboon troop; Brakkie | a **warthog family** (sow + 2–3 piglets, mid plane, Die Oes's rig at mid size) and a **dung beetle** rolling its ball (near plane) |
+| Karoo | far springbok and ostriches (view-only); tells (kestrel, wagtail, mouse, shrike); baboons; Brakkie | a **leopard tortoise** crossing slowly (near plane) and an **ostrich sprint** (mid plane, the Namibië ostrich drawn again at mid size) |
+| Kalahari | far springbok, ostriches, wildebeest, the ridge's gemsbok pair; the meerkat colony (D-044); the weaver nest and colony life; baboons; Brakkie | a **springbok herd** walking and grazing on the mid plane that **pronks** away, its alarm alerting the nearest flock |
+| Namibië | the ostrich pair and nest on the mid plane (D-059: so no second ostrich here), the oryx in the mirage, the waterhole herds; meerkats; weavers and lovebirds; baboons; Brakkie | **gemsbok** (2–3) crossing the mid dunes |
+| Okavango | far elephants (ear fan and trunk sway, view-only), lechwe, zebra, wildebeest; the hippo and the lily frog (static props with secrets); tells; baboons; Brakkie | the **far elephants answer a flush**: when a flock bursts up near their herd they flap their ears and one **trumpets** (sound). No new near or mid sheet: it is the heaviest map for texture memory |
+
+Where they live (sources in D-075): warthogs and dung beetles in the bushveld (Kruger,
+Limpopo), leopard tortoises and ostriches in the Karoo, springbok in the Kalahari, gemsbok in
+the Namib, elephants in the Okavango Delta.
+- **Modes:** where the baboons and Brakkie come: Classic, the Daily (special days too) and the
+  bonus maps, the Season Run's plain and omen hunts. Not boss hunts, Oupa se Les, the Skietbaan or
+  the Harvest.
+- **Behaviour:** each area's cameos come on a schedule (a first visit a while into the hunt, then
+  every so often, a few a hunt, at most two out at once). The mid-plane ones walk in from off the
+  screen on one side and leave on the other (the warthogs kneel to feed on the way, the springbok
+  graze, the ostrich sprints past); the near-plane ones come out of the grass near the middle of
+  the view, go a short way and go back in (the beetle pushes its ball; the tortoise plods, and
+  rests). The elephants are the far herd's own.
+- **Reactions (any pellet on one, aimed or stray):** the warthogs bolt tails-up; the beetle tumbles
+  off its ball, then rights itself and goes on; the tortoise pulls in its head and waits; the
+  ostrich veers and kicks up dust; the springbok pronk away. A shot landing close to the springbok
+  (or one on them) sets off their **alarm whistle**, which alerts the nearest mid flock (one threat,
+  like Brakkie's bark; a small, content-tuned effect).
+- **Shooting at one:** a shot **aimed at** a cameo (the aim point on its body, a rifle's before the
+  sway; the aimed-at rule of D-062/D-063/D-069) that hit no target and had **nothing a player shoots
+  at — a live bird, a secret's part, a crate, a tin can or nut, a Spookjag thing or a raiding
+  baboon — within `hit.guardPx` of the aim point** costs **−10** with Oupa's scold, at most once per 2 s (the weaver
+  nest's cooldown). A stray pellet only plays the reaction. Like a hit on the nest it doesn't break
+  the Frenzy streak.
+- **Out of the line of fire (lesson 21):** a pellet goes **through** a cameo: anything behind it
+  (a bird, a crate, a secret's part, a tin can) takes the pellet, so a cameo never hides a target;
+  on its own layer a cameo is drawn under the birds; a herd stops to feed or graze only where
+  nothing a player aims at is near, and a near one comes out only where its short way keeps
+  `clear.pathPx` from the secrets, tells, colonies, tin-can fences and Brakkie; the near-plane ones
+  keep below the pop-ups' grass line and inside the band round the screen's centre that keeps clear
+  of the HUD's corners (as Brakkie does).
+- **Field guide:** the shed's Journal (D-072) already has the "Seen in the veld" page (its
+  `field` section, discoveries recorded when a sprite is drawn on screen): each cameo is added
+  there once seen, with a short "Did you know?" fact (text only, en/af/de/nl).
+- **Notaboek:** "Veldkenner" (Veld expert): spot every cameo of an area in one hunt.
+- **Balance:** within ±3 % on every map; accidental hits on cameos < 0.1 a hunt for every gun
+  (`docs/balance/v1.13-cameos.md`).
+- **Accessibility:** "reduce motion" calms the idle loops (no grazing bob, no ear flapping on
+  idle); "reduce flashes" changes nothing here (no flashes).
+
 ### 11.5 Day-of-week maps and bonus map Verder (v1.2, D-033)
 
 Every biome has **seven layouts, one per UTC weekday** (`content/biomes/<biome>.json → layouts`,

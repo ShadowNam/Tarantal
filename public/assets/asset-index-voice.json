@@ -2251,6 +2251,24 @@
       "lufs": -16.4,
       "peakDb": -1
     },
+    "voice/af/guide.cameo.scold": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_cameo_scold.a581f2a486ac.ogg",
+        "bytes": 23095,
+        "hash": "a581f2a486ac"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_cameo_scold.e0a7aec9aac8.mp3",
+        "bytes": 29231,
+        "hash": "e0a7aec9aac8"
+      },
+      "loop": false,
+      "lufs": -18.2,
+      "peakDb": -1
+    },
     "voice/af/guide.harvest.crop_low": {
       "group": "voice-af",
       "origin": "interim",
@@ -4177,6 +4195,24 @@
       "lufs": -16,
       "peakDb": -5.9
     },
+    "voice/de/guide.cameo.scold": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_cameo_scold.0dd39adaa54e.ogg",
+        "bytes": 29489,
+        "hash": "0dd39adaa54e"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_cameo_scold.3a4ca91c63cf.mp3",
+        "bytes": 32530,
+        "hash": "3a4ca91c63cf"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.5
+    },
     "voice/de/guide.harvest.crop_low": {
       "group": "voice-de",
       "origin": "interim",
@@ -6101,6 +6137,24 @@
       },
       "loop": false,
       "lufs": -17.1,
+      "peakDb": -1
+    },
+    "voice/en/guide.cameo.scold": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_cameo_scold.220594096eb7.ogg",
+        "bytes": 23028,
+        "hash": "220594096eb7"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_cameo_scold.e0d1cbd6497c.mp3",
+        "bytes": 29120,
+        "hash": "e0d1cbd6497c"
+      },
+      "loop": false,
+      "lufs": -18.7,
       "peakDb": -1
     },
     "voice/en/guide.harvest.crop_low": {

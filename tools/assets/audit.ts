@@ -12,6 +12,7 @@ import { HARVEST_SHEET } from '../../src/game/view/harvest/harvestKeys';
 import { REENBUI_SHEET } from '../../src/game/view/reenbui/reenbuiKeys';
 import { BRAAI_SHEET, BRAAI_SOUNDS } from '../../src/game/braai/braaiKeys';
 import { BRAKKIE_SHEET, BRAKKIE_SOUNDS } from '../../src/game/brakkie/brakkieKeys';
+import { CAMEO_SHEETS, CAMEO_SOUNDS } from '../../src/game/cameos/cameoKeys';
 import { TELL_SHEET } from '../../src/game/view/tell/tellKeys';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
 import { VELD_SHEET } from '../../src/game/view/namib/veldSheet';
@@ -124,6 +125,11 @@ function usages(
   // v1.12 (D-069): Brakkie's sounds by their table key (BRAKKIE_SOUNDS.bark …).
   const dogSound = Object.entries(BRAKKIE_SOUNDS).find(([, k]) => k === key)?.[0];
   if (dogSound !== undefined) needles.push(new RegExp(`BRAKKIE_SOUNDS\\.${dogSound}\\b`));
+  // v1.13 (D-075): the cameo sheets by their table (CAMEO_SHEETS[area], CameoView) and the
+  // sounds by their table key (CAMEO_SOUNDS.grunt …).
+  if (Object.values<string>(CAMEO_SHEETS).includes(key)) needles.push(/\bCAMEO_SHEETS\[/);
+  const cameoSound = Object.entries(CAMEO_SOUNDS).find(([, k]) => k === key)?.[0];
+  if (cameoSound !== undefined) needles.push(new RegExp(`CAMEO_SOUNDS\\.${cameoSound}\\b`));
   const palm = /^okavango\/makalani_(trunk|crown)_(near|mid)$/.exec(key);
   if (palm !== null) needles.push(palm[1] === 'trunk' ? /\bpalmTrunkKey\(/ : /\bpalmCrownKey\(/);
   const xmasSound = Object.entries(XMAS_SOUNDS).find(([, k]) => k === key)?.[0];
@@ -194,6 +200,8 @@ function usages(
       // v1.12 (D-069): Oupa's Brakkie lines, named in code by their key (HudScene's oupa(), the
       // title's greeting).
       if (line.startsWith('guide\\.brakkie\\.')) needles.push(new RegExp(`'${line}'`));
+      // v1.13 (D-075): Oupa's cameo scold, named in code by its key (HudScene's oupa()).
+      if (line.startsWith('guide\\.cameo\\.')) needles.push(new RegExp(`'${line}'`));
       // v1.11 (D-068): Oupa's braai story phrases (story.ts sayKey), said by BraaiView's tell().
       if (line.startsWith('braai\\.say\\.')) needles.push(/\.tell\(line\.say,/);
     } else needles.push(quoted(key));

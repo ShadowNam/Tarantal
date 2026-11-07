@@ -19,9 +19,20 @@ export const JournalConfigSchema = z.object({
   fileTimeoutMs: z.number().int().positive(),
   species: z.array(z.object({
     id: z.string().regex(/^[a-zA-Z]+$/),
-    habitat: z.enum(['baobab', 'colony', 'namibie']),
-    sheet: z.string().min(1),
-    frame: z.string().min(1),
+    // v1.13 (D-075): the veld cameos' habitats, one per area.
+    habitat: z.enum([
+      'baobab',
+      'colony',
+      'namibie',
+      'veldBushveld',
+      'veldKaroo',
+      'veldKalahari',
+      'veldNamibie',
+      'veldOkavango',
+    ]),
+    /** The portrait (a sheet and frame; none: the ★ only — the far elephants have no sheet). */
+    sheet: z.string().min(1).optional(),
+    frame: z.string().min(1).optional(),
   })).min(1),
   plaques: z.array(z.object({
     id: z.string().regex(/^[a-z]+$/),

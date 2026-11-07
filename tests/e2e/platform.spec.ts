@@ -241,8 +241,8 @@ test.describe('portal build', () => {
     await boot(
       page,
       PLATFORM === 'poki'
-        ? `gdc=${c}&reenbui=content&brakkie=content`
-        : `c=${c}&reenbui=content&brakkie=content`,
+        ? `gdc=${c}&reenbui=content&brakkie=content&cameos=content`
+        : `c=${c}&reenbui=content&brakkie=content&cameos=content`,
     );
     await waitScene(page, 'challenge');
   });

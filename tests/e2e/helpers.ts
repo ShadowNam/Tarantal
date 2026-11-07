@@ -106,7 +106,9 @@ export async function quick(
  * a Reënbui (`reenbui=0`, D-067) unless the query names `reenbui=`: a spec that compares with Node
  * (the Daily seed, challenge links, replays) boots with `reenbui=content` — the real content hash.
  * Brakkie the farm dog likewise stays home (`brakkie=0`, D-069) unless the query names `brakkie=`
- * (`brakkie=content` with `reenbui=content` for the specs that compare with Node).
+ * (`brakkie=content` with `reenbui=content` for the specs that compare with Node). The veld cameos
+ * likewise stay away (`cameos=0`, D-075) unless the query names `cameos=` (`cameos=content` for
+ * the specs that compare with Node).
  */
 export async function boot(page: Page, query: string): Promise<void> {
   const pinned = /(^|&)(today|layout|bonus|c)=/.test(query);
@@ -118,7 +120,9 @@ export async function boot(page: Page, query: string): Promise<void> {
   // keeps the content as shipped: the specs that compare with Node's content hash or replays).
   const q = /(^|&)reenbui=/.test(withFtue) ? withFtue : `${withFtue}&reenbui=0`;
   // v1.12 (D-069, lesson 17): no Brakkie unless the spec names `brakkie=`.
-  const qd = /(^|&)brakkie=/.test(q) ? q : `${q}&brakkie=0`;
+  const qb = /(^|&)brakkie=/.test(q) ? q : `${q}&brakkie=0`;
+  // v1.13 (D-075, lesson 17): no cameos unless the spec names `cameos=`.
+  const qd = /(^|&)cameos=/.test(qb) ? qb : `${qb}&cameos=0`;
   await page.goto(`/?e2e=1&${qd}`);
   await expect(page.locator('#game canvas')).toHaveCount(1);
   await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 60_000 });

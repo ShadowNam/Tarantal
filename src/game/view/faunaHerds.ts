@@ -469,6 +469,9 @@ export function faunaIdle(
   t: FaunaIdleTuning,
   calm: boolean,
   ticksPerSecond: number,
+  /** v1.13 (D-075): the elephants' answer to a flush (0…1 through it; −1 none): faster, wider
+   *  ear flaps and the trunk raised for the trumpet, on sim time. */
+  flap = -1,
 ): FaunaIdle {
   const k = calm ? t.calm : 1;
   // FaunaView works the seed out once per animal; tests may leave it out.
@@ -491,6 +494,13 @@ export function faunaIdle(
   }
   const te = event(sec, t.tailEverySec, t.tailSec, (seed * 7.3) % 1, t.rhythmSpread);
   const tail = te < 0 ? 0 : t.tailDeg * Math.sin(te * Math.PI * 4) * bump(te);
+  if (a.species === 'elephant' && flap >= 0 && flap < 1) {
+    // Ears out and flapping fast (three times the fold, five times the rate), the trunk lifted.
+    const b = bump(Math.min(1, flap * 1.25));
+    const fast = 0.5 + 0.5 * Math.sin(((sec + seed * 5) / (t.earSec * 0.2)) * Math.PI * 2);
+    const ear = 1 - Math.min(0.6, t.earFold * 3) * k * fast * b;
+    return { head: (head - t.swayDeg * 3 * b) * k, tail: tail * k, ear };
+  }
   const ear =
     a.species === 'elephant'
       ? 1 - t.earFold * k * (0.5 + 0.5 * Math.sin(((sec + seed * 5) / t.earSec) * Math.PI * 2))

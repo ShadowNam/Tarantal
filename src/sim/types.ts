@@ -7,6 +7,7 @@ import type { BaboonRole, RaidPhase, RaiderPhase, RidgePose } from './baboons/ba
 import type { RangeProgramFactory } from './range/types';
 import type { AlateColumn, ReenbuiPhase } from './reenbui/reenbui';
 import type { LazySystems } from './lazySystems';
+import type { CameoKindId } from './events';
 
 /** v1.3 (D-036): `ver` is the distant band behind the far plane; only rifles reach it. */
 export type PlaneId = 'near' | 'mid' | 'far' | 'ver';
@@ -174,6 +175,51 @@ export type DogPhase =
   | 'bolt';
 /** v1.12 (D-069): how he is drawn (a baked frame strip each). */
 export type DogPose = 'trot' | 'run' | 'sniff' | 'sit' | 'lie' | 'bark' | 'dig' | 'carry' | 'yelp';
+
+/** v1.13 (D-075): what a cameo visit is doing (each member's frame comes from this and its own
+ *  ticks: baked strips in the view). */
+export type CameoPhase = 'walk' | 'pause' | 'react' | 'flee' | 'fadeIn' | 'fadeOut';
+
+/** v1.13 (D-075): one animal of a cameo visit as drawn (its feet on its layer). */
+export interface CameoMemberView {
+  readonly role: 'adult' | 'young';
+  readonly x: number;
+  readonly y: number;
+  /** Ticks into its gait (offset per member so a herd isn't in step). */
+  readonly gaitT: number;
+}
+
+/** v1.13 (D-075): a cameo visit as drawn. */
+export interface CameoVisitView {
+  readonly id: number;
+  readonly kind: CameoKindId;
+  readonly plane: 'near' | 'mid';
+  readonly layerId: string;
+  readonly phase: CameoPhase;
+  /** The reaction that is playing (its kind), while phase is 'react' or 'flee'. */
+  readonly reaction: 'bolt' | 'tumble' | 'hide' | 'veer' | 'pronk' | null;
+  /** Ticks into the phase, and its length (0 for a moving phase). */
+  readonly t: number;
+  readonly dur: number;
+  readonly facing: 1 | -1;
+  /** 0…1 (a near one fading in or out of the grass). */
+  readonly alpha: number;
+  readonly members: readonly CameoMemberView[];
+}
+
+/** v1.13 (D-075): the cameos as drawn. */
+export interface CameosView {
+  readonly visits: readonly CameoVisitView[];
+  /** The far elephants' last trumpet (tick; null: none yet) and how long they flap. */
+  readonly trumpetTick: number | null;
+  readonly flapTicks: number;
+  /** Counts for tests and the balance report. */
+  readonly visitsSoFar: number;
+  readonly hits: number;
+  readonly aimedHits: number;
+  readonly alarms: number;
+  readonly trumpets: number;
+}
 
 /** v1.12 (D-069): Brakkie as drawn. Positions are his feet on his layer. */
 export interface BrakkieView {
@@ -604,6 +650,8 @@ export interface SimState {
   readonly reenbui: ReenbuiView | null;
   /** v1.12 (D-069): Brakkie (null: he isn't on this hunt). */
   readonly brakkie: BrakkieView | null;
+  /** v1.13 (D-075): the veld cameos (null: none on this hunt). */
+  readonly cameos: CameosView | null;
   readonly powerups: readonly PowerupView[];
   /** Null when the omen is off or the biome has no wind. */
   readonly wind: WindView | null;

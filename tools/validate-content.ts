@@ -19,6 +19,7 @@ import { LANGUAGES } from '../src/i18n/i18n';
 import { checkSoundscape, parseSoundscape } from '../src/content/soundscape';
 import { SOUNDSCAPE_CALLS } from './audio/soundscape';
 import { JournalConfigSchema } from '../src/content/journal';
+import { cameoSheetErrors } from '../src/game/cameos/cameoChecks';
 
 const root = join(import.meta.dirname, '..');
 const strict = process.argv.includes('--strict');
@@ -85,6 +86,9 @@ const report = checkCrossRefs(parsed.bundle, {
 });
 
 const errors = [...report.errors];
+// v1.13 (D-075): every area's cameos are drawn on that area's sheet (none walks undrawn).
+for (const message of cameoSheetErrors(parsed.bundle.cameos))
+  errors.push({ file: 'cameos.json', message });
 // v1.0.1 (D-028 §3): every bark line is an i18n key (its text, and its voice key voice/<line>).
 const enKeys = new Set(readI18nKeys(join(root, 'src/i18n/en.json')));
 for (const [trigger, cfg] of Object.entries(feel.feel.barks.triggers)) {

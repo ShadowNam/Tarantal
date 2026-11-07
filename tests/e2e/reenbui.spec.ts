@@ -275,7 +275,7 @@ test('?reenbui=0 has none, even on a forcing day; ?e2e alone keeps the real cont
   // The real content: the game's content hash is Node's (the Daily seed, links and replays).
   await boot(
     page,
-    'biome=kalahari-summer&layout=wed&seed=11&graphics=standard&reenbui=content&brakkie=content',
+    'biome=kalahari-summer&layout=wed&seed=11&graphics=standard&reenbui=content&brakkie=content&cameos=content',
   );
   const tools = await page.evaluate(
     () =>

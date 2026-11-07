@@ -130,3 +130,74 @@ describe('Brakkie in the hunt (D-069)', () => {
     expect([...types].some((t) => t.startsWith('brakkie'))).toBe(false);
   });
 });
+
+describe('v1.13 polish: Brakkie rests clear of the gun barrel on screen', () => {
+  it('when he stops at a rest spot his head is outside both hands’ gun stripes, and he still rests', () => {
+    const [lo, hi] = B.roam.gunStripePx;
+    let rests = 0;
+    for (const a of B.areas)
+      for (const seed of [1, 2]) {
+        const s = sim({ id: 'classic', biome: a.biome }, seed);
+        let prev = '';
+        while (!s.isOver()) {
+          s.step([]);
+          s.drainEvents();
+          const st = s.snapshot();
+          const d = st.brakkie;
+          const phase = d?.phase ?? '';
+          if (d !== null && phase === 'rest' && prev === 'trot' && d.plane === 'near') {
+            rests++;
+            // Near layer (scroll factor 1): screen dx = x − cameraX.
+            const head = Math.abs(d.x - st.cameraX + B.hitboxes.stand.head.ox * d.facing);
+            expect(
+              head < lo || head > hi,
+              `${a.biome} seed ${String(seed)} head ${String(head)}`,
+            ).toBe(true);
+          }
+          prev = phase;
+        }
+      }
+    expect(rests).toBeGreaterThan(20);
+  });
+});
+
+describe('v1.13 polish: a pan that leaves his head in the gun stripe gets him up', () => {
+  it('he rests, the view pans until his head is 200 px right of the centre, and he moves off', () => {
+    const [lo, hi] = B.roam.gunStripePx;
+    const want = (lo + hi) / 2;
+    let checked = 0;
+    for (const seed of [1, 2, 3, 4, 5, 6]) {
+      if (checked > 0) break;
+      const s = sim({ id: 'classic', biome: 'bushveld-winter' }, seed);
+      // Wait for a rest on the near plane.
+      for (let i = 0; i < 60 * 60 && !s.isOver(); i++) {
+        s.step([]);
+        const d = s.snapshot().brakkie;
+        if (d?.phase === 'rest' && d.plane === 'near' && d.dur - d.t > 90) break;
+      }
+      const d0 = s.snapshot().brakkie;
+      if (d0?.phase !== 'rest' || d0.plane !== 'near') continue;
+      // Pan (the camera target) so his head sits in the stripe; he stays put while it pans.
+      const cx = d0.x + B.hitboxes.stand.head.ox * d0.facing - want;
+      let inStripe = false;
+      for (let i = 0; i < 120 && !inStripe; i++) {
+        s.step([{ t: 'cameraTarget', cx }]);
+        const st = s.snapshot();
+        const d = st.brakkie;
+        if (d?.phase !== 'rest') break;
+        const head = Math.abs(d.x + B.hitboxes.stand.head.ox * d.facing - st.cameraX);
+        inStripe = head >= lo && head <= hi;
+      }
+      if (!inStripe) continue;
+      // Within his check interval (and a little) he gets up and goes.
+      let up = false;
+      for (let i = 0; i < Math.ceil(B.clear.checkSeconds * 60) + 6 && !up; i++) {
+        s.step([{ t: 'cameraTarget', cx }]);
+        up = s.snapshot().brakkie?.phase !== 'rest';
+      }
+      expect(up, `seed ${String(seed)}`).toBe(true);
+      checked++;
+    }
+    expect(checked).toBe(1);
+  });
+});

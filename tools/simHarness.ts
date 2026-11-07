@@ -33,6 +33,8 @@ export function quiet(biomeId = 'karoo-autumn'): Content {
   for (const w of c.weapons.weapons) w.spreadPx = 0;
   // v1.12 (D-069): no Brakkie (his barks and flushes would move the flocks a test watches).
   c.brakkie.areas = [];
+  // v1.13 (D-075): no cameos (the springbok alarm would move the flocks a test watches).
+  c.cameos.areas = [];
   return c;
 }
 

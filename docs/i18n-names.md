@@ -335,6 +335,21 @@ TTS in en, af and de (D-041); nl is text only:
 - `guide.baboon.stopped`: Op heterdaad betrap! (af) · Caught in the act! (en) · Auf frischer Tat ertappt! (de) · Op heterdaad betrapt! (nl)
 - `guide.baboon.mother`: Nie die ma met haar baba nie, man! (af) · Not the mother with her baby, man! (en) · Doch nicht die Mutter mit dem Baby! (de) · Niet de moeder met haar baby! (nl)
 
+**Veld cameos (1.17.0, D-075).** The field guide's names, facts and Oupa's notes, the habitats'
+hints and Oupa's scold live in the lazy guide tables (`src/i18n/guide/<lang>.json`); the scold is
+voiced in en, af and de, the rest is text only. "Pronk" is Afrikaans and stays in every language
+(it is the word for the springbok's leap). The names:
+
+- `guide.journal.species.warthog.name`: Vlakvark (af) · Warthog (en) · Warzenschwein (de) · Knobbelzwijn (nl)
+- `guide.journal.species.dungBeetle.name`: Miskruier (af) · Dung beetle (en) · Mistkäfer (de) · Mestkever (nl)
+- `guide.journal.species.tortoise.name`: Bergskilpad (af) · Leopard tortoise (en) · Pantherschildkröte (de) · Panterschildpad (nl)
+- `guide.journal.species.ostrich.name`: Volstruis (af) · Ostrich (en) · Strauß (de) · Struisvogel (nl)
+- `guide.journal.species.springbok.name`: Springbok (af) · Springbok (en) · Springbock (de) · Springbok (nl)
+- `guide.journal.species.gemsbok.name`: Gemsbok (af) · Gemsbok (en) · Oryx (Gemsbok) (de) · Gemsbok (spiesbok) (nl)
+- `guide.journal.species.elephant.name`: Afrikaanse olifant (af) · African elephant (en) · Afrikanischer Elefant (de) · Afrikaanse olifant (nl)
+- `guide.cameo.scold`: Haai! Los die veld se diere uit — skiet die tarentaal! (af) · Hey! Leave the veld's animals be — shoot the tarentaal! (en) · He! Lass die Tiere des Velds in Ruhe – schieß auf die Perlhühner! (de) · Hé! Laat de dieren van het veld met rust – schiet op de parelhoenders! (nl)
+- `notaboek.veldkenner` (the main tables): Veldkenner in every language (a veld expert); the rest of the line is translated
+
 **Privacy screen (1.9.3, D-056).** Its paragraphs and headings (`privacy.stored`, `privacy.*_title`,
 `privacy.sent_*`, `privacy.personal`) moved to the lazy table `src/i18n/privacy/<lang>.json`
 (the first download must not grow); the wording is unchanged.

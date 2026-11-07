@@ -41,6 +41,7 @@ export class ShotFeedbackGate {
           e.type === 'powerupStarted' ||
           e.type === 'gadgetUsed' ||
           e.type === 'brakkieHit' ||
+          (e.type === 'cameoHit' && e.points < 0) ||
           e.type === 'penaltyApplied',
       );
     if (urgent || moment === 'whole') {

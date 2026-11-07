@@ -3997,6 +3997,113 @@ download +10.3 KB gzip (2,977.2 KB, budget 3 MB). (2) Every HD hunt memory test 
 both morphs' atlases on the GPU first (`__TM_ENSURE_BIRD__`, test builds only), so ≤ 256 MB is
 judged with them in. No budget changed.
 
+### D-075 — v1.13 Veld cameos: more wildlife in every area (7 Nov 2026)
+
+From the product owner's list of 24 Oct ("the veld must feel alive and African"), queued as v1.13.
+GDD §11.3g, Tech §3.12g, art bible §5.7. Version 1.17.0.
+- *Audit first.* The table in GDD §11.3g lists what each area already had. Two of the brief's
+  suggestions were already there and are not built again: Namibië's **ostrich** (D-059's pair and
+  nest on the mid plane — a second, sprinting ostrich there would stand in the same flocks' band
+  that made D-059 drop a second pair), so Namibië gets the gemsbok only and the sprint is the
+  Karoo's; and the Okavango's **elephants** already fan their ears on idle (FaunaView), so their
+  cameo is a reaction of the far herd itself (faster flaps and a trumpet), with no new sheet — the
+  Okavango is the heaviest HD hunt.
+- *Where each species lives (true to the area).* Common warthog (*Phacochoerus africanus*):
+  savanna of the bushveld, Kruger and Limpopo; dung beetles (Scarabaeinae) roll balls on the
+  bushveld's game paths, and some species steer by the Milky Way (Dacke et al. 2013, Wits); leopard
+  tortoise (*Stigmochelys pardalis*): the Karoo and the savannas, southern Africa's largest
+  tortoise; common ostrich: the Karoo (Oudtshoorn) and the arid west; springbok (*Antidorcas
+  marsupialis*): the Kalahari and Karoo, "pronk" being Afrikaans for its stiff-legged leaps;
+  gemsbok (*Oryx gazella*): the Namib and Kalahari, which can go long without drinking; African
+  bush elephant: the Okavango Delta holds one of the largest populations. Sources (accessed 7 Nov
+  2026): [Wikipedia — common warthog](https://en.wikipedia.org/wiki/Common_warthog),
+  [Wikipedia — dung beetle](https://en.wikipedia.org/wiki/Dung_beetle),
+  [Dacke et al. 2013, Current Biology — dung beetles use the Milky Way](https://doi.org/10.1016/j.cub.2012.12.034),
+  [Wikipedia — leopard tortoise](https://en.wikipedia.org/wiki/Leopard_tortoise),
+  [Wikipedia — common ostrich](https://en.wikipedia.org/wiki/Common_ostrich),
+  [Wikipedia — springbok](https://en.wikipedia.org/wiki/Springbok),
+  [Wikipedia — gemsbok](https://en.wikipedia.org/wiki/Gemsbok),
+  [Wikipedia — Okavango Delta](https://en.wikipedia.org/wiki/Okavango_Delta).
+  The field guide's facts are paraphrased from these; Oupa's notes are character dialogue.
+- *One sim system, one stream.* Every cameo lives in the sim on the stream `cameos` (never
+  shared: the springbok alarm's threat draws from it too), reading the flocks, the hit extras,
+  Brakkie's spot and the fire commands read-only. Content `content/cameos.json` (Zod schema,
+  cross-references to biomes, modes and the far herd). In the lazy sim-systems chunk with the
+  baboons and Brakkie (every map already needs it). Golden replays re-recorded on purpose: every
+  hunt with cameos gains their events and the springbok alarm alerts flocks.
+- *Modes.* As the baboons and Brakkie: Classic, the Daily and the bonus maps, the Season Run's
+  plain and omen hunts; not boss hunts, Oupa se Les, the Skietbaan or the Harvest.
+- *Planes.* The warthogs, ostrich, springbok and gemsbok walk the mid plane's ground at the
+  front (`groundY` per area), sized from the true heights × the mid plane's scale (D-049) with the
+  far herds' size factor; the beetle and the tortoise are near-plane, feet at Brakkie's 985,
+  inside the ±450 px band round the view's centre (clear of the HUD's corners on every device,
+  D-069). The elephants stay on the far plane (the far herd).
+- *The hit rule.* Pellets pass **through** a cameo (like a makalani nut, D-056): anything behind it
+  takes the pellet, so a cameo never hides a bird, a secret, a crate or a tin can. A pellet whose
+  only hit is a cameo plays its reaction. −10 (Oupa's one scold line, the weaver nest's 2 s
+  cooldown, `hit.cooldownSeconds`) only for a shot aimed at one (the aim point on its body) that
+  hit no target **and** had nothing a player shoots at — a live bird, a secret's part, a crate, a
+  tin can or makalani nut, a Spookjag thing or a raiding baboon (not a tell, a meerkat, an ostrich,
+  a ridge baboon, Brakkie or another cameo) — within `hit.guardPx` of the aim point on screen: the mid cameos walk in the mid flocks' band, so a
+  player aiming at a bird in front of a springbok and missing is never charged (the benefit of the
+  doubt; the balance report measures accidental hits). The scold is a bark line on the hit event
+  (the BarkDirector's cooldowns), not a new system.
+- *Line of fire (lesson 21).* A near cameo's short way out of the grass must keep `clear.pathPx`
+  from the secrets' parts, tells, colonies, tin-can fences and crates on its layer and from Brakkie
+  (checked every `clear.pathStepPx`), else it tries again later. A mid crossing spans the whole
+  screen, and some secret or tell is always somewhere on it (the first build never started one), so
+  it walks past them — pellets go through it and the guard spares shots near them — but it stops
+  (to feed, to graze) only where nothing aimed at is near.
+- *Field guide.* The shed's Journal (D-072) already has the field page with discoveries recorded
+  only when a sprite is drawn (view/meta, not sim events), so the cameos join its species list
+  (new habitats per area) instead of a second page in the Notaboek. The Notaboek gets the secret
+  "Veldkenner": every cameo of the hunt's area seen in one hunt.
+- *Lazy groups, never waited for.* Per area `cameos-<area>` (+ `-hd`): the area's sheet and sounds
+  (the Okavango's group holds only the trumpet), requested at START and never waited for: until
+  they arrive a cameo is not drawn (the sim runs it all the same). Nothing new in the first
+  download but strings and a little code. So while the sheet loads (or with no delivery at all) a
+  cameo walks the sim undrawn — it can react and be charged for an aimed shot — exactly as Brakkie
+  is while his sheet loads (D-069); it is never needed to start or play a hunt. Every area's kinds
+  must be on that area's sheet (`cameoSheetErrors`, run by `npm run content:validate` and a unit
+  test), so a tune can't make a cameo that never gets drawn.
+- *Balance (final content, `docs/balance/v1.13-cameos.md`).* Competent bot, each area's Monday,
+  every gun (the Dubbelloop 500 seeds, the others 100), before = the same build without cameos:
+  area means −0.2 … +0.3 % (gate ±3 %), single cells −1.5 … +1.8 %; hits that cost points
+  ≤ 0.06 a hunt in every cell (gate < 0.1); stray pellets on a cameo (free, pass-through) up to
+  0.8 a hunt for the Dubbelloop where the mid herds cross the flocks' band. The springbok alarm
+  fires 1.2–1.7 times a Kalahari hunt; the Okavango is unchanged.
+- *Sizes (gzip, rollout + main → this release).* First download: web 2,988.4 → 2,994.0 KB (+5.6:
+  the sim wiring, the content file, strings and the view's handles; budget 3,072), Poki 2,980.1 →
+  2,985.4, CrazyGames 2,980.2 → 2,985.6; new lazy groups `cameos-bushveld` 23.2 KB (+ `-hd` 20.9),
+  `cameos-karoo` 28.8 (28.4), `cameos-kalahari` 14.4 (17.2), `cameos-namibie` 18.0 (27.2),
+  `cameos-okavango` 20.9 (the trumpet only); voice packs +28.0 (en), +28.0 (af), +31.0 (de) for
+  Oupa's one scold (3 clips); lazy JS +8.3 KB; every other group unchanged. `size --strict`
+  passes on all three builds.
+- *Texture memory (lessons 29, 38, 42).* The sheets are 0.125 / 0.5 / 0.125 / 0.5 MiB at 1×
+  (Bushveld, Karoo, Kalahari, Namibië; a unit test caps each at 1 MiB) and 0.5 / 2 / 0.5 / 2 MiB as
+  HD twins, used only while the textures in use plus the twin stay within 250 MiB
+  (`feel.cameos.hd`); the Okavango, the heaviest HD hunt, adds nothing. A sheet becomes a texture
+  when its hunt first draws a cameo and is removed when the hunt ends, before the tally. perf.spec's
+  HD memory cases now bring the area's cameos out (`?cameoPreview=all`) and load both rare morphs
+  before measuring; the → braai case checks no cameo sheet is left.
+- *Phones (lessons 32–33).* Pooled images set only on change, one reused pose, nothing built a
+  frame; their own hook timer `cameoMs` in the [perf] JSON (≤ 0.3 ms a frame at 4× throttle with
+  several cameos out, perf.spec on the Bushveld and the Kalahari; a stub unit test holds ≤ 40 Phaser
+  calls a frame at 20 sim ticks a frame). `step()` with 60 birds, Brakkie and the cameos ≈ 117 µs
+  (budget 1.5 ms).
+- *Polish (v1.12 screenshot review).* In Brakkie's trot shot the first-person gun's barrel covered
+  his head. The gun stands at 0.62 × the screen's width (0.38 left-handed) and leans toward the aim:
+  at his head height its barrel sweeps 85–340 px from the screen's centre on 16:9 to 21:9 for aims
+  within ±500 px. The sim never sees the device or the hand, so his rest spots now keep his head out
+  of both stripes (`roam.gunStripePx` 65–360) and a pan that leaves it there gets him up; golden
+  replays re-recorded for his spots. Screenshot before | after: `art-preview-cameos.spec.ts`
+  (`?brakkieGunStripe=0`, test builds only, is the old rule).
+- *Review round 1 (playtest reviewer).* A Kettie stone flew through a cameo without hitting it
+  (bands see one plane at a time): it now keeps the first cameo like a makalani nut and ends on it
+  when nothing behind takes it; a pellet on a cameo lands without the far plane's wind drift;
+  sightings need the feet on screen; schedules keep looking after a time bonus; the pose picker
+  builds nothing a frame.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

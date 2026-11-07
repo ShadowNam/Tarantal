@@ -1,0 +1,50 @@
+{
+  "bushveld-winter.dubbelloop.before": {
+    "hunts": 100,
+    "score": 464048,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 0,
+    "dogFlushes": 0,
+    "dogFetches": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "bushveld-winter.dubbelloop.after": {
+    "hunts": 100,
+    "score": 464949,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 83,
+    "dogFlushes": 44,
+    "dogFetches": 104,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.dubbelloop.before": {
+    "hunts": 100,
+    "score": 478129,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 0,
+    "dogFlushes": 0,
+    "dogFetches": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.dubbelloop.after": {
+    "hunts": 100,
+    "score": 483890,
+    "dogAimed": 0,
+    "dogStray": 0,
+    "dogBarks": 100,
+    "dogFlushes": 79,
+    "dogFetches": 241,
+    "chunks": [
+      "1-100"
+    ]
+  }
+}

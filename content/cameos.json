@@ -1,0 +1,139 @@
+{
+  "$comment": "v1.13 Veld cameos (GDD §11.3g, D-075): non-target wildlife, sim entities on ONE stream `cameos`; never targets, never hurt, never removed. Px are design px on the cameo's plane as drawn (mid px already at the mid plane's scale), speeds layer px a second, times seconds. hitboxes: from the feet, facing right. A pellet passes THROUGH a cameo; −10 only for a shot aimed at one that hit no target with no live bird within hit.guardPx of the aim point.",
+  "version": 1,
+  "modes": ["classic", "daily", "seasonHunt"],
+  "seasonKinds": ["plain", "omen"],
+  "areas": [
+    { "biome": "bushveld-winter", "cameos": ["warthogs", "dungBeetle"] },
+    { "biome": "karoo-autumn", "cameos": ["tortoise", "ostrich"] },
+    { "biome": "kalahari-summer", "cameos": ["springbok"] },
+    { "biome": "namibie", "cameos": ["gemsbok"] },
+    { "biome": "okavango-spring", "cameos": ["elephants"] }
+  ],
+  "nearGroundY": 985,
+  "midGroundDy": 0,
+  "maxActive": 2,
+  "retrySeconds": 3,
+  "lastStretchSeconds": 12,
+  "clear": { "pathPx": 160, "pathStepPx": 100 },
+  "hit": { "penalty": 10, "cooldownSeconds": 2, "guardPx": 120 },
+  "kinds": {
+    "warthogs": {
+      "plane": "mid",
+      "enter": "edge",
+      "group": [
+        { "role": "adult", "count": [1, 1] },
+        { "role": "young", "count": [2, 3] }
+      ],
+      "spacingPx": 48,
+      "depthPx": 8,
+      "hitboxes": {
+        "adult": [
+          { "ox": -6, "oy": -36, "rx": 46, "ry": 24 },
+          { "ox": 42, "oy": -30, "rx": 16, "ry": 16 }
+        ],
+        "young": [{ "ox": 0, "oy": -16, "rx": 22, "ry": 12 }]
+      },
+      "speeds": { "walkPx": 130, "fleePx": 380 },
+      "edgeDxPx": 1350,
+      "pause": { "chance": 0.8, "everyPx": [500, 900], "seconds": [2.5, 4] },
+      "reaction": { "kind": "bolt", "seconds": 0.3 },
+      "schedule": { "firstSeconds": [8, 18], "everySeconds": [28, 40], "maxVisits": 2 }
+    },
+    "dungBeetle": {
+      "plane": "near",
+      "enter": "grass",
+      "group": [{ "role": "adult", "count": [1, 1] }],
+      "spacingPx": 0,
+      "depthPx": 0,
+      "hitboxes": { "adult": [{ "ox": 6, "oy": -18, "rx": 30, "ry": 18 }] },
+      "speeds": { "walkPx": 24, "fleePx": 24 },
+      "bandPx": 380,
+      "distancePx": [150, 240],
+      "fadeSeconds": 0.6,
+      "pause": { "chance": 0.5, "everyPx": [70, 110], "seconds": [0.8, 1.4] },
+      "reaction": { "kind": "tumble", "seconds": 1.4 },
+      "schedule": { "firstSeconds": [14, 28], "everySeconds": [32, 46], "maxVisits": 2 }
+    },
+    "tortoise": {
+      "plane": "near",
+      "enter": "grass",
+      "group": [{ "role": "adult", "count": [1, 1] }],
+      "spacingPx": 0,
+      "depthPx": 0,
+      "hitboxes": { "adult": [{ "ox": 0, "oy": -24, "rx": 44, "ry": 24 }] },
+      "speeds": { "walkPx": 15, "fleePx": 15 },
+      "bandPx": 380,
+      "distancePx": [100, 160],
+      "fadeSeconds": 0.8,
+      "pause": { "chance": 0.7, "everyPx": [50, 80], "seconds": [1.5, 3] },
+      "reaction": { "kind": "hide", "seconds": 3 },
+      "schedule": { "firstSeconds": [8, 18], "everySeconds": [38, 52], "maxVisits": 2 }
+    },
+    "ostrich": {
+      "plane": "mid",
+      "enter": "edge",
+      "group": [{ "role": "adult", "count": [1, 1] }],
+      "spacingPx": 0,
+      "depthPx": 0,
+      "hitboxes": {
+        "adult": [
+          { "ox": -6, "oy": -118, "rx": 44, "ry": 34 },
+          { "ox": 30, "oy": -176, "rx": 12, "ry": 30 }
+        ]
+      },
+      "speeds": { "walkPx": 620, "fleePx": 760 },
+      "edgeDxPx": 1350,
+      "reaction": { "kind": "veer", "seconds": 0.5 },
+      "schedule": { "firstSeconds": [18, 34], "everySeconds": [26, 40], "maxVisits": 2 }
+    },
+    "springbok": {
+      "plane": "mid",
+      "enter": "edge",
+      "group": [{ "role": "adult", "count": [3, 5] }],
+      "spacingPx": 72,
+      "depthPx": 14,
+      "hitboxes": {
+        "adult": [
+          { "ox": -2, "oy": -56, "rx": 40, "ry": 20 },
+          { "ox": 38, "oy": -82, "rx": 12, "ry": 14 }
+        ]
+      },
+      "speeds": { "walkPx": 95, "fleePx": 440 },
+      "edgeDxPx": 1350,
+      "pause": { "chance": 0.85, "everyPx": [450, 750], "seconds": [3, 5] },
+      "reaction": { "kind": "pronk", "seconds": 0.6 },
+      "alarm": { "radiusPx": 220, "maxDxPx": 700, "threatAtSeconds": 0.4 },
+      "schedule": { "firstSeconds": [10, 20], "everySeconds": [30, 44], "maxVisits": 2 }
+    },
+    "gemsbok": {
+      "plane": "mid",
+      "enter": "edge",
+      "group": [{ "role": "adult", "count": [2, 3] }],
+      "spacingPx": 96,
+      "depthPx": 12,
+      "hitboxes": {
+        "adult": [
+          { "ox": -4, "oy": -80, "rx": 56, "ry": 28 },
+          { "ox": 52, "oy": -112, "rx": 14, "ry": 18 }
+        ]
+      },
+      "speeds": { "walkPx": 90, "fleePx": 400 },
+      "edgeDxPx": 1350,
+      "pause": { "chance": 0.7, "everyPx": [500, 800], "seconds": [3, 5] },
+      "reaction": { "kind": "bolt", "seconds": 0.5 },
+      "schedule": { "firstSeconds": [10, 20], "everySeconds": [30, 44], "maxVisits": 2 }
+    },
+    "elephants": {
+      "herd": {
+        "layer": "far_veld",
+        "u": 0.5,
+        "nearPx": 600,
+        "chance": 0.6,
+        "cooldownSeconds": 20,
+        "maxPerHunt": 3,
+        "flapSeconds": 2.4
+      }
+    }
+  }
+}

@@ -1,0 +1,724 @@
+{
+  "bushveld-winter.dubbelloop.before": {
+    "hunts": 500,
+    "score": 2350918,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100",
+      "101-200",
+      "201-300",
+      "301-400",
+      "401-500"
+    ]
+  },
+  "bushveld-winter.dubbelloop.after": {
+    "hunts": 500,
+    "score": 2350341,
+    "aimed": 13,
+    "stray": 398,
+    "alarms": 0,
+    "visits": 1999,
+    "chunks": [
+      "1-100",
+      "101-200",
+      "201-300",
+      "301-400",
+      "401-500"
+    ]
+  },
+  "bushveld-winter.windbuks.before": {
+    "hunts": 100,
+    "score": 279697,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "bushveld-winter.windbuks.after": {
+    "hunts": 100,
+    "score": 278743,
+    "aimed": 1,
+    "stray": 2,
+    "alarms": 0,
+    "visits": 400,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "bushveld-winter.kettie.before": {
+    "hunts": 100,
+    "score": 467470,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "bushveld-winter.pomp.before": {
+    "hunts": 100,
+    "score": 428312,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "bushveld-winter.pomp.after": {
+    "hunts": 100,
+    "score": 428930,
+    "aimed": 1,
+    "stray": 27,
+    "alarms": 0,
+    "visits": 400,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "bushveld-winter.twee_twee.before": {
+    "hunts": 100,
+    "score": 355880,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "bushveld-winter.twee_twee.after": {
+    "hunts": 100,
+    "score": 357351,
+    "aimed": 1,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 400,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "bushveld-winter.langloop.before": {
+    "hunts": 100,
+    "score": 269251,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "bushveld-winter.langloop.after": {
+    "hunts": 100,
+    "score": 271114,
+    "aimed": 1,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 399,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.dubbelloop.before": {
+    "hunts": 500,
+    "score": 2415064,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100",
+      "101-200",
+      "201-300",
+      "301-400",
+      "401-500"
+    ]
+  },
+  "karoo-autumn.dubbelloop.after": {
+    "hunts": 500,
+    "score": 2400801,
+    "aimed": 2,
+    "stray": 33,
+    "alarms": 0,
+    "visits": 2000,
+    "chunks": [
+      "1-100",
+      "101-200",
+      "201-300",
+      "301-400",
+      "401-500"
+    ]
+  },
+  "karoo-autumn.windbuks.before": {
+    "hunts": 100,
+    "score": 282591,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.windbuks.after": {
+    "hunts": 100,
+    "score": 280462,
+    "aimed": 1,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 399,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.kettie.before": {
+    "hunts": 100,
+    "score": 501656,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.pomp.before": {
+    "hunts": 100,
+    "score": 441188,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.pomp.after": {
+    "hunts": 100,
+    "score": 441491,
+    "aimed": 0,
+    "stray": 5,
+    "alarms": 0,
+    "visits": 399,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.twee_twee.before": {
+    "hunts": 100,
+    "score": 393446,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.twee_twee.after": {
+    "hunts": 100,
+    "score": 396246,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 400,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.langloop.before": {
+    "hunts": 100,
+    "score": 284464,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.langloop.after": {
+    "hunts": 100,
+    "score": 285017,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 399,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "kalahari-summer.dubbelloop.before": {
+    "hunts": 500,
+    "score": 2109122,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100",
+      "101-200",
+      "201-300",
+      "301-400",
+      "401-500"
+    ]
+  },
+  "kalahari-summer.dubbelloop.after": {
+    "hunts": 500,
+    "score": 2117286,
+    "aimed": 11,
+    "stray": 283,
+    "alarms": 829,
+    "visits": 1000,
+    "chunks": [
+      "1-100",
+      "101-200",
+      "201-300",
+      "301-400",
+      "401-500"
+    ]
+  },
+  "kalahari-summer.windbuks.before": {
+    "hunts": 100,
+    "score": 300890,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "kalahari-summer.windbuks.after": {
+    "hunts": 100,
+    "score": 297027,
+    "aimed": 1,
+    "stray": 3,
+    "alarms": 125,
+    "visits": 200,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "kalahari-summer.kettie.before": {
+    "hunts": 100,
+    "score": 433573,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "kalahari-summer.pomp.before": {
+    "hunts": 100,
+    "score": 417756,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "kalahari-summer.pomp.after": {
+    "hunts": 100,
+    "score": 422494,
+    "aimed": 0,
+    "stray": 40,
+    "alarms": 133,
+    "visits": 200,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "kalahari-summer.twee_twee.before": {
+    "hunts": 100,
+    "score": 353902,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "kalahari-summer.twee_twee.after": {
+    "hunts": 100,
+    "score": 360224,
+    "aimed": 2,
+    "stray": 2,
+    "alarms": 143,
+    "visits": 200,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "kalahari-summer.langloop.before": {
+    "hunts": 100,
+    "score": 283409,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "kalahari-summer.langloop.after": {
+    "hunts": 100,
+    "score": 279039,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 118,
+    "visits": 200,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "namibie.dubbelloop.before": {
+    "hunts": 500,
+    "score": 1714430,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100",
+      "101-200",
+      "201-300",
+      "301-400",
+      "401-500"
+    ]
+  },
+  "namibie.dubbelloop.after": {
+    "hunts": 500,
+    "score": 1719520,
+    "aimed": 3,
+    "stray": 309,
+    "alarms": 0,
+    "visits": 1000,
+    "chunks": [
+      "1-100",
+      "101-200",
+      "201-300",
+      "301-400",
+      "401-500"
+    ]
+  },
+  "namibie.windbuks.before": {
+    "hunts": 100,
+    "score": 234277,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "namibie.windbuks.after": {
+    "hunts": 100,
+    "score": 235961,
+    "aimed": 3,
+    "stray": 3,
+    "alarms": 0,
+    "visits": 200,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "namibie.kettie.before": {
+    "hunts": 100,
+    "score": 354766,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "namibie.pomp.before": {
+    "hunts": 100,
+    "score": 258996,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "namibie.pomp.after": {
+    "hunts": 100,
+    "score": 259355,
+    "aimed": 0,
+    "stray": 41,
+    "alarms": 0,
+    "visits": 200,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "namibie.twee_twee.before": {
+    "hunts": 100,
+    "score": 317895,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "namibie.twee_twee.after": {
+    "hunts": 100,
+    "score": 317893,
+    "aimed": 1,
+    "stray": 1,
+    "alarms": 0,
+    "visits": 200,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "namibie.langloop.before": {
+    "hunts": 100,
+    "score": 351075,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "namibie.langloop.after": {
+    "hunts": 100,
+    "score": 351309,
+    "aimed": 0,
+    "stray": 3,
+    "alarms": 0,
+    "visits": 200,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "okavango-spring.dubbelloop.before": {
+    "hunts": 500,
+    "score": 2303470,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100",
+      "101-200",
+      "201-300",
+      "301-400",
+      "401-500"
+    ]
+  },
+  "okavango-spring.dubbelloop.after": {
+    "hunts": 500,
+    "score": 2303470,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100",
+      "101-200",
+      "201-300",
+      "301-400",
+      "401-500"
+    ]
+  },
+  "okavango-spring.windbuks.before": {
+    "hunts": 100,
+    "score": 285502,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "okavango-spring.windbuks.after": {
+    "hunts": 100,
+    "score": 285502,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "okavango-spring.kettie.before": {
+    "hunts": 100,
+    "score": 470512,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "okavango-spring.pomp.before": {
+    "hunts": 100,
+    "score": 471868,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "okavango-spring.pomp.after": {
+    "hunts": 100,
+    "score": 471868,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "okavango-spring.twee_twee.before": {
+    "hunts": 100,
+    "score": 382367,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "okavango-spring.twee_twee.after": {
+    "hunts": 100,
+    "score": 382367,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "okavango-spring.langloop.before": {
+    "hunts": 100,
+    "score": 296908,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "okavango-spring.langloop.after": {
+    "hunts": 100,
+    "score": 296908,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.wed.canHappy.before": {
+    "hunts": 100,
+    "score": 399453,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.wed.canHappy.after": {
+    "hunts": 100,
+    "score": 399453,
+    "aimed": 0,
+    "stray": 6,
+    "alarms": 0,
+    "visits": 397,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "bushveld-winter.kettie.after": {
+    "hunts": 100,
+    "score": 470473,
+    "aimed": 5,
+    "stray": 11,
+    "alarms": 0,
+    "visits": 399,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "karoo-autumn.kettie.after": {
+    "hunts": 100,
+    "score": 498476,
+    "aimed": 0,
+    "stray": 1,
+    "alarms": 0,
+    "visits": 400,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "kalahari-summer.kettie.after": {
+    "hunts": 100,
+    "score": 427572,
+    "aimed": 6,
+    "stray": 18,
+    "alarms": 147,
+    "visits": 200,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "namibie.kettie.after": {
+    "hunts": 100,
+    "score": 356361,
+    "aimed": 2,
+    "stray": 3,
+    "alarms": 0,
+    "visits": 200,
+    "chunks": [
+      "1-100"
+    ]
+  },
+  "okavango-spring.kettie.after": {
+    "hunts": 100,
+    "score": 470512,
+    "aimed": 0,
+    "stray": 0,
+    "alarms": 0,
+    "visits": 0,
+    "chunks": [
+      "1-100"
+    ]
+  }
+}
