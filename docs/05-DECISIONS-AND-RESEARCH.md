@@ -1271,7 +1271,7 @@ their system packages took 1–22 min per job, jobs queued up to 20 min for free
 PRs pushed several 16-job runs at once), and the slowest test shards took 17–18 min. Idle gaps
 between agent turns (a turn ends mid-task, nothing restarts it until the next hourly check) cost
 more than any of these. Decisions: (1) *CI lanes.* Pull requests into `main` run the **quick
-lane**: check/build/size, desktop Chromium in 6 shards (4 until v1.11, D-068), Pixel 7 landscape in 4 (3 until v1.12, D-069), iPhone 14
+lane**: check/build/size, desktop Chromium in 6 shards (4 until v1.11, D-068), Pixel 7 landscape in 5 (3 until v1.12, D-069; 4 until v1.13, D-075), iPhone 14
 landscape on WebKit, without the Season Run and perf timing specs. Push to `main`, the nightly
 run, a manual run and a PR labelled `full-ci` run the **full lane** (every profile, Season Run,
 perf, portal and public-build jobs, desktop WebKit in 2 shards). A PR merges on a green quick
@@ -4103,6 +4103,11 @@ GDD §11.3g, Tech §3.12g, art bible §5.7. Version 1.17.0.
   when nothing behind takes it; a pellet on a cameo lands without the far plane's wind drift;
   sightings need the feet on screen; schedules keep looking after a time bonus; the pose picker
   builds nothing a frame.
+- *CI after the merge.* With the cameo specs the Pixel 7 shards ran 30–42 min of the job's 45-min
+  limit: on full CI 2/4 took 41.8 min, and in it the Halloween lantern hunt timed out (its 40 s hunt
+  is frame-bound, `feel.loop.maxStepsPerFrame` 5, and ran at ~10 % of real time under two workers;
+  it now boots with the test-build `?maxSteps=30`, client feel only). Pixel 7 landscape now runs in
+  5 shards (the 45-min limit is unchanged, nothing is skipped).
 
 ## 3. Research notes (with sources)
 
