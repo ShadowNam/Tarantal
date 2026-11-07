@@ -14,20 +14,23 @@ import { fetchAssetIndex, loadImage } from '../assets/finalLoader';
 import { residentFrames, RESIDENT_SHEET_W } from '../view/tree/residentSheet';
 import { colonyFrames, COLONY_SHEET_W } from '../view/tree/colonySheet';
 import { CAMEO_SHEET_SIZE, type CameoSheetArea } from '../cameos/cameoKeys';
-import { cameoFrames, sheetRect } from '../cameos/cameoSheet';
 
-/** A portrait's frame rect on its 1× sheet and that sheet's 1× width (null: unknown frame). */
-function portraitRect(
+/** A portrait's frame rect on its 1× sheet and that sheet's 1× width (null: unknown frame). A
+ *  cameo's frame table is loaded with the portrait (lazily: it stays out of the first download,
+ *  in the cameos' chunk). */
+async function portraitRect(
   sheet: string,
   frame: string,
   habitat: string,
-): { x: number; y: number; w: number; h: number; sheetW: number } | null {
+): Promise<{ x: number; y: number; w: number; h: number; sheetW: number } | null> {
   // v1.13 (D-075): a cameo's sheet (cameos/<area>), its frames at half size on the sheet.
   if (sheet.startsWith('cameos/')) {
     const area = sheet.slice('cameos/'.length) as CameoSheetArea;
     const size = CAMEO_SHEET_SIZE[area] as (typeof CAMEO_SHEET_SIZE)[CameoSheetArea] | undefined;
-    const f = size === undefined ? undefined : cameoFrames(area).find((x) => x.name === frame);
-    return size === undefined || f === undefined ? null : { ...sheetRect(f), sheetW: size.w };
+    if (size === undefined) return null;
+    const { cameoFrames, sheetRect } = await import('../cameos/cameoSheet');
+    const f = cameoFrames(area).find((x) => x.name === frame);
+    return f === undefined ? null : { ...sheetRect(f), sheetW: size.w };
   }
   const baobab = habitat === 'baobab';
   const f = (baobab ? residentFrames() : colonyFrames()).find((x) => x.name === frame);
@@ -183,7 +186,7 @@ export function renderJournal(
           const key = `journal-portrait:${sheet}`;
           if (!scene.textures.exists(key)) scene.textures.addImage(key, img);
           textures.add(key);
-          const frame = portraitRect(sheet, frameName, species.habitat);
+          const frame = await portraitRect(sheet, frameName, species.habitat);
           if (frame === null) return;
           const k = img.width / frame.sheetW;
           const texture = scene.textures.get(key);

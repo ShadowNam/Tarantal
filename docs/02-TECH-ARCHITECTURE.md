@@ -778,7 +778,8 @@ adds it unless a spec names `cameos=`), `?cameos=content` the real content (spec
 Node), `?cameos=1` sooner and more often, `?cameoPreview=all|<kinds>` those kinds out in view at
 once walking slowly (the elephants trumpet), `?cameoReact=<s>` they react then; plain `?e2e` keeps
 the real content hash. The view (`src/game/cameos/CameoView.ts`, a lazy chunk with the frame tables;
-the first download has `cameoChunk.ts`, `cameoKeys.ts` and `cameoAnim.ts`) loads the hunt's area
+the first download has `cameoChunk.ts`, `cameoKeys.ts` and `cameoAnim.ts`; the Journal's
+portraits import `cameoSheet.ts` lazily, so the frame tables stay in the cameos' chunk) loads the hunt's area
 files itself (Standard sheet, the HD twin only when the textures in use plus its own stay within
 `feel.cameos.hd`, the sounds; the delivery switch holds), polls every 30 frames until the sheet is
 in, draws pooled images set on change from `cameoPose` (sim time: a held tick holds them), reports
