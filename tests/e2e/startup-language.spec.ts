@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { boot, isTouchProject, startHunt, tapRect } from './helpers';
+import { boot, isLandscape, isTouchProject, startHunt, tapRect } from './helpers';
 import en from '../../src/i18n/en.json' with { type: 'json' };
 
 test('startup defaults to English and remembers the selected language', async ({ page }, info) => {
+  test.skip(!isLandscape(info), 'landscape only: in portrait the rotate card covers the picker');
   test.setTimeout(300_000);
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'languages', { get: () => ['de-DE'] });
@@ -31,6 +32,7 @@ test('startup defaults to English and remembers the selected language', async ({
 });
 
 test('startup language works when browser storage rejects writes', async ({ page }, info) => {
+  test.skip(!isLandscape(info), 'landscape only: in portrait the rotate card covers the picker');
   test.setTimeout(240_000);
   await page.addInitScript(() => {
     Storage.prototype.setItem = () => {
@@ -131,4 +133,14 @@ test('legacy automatic language adopts the English default once', async ({ page 
   await page.reload();
   await page.waitForFunction(() => window.__TM__?.ready === true);
   await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+});
+
+test('portrait: the rotate card hides the language picker (it would sit above the card)', async ({
+  page,
+}, info) => {
+  test.skip(isLandscape(info), 'portrait profiles only');
+  test.setTimeout(240_000);
+  await boot(page, 'seed=42&graphics=standard');
+  await expect(page.locator('#rotate-card')).toBeVisible();
+  await expect(page.locator('#startup-language')).toBeHidden();
 });
