@@ -3967,6 +3967,16 @@ Field-guide fact sources (paraphrased; accessed 2 Nov 2026):
 [San Diego Zoo — pygmy falcon](https://animals.sandiegozoo.org/animals/african-pygmy-falcon).
 Oupa's notes are original character dialogue, not scientific quotations.
 
+### D-073 — English startup and baboon art refinement (3 Nov 2026)
+
+Product-owner request ("as default the game should load fully English"): fresh saves use English instead of browser detection, and existing saves still on Auto switch to English once (notice `english-startup-v1`, `src/main.ts`); a native keyboard/touch language selector on loading and title screens offers English, Afrikaans and Deutsch. Explicit saved choices remain. Selecting a startup language aligns voice and disables Afrikaans flavour names.
+
+Baboon art keeps the existing deterministic poses, frame bounds and hitboxes. Add connected muscular necks, shaded anatomical masses, finer cheek fur, textured distant coats and smaller eyes. Regenerate both delivered Standard and HD sheets from the same source. No sim or scoring changes.
+
+English also translates the formerly retained Afrikaans catchphrases in barks, seasonal labels and braai narration. Regenerate the affected English interim voice clips so captions and speech agree. Character and place names remain proper names.
+
+Supervisor follow-up at merge (7 Nov 2026): the privacy reset succeeds when the browser has no storage at all (nothing reached disk, so the memory wipe is the whole clear; D-071's failure message stays for a store that refuses to list or remove keys); the language picker hides behind the portrait rotate card and in capture mode, and its label comes from i18n; the Halloween e2e expects the English "Ghost Hunt" text. Version 1.16.0.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
@@ -4066,12 +4076,3 @@ subagent, verification Claude can run itself, plan mode for multi-file work.
 3. Budget for a human illustrator, animator, voice actor and composer (art bible §9–10)?
 4. ~~Which portal first: Poki or CrazyGames?~~ Answered 27 Oct (D-052): neither; friends first, then the Apple App Store and Google Play.
 5. Keep the hunting framing for all markets, or offer a "camera safari" reskin for sensitive markets?
-
-
-## D-073 — English startup and baboon art refinement (3 Nov 2026)
-
-Product-owner request: fresh saves use English instead of browser detection; a native keyboard/touch language selector on loading and title screens offers English, Afrikaans and Deutsch. Explicit saved choices remain. Selecting a startup language aligns voice and disables Afrikaans flavour names.
-
-Baboon art keeps the existing deterministic poses, frame bounds and hitboxes. Add connected muscular necks, shaded anatomical masses, finer cheek fur, textured distant coats and smaller eyes. Regenerate both delivered Standard and HD sheets from the same source. No sim or scoring changes.
-
-English also translates the formerly retained Afrikaans catchphrases in barks, seasonal labels and braai narration. Regenerate the affected English interim voice clips so captions and speech agree. Character and place names remain proper names.
