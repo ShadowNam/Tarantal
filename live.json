@@ -1,9 +1,9 @@
 {
-  "updated": "2026-11-07T13:12:00Z",
-  "summary": "Live on the test build: the English start and better baboons (1.16.0, merged 15:04 Namibia time on 7 Nov). The game now opens in English, with an English / Afrikaans / Deutsch choice on the loading screen; the Karoo baboons have new faces, fur and shading (outlines and eyes restored for phones); Oupa's journal adds goals, rivals and keepsakes; the Harvest has its own music. Next: v1.13 veld cameos (built by Tank, now in screenshots, review and full CI); Oupa's new voices last.",
+  "updated": "2026-11-07T17:22:00Z",
+  "summary": "Live on the test build: v1.13 veld cameos (1.17.0, merged 19:14 Namibia time on 7 Nov). Every area now has its own visitors: a warthog family and a dung beetle in the Bushveld, a leopard tortoise and a sprinting ostrich in the Karoo, a pronking springbok herd in the Kalahari (its alarm makes the nearest flock nervous), gemsbok in Namibië, and Okavango elephants that flap and trumpet when a flock flushes. Pellets pass through them; a shot aimed at one costs 10 points and a scolding. Oupa's journal has a new \"Seen in the veld\" page. Next: Oupa's new voices (needs the OpenRouter key), then a final phone playtest and the store releases.",
   "current": {
-    "version": "1.16.0",
-    "commit": "63ee4c63"
+    "version": "1.17.0",
+    "commit": "b5fc409d"
   },
   "links": [
     {
@@ -34,23 +34,23 @@
   "numbers": [
     {
       "label": "Version on the test build",
-      "value": "1.16.0",
-      "note": "commit 63ee4c63, merged 15:04 on 7 Nov"
+      "value": "1.17.0",
+      "note": "commit b5fc409d, merged 19:14 on 7 Nov"
     },
     {
       "label": "Pull requests merged",
-      "value": "112",
+      "value": "113",
       "note": "#1 to #116"
     },
     {
       "label": "Unit tests",
-      "value": "2,006",
+      "value": "2,158",
       "note": "plus the browser test suites on 3 devices"
     },
     {
       "label": "First download",
       "value": "2.99 MB",
-      "note": "2,988.4 KB of the 3,072 KB budget"
+      "note": "2,993.6 KB of the 3,072 KB budget"
     },
     {
       "label": "Hunting areas",
@@ -68,8 +68,8 @@
     },
     {
       "label": "Decisions logged",
-      "value": "74",
-      "note": "D-001 to D-074 on main"
+      "value": "75",
+      "note": "D-001 to D-075 on main"
     }
   ],
   "needsYou": [
@@ -1067,10 +1067,10 @@
       "status": "done"
     },
     "v1.13": {
-      "owner": "Tank built it (task 5b2918eb, PR #115, ready 7 Nov 14:00 Namibia); Claude runs the screenshots, an independent review and full CI",
+      "owner": "Tank built it (task 5b2918eb) with a second round of review fixes; Claude ran the screenshots on desktop, Pixel 7 and iPhone 14 and an independent review, fixed the cameo browser tests, the screenshot preview and a slow Halloween test, and merged it (#115)",
       "summary": "Veld cameos: a warthog family, a dung beetle, a leopard tortoise, a sprinting ostrich, a pronking springbok herd, gemsbok, trumpeting elephants, and a \"Seen in the veld\" page in Oupa's journal; version 1.17.0.",
       "requestedBy": "You: the v1.9–v1.13 list, in your order.",
-      "status": "running"
+      "status": "done"
     }
   },
   "suggestions": [
@@ -2240,6 +2240,11 @@
       "at": "2026-11-07T13:04:15Z",
       "kind": "merge",
       "text": "The English start and better baboons are on the test build (1.16.0, #116): English by default with a language choice on the loading screen, new baboon faces and fur, Oupa's journal with goals, rivals and keepsakes, and the Harvest's music. Full CI green (28 jobs); screenshots checked on desktop, Pixel 7 and iPhone 14."
+    },
+    {
+      "at": "2026-11-07T17:14:16Z",
+      "kind": "merge",
+      "text": "v1.13 veld cameos are on the test build (1.17.0, #115): warthogs, a dung beetle, a leopard tortoise, an ostrich, springbok, gemsbok and trumpeting elephants, plus the \"Seen in the veld\" field guide. Full CI green (28 jobs; phones' HD memory at most 247 MB of 256); screenshots checked on desktop, Pixel 7 and iPhone 14."
     }
   ]
 }
