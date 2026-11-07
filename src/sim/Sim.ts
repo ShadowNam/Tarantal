@@ -1093,7 +1093,10 @@ export function createSim(config: SimConfig): Sim {
         busyExtras = hitExtras();
       }
       const layerId = plane === 'near' ? dogNear : dogMid;
-      for (const e of busyExtras.get(layerId) ?? []) if (e.kind !== 'dog') consider(e.x);
+      // v1.13 (D-075 review round 2): not the cameos either — a dung beetle is no reason for the
+      // dog to bolt (the cameos keep clear of him instead).
+      for (const e of busyExtras.get(layerId) ?? [])
+        if (e.kind !== 'dog' && e.kind !== 'cameo') consider(e.x);
       return best;
     };
     brakkie = needLazy('Brakkie').brakkie(
