@@ -92,7 +92,9 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
     const errors = collectErrors(page);
     await stubClipboard(page);
     await seedSave(page, { quality: 'medium' });
-    await boot(page, QUERY);
+    // maxSteps: the sim catches up to real time on a slow machine, so the 40 s hunt ends within the
+    // tally wait below (CI's Pixel 7 shard, two workers: it ran at ~10 % and timed out on 1efb7354).
+    await boot(page, `${QUERY}&maxSteps=30`);
     await page.waitForFunction(() => window.__TM__?.rects['daily'] !== undefined, null, {
       timeout: 60_000,
     });

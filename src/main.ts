@@ -548,7 +548,14 @@ const loaded = loadGameContent();
 // e2e/dev only (D-049 "before" screenshots): ?planeScale=v17 — the old plane scales.
 const planeScaleParam = testHooks ? params.get('planeScale') : null;
 const planePreset = isPlaneScalePreset(planeScaleParam) ? planeScaleParam : null;
-const feel = loaded.feel;
+// e2e/dev only: ?maxSteps=30 raises the loop's sim catch-up per frame (feel.loop.maxStepsPerFrame),
+// so a hunt on a slow, software-rendered test machine keeps to real time and ends when a wall-clock
+// wait expects it. Client feel only: the content hash and every replay are unchanged.
+const maxStepsParam = testHooks && params.has('maxSteps') ? Number(params.get('maxSteps')) : NaN;
+const feel =
+  Number.isInteger(maxStepsParam) && maxStepsParam > 0
+    ? { ...loaded.feel, loop: { ...loaded.feel.loop, maxStepsPerFrame: maxStepsParam } }
+    : loaded.feel;
 // M10: the final-asset index, fetched while the platform SDK starts (absent = all placeholders).
 const indexLoad = fetchAssetIndex(feel.assets.indexTimeoutMs);
 const crateParam = testHooks ? params.get('crate') : null;
