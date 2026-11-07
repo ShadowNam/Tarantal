@@ -86,6 +86,11 @@
         font-family: system-ui, sans-serif;
         text-align: center;
       }
+      /* The language picker sits above the canvas (z-index 1001): hide it while the portrait
+         rotate card is up, which has a lower z-index. */
+      body:has(#rotate-card.visible) #startup-language {
+        display: none;
+      }
       #rotate-card.visible {
         display: flex;
       }
@@ -206,6 +211,7 @@
       <select
         id="startup-language-select"
         aria-label="Language"
+        data-i18n-label="settings.language"
         style="
           font: inherit;
           min-height: 36px;

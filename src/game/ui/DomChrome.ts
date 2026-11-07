@@ -51,6 +51,7 @@ export class DomChrome {
   }
 
   /** M10 capture mode: keep the "Add to Home Screen" banner out of the shot. */
+  /** Capture (trailer) mode: no install banner and no language picker over the shot. */
   hideInstallBanner(): void {
     this.noBanner = true;
     this.sync();
@@ -63,7 +64,7 @@ export class DomChrome {
 
   private sync(): void {
     const language = document.getElementById('startup-language');
-    if (language) language.hidden = !this.onTitle;
+    if (language) language.hidden = !this.onTitle || this.noBanner;
     const caps = this.platform.capabilities();
     if (this.fullscreen) this.fullscreen.hidden = !this.onTitle || !caps.fullscreen;
     if (this.banner) {
