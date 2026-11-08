@@ -3,6 +3,7 @@
 // - Text that is not JSON: kept under `save.corrupt` for bug reports, defaults are used.
 // - A damaged section (or a damaged field of an object section) falls back on its own.
 // - A save written by a newer game version is never overwritten; this session runs in memory.
+import { setTextOverrides } from '../i18n/i18n';
 import { z } from 'zod';
 import { migrate, readLegacyV0, type RawSave } from './migrations';
 import { defaultSave, SAVE_KEY, SAVE_SECTIONS, SAVE_VERSION, type SaveData } from './saveSchema';
@@ -156,6 +157,8 @@ export class SaveStore {
   clear(): boolean {
     const persisted = removeAllKeys();
     if (!persisted) return false;
+    // v1.14 (D-076): the owner's text edits went with the rest; stop showing them now.
+    setTextOverrides(null);
     this.current = defaultSave();
     this.readOnly = false;
     for (const fn of this.listeners) fn(this.current);

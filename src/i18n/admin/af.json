@@ -89,7 +89,7 @@
   "admin.texts.no_match": "Geen reël pas nie.",
   "admin.texts.voice_note": "Veranderinge verander die teks, nie die opnames nie: ▶ speel die klankgreep wat nou in die spel is.",
   "admin.texts.help_title": "Hoe om jou regstellings te stuur",
-  "admin.texts.help": "Jou veranderinge bly op hierdie toestel; niks word vanself gestuur nie. Tik Laai regstellings af (of Deel op 'n foon) en stoor die lêer in Dropbox, gids /AI-DEV/Tarantal-Madness/text-edits/. Die toesighouer sit dit in die spel, en die stemme word later van die reggemaakte reëls oorgemaak.",
+  "admin.texts.help": "Jou veranderinge bly op hierdie toestel; niks word vanself gestuur nie. Tik Laai regstellings af (of Deel op 'n foon) en stoor die lêer in jou wolkgids (bv. die projek se text-edits-gids). Die toesighouer sit dit in die spel, en die stemme word later van die reggemaakte reëls oorgemaak.",
   "admin.texts.loading": "Laai die tekste…",
   "admin.texts.table.names": "Afrikaanse name",
   "admin.texts.empty_text": "'n Reël kan nie leeg wees nie.",

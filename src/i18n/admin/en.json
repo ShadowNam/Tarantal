@@ -89,7 +89,7 @@
   "admin.texts.no_match": "No line matches.",
   "admin.texts.voice_note": "Edits change the text, not the recordings: ▶ plays the clip in the game now.",
   "admin.texts.help_title": "How to send your corrections",
-  "admin.texts.help": "Your edits stay on this device; nothing is sent by itself. Tap Download corrections (or Share on a phone) and save the file to Dropbox, folder /AI-DEV/Tarantal-Madness/text-edits/. The supervisor applies it to the game, and the voices are re-made from the corrected lines later.",
+  "admin.texts.help": "Your edits stay on this device; nothing is sent by itself. Tap Download corrections (or Share on a phone) and save the file to your cloud folder (e.g. the project's text-edits folder). The supervisor applies it to the game, and the voices are re-made from the corrected lines later.",
   "admin.texts.loading": "Loading the texts…",
   "admin.texts.table.names": "Afrikaans names",
   "admin.texts.empty_text": "A line can't be empty.",

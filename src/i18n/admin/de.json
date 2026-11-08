@@ -89,7 +89,7 @@
   "admin.texts.no_match": "Keine Zeile passt.",
   "admin.texts.voice_note": "Änderungen ändern den Text, nicht die Aufnahmen: ▶ spielt den Clip, der jetzt im Spiel ist.",
   "admin.texts.help_title": "So schickst du deine Korrekturen",
-  "admin.texts.help": "Deine Änderungen bleiben auf diesem Gerät; nichts wird von selbst gesendet. Tippe auf Korrekturen herunterladen (oder Teilen auf dem Handy) und speichere die Datei in Dropbox, Ordner /AI-DEV/Tarantal-Madness/text-edits/. Der Supervisor übernimmt sie ins Spiel, und die Stimmen werden später aus den korrigierten Zeilen neu gemacht.",
+  "admin.texts.help": "Deine Änderungen bleiben auf diesem Gerät; nichts wird von selbst gesendet. Tippe auf Korrekturen herunterladen (oder Teilen auf dem Handy) und speichere die Datei in deinem Cloud-Ordner (z. B. dem text-edits-Ordner des Projekts). Der Supervisor übernimmt sie ins Spiel, und die Stimmen werden später aus den korrigierten Zeilen neu gemacht.",
   "admin.texts.loading": "Texte werden geladen…",
   "admin.texts.table.names": "Afrikaanse Namen",
   "admin.texts.empty_text": "Eine Zeile darf nicht leer sein.",

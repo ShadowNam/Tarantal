@@ -89,7 +89,7 @@
   "admin.texts.no_match": "Geen regel past.",
   "admin.texts.voice_note": "Wijzigingen veranderen de tekst, niet de opnames: ▶ speelt de clip die nu in het spel zit.",
   "admin.texts.help_title": "Zo stuur je je correcties",
-  "admin.texts.help": "Je wijzigingen blijven op dit apparaat; er wordt niets vanzelf verstuurd. Tik op Correcties downloaden (of Delen op een telefoon) en bewaar het bestand in Dropbox, map /AI-DEV/Tarantal-Madness/text-edits/. De supervisor zet ze in het spel, en de stemmen worden later opnieuw gemaakt van de verbeterde regels.",
+  "admin.texts.help": "Je wijzigingen blijven op dit apparaat; er wordt niets vanzelf verstuurd. Tik op Correcties downloaden (of Delen op een telefoon) en bewaar het bestand in je cloudmap (bv. de text-edits-map van het project). De supervisor zet ze in het spel, en de stemmen worden later opnieuw gemaakt van de verbeterde regels.",
   "admin.texts.loading": "De teksten laden…",
   "admin.texts.table.names": "Afrikaanse namen",
   "admin.texts.empty_text": "Een regel mag niet leeg zijn.",

@@ -55,7 +55,7 @@ const ADMIN_CSS = `
 #tm-admin button.btn{font:inherit;font-weight:700;min-height:44px;min-width:44px;padding:6px 14px;border-radius:8px;
   border:2px solid #8a7458;background:#3a2e24;color:#F3EAD3;cursor:pointer;touch-action:manipulation}
 #tm-admin button.btn.primary{background:#d9a21b;border-color:#FFD25A;color:#1b1410;font-size:18px;padding:6px 28px}
-#tm-admin button.btn[aria-pressed=true]{background:#F3EAD3;color:#1b1410}
+#tm-admin button.btn[aria-pressed=true],#tm-admin button.btn[aria-selected=true]{background:#F3EAD3;color:#1b1410}
 #tm-admin button.btn.project{border-color:#FFD25A;color:#FFD25A}
 #tm-admin .star{font-size:22px;min-width:44px;padding:0 4px}
 #tm-admin .toast{color:#FFD25A;font-size:13px}
@@ -259,7 +259,7 @@ export class AdminPanel {
   }
 
   /** v1.14 (D-076): the list page's tabs: the maps (reviews) and Texts & voices. */
-  private tabs(): HTMLButtonElement[] {
+  private tabs(): HTMLElement[] {
     if (this.hooks.texts === undefined) return [];
     const maps = button(at('admin.tab_maps'), 'tab-maps', () => {
       this.showMaps();
@@ -269,16 +269,22 @@ export class AdminPanel {
     });
     maps.setAttribute('role', 'tab');
     texts.setAttribute('role', 'tab');
-    maps.setAttribute('aria-pressed', 'true');
-    texts.setAttribute('aria-pressed', 'false');
-    return [maps, texts];
+    maps.setAttribute('aria-selected', 'true');
+    texts.setAttribute('aria-selected', 'false');
+    const list = el('div', { className: 'row' }, maps, texts);
+    list.setAttribute('role', 'tablist');
+    return [list];
   }
 
   private markTab(texts: boolean): void {
     // Phones (short screens): the texts tab's CSS keeps the header to the title and the tabs.
     this.root.dataset['tab'] = texts ? 'texts' : 'maps';
-    this.root.querySelector('[data-action=tab-maps]')?.setAttribute('aria-pressed', String(!texts));
-    this.root.querySelector('[data-action=tab-texts]')?.setAttribute('aria-pressed', String(texts));
+    this.root
+      .querySelector('[data-action=tab-maps]')
+      ?.setAttribute('aria-selected', String(!texts));
+    this.root
+      .querySelector('[data-action=tab-texts]')
+      ?.setAttribute('aria-selected', String(texts));
   }
 
   private showMaps(): void {

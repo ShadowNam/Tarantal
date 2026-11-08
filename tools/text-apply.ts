@@ -4,7 +4,7 @@
 // to re-make per voice language. An edit whose `from` no longer matches is a conflict: they are
 // printed and nothing is written, unless --force-rest (then the others are applied).
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { voicedKeys } from '../src/game/audio/voicedKeys';
 import { RaidActionSchema } from '../src/content/schemas';
@@ -26,6 +26,17 @@ if (!parsed.success) {
 }
 const file = parsed.data;
 const dryRun = args.includes('--dry-run');
+// The characters the fonts carry now (tools/make-fonts.ts subsets them to the language files'
+// characters and printable ASCII): a correction that brings a new one needs `npm run fonts:build`.
+const known = new Set<string>();
+for (let c = 0x20; c < 0x7f; c++) known.add(String.fromCharCode(c));
+const collect = (v: unknown): void => {
+  if (typeof v === 'string') for (const ch of v) known.add(ch);
+  else if (v !== null && typeof v === 'object') for (const x of Object.values(v)) collect(x);
+};
+const i18nDir = join(root, 'src', 'i18n');
+for (const f of readdirSync(i18nDir).filter((n) => n.endsWith('.json')))
+  collect(JSON.parse(readFileSync(join(i18nDir, f), 'utf8')));
 const r = applyCorrections(root, file, {
   forceRest: args.includes('--force-rest'),
   voiced: new Set(voicedKeys(loadContent(), loadFeel().barks, RaidActionSchema.options).all),
@@ -60,6 +71,13 @@ for (const e of r.already) console.log(`  already in: ${e.table}/${e.lang} ${e.k
 for (const e of r.applied)
   console.log(`  ${e.table}/${e.lang} ${e.key} (${e.field}): ${JSON.stringify(e.to)}`);
 console.log(`  ${dryRun ? 'would write' : 'wrote'} ${r.written.join(', ') || 'nothing'}`);
+const fresh = [
+  ...new Set(r.applied.filter((e) => e.field === 'text').flatMap((e) => Array.from(e.to))),
+].filter((ch) => !known.has(ch) && ch.trim() !== '');
+if (fresh.length > 0)
+  console.log(
+    `  new characters ${JSON.stringify(fresh.join(''))}: run npm run fonts:build so the fonts carry them`,
+  );
 // The files are written as 2-space JSON; Prettier has the last word on their layout.
 if (!dryRun && r.written.length > 0)
   spawnSync('npx', ['prettier', '--write', ...r.written], { cwd: root, stdio: 'ignore' });
