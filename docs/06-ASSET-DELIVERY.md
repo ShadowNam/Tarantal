@@ -294,6 +294,15 @@ a speech bubble whether or not a recording exists.
 4. A new voice language needs a developer: it is added to `VOICE_LANGUAGES` in `src/i18n/i18n.ts`
    (and the Settings choice), then its folder is picked up the same way.
 
+**Corrected lines and redo.json** (v1.14, D-076). The owner corrects texts and `say` lines in the
+admin page's Texts & voices tab and exports a corrections file (saved to Dropbox
+`/AI-DEV/Tarantal-Madness/text-edits/`). `npm run text:apply -- <file>` writes it into the i18n
+tables and `tools/audio/voice.config.json`, and writes `art-source/audio/voice/redo.json`:
+`{ version: 1, sources: [the files applied], redo: { en: [keys], af: [...], de: [...] } }`, the
+voiced lines whose spoken words changed (a text edit under an existing `say` line changes nothing
+Oupa says and is not listed). That file is the input of the later voices job (the OpenRouter voices):
+it re-makes exactly those clips per language, then empties the lists. Dutch has no voice of its own.
+
 **Interim voices** (v1.5): `npm run audio:voice` makes the interim packs offline with open-source
 TTS (`tools/audio/voice.ts`, `voice_tts.py`, `voice.config.json`; engines and licences in art
 bible §10.1, nothing needs an account or a key). Setup, once, in a Python 3.12 virtual

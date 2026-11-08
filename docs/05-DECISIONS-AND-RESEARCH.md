@@ -4109,6 +4109,55 @@ GDD §11.3g, Tech §3.12g, art bible §5.7. Version 1.17.0.
   it now boots with the test-build `?maxSteps=30`, client feel only). Pixel 7 landscape now runs in
   5 shards (the 45-min limit is unchanged, nothing is skipped).
 
+### D-076 — v1.14 Texts & voices: the owner corrects every player-facing line in the admin page (8 Nov 2026)
+
+**What.** A "Texts & voices" tab on the playtest admin page (`?admin=1`, web builds) lists every
+player-facing line — the main, guide, braai, privacy and graphics i18n tables and the
+Afrikaans-names wording (`src/i18n/flavour/afNames.json`), ≈ 1,000 lines — in en / af / de / nl,
+grouped: Oupa's spoken lines · the braai stories · special days · hunt, menus and HUD · field guide
+and journal · privacy. Voiced lines carry a 🔊 badge and a ▶ per voice language (en / af / de;
+Dutch is text only) that plays the clip in the game now, from the lazy voice index (`no clip` where
+there is none); a voice tool `say` line (`tools/audio/voice.config.json`) shows as "spoken as" and
+can be added or edited. Search (key or text, any language), filters (voiced only · changed only ·
+one group) and, on phones, a language switch instead of four columns; pages of 40 DOM rows.
+The dev-facing tables (admin, project, range, android) are left out.
+
+**Why.** The product owner (8 Nov): "a list of what is all the text and voices … so that I can
+correct them, because there's quite a bit of a mixture between English and other words that just
+sound off." Correcting in place, in context, is faster than reviewing JSON, and the voices are
+re-made later from the corrected lines (a separate job with a paid cloud voice; nothing here calls
+the network).
+
+**Edits and privacy.** Tap a line → textarea → Save / Cancel / Revert to original, with a count of
+changed lines. Save is refused when an edit drops or adds a `{placeholder}` or a line break
+(`checkTokens`), or leaves a line empty. Edits are kept **on this device only**, through
+`src/meta/storage.ts` under `textEdits.v1` in the device-wide namespace (`tm.`, or `tm.e2e.` in
+tests; shared by the admin page and the game, never the save file), and never leave it unless the
+owner exports them. "Use my edits in the game" (off by default) applies the text edits as i18n
+overrides on this device (`setTextOverrides`, looked up first by `t`/`tIn`, the guide, privacy,
+graphics and braai lookups); the build line then shows `✎ <n>`. Voice clips never change with an
+edit.
+
+**The loop.** Export → apply → redo. "Download corrections" (a .json file), "Copy" and, where the
+browser can share files, "Share" write `{ version: 1, exportedAt, build: { version, commit },
+edits: [{ key, table, lang, from, to, voiced, field: "text" | "say" }] }`; the in-page help says to
+save it to Dropbox `/AI-DEV/Tarantal-Madness/text-edits/`. `npm run text:apply -- <file>
+[--force-rest] [--dry-run]` (`tools/text-apply.ts`, `tools/textApply.ts`) writes each edit into its
+table (or the `say` entries; an emptied `say` is removed), refuses the whole file when an edit's
+`from` no longer matches (prints the conflicts; `--force-rest` applies the others), keeps key order
+and layout, and writes `art-source/audio/voice/redo.json`: per voice language, the voiced keys whose
+spoken text (its `say`, else its text) changed, merged with any keys already listed until the voices
+job empties it. One voiced-key list (`src/game/audio/voicedKeys.ts`) serves the voice tool, the tab
+and the apply tool.
+
+**Size.** The tab and the lazy tables it lists are their own chunk (`TextsPanel-*.js`, 7.1 KB gzip)
+under the admin chunk; the first download carries only the override lookups, the edits store's boot
+reader/writer and the build-line marker. The tab gets the raid actions and the store's load/save from
+`AdminScene` (a lazy chunk importing values of `schemas.ts` or `storage.ts` made the bundler split
+them out of the entry chunk, +1.5 KB gzip), and portal/store builds drop the store at build time
+(raw `VITE_PLATFORM` flag). First download, gzip, main → 1.18.0: web 2,993.7 → 2,994.9 KB, Poki
+2,984.9 → 2,985.6 KB, CrazyGames 2,985.1 → 2,985.7 KB (`npm run size -- --strict` OK).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
