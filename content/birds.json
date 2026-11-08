@@ -911,22 +911,28 @@
     ]
   },
   "baboons": {
-    "$comment": "v1.8b (D-062): chacma baboon troops (GDD §11.3d). A troop sits on the far ridge (never a target: a hit on a mother carrying her baby (2 pellets of one shot, or a one-pellet gun's hit) costs the penalty with a 2 s cooldown; any hit, or the Langloop, sends the troop over the ridge for awaySeconds). Raids: the lookout barks, one or two males climb down and come in from the side of a raid spot on the mid plane, do their mischief for actSeconds, then go back. A raider is a target: 2 hits bag it (each shot that hits it is one hit), for 3 × a guineafowl's base on its plane (× Frenzy × Stampede) and stopBonus when its raid wasn't done. Sizes and speeds are design px at plane scale 1 (a sitting male is 360 px: 54 px on the far ridge, 151 px on the mid plane); times in seconds. Where troops sit and raid is in the biome files (baboons). Oupa's lines are the guide tables' guide.baboon.* (lazy).",
+    "$comment": "v1.8b (D-062): chacma baboon troops (GDD §11.3d). A troop keeps to the far ridge; since v1.16 (D-078) mostly hidden behind the skyline: a hidden member comes up after hideSeconds for a peek (head and shoulders over the edge, peekSeconds) or, a male, to sit on top as the sentinel (sentinelSeconds; the lookout ×3), at most maxVisible at once, rising and ducking over riseSeconds; while hidden it may creep to another free seat (moveChance). Up there it is never a target: a hit on a mother carrying her baby (2 pellets of one shot, or a one-pellet gun's hit) costs the penalty with a 2 s cooldown; any hit, or the Langloop, sends the troop over the ridge for awaySeconds). Raids: the lookout barks, one or two males climb down and come in from the side of a raid spot on the mid plane, do their mischief for actSeconds, then go back. A raider is a target: 2 hits bag it (each shot that hits it is one hit), for 3 × a guineafowl's base on its plane (× Frenzy × Stampede) and stopBonus when its raid wasn't done. Sizes and speeds are design px at plane scale 1 (a sitting male is 360 px: 54 px on the far ridge, 151 px on the mid plane); times in seconds. Where troops sit and raid is in the biome files (baboons). Oupa's lines are the guide tables' guide.baboon.* (lazy).",
     "heightPx": 360,
     "motherScale": 0.82,
     "juvenileScale": 0.56,
     "hitboxes": {
       "sit": { "body": { "rx": 95, "ry": 120, "ox": -10, "oy": -125 }, "head": { "rx": 52, "ry": 50, "ox": 34, "oy": -295 } },
       "walk": { "body": { "rx": 160, "ry": 72, "ox": -20, "oy": -140 }, "head": { "rx": 50, "ry": 46, "ox": 172, "oy": -165 } },
-      "stand": { "body": { "rx": 82, "ry": 135, "ox": 0, "oy": -175 }, "head": { "rx": 50, "ry": 50, "ox": 22, "oy": -360 } }
+      "stand": { "body": { "rx": 82, "ry": 135, "ox": 0, "oy": -175 }, "head": { "rx": 50, "ry": 50, "ox": 22, "oy": -360 } },
+      "peek": { "body": { "rx": 95, "ry": 48, "ox": -5, "oy": -45 }, "head": { "rx": 50, "ry": 48, "ox": 28, "oy": -130 } }
     },
     "troop": {
       "size": [5, 10],
       "mothers": [1, 3],
       "juveniles": [1, 2],
-      "activities": { "sit": 3, "groom": 2, "look": 1.5, "play": 3, "walk": 1 },
-      "activitySeconds": [3, 7],
-      "walkPxPerSec": 160,
+      "activities": { "peek": 3, "sentinel": 1 },
+      "lookoutSentinelMul": 3,
+      "maxVisible": 2,
+      "hideSeconds": [3, 9],
+      "peekSeconds": [2.5, 5],
+      "sentinelSeconds": [6, 11],
+      "riseSeconds": 0.4,
+      "moveChance": 0.5,
       "climbSeconds": 1.2,
       "awaySeconds": [14, 22]
     },

@@ -88,6 +88,7 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
   if (s === null) return null;
   const state = s;
   const cooldownTicks = secondsToTicks(bb.hit.cooldownSeconds);
+  const riseTicks = secondsToTicks(bb.troop.riseSeconds);
 
   /** A ridge member's hit shapes on its troop's layer (the same as extras() adds). */
   function memberShapes(t: (typeof state.troops)[number], m: (typeof t.members)[number]) {
@@ -103,7 +104,7 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
   function extras(add: (layerId: string, e: HitExtra) => void): void {
     for (const t of state.troops)
       for (const m of t.members) {
-        if (!memberPresent(m)) continue;
+        if (!memberPresent(m, riseTicks)) continue;
         for (const sh of memberShapes(t, m))
           add(t.layerId, { kind: 'baboon', baboonId: m.id, ...sh });
       }
@@ -200,7 +201,7 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
         continue;
       }
       const found = findMember(state, id);
-      if (found === null || !memberPresent(found.member)) continue;
+      if (found === null || !memberPresent(found.member, riseTicks)) continue;
       const { troop, member } = found;
       // A mother costs points only when the shot was aimed at her (its aim point inside her hit
       // shapes, for every gun): a stray pellet or stone that strikes her (a spread, the Kettie's

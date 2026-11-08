@@ -36,6 +36,13 @@ function setup() {
   if (sys === null) throw new Error('no troop');
   const mother = sys.view().troops[0]?.members.find((m) => m.role === 'mother');
   if (mother === undefined) throw new Error('no mother');
+  // v1.16 (D-078): the troop hides behind the ridge; step until she is all the way up for a look.
+  const rise = Math.round(content.birds.baboons.troop.riseSeconds * 60);
+  for (let k = 0; k < 60 * 300; k++) {
+    const m = sys.view().troops[0]?.members.find((x) => x.id === mother.id);
+    if (m?.pose === 'peek' && m.t >= rise && m.dur - m.t > rise) break;
+    sys.step();
+  }
   return { sys, events, mother, penalty: () => penalty };
 }
 

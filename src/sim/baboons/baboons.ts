@@ -1,6 +1,7 @@
-// v1.8b (D-062, GDD §11.3d, Tech §3.12d) Bobbejane: chacma baboon troops. A troop of 5–10 sits on
-// a far ridge: the big male on lookout, mothers with a baby on the back, youngsters playing, males
-// grooming and dozing. They are never targets up there (a hit on a mother costs points; any hit,
+// v1.8b (D-062, GDD §11.3d, Tech §3.12d) Bobbejane: chacma baboon troops. A troop of 5–10 keeps
+// to a far ridge; since v1.16 (D-078) mostly out of sight behind the skyline and its rocks, one or
+// two at a time peeking over the edge or a male sitting up on top as the sentinel. They are never
+// targets up there (a hit on a mother costs points; any hit,
 // or the Langloop's shot, sends the troop over the ridge and it comes back later). Every so often
 // the lookout barks and one or two males climb down to raid a spot on the mid or near plane
 // (steal Oupa's hat off the bakkie, raid a fruit tree, knock the tap, throw fruit at a flock…).
@@ -22,11 +23,13 @@ import { coreWidth } from '../world';
 export type BaboonRole = 'lookout' | 'male' | 'mother' | 'juvenile';
 
 /**
- * On the ridge: sit · groom (the neighbour) · look (round, tall) · play (youngsters) · walk (to
- * another seat) · bark (the lookout's "wahoo") · down (climbing down to raid, or over the ridge)
- * · up (climbing back) · out (raiding, or away over the ridge: not drawn, not hittable).
+ * v1.16 (D-078): on the ridge the troop keeps out of sight behind the skyline and its rocks (hide:
+ * not drawn, not hittable), and one at a time a member rises to look over the edge (peek: head and
+ * shoulders over the ridge, looking round, then ducking back) or a male climbs up to sit on top as
+ * the sentinel for a while. bark: the lookout's "wa-hoo" before a raid (up on the edge) · down
+ * (ducking over the ridge: to raid, or fleeing) · out (raiding, or away: not drawn, not hittable).
  */
-export type RidgePose = 'sit' | 'groom' | 'look' | 'play' | 'walk' | 'bark' | 'down' | 'up' | 'out';
+export type RidgePose = 'hide' | 'peek' | 'sentinel' | 'bark' | 'down' | 'out';
 
 export interface Baboon {
   readonly id: number;
@@ -39,11 +42,6 @@ export interface Baboon {
   /** Ticks in this pose, and how long it lasts. */
   t: number;
   dur: number;
-  /** Walking: where to (layer px), and from where. */
-  fromX: number;
-  fromY: number;
-  goalX: number;
-  goalY: number;
   /** Bagged on a raid: gone for the hunt. */
   gone: boolean;
 }
@@ -264,13 +262,10 @@ export function createTroop(
       x: at.x,
       y: at.y,
       facing: rng.chance(0.5) ? 1 : -1,
-      pose: role === 'lookout' ? 'look' : 'sit',
+      pose: 'hide',
       t: 0,
-      dur: ticks(rng, T.troop.activitySeconds),
-      fromX: at.x,
-      fromY: at.y,
-      goalX: at.x,
-      goalY: at.y,
+      // Staggered: each comes up for its first look at its own time.
+      dur: ticks(rng, T.troop.hideSeconds),
       gone: false,
     });
   }
@@ -316,18 +311,39 @@ function setPose(b: Baboon, pose: RidgePose, dur: number): void {
 
 const onRidge = (b: Baboon): boolean => !b.gone && b.pose !== 'out';
 
-/** Whether a member can be hit now: on the ridge and settled there, not climbing over it (the
- *  view slides and fades it then; review of v1.8b). */
-export const memberPresent = (b: Baboon): boolean =>
-  onRidge(b) && b.pose !== 'down' && b.pose !== 'up';
+/** Shown over the ridge's edge (rising, up, or ducking back). */
+export const memberVisible = (b: Baboon | { readonly pose: RidgePose }): boolean =>
+  b.pose === 'peek' || b.pose === 'sentinel' || b.pose === 'bark' || b.pose === 'down';
 
-/** The hit stance of a ridge pose. */
-export function ridgeStance(pose: RidgePose): 'sit' | 'walk' | 'stand' {
-  return pose === 'walk' || pose === 'down' || pose === 'up'
-    ? 'walk'
-    : pose === 'bark' || pose === 'look'
-      ? 'stand'
-      : 'sit';
+/** How far up over the edge a member is (0: hidden behind it, 1: all the way up): it rises over
+ *  riseTicks, and a peek or a sentinel ducks back over the last riseTicks of its time. */
+export function riseOf(
+  b: { readonly pose: RidgePose; readonly t: number; readonly dur: number },
+  riseTicks: number,
+): number {
+  const r = Math.max(1, riseTicks);
+  switch (b.pose) {
+    case 'hide':
+    case 'out':
+      return 0;
+    case 'down':
+      return b.dur > 0 ? Math.max(0, 1 - b.t / b.dur) : 0;
+    case 'bark':
+      return Math.min(1, b.t / r);
+    case 'peek':
+    case 'sentinel':
+      return Math.max(0, Math.min(1, b.t / r, b.dur > 0 ? (b.dur - b.t) / r : 1));
+  }
+}
+
+/** Whether a member can be hit now: all the way up over the edge (rising, ducking and hidden ones
+ *  are behind the ridge). */
+export const memberPresent = (b: Baboon, riseTicks: number): boolean =>
+  onRidge(b) && b.pose !== 'down' && riseOf(b, riseTicks) >= 1;
+
+/** The hit stance of a ridge pose (a peek: head and shoulders over the edge). */
+export function ridgeStance(pose: RidgePose): 'sit' | 'stand' | 'peek' {
+  return pose === 'bark' ? 'stand' : pose === 'sentinel' ? 'sit' : 'peek';
 }
 
 /** The hit stance of a raider. */
@@ -337,75 +353,54 @@ export function raiderStance(r: Raider, action: RaidAction): 'sit' | 'walk' | 's
   return action === 'throw' || action === 'tap' || action === 'chase' ? 'stand' : 'sit';
 }
 
-/** A ridge member's next idle activity. */
+/** Ridge members over the edge now (rising, up or ducking). */
+export function visibleCount(troop: TroopState): number {
+  let n = 0;
+  for (const m of troop.members) if (!m.gone && memberVisible(m)) n++;
+  return n;
+}
+
+/** A hidden member's next turn: up for a look (or, a male, to sit on top as the sentinel) when
+ *  fewer than maxVisible are showing; else it stays down a while longer. While hidden it may
+ *  creep to another free seat (the lookout and the mothers keep theirs). */
 function choose(troop: TroopState, b: Baboon, ctx: BaboonCtx): void {
-  const T = ctx.tuning;
+  const T = ctx.tuning.troop;
   const r = ctx.rng;
-  const a = T.troop.activities;
-  const look = b.role === 'lookout' ? a.look * 3 : a.look;
-  const weights = [
-    a.sit,
-    b.role === 'lookout' ? 0 : a.groom,
-    look,
-    b.role === 'juvenile' ? a.play : 0,
-    // The lookout keeps his seat, and mothers theirs (the highest, see createTroop).
-    b.role === 'lookout' || b.role === 'mother' ? 0 : a.walk,
-  ];
-  const i = r.weightedIndex(weights);
-  const dur = ticks(r, T.troop.activitySeconds);
-  if (i === 4) {
-    const taken = new Set(troop.members.filter((m) => !m.gone).map((m) => m.seat));
-    const free = troop.seats.map((_, k) => k).filter((k) => !taken.has(k));
+  // One draw for the seat and one for the turn, always (a fixed order in the stream).
+  const move = r.next();
+  const turn = r.next();
+  if (b.role !== 'lookout' && b.role !== 'mother' && move < T.moveChance) {
+    const free: number[] = [];
+    for (let k = 0; k < troop.seats.length; k++)
+      if (!troop.members.some((m) => !m.gone && m.seat === k)) free.push(k);
     if (free.length > 0) {
-      const seat = free[r.int(0, free.length - 1)] ?? b.seat;
+      const seat = free[Math.min(free.length - 1, Math.floor(move * free.length))] ?? b.seat;
       const to = troop.seats[seat] ?? { x: b.x, y: b.y };
       b.seat = seat;
-      b.fromX = b.x;
-      b.fromY = b.y;
-      b.goalX = to.x;
-      b.goalY = to.y;
-      b.facing = to.x >= b.x ? 1 : -1;
-      setPose(b, 'walk', 0);
-      return;
+      b.x = to.x;
+      b.y = to.y;
     }
   }
-  const pose: RidgePose = i === 1 ? 'groom' : i === 2 ? 'look' : i === 3 ? 'play' : 'sit';
-  if (pose === 'groom') {
-    // Turn to the nearest neighbour.
-    let best: Baboon | null = null;
-    for (const m of troop.members)
-      if (m !== b && onRidge(m) && (best === null || Math.abs(m.x - b.x) < Math.abs(best.x - b.x)))
-        best = m;
-    if (best !== null && best.x !== b.x) b.facing = best.x > b.x ? 1 : -1;
-  } else if (pose === 'look' && r.chance(0.5)) b.facing = b.facing === 1 ? -1 : 1;
-  setPose(b, pose, dur);
+  if (visibleCount(troop) >= T.maxVisible) {
+    setPose(b, 'hide', ticks(r, T.hideSeconds));
+    return;
+  }
+  const a = T.activities;
+  const sentinel =
+    b.role === 'lookout' ? a.sentinel * T.lookoutSentinelMul : b.role === 'male' ? a.sentinel : 0;
+  const up = turn * (a.peek + sentinel) < sentinel ? 'sentinel' : 'peek';
+  b.facing = r.chance(0.5) ? 1 : -1;
+  setPose(b, up, ticks(r, up === 'sentinel' ? T.sentinelSeconds : T.peekSeconds));
 }
 
 function stepMember(troop: TroopState, b: Baboon, ctx: BaboonCtx): void {
   if (b.gone) return;
   b.t++;
-  if (b.pose === 'walk') {
-    const step = (ctx.tuning.troop.walkPxPerSec * troop.scale) / 60;
-    const total = Math.abs(b.goalX - b.fromX);
-    const d = b.goalX - b.x;
-    if (Math.abs(d) <= step || total === 0) {
-      b.x = b.goalX;
-      b.y = b.goalY;
-      choose(troop, b, ctx);
-      return;
-    }
-    b.x += d > 0 ? step : -step;
-    b.y = b.fromY + ((b.goalY - b.fromY) * Math.abs(b.x - b.fromX)) / total;
-    return;
-  }
   // Raiding and fleeing members are timed by the raid and the troop.
   if (b.pose === 'out' || b.pose === 'down' || b.pose === 'bark') return;
   if (b.t < b.dur) return;
-  if (b.pose === 'up') {
-    setPose(b, 'sit', ticks(ctx.rng, ctx.tuning.troop.activitySeconds));
-    return;
-  }
-  choose(troop, b, ctx);
+  if (b.pose === 'hide') choose(troop, b, ctx);
+  else setPose(b, 'hide', ticks(ctx.rng, ctx.tuning.troop.hideSeconds));
 }
 
 /** Sends a troop over the ridge (a hit, the Langloop, a raider hit). A raid still building up is
@@ -431,9 +426,9 @@ export function scareTroop(s: BaboonsState, troop: TroopState, ctx: BaboonCtx): 
   troop.awayLeft = ticks(ctx.rng, T.troop.awaySeconds);
   for (const b of troop.members) {
     if (!onRidge(b)) continue;
-    // Over the ridge: away from the troop's middle (the lookout last).
-    b.facing = b.x >= troop.cx ? 1 : -1;
-    setPose(b, 'down', secondsToTicks(T.troop.climbSeconds));
+    // Those up on the edge duck back over it; the hidden ones are already out of sight.
+    if (memberVisible(b)) setPose(b, 'down', Math.max(1, secondsToTicks(T.troop.climbSeconds)));
+    else setPose(b, 'out', 0);
   }
 }
 
@@ -474,7 +469,7 @@ function startRaid(s: BaboonsState, ctx: BaboonCtx): BaboonNote | null {
   const troop = calm[r.int(0, calm.length - 1)] ?? calm[0];
   const spot = s.spots[r.int(0, s.spots.length - 1)] ?? s.spots[0];
   if (troop === undefined || spot === undefined) return null;
-  const males = troop.members.filter((m) => m.role === 'male' && onRidge(m) && m.pose !== 'walk');
+  const males = troop.members.filter((m) => m.role === 'male' && onRidge(m) && m.pose !== 'down');
   if (males.length === 0) return null;
   const first = males[r.int(0, males.length - 1)] ?? males[0];
   if (first === undefined) return null;
@@ -493,8 +488,9 @@ function startRaid(s: BaboonsState, ctx: BaboonCtx): BaboonNote | null {
     completed: false,
   };
   s.raid = raid;
+  // The raiders come up over the edge to look down at the spot.
   for (const m of troop.members)
-    if (raid.memberIds.includes(m.id)) setPose(m, 'look', raid.dur + 1);
+    if (raid.memberIds.includes(m.id)) setPose(m, 'peek', raid.dur + 1);
   const caller = lookout ?? first;
   setPose(caller, 'bark', raid.dur);
   return { kind: 'warn', troop, lookout: caller, raid };
@@ -523,7 +519,7 @@ function stepRaid(s: BaboonsState, raid: Raid, ctx: BaboonCtx, notes: BaboonNote
       raid.dur = Math.max(1, secondsToTicks(T.raids.climbSeconds));
       for (const m of troop?.members ?? []) {
         if (m.role === 'lookout' && m.pose === 'bark')
-          setPose(m, 'look', ticks(ctx.rng, T.troop.activitySeconds));
+          setPose(m, 'peek', ticks(ctx.rng, T.troop.peekSeconds));
         if (!raid.memberIds.includes(m.id)) continue;
         m.facing = m.x >= (troop?.cx ?? m.x) ? 1 : -1;
         setPose(m, 'down', raid.dur);
@@ -617,13 +613,13 @@ export function stepBaboons(s: BaboonsState, ctx: BaboonCtx): BaboonNote[] {
         troop.fled = false;
         const raid = s.raid;
         const raiding = raid !== null && raid.troopId === troop.id ? raid.memberIds : [];
-        const climb = Math.max(1, secondsToTicks(T.troop.climbSeconds));
         for (const b of troop.members) {
           if (b.gone || raiding.includes(b.id) || s.returning.some((x) => x.id === b.id)) continue;
           const seat = troop.seats[b.seat] ?? { x: b.x, y: b.y };
           b.x = seat.x;
           b.y = seat.y;
-          setPose(b, 'up', climb);
+          // Back behind the ridge: they come up to look again one by one.
+          setPose(b, 'hide', ticks(ctx.rng, T.troop.hideSeconds));
         }
       }
       continue;
@@ -643,7 +639,7 @@ export function stepBaboons(s: BaboonsState, ctx: BaboonCtx): BaboonNote[] {
     const seat = troop.seats[b.seat] ?? { x: b.x, y: b.y };
     b.x = seat.x;
     b.y = seat.y;
-    setPose(b, 'up', Math.max(1, secondsToTicks(T.troop.climbSeconds)));
+    setPose(b, 'hide', ticks(ctx.rng, T.troop.hideSeconds));
   }
   // The gaps run from one raid's warning to the next (so raids come at the content rate); a raid
   // that is due while one is still on waits for it to end.

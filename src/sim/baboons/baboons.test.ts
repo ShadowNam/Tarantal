@@ -69,6 +69,25 @@ function shootRaider(s: Sim, c: Content, until: (e: SimEvent[]) => boolean): Sim
   return events;
 }
 
+/** Steps until ridge member `id` is all the way up over the edge with at least `left` ticks of its
+ *  look to go (bounded). */
+function untilUp(s: Sim, c: Content, id: number, left = 40): void {
+  const rise = Math.round(c.birds.baboons.troop.riseSeconds * 60);
+  for (let k = 0; k < 60 * 300; k++) {
+    const m = s.snapshot().baboons?.troops[0]?.members.find((x) => x.id === id);
+    if (
+      m !== undefined &&
+      (m.pose === 'peek' || m.pose === 'sentinel') &&
+      m.t >= rise &&
+      m.dur - m.t > rise + left
+    )
+      return;
+    s.step([]);
+    s.drainEvents();
+  }
+  throw new Error(`member ${id} never came up`);
+}
+
 /** Steps until the raiders are down at their spot (bounded), and pans to it. */
 function untilRaid(s: Sim): RaiderView {
   for (let k = 0; k < 60 * 40; k++) {
@@ -213,12 +232,15 @@ describe('baboon troops (D-062)', () => {
 
   it('a hit on a mother costs points (once in the cooldown) and the troop flees, then returns', () => {
     const c = baboonContent('karoo-autumn', 300);
+    // Long looks, so she stays up while the shots come.
+    c.birds.baboons.troop.peekSeconds = [30, 30];
     const s = sim(c, 3);
     steps(s, 30);
     const t = s.snapshot().baboons?.troops[0];
-    const mother = t?.members.find((m) => m.role === 'mother' && m.pose !== 'walk');
+    const mother = t?.members.find((m) => m.role === 'mother');
     if (t === undefined || mother === undefined) throw new Error('no mother');
     panTo(s, mother.x, 0.15);
+    untilUp(s, c, mother.id, 600);
     const k = t.scale * c.birds.baboons.motherScale;
     const before = s.snapshot().score;
     const ev: SimEvent[] = [];
@@ -226,7 +248,7 @@ describe('baboon troops (D-062)', () => {
       const st = s.snapshot();
       const m = st.baboons?.troops[0]?.members.find((x) => x.id === mother.id);
       if (m === undefined) break;
-      const box = m.pose === 'walk' ? c.birds.baboons.hitboxes.walk : c.birds.baboons.hitboxes.sit;
+      const box = c.birds.baboons.hitboxes[ridgeStance(m.pose)];
       const dx = planeToDx(st.cameraX, 0.15, m.x + box.body.ox * k * m.facing);
       s.step([{ t: 'fire', dx, sy: m.y + box.body.oy * k }]);
       ev.push(...s.drainEvents());
@@ -241,6 +263,7 @@ describe('baboon troops (D-062)', () => {
     expect(ofType(ev, 'troopFled')).toHaveLength(1);
     steps(s, 120, ev);
     expect(s.snapshot().baboons?.troops[0]?.members.every((m) => m.pose === 'out')).toBe(true);
+    // Hidden behind the ridge while away: nothing over the edge.
     // Back after awaySeconds (+ the climb).
     const away = c.birds.baboons.troop.awaySeconds[1] + c.birds.baboons.troop.climbSeconds * 2;
     steps(s, Math.ceil(away * 60), ev);
@@ -263,13 +286,13 @@ describe('baboon troops (D-062)', () => {
         s.step([]);
         s.drainEvents();
         for (const m of s.snapshot().baboons?.troops[0]?.members ?? [])
-          if (m.role === 'mother' && m.pose !== 'out' && m.pose !== 'down' && m.pose !== 'up')
+          if (m.role === 'mother' && m.pose !== 'out' && m.pose !== 'down')
             expect(m.x, `${id} mother ${m.id}`).toBe(at.get(m.id));
       }
     }
   });
 
-  it("the Windbuks at a seated mother's body centre on the real Karoo costs the penalty", () => {
+  it("the Windbuks at a peeking mother's body centre on the real Karoo costs the penalty", () => {
     const c = loadContent() as Content;
     const s = createSim({
       seed: 42,
@@ -288,16 +311,19 @@ describe('baboon troops (D-062)', () => {
     const mother = t?.members.find((m) => m.role === 'mother');
     if (t === undefined || mother === undefined) throw new Error('no mother');
     panTo(s, mother.x, 0.15);
+    // v1.16 (D-078): she is behind the ridge most of the time: wait for her to look over it.
+    untilUp(s, c, mother.id, 20);
     const st = s.snapshot();
     const m = st.baboons?.troops[0]?.members.find((x) => x.id === mother.id);
     if (m === undefined) throw new Error('no mother');
     const k = c.scoring.planes.far.scale * c.birds.baboons.motherScale;
     const before = st.score;
+    const box = c.birds.baboons.hitboxes[ridgeStance(m.pose)].body;
     s.step([
       {
         t: 'fire',
-        dx: planeToDx(st.cameraX, 0.15, m.x),
-        sy: m.y + c.birds.baboons.hitboxes.sit.body.oy * k,
+        dx: planeToDx(st.cameraX, 0.15, m.x + box.ox * k * m.facing),
+        sy: m.y + box.oy * k,
       },
     ]);
     const ev = steps(s, 10, [...s.drainEvents()]);
@@ -324,6 +350,7 @@ describe('baboon troops (D-062)', () => {
     const mother = s.snapshot().baboons?.troops[0]?.members.find((m) => m.role === 'mother');
     if (mother === undefined) throw new Error('no mother');
     panTo(s, mother.x, 0.15);
+    untilUp(s, c, mother.id, 60);
     const st = s.snapshot();
     const m = st.baboons?.troops[0]?.members.find((x) => x.id === mother.id);
     if (m === undefined) throw new Error('no mother');

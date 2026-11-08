@@ -16,7 +16,10 @@ import type { BaboonView as SimBaboon, PlaneId, RaiderView, SimState } from '../
 import type { AudioDirector } from '../../audio/AudioDirector';
 import { designSize } from '../../layout';
 import type { ParallaxView } from '../ParallaxView';
+import { riseOf } from '../../../sim/baboons/baboons';
+import { secondsToTicks } from '../../../sim/clock';
 import {
+  BABOON_FRAMES,
   BABOON_SHEET,
   RAIDER_H,
   RIDGE_H,
@@ -26,15 +29,15 @@ import {
 } from './baboonSheet';
 import { BABOON_SOUNDS, BABOON_SYNTH, RAID_SOUND, type BaboonSound } from './baboonSounds';
 
-/** Ticks per frame: walking, running, the ridge's walk and play, the bark, an action's swap. */
+/** Ticks per frame: walking, running, a peek's look round, the bark, an action's swap. */
 const WALK_TICKS = 8;
 const RUN_TICKS = 5;
-const RIDGE_WALK_TICKS = 9;
-const PLAY_TICKS = 10;
+const LOOK_TICKS = 70;
 const BARK_TICKS = 6;
 const ACT_TICKS = 18;
-/** Climbing over the ridge: how far it slides down (ridge px at a male's size). */
-const CLIMB_DROP = 22;
+/** v1.16 (D-078): a ridge member's feet (a bust's cut) sit this far below the ridge's edge (ridge
+ *  px at a male's size), so no sky shows under it where the skyline dips a little. */
+const EDGE_SINK = 3;
 /** The tumble shows this share of its time, then it lies still and fades. */
 const TUMBLE_SHARE = 0.45;
 /** The thrower's fruit flies for the act's last FLIGHT_TICKS ticks. */
@@ -57,6 +60,9 @@ export interface BaboonHook {
   readonly groundY: number | null;
   readonly visible: boolean;
   readonly alpha: number;
+  /** v1.16 (D-078) a ridge member: how far up over the edge (0 hidden behind it … 1 all the way
+   *  up); 1 for everything else. */
+  readonly rise: number;
 }
 
 interface Slot {
@@ -70,6 +76,8 @@ interface Slot {
   flip: boolean;
   shown: boolean;
   seen: boolean;
+  /** Texture rows shown from the frame's top (-1: not cropped). */
+  crop: number;
   hook: BaboonHook;
 }
 
@@ -83,31 +91,23 @@ const SHEET_POLL_FRAMES = 30;
 
 const alt = (t: number, every: number): boolean => Math.floor(t / every) % 2 === 0;
 
-/** The ridge frame for a member's pose. */
+/** The ridge frame for a member's pose (null: behind the ridge, not drawn). A peek looks round
+ *  (a ↔ b every LOOK_TICKS); a duck shows the bust going down. */
 export function ridgeFrame(m: SimBaboon): BaboonFrame | null {
   const mother = m.role === 'mother';
   switch (m.pose) {
+    case 'hide':
     case 'out':
       return null;
-    case 'walk':
-      if (mother) return alt(m.t, RIDGE_WALK_TICKS) ? 'r_mother_walk_a' : 'r_mother_walk_b';
-      return alt(m.t, RIDGE_WALK_TICKS) ? 'r_walk_a' : 'r_walk_b';
+    case 'peek':
     case 'down':
-      return mother ? 'r_mother_walk_a' : 'r_down';
-    case 'up':
-      return mother ? 'r_mother_walk_b' : 'r_up';
+      if (mother) return 'r_mother_peek';
+      return m.pose === 'peek' && !alt(m.t, LOOK_TICKS) ? 'r_peek_b' : 'r_peek_a';
+    case 'sentinel':
+      return mother ? 'r_mother_peek' : 'r_sentinel';
     case 'bark':
-      if (mother) return 'r_mother_sit';
+      if (mother) return 'r_mother_peek';
       return alt(m.t, BARK_TICKS) ? 'r_bark_a' : 'r_bark_b';
-    case 'play':
-      if (mother) return 'r_mother_sit';
-      return alt(m.t, PLAY_TICKS) ? 'r_play_a' : 'r_play_b';
-    case 'look':
-      return mother ? 'r_mother_sit' : 'r_look';
-    case 'groom':
-      return mother ? 'r_mother_sit' : 'r_groom';
-    case 'sit':
-      return mother ? 'r_mother_sit' : 'r_sit';
   }
 }
 
@@ -160,6 +160,7 @@ export class BaboonView {
   /** Milliseconds the last update took (perf.spec: baboonMs). */
   lastMs = 0;
   private readonly tumbleTicks: number;
+  private readonly riseTicks: number;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -171,6 +172,7 @@ export class BaboonView {
     private readonly hooks = false,
   ) {
     this.tumbleTicks = Math.max(1, Math.round(tuning.hit.tumbleSeconds * 60));
+    this.riseTicks = secondsToTicks(tuning.troop.riseSeconds);
   }
 
   /** True once the delivered sheet (Standard or its HD twin) is under the key. */
@@ -204,6 +206,8 @@ export class BaboonView {
     for (const s of this.all()) {
       s.img.setTexture(BABOON_SHEET, s.frame);
       s.img.setScale((s.scale * was) / k);
+      // The crop is in texture rows: cut again at the new size.
+      s.crop = -1;
       s.scale = (s.scale * was) / k;
       this.origin(s);
     }
@@ -237,7 +241,18 @@ export class BaboonView {
       flip: false,
       shown: false,
       seen: false,
-      hook: { id, role, frame: null, x: 0, y: 0, groundY: null, visible: false, alpha: 0 },
+      crop: -1,
+      hook: {
+        id,
+        role,
+        frame: null,
+        x: 0,
+        y: 0,
+        groundY: null,
+        visible: false,
+        alpha: 0,
+        rise: 1,
+      },
     };
   }
 
@@ -298,7 +313,14 @@ export class BaboonView {
 
   /** The test hook's entry (only with the hooks on: no allocations otherwise). Its position is
    *  the baboon's place from the snapshot, culled or not (review of v1.8b). */
-  private hookOf(s: Slot, show: boolean, x: number, y: number, groundY: number | null): void {
+  private hookOf(
+    s: Slot,
+    show: boolean,
+    x: number,
+    y: number,
+    groundY: number | null,
+    rise = 1,
+  ): void {
     if (!this.hooks) return;
     const layer = this.parallax.layer(s.layerId);
     if (layer === undefined) return;
@@ -314,9 +336,10 @@ export class BaboonView {
       h.visible !== show ||
       h.frame !== f ||
       h.alpha !== a ||
-      h.groundY !== gy
+      h.groundY !== gy ||
+      h.rise !== rise
     )
-      s.hook = { ...h, x: hx, y: hy, visible: show, frame: f, alpha: a, groundY: gy };
+      s.hook = { ...h, x: hx, y: hy, visible: show, frame: f, alpha: a, groundY: gy, rise };
   }
 
   /** Draws the baboons at this tick. */
@@ -354,26 +377,29 @@ export class BaboonView {
       for (const m of troop.members) {
         let s = this.members.get(m.id);
         if (s === undefined) {
-          const made = this.newSlot(troop.layerId, 'r_sit', m.id, m.role);
+          const made = this.newSlot(troop.layerId, 'r_peek_a', m.id, m.role);
           if (made === null) continue;
           s = made;
           this.members.set(m.id, s);
         }
         s.seen = true;
         const frame = ridgeFrame(m);
-        const k = base * (m.role === 'mother' ? 1 : m.role === 'juvenile' ? T.juvenileScale : 1);
-        const scale = m.role === 'mother' ? base * T.motherScale : k;
-        let y = m.y;
-        let alpha = 1;
-        if ((m.pose === 'down' || m.pose === 'up') && m.dur > 0) {
-          // Over the ridge: sliding down behind it and fading (back up: the reverse).
-          const p = Math.min(1, m.t / m.dur);
-          const away = m.pose === 'down' ? p : 1 - p;
-          y += away * CLIMB_DROP * base;
-          alpha = 1 - away;
+        const scale =
+          base *
+          (m.role === 'mother' ? T.motherScale : m.role === 'juvenile' ? T.juvenileScale : 1);
+        // v1.16 (D-078): over the ridge's edge only as far as it has risen; the rest of it is
+        // below the edge line, behind the ridge (cut off, so the ridge's art shows there).
+        const rise = riseOf(m, this.riseTicks);
+        const box = frame === null ? null : BABOON_FRAMES[frame];
+        const drop = box === null ? 0 : (1 - rise) * box.oy * scale + EDGE_SINK * base;
+        const rows = box === null ? 0 : Math.floor((box.oy * scale - drop) * (this.k / scale));
+        const y = m.y + drop;
+        const show = this.place(s, rows > 0 ? frame : null, m.x, y, scale, m.facing === -1, 1);
+        if (show && box !== null && rows !== s.crop) {
+          s.img.setCrop(0, 0, box.w * this.k, rows);
+          s.crop = rows;
         }
-        const show = this.place(s, frame, m.x, y, scale, m.facing === -1, alpha);
-        this.hookOf(s, show, m.x, y, null);
+        this.hookOf(s, show, m.x, m.y, null, rise);
         if (this.hooks) this.hookList[n++] = s.hook;
       }
     }

@@ -592,17 +592,28 @@ export const BaboonsSchema = obj({
   /** Mothers (with the baby on the back) and youngsters, as a share of the male's size. */
   motherScale: pos,
   juvenileScale: pos,
-  hitboxes: obj({ sit: baboonBox, walk: baboonBox, stand: baboonBox }),
+  /** v1.16 (D-078) peek: head and shoulders over the ridge's edge. */
+  hitboxes: obj({ sit: baboonBox, walk: baboonBox, stand: baboonBox, peek: baboonBox }),
   troop: obj({
     /** Members, the lookout included (capped by the troop's seats). */
     size: range(z.number().int().min(5).max(10)),
     mothers: range(nonNegInt),
     juveniles: range(nonNegInt),
-    /** Idle activity weights on the ridge (play: youngsters only; walk: to a free seat). */
-    activities: obj({ sit: nonNeg, groom: nonNeg, look: nonNeg, play: nonNeg, walk: nonNeg }),
-    activitySeconds: range(pos),
-    walkPxPerSec: pos,
-    /** Running over the ridge (or climbing back), and how long it stays out of sight. */
+    /** v1.16 (D-078): a hidden member's turn up over the edge: peek (anyone) or sit up on top as
+     *  the sentinel (males; the lookout × lookoutSentinelMul). */
+    activities: obj({ peek: nonNeg, sentinel: nonNeg }),
+    lookoutSentinelMul: nonNeg,
+    /** At most this many over the edge at once (a raid's lookout and raiders aside). */
+    maxVisible: z.number().int().min(1).max(3),
+    /** How long it stays hidden, peeks, sits as the sentinel; rising over (or ducking behind) the
+     *  edge takes riseSeconds. */
+    hideSeconds: range(pos),
+    peekSeconds: range(pos),
+    sentinelSeconds: range(pos),
+    riseSeconds: pos,
+    /** Chance a hidden member creeps to another free seat before its next look. */
+    moveChance: fraction,
+    /** Ducking over the ridge to flee, and how long it stays out of sight. */
     climbSeconds: pos,
     awaySeconds: range(pos),
   }),
