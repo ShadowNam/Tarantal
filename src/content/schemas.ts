@@ -2141,6 +2141,8 @@ export const BrakkieSchema = obj({
     tries: posInt,
     restSeconds: range(pos),
     restWeights: obj({ sniff: nonNeg, sit: nonNeg, lie: nonNeg }),
+    /** v1.16 (D-078): chance he runs (not trots) to a new spot that is near enough to trot to. */
+    runChance: fraction,
   }),
   clear: obj({
     /** Nothing a player aims at on his layer within this of a spot he stands on. */
@@ -2167,8 +2169,11 @@ export const BrakkieSchema = obj({
     delaySeconds: nonNeg,
     /** He goes only when no live bird is within this of the spot (plane px; mid converts). */
     clearPx: pos,
-    /** He waits this long for that, else gives up. */
+    /** Free to go for a bird (v1.16: from its turn in the queue), he waits this long for its spot
+     *  to clear, else he leaves it. */
     waitSeconds: nonNeg,
+    /** v1.16 (D-078): birds he means to fetch, one at a time in the order they fell. */
+    queueMax: posInt,
     /** Only for a bag this close to the view's centre (screen px). */
     maxDxPx: pos,
     pickupSeconds: pos,
@@ -2176,6 +2181,8 @@ export const BrakkieSchema = obj({
     crossSeconds: pos,
     /** At the bakkie with the bird before he comes back. */
     awaySeconds: range(pos),
+    /** v1.16 (D-078): …or this long when more birds are waiting for him. */
+    backSeconds: range(pos),
   }),
   bark: obj({
     everySeconds: range(pos),

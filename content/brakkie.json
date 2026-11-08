@@ -1,5 +1,5 @@
 {
-  "$comment": "Brakkie, Oupa's Jack Russell (GDD §11.3f, D-069). A sim entity on his own stream `dog`: never a target, never hurt, never removed. Px are design px on the near plane at his scale 1 (the mid plane converts by plane scale, D-049); times in seconds. areas: the maps he comes to and the side the bakkie stands (-1 left, 1 right). hitboxes: sprite-local px from his feet (x forward), facing right.",
+  "$comment": "Brakkie, Oupa's Jack Russell (GDD §11.3f, D-069; v1.16 D-078: livelier — shorter rests, runs about (runChance), fetches most birds that fall in reach (fetch.chance) one at a time from a queue of up to fetch.queueMax, back from the bakkie after backSeconds when more wait). A sim entity on his own stream `dog`: never a target, never hurt, never removed. Px are design px on the near plane at his scale 1 (the mid plane converts by plane scale, D-049); times in seconds. areas: the maps he comes to and the side the bakkie stands (-1 left, 1 right). hitboxes: sprite-local px from his feet (x forward), facing right.",
   "version": 1,
   "modes": ["classic", "daily", "seasonHunt"],
   "seasonKinds": ["plain", "omen"],
@@ -23,22 +23,25 @@
     "scamperHalfPx": 760,
     "driftPx": 100,
     "gunStripePx": [65, 360],
-    "stepPx": [220, 700],
+    "stepPx": [260, 760],
     "tries": 6,
-    "restSeconds": [2.5, 6],
-    "restWeights": { "sniff": 3, "sit": 2, "lie": 1 }
+    "restSeconds": [1.2, 3.5],
+    "restWeights": { "sniff": 4, "sit": 2, "lie": 1 },
+    "runChance": 0.35
   },
   "clear": { "aimPx": 340, "pathPx": 220, "pathStepPx": 100, "fencePx": 420, "checkSeconds": 0.2, "holdBackSeconds": 1.2, "wideSpreadPx": 120 },
   "fetch": {
-    "chance": 0.35,
+    "chance": 0.85,
     "planes": ["near", "mid"],
     "delaySeconds": 0.9,
     "clearPx": 700,
-    "waitSeconds": 4,
-    "maxDxPx": 520,
+    "waitSeconds": 5,
+    "queueMax": 3,
+    "maxDxPx": 640,
     "pickupSeconds": 0.6,
     "crossSeconds": 1.1,
-    "awaySeconds": [5, 9]
+    "awaySeconds": [3, 5],
+    "backSeconds": [0.8, 1.5]
   },
   "bark": { "everySeconds": [14, 26], "barkSeconds": 1.4, "threatAtSeconds": 0.5, "maxDxPx": 900, "retrySeconds": 3 },
   "flush": {

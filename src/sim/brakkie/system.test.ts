@@ -226,6 +226,81 @@ describe('Brakkie (D-069)', () => {
     expect(r.events.some((e) => e.type === 'brakkieFetchStarted')).toBe(false);
   });
 
+  it('v1.16 (D-078): birds that fall while he is busy queue up; he fetches them one at a time, in order', () => {
+    const r = rig(6);
+    r.until((v) => v.phase === 'rest');
+    const x0 = r.sys.view().x;
+    // Three birds down in a row (fetch.chance < 1: bag until three are queued, bounded).
+    for (let i = 0; i < 40 && r.sys.view().queued < 3; i++) r.sys.bagged('near', x0 + 250 + i * 10);
+    expect(r.sys.view().queued).toBe(3);
+    // The queue is capped at queueMax.
+    for (let i = 0; i < 10; i++) r.sys.bagged('near', x0 + 300);
+    expect(r.sys.view().queued).toBe(B.fetch.queueMax);
+    const picked: number[] = [];
+    let carrying = 0;
+    let maxCarry = 0;
+    for (let i = 0; i < 60 * 60 && r.sys.view().fetches < 3; i++) {
+      r.run(1);
+      const v = r.sys.view();
+      if (v.phase === 'pickup' && v.t === 1) picked.push(v.x);
+      carrying = v.carrying ? 1 : 0;
+      maxCarry = Math.max(maxCarry, carrying);
+    }
+    expect(r.sys.view().fetches).toBe(3);
+    // One at a time, in the order they fell (each a different bird).
+    expect(maxCarry).toBe(1);
+    expect(picked).toHaveLength(3);
+    expect([...picked].sort((a, b) => a - b)).toEqual(picked);
+    // Back out quickly between fetches (backSeconds, not awaySeconds).
+    const fetched = r.events.filter((e) => e.type === 'brakkieFetched').map((e) => e.tick);
+    const arrived = r.events.filter((e) => e.type === 'brakkieArrived').map((e) => e.tick);
+    const back = arrived.find((t) => t > (fetched[0] ?? 0));
+    expect(back).toBeDefined();
+    expect((back ?? 0) - (fetched[0] ?? 0)).toBeLessThanOrEqual(
+      secondsToTicks(B.fetch.backSeconds[1]) + 2,
+    );
+  });
+
+  it('v1.16 (D-078): a hit empties his queue (he fetches nothing while he bolts)', () => {
+    const r = rig(6);
+    r.until((v) => v.phase === 'rest');
+    for (let i = 0; i < 40 && r.sys.view().queued < 2; i++)
+      r.sys.bagged('near', r.sys.view().x + 260);
+    expect(r.sys.view().queued).toBeGreaterThan(0);
+    r.sys.shot(1, false, aimAtHim(r.sys.view()));
+    expect(r.sys.view().queued).toBe(0);
+    r.sys.bagged('near', r.sys.view().x + 260);
+    expect(r.sys.view().queued).toBe(0);
+  });
+
+  it('v1.16 (D-078): livelier — he runs about between rests and fetches most birds in reach', () => {
+    const r = rig(4);
+    r.until((v) => v.phase === 'rest');
+    let runs = 0;
+    let trots = 0;
+    let last = '';
+    for (let i = 0; i < 60 * 80; i++) {
+      r.run(1);
+      const v = r.sys.view();
+      const now = `${v.phase}:${v.pose}`;
+      if (now !== last && v.phase === 'trot') v.pose === 'run' ? runs++ : trots++;
+      last = now;
+    }
+    expect(runs).toBeGreaterThan(0);
+    expect(runs + trots).toBeGreaterThanOrEqual(8);
+    // Of 20 birds bagged one by one in reach, he queues most.
+    const r2 = rig(5);
+    r2.until((v) => v.phase === 'rest');
+    let queued = 0;
+    for (let i = 0; i < 20; i++) {
+      const before = r2.sys.view().queued;
+      r2.sys.bagged('near', r2.state.cameraX + 120);
+      if (r2.sys.view().queued > before) queued++;
+      r2.until((v) => v.queued === 0 && (v.phase === 'rest' || v.phase === 'trot'), 60 * 60);
+    }
+    expect(queued).toBeGreaterThanOrEqual(14);
+  });
+
   it('a bark gives exactly one threat to the flock it barked at', () => {
     const r = rig(9);
     r.state.barkFlock = { flockId: 7, x: 2000 };
