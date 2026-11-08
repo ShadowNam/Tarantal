@@ -296,6 +296,8 @@ async function shoot(
       if (tick > from + 900) throw new Error(`Brakkie not on screen by tick ${from + 900}`);
       const d = w.__TM__?.brakkie;
       if (tick < from || d?.visible !== true || d.x < 200 || d.x > 1720) return false;
+      // Not behind the gun (it rests over the bottom middle, ~x 860–1300).
+      if (d.x > 760 && d.x < 1400) return false;
       w.__TM_HOLD_AT__?.(tick + 1);
       return true;
     },
@@ -347,8 +349,21 @@ async function shoot(
   // 4. A guineafowl in flight: a shot beside the nearest flock flushes it; held mid-flush.
   await release(page);
   let flown: { x: number; y: number } | null = null;
+  // The nearest mid flock that has not flushed yet (null: none).
+  const flockX = (): Promise<number | null> =>
+    page.evaluate(() => {
+      const tm = window.__TM__;
+      const c = (tm?.designWidth ?? 1920) / 2;
+      const s = (tm?.flockSpots ?? []).filter((f) => f.plane === 'mid' && f.state !== 'flush');
+      s.sort((a, b) => Math.abs(a.x - c) - Math.abs(b.x - c));
+      return s[0]?.x ?? null;
+    });
   for (let attempt = 0; attempt < 4 && flown === null; attempt++) {
+    // A failed attempt may have left the sim held: release it before panning or firing.
+    await release(page);
     await reloadIfEmpty(page, touch);
+    // The flock may be off screen (one key press pans only ~165 px here): bring it to the middle.
+    if ((await flockX()) !== null) await panToX(page, touch, flockX);
     const spot = await page.evaluate(() => {
       const tm = window.__TM__;
       const s = (tm?.flockSpots ?? []).filter(
@@ -366,8 +381,13 @@ async function shoot(
       await page.keyboard.up('KeyA');
       continue;
     }
-    // Aim above the flock (a miss close by flushes it, nobody is hit).
-    await fireAt(page, touch, { x: spot.x, y: Math.max(160, spot.y - 220) });
+    // The Vuvuzela flushes the flock in view at once (a miss beside it only alerts it, then it
+    // runs, and the flush can take longer than the wait). Q on desktop, the horn on touch; with
+    // no charge left, a shot above the flock (nobody is hit) is the fallback.
+    if ((await hook(page)).gadgetCharges > 0) {
+      if (touch) await tapRect(page, touch, 'gadget');
+      else await page.keyboard.press('KeyQ');
+    } else await fireAt(page, touch, { x: spot.x, y: Math.max(160, spot.y - 220) });
     const from = (await hook(page)).tick;
     const held = await page
       .waitForFunction(

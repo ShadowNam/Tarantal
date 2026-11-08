@@ -29,6 +29,7 @@ import { CHRISTMAS_SHEET, xmasKeyIn } from '../feesdae/christmasKeys';
 import { HALLOWEEN_SHEET } from '../feesdae/feesdaeAssets';
 import { NEWYEAR_SHEET } from '../feesdae/newyearKeys';
 import {
+  braaiFrame,
   braaiFrames,
   braaiTexelsPerPx,
   flameFrame,
@@ -172,16 +173,13 @@ export function resetBraaiFiles(): void {
 
 /** v1.15 (D-077): the bakkie frame's screen rect from its wheel line and scale (design px). */
 export function bakkieRect(b: { x: number; y: number; scale: number }): Rect {
-  const f = braaiFrames().find((x) => x.name === 'bakkie');
-  const w = f?.w ?? 320;
-  const h = f?.h ?? 124;
-  const ox = f?.ox ?? 160;
-  const oy = f?.oy ?? 120;
+  const f = braaiFrame('bakkie');
+  if (f === undefined) throw new Error('braai sheet has no bakkie frame');
   return {
-    x: Math.round(b.x - ox * b.scale),
-    y: Math.round(b.y - oy * b.scale),
-    w: Math.round(w * b.scale),
-    h: Math.round(h * b.scale),
+    x: Math.round(b.x - f.ox * b.scale),
+    y: Math.round(b.y - f.oy * b.scale),
+    w: Math.round(f.w * b.scale),
+    h: Math.round(f.h * b.scale),
   };
 }
 
