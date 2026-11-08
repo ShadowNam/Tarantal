@@ -12,6 +12,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { voicedKeys } from '../../src/game/audio/voicedKeys';
+import { RaidActionSchema } from '../../src/content/schemas';
 import { VOICE_LANGUAGES, type VoiceLanguage } from '../../src/i18n/i18n';
 import { loadContent, loadFeel } from '../testContent';
 
@@ -37,7 +38,7 @@ function ours(wav: string): boolean {
 }
 
 // v1.14 (D-076): the one list the admin page's Texts & voices tab shows too.
-const lines = voicedKeys(loadContent(), loadFeel().barks).all.filter(
+const lines = voicedKeys(loadContent(), loadFeel().barks, RaidActionSchema.options).all.filter(
   (l) => only === undefined || only.includes(l),
 );
 const jobs: { lang: string; key: string; text: string; out: string }[] = [];

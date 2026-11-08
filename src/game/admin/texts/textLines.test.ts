@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadContent, loadFeel } from '../../../../tools/testContent';
+import { RaidActionSchema } from '../../../content/schemas';
 import { LANGUAGES } from '../../../i18n/i18n';
 import { voicedKeys } from '../../audio/voicedKeys';
 import {
@@ -18,7 +19,7 @@ import {
 import { SAY_DATA, TEXT_TABLE_DATA } from './textTables';
 
 const content = loadContent();
-const voiced = voicedKeys(content, loadFeel().barks);
+const voiced = voicedKeys(content, loadFeel().barks, RaidActionSchema.options);
 const lines = collectLines(TEXT_TABLE_DATA, voiced.group, SAY_DATA);
 const byId = new Map(lines.map((l) => [l.id, l]));
 const all: LineFilter = { query: '', voicedOnly: false, changedOnly: false, group: null };

@@ -4,7 +4,9 @@
 // exports them as a file (admin → Download / Copy / Share) and `npm run text:apply` writes them
 // into the tables. With "Use my edits in the game" on, the text edits replace the tables' text on
 // this device (i18n overrides); `say` edits only change what the voice tool will speak.
-// This module is in the first download (boot applies the edits), so it stays small.
+// This module is in the first download (boot applies the edits), so it stays small: the tab (a lazy
+// chunk) imports only its types and gets load / store from the admin scene (TextsPanelDeps.edits),
+// so the bundler never splits storage.ts out of the entry chunk.
 import {
   LANGUAGES,
   TEXT_TABLES,
@@ -68,10 +70,6 @@ function isStore(v: unknown): v is TextEditStore {
     s['edits'].every(isTextEdit)
   );
 }
-
-/** One edit's identity: its table, key, language and field. */
-export const editId = (e: Pick<TextEdit, 'table' | 'key' | 'lang' | 'field'>): string =>
-  `${e.table}|${e.key}|${e.lang}|${e.field}`;
 
 export function loadTextEdits(): TextEditStore {
   return onDevice(() => readValue(TEXT_EDITS_KEY, EMPTY_TEXT_EDITS, isStore));

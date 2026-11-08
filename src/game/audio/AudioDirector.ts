@@ -551,31 +551,10 @@ export class AudioDirector {
     return true;
   }
 
-  /**
-   * v1.14 (D-076): the admin page's ▶ — one voice clip's compressed bytes, decoded and played once
-   * on the voice bus (a new line stops the one playing). False while muted, before audio unlocked,
-   * or when the browser can't decode it.
-   */
-  async previewClip(bytes: ArrayBuffer): Promise<boolean> {
+  /** v1.14 (D-076): the voice bus for the admin page's ▶ (null before unlock or while muted). */
+  get voiceOut(): { readonly ctx: AudioContext; readonly bus: AudioNode } | null {
     const { ctx, voiceBus } = this;
-    if (ctx === null || voiceBus === null || this.muted) return false;
-    let buf: AudioBuffer;
-    try {
-      buf = await ctx.decodeAudioData(bytes);
-    } catch {
-      return false;
-    }
-    try {
-      this.voiceSrc?.stop();
-    } catch {
-      // Already ended.
-    }
-    const src = ctx.createBufferSource();
-    this.voiceSrc = src;
-    src.buffer = buf;
-    src.connect(voiceBus);
-    src.start();
-    return true;
+    return ctx === null || voiceBus === null || this.muted ? null : { ctx, bus: voiceBus };
   }
 
   setMuted(reason: MuteReason, on: boolean): void {

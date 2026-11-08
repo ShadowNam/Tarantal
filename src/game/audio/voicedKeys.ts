@@ -2,7 +2,7 @@
 // shows them: Oupa's lines (the year-round voice packs, `voice-<lang>`), the special days' lines
 // (their own packs, `feesdae-voice-…`) and the braai's story phrases (`braai-voice-<lang>`). The
 // voice tool (tools/audio/voice.ts) and the editor read this one list. Not in the first download.
-import { RaidActionSchema, type ContentBundle, type Feel } from '../../content/schemas';
+import type { ContentBundle, Feel } from '../../content/schemas';
 import { STORY_LINE_IDS, sayKey } from '../braai/story';
 import {
   baboonBarks,
@@ -25,12 +25,15 @@ export interface VoicedKeys {
 export function voicedKeys(
   content: Pick<ContentBundle, 'biomes' | 'birds' | 'feesdae'>,
   barks: Feel['barks'],
+  /** The baboons' raid actions (RaidActionSchema.options: passed in, so the admin tab's lazy
+   *  chunk imports nothing of schemas.ts and the bundler keeps it in the entry chunk). */
+  raidActions: readonly string[],
 ): VoicedKeys {
   const story = STORY_LINE_IDS.map(sayKey);
   const specials = content.feesdae.specials.map((f) => f.barks);
   const all = voicedLines(barks, content.biomes, content.birds.meerkats, specials, [
     ...veldLifeBarks(content.birds),
-    ...baboonBarks(RaidActionSchema.options),
+    ...baboonBarks(raidActions),
     ...harvestBarks(),
     // v1.12 (D-069): Oupa's Brakkie lines.
     ...brakkieBarks(),

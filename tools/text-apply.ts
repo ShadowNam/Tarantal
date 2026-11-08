@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { voicedKeys } from '../src/game/audio/voicedKeys';
+import { RaidActionSchema } from '../src/content/schemas';
 import { VOICE_LANGUAGES } from '../src/i18n/i18n';
 import { loadContent, loadFeel } from './testContent';
 import { applyCorrections, CorrectionsSchema, mergeRedo, REDO_PATH } from './textApply';
@@ -27,7 +28,7 @@ const file = parsed.data;
 const dryRun = args.includes('--dry-run');
 const r = applyCorrections(root, file, {
   forceRest: args.includes('--force-rest'),
-  voiced: new Set(voicedKeys(loadContent(), loadFeel().barks).all),
+  voiced: new Set(voicedKeys(loadContent(), loadFeel().barks, RaidActionSchema.options).all),
   dryRun,
 });
 console.log(

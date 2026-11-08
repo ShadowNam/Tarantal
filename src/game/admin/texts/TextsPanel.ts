@@ -6,14 +6,7 @@
 // Its own lazy chunk (with the text tables it lists): AdminPanel imports it when the tab opens.
 import { fill, LANGUAGES, VOICE_LANGUAGES, type Language } from '../../../i18n/i18n';
 import type { Feel, ContentBundle } from '../../../content/schemas';
-import {
-  applyTextEdits,
-  editId,
-  loadTextEdits,
-  storeTextEdits,
-  type TextEditStore,
-  type TextField,
-} from '../../../meta/textEdits';
+import type { TextEditStore, TextField } from '../../../meta/textEdits';
 import { loadVoiceIndex, type VoiceIndex } from '../../assets/voiceIndex';
 import { voiceKey } from '../../assets/AssetManifest';
 import type { AudioDirector } from '../../audio/AudioDirector';
@@ -24,6 +17,7 @@ import {
   checkTokens,
   collectLines,
   currentOf,
+  editId,
   editMap,
   exportEdits,
   exportFileName,
@@ -84,6 +78,11 @@ type LangView = 'all' | Language;
 export interface TextsPanelDeps {
   readonly content: Pick<ContentBundle, 'biomes' | 'birds' | 'feesdae'>;
   readonly feel: Feel;
+  /** The baboons' raid actions (RaidActionSchema.options), for the voiced keys. */
+  readonly raidActions: readonly string[];
+  /** The edits store (src/meta/textEdits.ts, in the first download): read it, and save it (which
+   *  also applies it in the game when "Use my edits" is on). */
+  readonly edits: { load(): TextEditStore; save(s: TextEditStore): void };
   /** ▶ plays through the AudioDirector (CLAUDE.md: audio only through it). */
   readonly audio: AudioDirector | null;
   readonly build: { readonly version: string; readonly commit: string };
@@ -115,6 +114,32 @@ function btn(text: string, action: string, onClick: () => void, cls = 'btn'): HT
   return b;
 }
 
+/** The last clip ▶ started (a new one stops it). */
+let playing: AudioBufferSourceNode | null = null;
+
+/** One clip's compressed bytes, decoded and played once on the AudioDirector's voice bus (so mute
+ *  and the voice volume apply); false while muted, before audio unlocked, or when undecodable. */
+async function playOn(audio: AudioDirector, bytes: ArrayBuffer): Promise<boolean> {
+  const out = audio.voiceOut;
+  if (out === null) return false;
+  try {
+    const buf = await out.ctx.decodeAudioData(bytes);
+    try {
+      playing?.stop();
+    } catch {
+      // Already ended.
+    }
+    const src = out.ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(out.bus);
+    src.start();
+    playing = src;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 const groupLabel = (g: LineGroup): string => at(`admin.texts.group.${g}`);
 
 export class TextsPanel {
@@ -144,10 +169,10 @@ export class TextsPanel {
   constructor(private readonly deps: TextsPanelDeps) {
     if (document.getElementById(STYLE_ID) === null)
       document.head.appendChild(el('style', { id: STYLE_ID, textContent: TEXTS_CSS }));
-    const voiced = voicedKeys(deps.content, deps.feel.barks);
+    const voiced = voicedKeys(deps.content, deps.feel.barks, deps.raidActions);
     this.lines = collectLines(TEXT_TABLE_DATA, voiced.group, SAY_DATA);
     this.byId = new Map(this.lines.map((l) => [l.id, l]));
-    this.store = loadTextEdits();
+    this.store = deps.edits.load();
     this.edits = editMap(this.store.edits);
     // Phones (narrow): one language at a time; wider screens: all four side by side.
     this.lang = window.innerWidth >= 1000 ? 'all' : 'en';
@@ -273,8 +298,7 @@ export class TextsPanel {
   private setStore(s: TextEditStore): void {
     this.store = s;
     this.edits = editMap(s.edits);
-    storeTextEdits(s);
-    applyTextEdits(s);
+    this.deps.edits.save(s);
     this.renderCounts();
   }
 
@@ -584,9 +608,7 @@ export class TextsPanel {
         const res = await fetch(ref.path);
         const bytes = res.ok ? await res.arrayBuffer() : null;
         result =
-          bytes !== null && audio !== null && (await audio.previewClip(bytes))
-            ? 'played'
-            : 'failed';
+          bytes !== null && audio !== null && (await playOn(audio, bytes)) ? 'played' : 'failed';
       } catch {
         result = 'failed';
       }

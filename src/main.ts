@@ -190,8 +190,16 @@ else if (hookPolicy.namespace !== null)
   setStorageNamespace(hookPolicy.namespace, hookPolicy.namespace);
 else if (capture) setStorageNamespace(CAPTURE_NAMESPACE, CAPTURE_NAMESPACE);
 // v1.14 (D-076): the owner's text edits, where "Use my edits in the game" is on (builds with the
-// admin page only: nowhere else can they be made).
-if (adminPageInBuild()) applyTextEdits();
+// admin page only: nowhere else can they be made). Compared against the raw flag (a literal after
+// Vite's replacement) so a portal or store build drops the reader altogether.
+const platformFlag = import.meta.env.VITE_PLATFORM;
+if (
+  platformFlag !== 'poki' &&
+  platformFlag !== 'crazygames' &&
+  platformFlag !== 'capacitor' &&
+  adminPageInBuild()
+)
+  applyTextEdits();
 
 const save = new SaveStore();
 // Older saves inherited Auto without choosing a language. Adopt the new English default

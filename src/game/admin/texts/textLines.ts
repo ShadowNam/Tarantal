@@ -9,7 +9,7 @@ import {
   type TextTable,
   type VoiceLanguage,
 } from '../../../i18n/i18n';
-import { editId, type TextEdit, type TextField } from '../../../meta/textEdits';
+import type { TextEdit, TextField } from '../../../meta/textEdits';
 import type { VoicedGroup } from '../../audio/voicedKeys';
 
 /** The tab's groups, in list order. */
@@ -159,6 +159,10 @@ export function checkTokens(original: string, edited: string): TokenCheck {
 }
 
 // --- edits over the lines -------------------------------------------------------------------------
+
+/** One edit's identity: its table, key, language and field. */
+export const editId = (e: Pick<TextEdit, 'table' | 'key' | 'lang' | 'field'>): string =>
+  `${e.table}|${e.key}|${e.lang}|${e.field}`;
 
 export type EditMap = ReadonlyMap<string, TextEdit>;
 
