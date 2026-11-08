@@ -7,6 +7,7 @@ import mainDe from '../../../i18n/de.json';
 import mainEn from '../../../i18n/en.json';
 import mainNl from '../../../i18n/nl.json';
 import names from '../../../i18n/flavour/afNames.json';
+import privacyNames from '../../../i18n/privacy/flavour.json';
 import guideAf from '../../../i18n/guide/af.json';
 import guideDe from '../../../i18n/guide/de.json';
 import guideEn from '../../../i18n/guide/en.json';
@@ -33,6 +34,7 @@ export const TEXT_TABLE_DATA: TextTables = {
   privacy: { en: privacyEn, af: privacyAf, de: privacyDe, nl: privacyNl },
   graphics: { en: graphicsEn, af: graphicsAf, de: graphicsDe, nl: graphicsNl },
   names,
+  privacyNames,
 };
 
 export const SAY_DATA: SayTable = voiceConfig.say;

@@ -44,4 +44,26 @@ describe('privacy paragraphs (lazy)', () => {
     }
     expect(m.privacyString('en', 'privacy.stored')).toBe(plain);
   });
+
+  it('the owner’s edits show, the names wording’s too, while the names setting is on (D-076)', async () => {
+    vi.resetModules();
+    const i18n = await import('../../i18n/i18n');
+    const m = await import('./privacyI18n');
+    await m.loadPrivacy();
+    i18n.setAfrikaansNames(true);
+    try {
+      i18n.setTextOverrides({ privacy: { en: { 'privacy.stored': 'Plain edit' } } });
+      expect(m.privacyString('en', 'privacy.stored')).toBe('Plain edit');
+      i18n.setTextOverrides({
+        privacy: { en: { 'privacy.stored': 'Plain edit' } },
+        privacyNames: { en: { 'privacy.stored': 'Names edit' } },
+      });
+      expect(m.privacyString('en', 'privacy.stored')).toBe('Names edit');
+      i18n.setAfrikaansNames(false);
+      expect(m.privacyString('en', 'privacy.stored')).toBe('Plain edit');
+    } finally {
+      i18n.setAfrikaansNames(false);
+      i18n.setTextOverrides(null);
+    }
+  });
 });

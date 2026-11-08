@@ -42,6 +42,8 @@ export function fileOf(e: Pick<Correction, 'table' | 'lang' | 'field'>): string 
       return `src/i18n/${e.lang}.json`;
     case 'names':
       return 'src/i18n/flavour/afNames.json';
+    case 'privacyNames':
+      return 'src/i18n/privacy/flavour.json';
     default:
       return `src/i18n/${e.table}/${e.lang}.json`;
   }
@@ -63,7 +65,7 @@ function holder(doc: Json, e: Correction, create: boolean): Json | null {
     const say = nested(doc, 'say');
     return say === null ? null : nested(say, e.lang);
   }
-  if (e.table === 'names') return nested(doc, e.lang);
+  if (e.table === 'names' || e.table === 'privacyNames') return nested(doc, e.lang);
   return doc;
 }
 
@@ -168,7 +170,13 @@ export function applyCorrections(root: string, file: Corrections, opts: ApplyOpt
   };
   for (const e of ok) {
     const lang = VOICE_LANGUAGES.find((l) => l === e.lang);
-    if (lang === undefined || !opts.voiced.has(e.key) || e.table === 'names') continue;
+    if (
+      lang === undefined ||
+      !opts.voiced.has(e.key) ||
+      e.table === 'names' ||
+      e.table === 'privacyNames'
+    )
+      continue;
     if (e.field === 'text' && sayOf(lang, e.key) !== undefined) continue;
     if (!redo[lang].includes(e.key)) redo[lang].push(e.key);
   }

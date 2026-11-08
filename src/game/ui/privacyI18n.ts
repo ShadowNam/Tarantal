@@ -36,6 +36,16 @@ export function privacyString(lang: Language, key: string): string {
   if (tables === null) return '';
   // Review M18: the Afrikaans-names setting re-words them as it does the main tables (Afrikaans
   // itself keeps its own text).
-  const named = lang !== 'af' && getAfrikaansNames() ? flavour[lang]?.[key] : undefined;
-  return named ?? textOverride('privacy', lang, key) ?? tables[lang][key] ?? tables.en[key] ?? '';
+  const names = lang !== 'af' && getAfrikaansNames();
+  const named = names ? flavour[lang]?.[key] : undefined;
+  // v1.14 (D-076, review round 2): the owner's edits come first — of the wording on screen (the
+  // names variant while that setting is on), then of the paragraph itself.
+  return (
+    (names && named !== undefined ? textOverride('privacyNames', lang, key) : undefined) ??
+    textOverride('privacy', lang, key) ??
+    named ??
+    tables[lang][key] ??
+    tables.en[key] ??
+    ''
+  );
 }

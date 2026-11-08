@@ -469,7 +469,7 @@ export class TextsPanel {
       { className: 'tmeta' },
       el('span', { className: 'tkey', textContent: line.key }),
       el('span', { textContent: `· ${groupLabel(line.group)}` }),
-      ...(line.table === 'names'
+      ...(line.table === 'names' || line.table === 'privacyNames'
         ? [el('span', { className: 'tbadge', textContent: at('admin.texts.table.names') })]
         : []),
       ...(line.voiced

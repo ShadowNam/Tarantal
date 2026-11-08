@@ -39,10 +39,14 @@ describe('collectLines', () => {
         [...Object.keys(t.names.en ?? {}), ...Object.keys(t.names.de ?? {})].concat(
           Object.keys(t.names.nl ?? {}),
         ),
-      ).size;
+      ).size +
+      Object.keys(t.privacyNames.en ?? {}).length;
     expect(lines.length).toBe(n);
     expect(new Set(lines.map((l) => l.id)).size).toBe(lines.length);
     expect(lines.length).toBeGreaterThan(900);
+    // The privacy paragraph's Afrikaans-names wording is listed, in the privacy group.
+    expect(byId.get('privacyNames|privacy.stored')?.group).toBe('privacy');
+    expect(byId.get('privacyNames|privacy.stored')?.text.af).toBeUndefined();
   });
 
   it('marks every voiced key voiced exactly once, in its voice group', () => {

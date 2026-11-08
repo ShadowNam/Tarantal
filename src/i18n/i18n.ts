@@ -39,7 +39,16 @@ const flavour: Partial<Record<Language, Partial<Record<I18nKey, string>>>> = afN
  * v1.14 (D-076): the text tables the owner's edits (admin → Texts & voices) can override: the main
  * tables, the lazy guide, braai, privacy and graphics tables, and the Afrikaans-names wording.
  */
-export const TEXT_TABLES = ['main', 'guide', 'braai', 'privacy', 'graphics', 'names'] as const;
+export const TEXT_TABLES = [
+  'main',
+  'guide',
+  'braai',
+  'privacy',
+  'graphics',
+  'names',
+  /** src/i18n/privacy/flavour.json: the privacy paragraphs' Afrikaans-names wording. */
+  'privacyNames',
+] as const;
 export type TextTable = (typeof TEXT_TABLES)[number];
 export type TextOverrides = Partial<
   Record<TextTable, Partial<Record<Language, Readonly<Record<string, string>>>>>

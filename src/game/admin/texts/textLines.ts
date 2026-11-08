@@ -25,6 +25,8 @@ export interface TextTables {
   readonly graphics: Readonly<Record<Language, Table>>;
   /** The Afrikaans-names wording (src/i18n/flavour/afNames.json): en, de, nl. */
   readonly names: Readonly<Partial<Record<Language, Table>>>;
+  /** The privacy paragraphs' Afrikaans-names wording (src/i18n/privacy/flavour.json). */
+  readonly privacyNames: Readonly<Partial<Record<Language, Table>>>;
 }
 
 /** voice.config.json `say`: how the voice tool speaks a line, per voice language. */
@@ -51,13 +53,15 @@ const TABLE_ORDER: readonly TextTable[] = [
   'braai',
   'graphics',
   'privacy',
+  'privacyNames',
   'names',
 ];
 
 function groupOf(table: TextTable, key: string, voiced: VoicedGroup | undefined): LineGroup {
   if (voiced !== undefined) return voiced;
   if (table === 'braai') return 'braai';
-  if (table === 'privacy' || key.startsWith('privacy.')) return 'privacy';
+  if (table === 'privacy' || table === 'privacyNames' || key.startsWith('privacy.'))
+    return 'privacy';
   if (table === 'guide' || /^(journal|notaboek|guide)\./.test(key)) return 'guide';
   if (key.startsWith('feesdag.')) return 'special';
   return 'hunt';
@@ -88,7 +92,7 @@ export function collectLines(
     const keys = new Set<string>();
     for (const lang of LANGUAGES) for (const k of Object.keys(byLang[lang] ?? {})) keys.add(k);
     for (const key of keys) {
-      const isVoiced = table !== 'names' && spokenFrom(key) === table;
+      const isVoiced = spokenFrom(key) === table;
       const text: Partial<Record<Language, string>> = {};
       for (const lang of LANGUAGES) {
         const v = byLang[lang]?.[key];
