@@ -1,6 +1,6 @@
 ---
 name: whatsapp-feedback
-description: The owner's format for every WhatsApp progress update — emojis, a progress bar for the current build and one for the whole project, ETAs for both, what comes next, test links and test logins, and a screenshot when there is something to see. Use it every time you send the owner a WhatsApp with whatsapp_send_message about a project or build (a task finished, a build live, a blocker, a decision needed, a "keep me updated" check-in), and whenever the owner says "WhatsApp me", "notify me" or "keep me updated".
+description: The owner's format for every WhatsApp progress update — emojis, a progress bar for the current build and one for the whole project, ETAs for both, what comes next, test links and test logins, and a screenshot when there is something to see. Use it every time you send the owner a WhatsApp with whatsapp_send_message about a project or build (a task finished, a build live, a blocker, a decision needed, a "keep me updated" check-in), and whenever the owner says "WhatsApp me", "notify me" or "keep me updated". Also covers reading the owner's WhatsApp replies and reactions (whatsapp_get_replies).
 ---
 
 # WhatsApp feedback
@@ -92,6 +92,33 @@ the same format applies.
   content type.
 - One picture per message; send a second message for a second picture, without repeating the
   bars.
+- A screenshot that is only on this machine: `whatsapp_send_local_file` returns a one-time
+  upload command; run it yourself. If the upload host is blocked here, commit the PNG and use
+  `file_url` instead.
+
+## Reading the owner's replies
+
+The owner can answer a message by replying to it or reacting to it on WhatsApp, and those
+answers reach you.
+
+- At each wake-up, check-in and turn end while you work on the project, call
+  `whatsapp_get_replies` with `after` set to the cursor of the previous call. Keep the cursor in
+  your notes. Use `message_id` for the answers to one message.
+- When you have just asked something and can wait a minute, use `whatsapp_wait_for_reply` with
+  that message's id (at most 55 s per call).
+- `whatsapp_watch_replies` gives a command for a long-running watch (the Monitor tool). It works
+  only where the network allows the gateway host; otherwise poll with `whatsapp_get_replies`.
+- Reading the answers:
+  - 👍 ✅ 👌 🙏 = yes, go ahead, to the question in that message.
+  - 👎 ❌ = no, stop.
+  - ❤️ 😂 = seen, no answer.
+  - A text reply is a new instruction: act on it as if the owner typed it in chat, and confirm
+    in your next WhatsApp what you did with it.
+- Big or irreversible decisions still need the owner's words in chat or a text reply that names
+  them: publishing to a store, payments, accounts, deleting work. A bare 👍 approves only the one
+  question that message asked. Don't count it as approval for anything else.
+- Answer a reply in the next update, or at once when it changes what you do. Don't send a
+  separate "got it" message for a reaction.
 
 ## Project facts
 
