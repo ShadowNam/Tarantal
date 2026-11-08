@@ -1,0 +1,11 @@
+{
+  "sampleRate": 22050,
+  "say": {
+    "en": {
+      "bark.weavers": "/tsː, tsː/ Leave our nest!"
+    },
+    "af": {
+      "bark.weavers": "/tsː, tsː/ Los ons nes!"
+    }
+  }
+}

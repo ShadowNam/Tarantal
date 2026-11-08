@@ -1071,6 +1071,15 @@ does this gun really shoot at that distance?" without the pressure of a hunt.
   a can was in the air) and the longest chain.
 - **Unranked:** no unlocks, Notaboek, bests, Daily, rank or Bird Book; the save is never written.
 
+### 12.1b Texts & voices — the owner's text editor, admin page only (v1.14, D-076)
+Not a player feature: a tab on the playtest admin page (web builds). Every line the player reads or
+hears, in English, Afrikaans, German and Dutch, grouped (Oupa's spoken lines, the braai stories,
+special days, hunt/menus/HUD, field guide and journal, privacy); ▶ plays Oupa's current clip per
+voice language. The owner retypes lines that sound off; edits stay on that device, can be shown in
+the game there ("Use my edits in the game"), and are sent by exporting a file. Placeholders such as
+`{n}` must stay. The corrected lines are applied to the game by `npm run text:apply`, and the clips
+whose words changed are re-made later.
+
 ### 12.2 Die Oes (The Harvest) — a 30-second mode (1.11.0, D-063)
 The product owner (25 Oct): "A big plantation of crops, and all the birds and everything, the
 warthogs and the baboons, everything flocks to it and tries to eat as much as possible. You've got

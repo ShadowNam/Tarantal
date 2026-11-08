@@ -2,7 +2,7 @@
 // the braai clock (animState) applied on change only (applyAnim, ≤ 10 calls a frame). No Phaser:
 // BraaiView.ts draws with them, BraaiView.test.ts checks them with stubs.
 import type { Feel } from '../../content/schemas';
-import { fill, getLanguage, tOr, type Language } from '../../i18n/i18n';
+import { fill, getLanguage, textOverride, tOr, type Language } from '../../i18n/i18n';
 import af from '../../i18n/braai/af.json';
 import de from '../../i18n/braai/de.json';
 import en from '../../i18n/braai/en.json';
@@ -22,7 +22,11 @@ const TABLES: Readonly<Record<Language, Readonly<Record<string, string>>>> = { e
 
 /** A story line's caption in `lang`, its numbers filled in. */
 export function captionText(line: StoryLine, lang: Language = getLanguage()): string {
-  const text = TABLES[lang][line.caption] ?? TABLES.en[line.caption] ?? '';
+  const text =
+    textOverride('braai', lang, line.caption) ??
+    TABLES[lang][line.caption] ??
+    TABLES.en[line.caption] ??
+    '';
   const v = line.vars;
   return fill(text, {
     ...(v.n === undefined ? {} : { n: v.n }),

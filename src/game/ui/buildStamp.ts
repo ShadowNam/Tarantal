@@ -2,12 +2,15 @@
 // which build this map is"): the build stamp, e.g. "v1.6.0 · 1219b9d · 25 Oct 08:40 · Karoo
 // Farm · Tue · art ok". The version, short commit and UTC build time come from Vite `define`
 // (vite.config.ts); the area, weekday and art status from the screen showing it.
+import { textOverrideCount } from '../../i18n/i18n';
 
 export interface BuildInfo {
   readonly version: string;
   readonly sha: string;
   /** UTC, ISO 8601 to the minute ("2026-10-25T08:40"), or '' when unknown. */
   readonly time: string;
+  /** v1.14 (D-076): the owner's edited texts in use on this device (shown as "✎ n"; 0: none). */
+  readonly edits?: number;
 }
 
 /** The build's facts (safe outside a Vite build, e.g. in unit tests). */
@@ -16,6 +19,7 @@ export function buildInfo(): BuildInfo {
     version: typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '0.0.0',
     sha: typeof __BUILD_SHA__ === 'string' ? __BUILD_SHA__ : 'dev',
     time: typeof __BUILD_TIME__ === 'string' ? __BUILD_TIME__ : '',
+    edits: textOverrideCount(),
   };
 }
 
@@ -32,7 +36,13 @@ export function formatBuildTime(iso: string): string {
 /** The build part: "v1.6.0 · 1219b9d · 25 Oct 08:40". */
 export function buildLine(info: BuildInfo): string {
   const time = formatBuildTime(info.time);
-  return [`v${info.version}`, info.sha, ...(time === '' ? [] : [time])].join(' · ');
+  const edits = info.edits ?? 0;
+  return [
+    `v${info.version}`,
+    info.sha,
+    ...(time === '' ? [] : [time]),
+    ...(edits > 0 ? [`✎ ${String(edits)}`] : []),
+  ].join(' · ');
 }
 
 /** The whole stamp: the build, then the screen's area, weekday and art status (when given). */

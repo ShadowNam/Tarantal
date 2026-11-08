@@ -4,6 +4,14 @@
 import * as Phaser from 'phaser';
 import { t } from '../../i18n/i18n';
 import { freshLoadShown } from '../../platform/freshLoad';
+import { buildInfo } from '../ui/buildStamp';
+import { RaidActionSchema } from '../../content/schemas';
+import {
+  applyTextEdits,
+  loadTextEdits,
+  storeTextEdits,
+  type TextEditStore,
+} from '../../meta/textEdits';
 import type { AdminPanel } from '../admin/AdminPanel';
 import { projectHref, projectRequested } from '../admin/adminProject';
 import type { GameContext } from '../GameContext';
@@ -72,6 +80,29 @@ export class AdminScene extends Phaser.Scene {
             }),
             {
               ...(data.view === 'list' && data.range !== undefined ? { onRange: data.range } : {}),
+              // v1.14 (D-076): the Texts & voices tab (list page; web builds only — the raw flag
+              // lets a portal or store build drop the edits store from its first download).
+              ...(data.view === 'list' &&
+              import.meta.env.VITE_PLATFORM !== 'poki' &&
+              import.meta.env.VITE_PLATFORM !== 'crazygames' &&
+              import.meta.env.VITE_PLATFORM !== 'capacitor'
+                ? {
+                    texts: {
+                      feel: this.ctx.feel,
+                      raidActions: RaidActionSchema.options,
+                      edits: {
+                        load: loadTextEdits,
+                        save: (s: TextEditStore) => {
+                          storeTextEdits(s);
+                          applyTextEdits(s);
+                        },
+                      },
+                      audio: this.ctx.audio,
+                      build: { version: buildInfo().version, commit: buildInfo().sha },
+                      hook,
+                    },
+                  }
+                : {}),
               ...(projectOn
                 ? {
                     onProject: () => {

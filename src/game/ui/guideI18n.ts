@@ -4,7 +4,7 @@
 // language has every key (content validation), English is the fallback. A hunt and the Gun Shed
 // start loading them; until they are in, the guide's sentences are empty (the pickup card shows
 // its short line instead).
-import type { Language } from '../../i18n/i18n';
+import { textOverride, type Language } from '../../i18n/i18n';
 
 type Tables = Readonly<Record<Language, Readonly<Partial<Record<string, string>>>>>;
 
@@ -39,5 +39,5 @@ export function setGuideTables(t: Tables | null): void {
  *  such key. */
 export function guideString(lang: Language, key: string): string | null {
   if (tables === null) return null;
-  return tables[lang][key] ?? tables.en[key] ?? null;
+  return textOverride('guide', lang, key) ?? tables[lang][key] ?? tables.en[key] ?? null;
 }

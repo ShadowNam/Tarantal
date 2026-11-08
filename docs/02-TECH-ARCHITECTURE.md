@@ -1090,6 +1090,20 @@ e2e parameters (`src/game/admin/adminPlay.ts`). Everything runs on the `tm.admin
 unranked, so the player's progress is never touched. Feedback leaves as "Copy report" (markdown)
 or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `src/meta/admin.ts`).
 
+**Texts & voices tab (v1.14, D-076).** The list page's second tab (`data-action="tab-texts"`):
+`src/game/admin/texts/` — `textLines.ts` (pure: the lines of every player-facing table, their
+group and voiced flag from `voicedKeys()`, the placeholder check, edits, filters, the export file),
+`textTables.ts` (the tables and `voice.config.json` `say`), `TextsPanel.ts` (DOM, 40 rows a page,
+▶ through the AudioDirector's voice bus). One lazy chunk, imported when the tab opens; it imports
+no values of `schemas.ts` or `storage.ts` (they come from `AdminScene`), so the entry chunk stays
+whole. Edits: `src/meta/textEdits.ts`, key `textEdits.v1` in the device-wide storage namespace
+(`setStorageNamespace(ns, device)`, `onDevice()`); with "Use my edits in the game" on, boot
+(`main.ts`, web builds only) calls `setTextOverrides()` and every table lookup checks
+`textOverride(table, lang, key)` first; `buildLine` adds `✎ <n>`. `npm run text:apply` writes an
+exported file back into the tables and lists the clips to redo (`art-source/audio/voice/redo.json`).
+Test hook: `adminTexts` (counts, the page's ids, the last Save refusal, export and ▶), and
+`titleShedLabel`.
+
 ### 8.3 Skietbaan: the range mode and its gating (v1.3x, D-037)
 - **Gating:** the admin page's Skietbaan button, so only builds whose adapter has `adminPage` (web).
   The range's code is one lazy chunk (`src/game/range/` → `Skietbaan-*.js`, 8.7 KB gzip), loaded

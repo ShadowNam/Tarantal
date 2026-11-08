@@ -9,6 +9,25 @@ Decision record D-077. From the product owner's request of 8 Nov ("increase the 
 
 - Work in progress: Oupa's braai, the bakkie at night, Brakkie, the guineafowl and the baboons get
   shading, texture and detail (same style, same sizes).
+## [1.18.0] — v1.14: Texts & voices, an editor for every line (8 Nov 2026)
+
+Decision record D-076. From the product owner's request of 8 Nov ("a list of all the text and
+voices … so that I can correct them").
+
+- **Texts & voices (admin page):** a new tab lists every line the player reads or hears — about
+  1,000, in English, Afrikaans, German and Dutch — grouped as Oupa's spoken lines, the braai
+  stories, special days, hunt/menus/HUD, field guide and journal, and privacy. Voiced lines show 🔊
+  and a ▶ per voice language that plays Oupa's current clip, plus how the voice tool pronounces it
+  ("spoken as"). Search by key or text in any language, filter (voiced, changed, one group), and on
+  phones switch languages instead of four columns.
+- **Corrections:** tap a line to retype it (Save / Cancel / Revert to original; placeholders like
+  `{n}` must stay). Edits stay on that device only; "Use my edits in the game" shows them in the
+  game there (the build line shows ✎ and the count). "Download corrections", "Copy" and "Share"
+  export them as a file to send.
+- **`npm run text:apply`:** writes a corrections file into the text tables, refuses edits whose
+  original changed, and lists the voice clips to re-make in `art-source/audio/voice/redo.json`.
+- Downloads: the tab is its own lazy chunk (7.1 KB gzip); the first download grows by 1.2 KB gzip
+  (web) and 0.7 KB (Poki, CrazyGames).
 
 ## [1.17.0] — v1.13: Veld cameos, more wildlife in every area (7 Nov 2026)
 
