@@ -3,6 +3,13 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.18.1] — v1.15: Art polish (8 Nov 2026)
+
+Decision record D-077. From the product owner's request of 8 Nov ("increase the graphic quality").
+
+- Work in progress: Oupa's braai, the bakkie at night, Brakkie, the guineafowl and the baboons get
+  shading, texture and detail (same style, same sizes).
+
 ## [1.17.0] — v1.13: Veld cameos, more wildlife in every area (7 Nov 2026)
 
 Decision record D-075. From the product owner's list of 24 Oct ("the veld must feel alive").
