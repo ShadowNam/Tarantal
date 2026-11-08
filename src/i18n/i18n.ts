@@ -35,6 +35,39 @@ const tables: Record<Language, Partial<Record<I18nKey, string>>> = { en, af, de,
  */
 const flavour: Partial<Record<Language, Partial<Record<I18nKey, string>>>> = afNames;
 
+/**
+ * v1.14 (D-076): the text tables the owner's edits (admin → Texts & voices) can override: the main
+ * tables, the lazy guide, braai, privacy and graphics tables, and the Afrikaans-names wording.
+ */
+export const TEXT_TABLES = ['main', 'guide', 'braai', 'privacy', 'graphics', 'names'] as const;
+export type TextTable = (typeof TEXT_TABLES)[number];
+export type TextOverrides = Partial<
+  Record<TextTable, Partial<Record<Language, Readonly<Record<string, string>>>>>
+>;
+
+/** v1.14 (D-076): the owner's edits in use on this device ("Use my edits in the game"), or null. */
+let overrides: TextOverrides | null = null;
+let overrideCount = 0;
+
+/** v1.14 (D-076): use these edited texts instead of the tables' (null: none). */
+export function setTextOverrides(o: TextOverrides | null): void {
+  overrides = o;
+  overrideCount = 0;
+  if (o !== null)
+    for (const byLang of Object.values(o))
+      for (const keys of Object.values(byLang)) overrideCount += Object.keys(keys).length;
+}
+
+/** v1.14 (D-076): the edited text of `key` in one table and language, if the owner edited it. */
+export function textOverride(table: TextTable, lang: Language, key: string): string | undefined {
+  return overrides?.[table]?.[lang]?.[key];
+}
+
+/** v1.14 (D-076): how many edited texts are in use (0: none; the build line shows it). */
+export function textOverrideCount(): number {
+  return overrideCount;
+}
+
 let current: Language = 'en';
 let afrikaansNames = false;
 
@@ -77,10 +110,10 @@ export function t(key: I18nKey): string {
  *  Afrikaans-names toggle applies here too, so share text shows the names the player sees. */
 export function tIn(lang: Language, key: I18nKey): string {
   if (afrikaansNames) {
-    const name = flavour[lang]?.[key];
+    const name = textOverride('names', lang, key) ?? flavour[lang]?.[key];
     if (name !== undefined) return name;
   }
-  return tables[lang][key] ?? en[key];
+  return textOverride('main', lang, key) ?? tables[lang][key] ?? en[key];
 }
 
 /** A key built from content ids (e.g. `item.${id}`): its text, or `fallback` if it has none. */

@@ -92,6 +92,7 @@ import { dayNumber, parseDayKey } from './meta/dailyCalendar';
 import { SaveStore } from './meta/save';
 import type { Settings } from './meta/saveSchema';
 import { setStorageNamespace, storageStatus } from './meta/storage';
+import { applyTextEdits } from './meta/textEdits';
 import { installErrorHook } from './platform/errors';
 import { LocalPlatform } from './platform/local';
 import { handleBack, sendEscapeKey, titleOnTop } from './platform/backButton';
@@ -181,9 +182,16 @@ const capture =
 // builds). It plays on its own save (`tm.admin.*`, or `tm.e2e.admin.*`), so admin hunts never
 // touch the player's bests, unlocks or progress.
 const adminOn = params.get('admin') === '1' && adminPageInBuild();
-if (adminOn) setStorageNamespace((hookPolicy.namespace ?? '') + ADMIN_NAMESPACE);
-else if (hookPolicy.namespace !== null) setStorageNamespace(hookPolicy.namespace);
-else if (capture) setStorageNamespace(CAPTURE_NAMESPACE);
+// v1.14 (D-076): the second argument is the device-wide namespace the owner's text edits share
+// between the admin page and the game (a capture run keeps its own).
+if (adminOn)
+  setStorageNamespace((hookPolicy.namespace ?? '') + ADMIN_NAMESPACE, hookPolicy.namespace ?? '');
+else if (hookPolicy.namespace !== null)
+  setStorageNamespace(hookPolicy.namespace, hookPolicy.namespace);
+else if (capture) setStorageNamespace(CAPTURE_NAMESPACE, CAPTURE_NAMESPACE);
+// v1.14 (D-076): the owner's text edits, where "Use my edits in the game" is on (builds with the
+// admin page only: nowhere else can they be made).
+if (adminPageInBuild()) applyTextEdits();
 
 const save = new SaveStore();
 // Older saves inherited Auto without choosing a language. Adopt the new English default

@@ -11,18 +11,9 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  baboonBarks,
-  harvestBarks,
-  brakkieBarks,
-  cameoBarks,
-  veldLifeBarks,
-  voicedLines,
-} from '../../src/game/audio/voiceLines';
-import { RaidActionSchema } from '../../src/content/schemas';
+import { voicedKeys } from '../../src/game/audio/voicedKeys';
 import { VOICE_LANGUAGES, type VoiceLanguage } from '../../src/i18n/i18n';
 import { loadContent, loadFeel } from '../testContent';
-import { STORY_LINE_IDS, sayKey } from '../../src/game/braai/story';
 
 const root = join(import.meta.dirname, '..', '..');
 const out = join(root, 'art-source', 'audio', 'voice');
@@ -45,22 +36,10 @@ function ours(wav: string): boolean {
   }
 }
 
-const lines = voicedLines(
-  loadFeel().barks,
-  loadContent().biomes,
-  loadContent().birds.meerkats,
-  loadContent().feesdae.specials.map((f) => f.barks),
-  [
-    ...veldLifeBarks(loadContent().birds),
-    ...baboonBarks(RaidActionSchema.options),
-    ...harvestBarks(),
-    // v1.12 (D-069): Oupa's Brakkie lines.
-    ...brakkieBarks(),
-    ...cameoBarks(),
-    // v1.11 (D-068): Oupa's story phrases at the braai (lazy table src/i18n/braai/).
-    ...STORY_LINE_IDS.map(sayKey),
-  ],
-).filter((l) => only === undefined || only.includes(l));
+// v1.14 (D-076): the one list the admin page's Texts & voices tab shows too.
+const lines = voicedKeys(loadContent(), loadFeel().barks).all.filter(
+  (l) => only === undefined || only.includes(l),
+);
 const jobs: { lang: string; key: string; text: string; out: string }[] = [];
 for (const lang of langs) {
   if (!(VOICE_LANGUAGES as readonly string[]).includes(lang)) throw new Error(`no voice ${lang}`);

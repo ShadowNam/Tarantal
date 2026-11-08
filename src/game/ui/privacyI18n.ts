@@ -3,7 +3,7 @@
 // first download doesn't carry them. Settings starts loading them; the privacy screen waits for
 // them (it redraws once they are in). Same rules as src/i18n: every language has every key
 // (content validation), English is the fallback.
-import { getAfrikaansNames, type Language } from '../../i18n/i18n';
+import { getAfrikaansNames, textOverride, type Language } from '../../i18n/i18n';
 
 type Tables = Readonly<Record<Language, Readonly<Partial<Record<string, string>>>>>;
 
@@ -37,5 +37,5 @@ export function privacyString(lang: Language, key: string): string {
   // Review M18: the Afrikaans-names setting re-words them as it does the main tables (Afrikaans
   // itself keeps its own text).
   const named = lang !== 'af' && getAfrikaansNames() ? flavour[lang]?.[key] : undefined;
-  return named ?? tables[lang][key] ?? tables.en[key] ?? '';
+  return named ?? textOverride('privacy', lang, key) ?? tables[lang][key] ?? tables.en[key] ?? '';
 }

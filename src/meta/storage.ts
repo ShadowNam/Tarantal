@@ -7,13 +7,28 @@ const removed = new Set<string>();
 const cleared = new Set<string>();
 const BASE_PREFIX = 'tm.';
 let PREFIX = BASE_PREFIX;
+/** v1.14 (D-076): the device-wide prefix (`tm.` or `tm.e2e.`): what the admin page and the game
+ *  share whatever namespace each runs in (the owner's text edits, src/meta/textEdits.ts). */
+let DEVICE_PREFIX = BASE_PREFIX;
 
 /**
  * Keys go under `tm.<namespace>` from now on (M9: `?e2e` test runs use `tm.e2e.`, so test
  * hooks can never touch a player's real save). Call once at boot, before anything is read.
  */
-export function setStorageNamespace(namespace: string): void {
+export function setStorageNamespace(namespace: string, device = ''): void {
   PREFIX = BASE_PREFIX + namespace;
+  DEVICE_PREFIX = BASE_PREFIX + device;
+}
+
+/** v1.14 (D-076): runs `fn` with keys under the device-wide prefix (see DEVICE_PREFIX). */
+export function onDevice<T>(fn: () => T): T {
+  const own = PREFIX;
+  PREFIX = DEVICE_PREFIX;
+  try {
+    return fn();
+  } finally {
+    PREFIX = own;
+  }
 }
 
 /** The key prefix in use (`tm.` or `tm.<namespace>`). */
@@ -139,4 +154,5 @@ export function resetStorageForTests(): void {
   cleared.clear();
   failed = false;
   PREFIX = BASE_PREFIX;
+  DEVICE_PREFIX = BASE_PREFIX;
 }
