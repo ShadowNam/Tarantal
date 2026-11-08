@@ -351,3 +351,46 @@ test('he is clearly visible in play: at most a quarter of him under the HUD', as
   const mean = samples.reduce((t, s) => t + s.share, 0) / samples.length;
   expect(mean, 'mean share of him under the HUD').toBeLessThanOrEqual(0.25);
 });
+
+// v1.16 (D-078): the owner — "he needs to run a bit more around". With no birds on the map (no
+// fetches, nothing aimed at near him) he still keeps moving: over 40 s of hunt ticks he sets off
+// to new spots several times, running on some. Watched in-page on sim ticks (lesson 2), the
+// frame loop bounded by frames as well as by its goal (lesson 1).
+test('livelier: he trots and runs about between short rests', async ({ page }, info) => {
+  test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
+  test.setTimeout(600_000);
+  const touch = isTouchProject(info);
+  await boot(page, `${BASE.replace('layout=mon', 'layout=none')}&birds=0&brakkie=1`);
+  await startHunt(page, touch);
+  await dogOnScreen(page);
+  const seen = await page.evaluate(
+    (span) =>
+      new Promise<{ moves: number; runs: number; ticks: number }>((done) => {
+        const tm = (): Hooked['__TM__'] => (window as unknown as Hooked).__TM__;
+        const t0 = tm()?.tick ?? 0;
+        let last = '';
+        let moves = 0;
+        let runs = 0;
+        let frames = 0;
+        const step = (): void => {
+          frames++;
+          const d = tm()?.brakkie;
+          const now = d === null || d === undefined ? '' : `${d.phase}:${d.pose}`;
+          if (now !== last && d?.phase === 'trot') {
+            moves++;
+            if (d.pose === 'run') runs++;
+          }
+          last = now;
+          const ticks = (tm()?.tick ?? 0) - t0;
+          if (ticks >= span || frames > 60 * 60 * 6) done({ moves, runs, ticks });
+          else requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }),
+    40 * 60,
+  );
+  expect(seen.ticks, 'the hunt ran 40 s of ticks').toBeGreaterThanOrEqual(40 * 60);
+  expect(seen.moves, 'new spots in 40 s').toBeGreaterThanOrEqual(4);
+  expect(seen.runs, 'some of them at a run').toBeGreaterThanOrEqual(1);
+  expect(brakkie.roam.runChance).toBeGreaterThan(0);
+});

@@ -19,6 +19,9 @@ import {
   withNoBirds,
   withMakalaniPreview,
   withBaboonRaid,
+  withBaboonPeek,
+  BABOON_PEEKS,
+  type BaboonPeek,
   withNoBaboons,
   withReenbuiParams,
   withBrakkieParams,
@@ -605,7 +608,13 @@ const devSpook =
   testHooks && params.get('presents') === 'near' ? withNearPresents(earlySpook) : earlySpook;
 // e2e/dev only (v1.8b, D-062): ?baboonRaid=<action>|any — a raid of that kind within seconds.
 const raidPreview = testHooks ? params.get('baboonRaid') : null;
-const withRaid = raidPreview === null ? devSpook : withBaboonRaid(devSpook, raidPreview);
+const withRaidOnly = raidPreview === null ? devSpook : withBaboonRaid(devSpook, raidPreview);
+// e2e/dev only (v1.16, D-078): ?baboonPeek=peek|sentinel|long — the ridge's peeks within seconds.
+const peekPreview = testHooks ? params.get('baboonPeek') : null;
+const withRaid =
+  peekPreview !== null && (BABOON_PEEKS as readonly string[]).includes(peekPreview)
+    ? withBaboonPeek(withRaidOnly, peekPreview as BaboonPeek)
+    : withRaidOnly;
 // e2e only (v1.8b, D-062): ?baboons=0 — no baboon troops (specs that don't test them).
 const noTroops = testHooks && params.get('baboons') === '0' ? withNoBaboons(withRaid) : withRaid;
 // e2e/dev only (v1.10, D-067): ?reenbui=1 forces a Reënbui, ?reenbuiPhase= holds a phase,
