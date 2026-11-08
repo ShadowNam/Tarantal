@@ -46,7 +46,7 @@ const TEXTS_CSS = `
 #tm-admin .tbar input[type=search]{flex:1 1 220px;min-width:160px}
 #tm-admin .tbar select{min-width:120px}
 #tm-admin .thelp{font-size:13px;color:#C9BFA6;margin:4px 0 8px}
-#tm-admin .thelp summary{cursor:pointer;min-height:40px;display:flex;align-items:center;color:#FFD25A;font-weight:700}
+#tm-admin .thelp[hidden]{display:none}
 #tm-admin .trow{border:1px solid #3a2e24;border-radius:8px;padding:6px 8px;margin:6px 0;background:#241b15}
 #tm-admin .trow.changed{border-color:#d9a21b}
 #tm-admin .tmeta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:#C9BFA6;margin-bottom:4px}
@@ -72,7 +72,14 @@ const TEXTS_CSS = `
 #tm-admin .terr{color:#ff9a7a;font-size:13px}
 #tm-admin .tpager{display:flex;gap:8px;align-items:center;justify-content:center;margin:10px 0 4px}
 #tm-admin .texport{width:100%;min-height:120px;font-family:ui-monospace,monospace;font-size:12px}
-@media (max-height:500px){#tm-admin .tview{padding:4px 8px}#tm-admin .trow{margin:4px 0}}
+@media (max-height:500px){#tm-admin .tview{padding:4px 8px}#tm-admin .trow{margin:4px 0}
+  #tm-admin .tbar{flex-wrap:nowrap;overflow-x:auto;touch-action:pan-x pan-y;margin-bottom:4px;padding-bottom:2px}
+  #tm-admin .tbar>*{flex:none}#tm-admin .tbar input[type=search]{flex:0 0 200px}
+  #tm-admin .thint{display:none}#tm-admin .tbar .btn,#tm-admin .tbar select,#tm-admin .tbar input{min-height:40px}
+  #tm-admin[data-tab=texts] header [data-role=progress],#tm-admin[data-tab=texts] header [data-role=stamp],
+  #tm-admin[data-tab=texts] header [data-action=project],#tm-admin[data-tab=texts] header [data-action=skietbaan],
+  #tm-admin[data-tab=texts] header [data-action=copy-report]{display:none}
+  #tm-admin[data-tab=texts] header{flex-wrap:nowrap}}
 `;
 
 type LangView = 'all' | Language;
@@ -265,13 +272,22 @@ export class TextsPanel {
           }),
         ]
       : [];
+    // The help opens under the toolbar from a small "?" in it (no row of its own on phones).
     const help = el(
-      'details',
-      { className: 'thelp' },
-      el('summary', { textContent: at('admin.texts.help_title') }),
+      'div',
+      { className: 'thelp', dataset: { role: 'texts-help' } },
+      el('h3', { textContent: at('admin.texts.help_title') }),
       el('p', { textContent: at('admin.texts.help') }),
       el('p', { textContent: at('admin.texts.voice_note') }),
+      el('p', { textContent: at('admin.texts.apply_hint') }),
     );
+    help.hidden = true;
+    const helpBtn = btn('?', 'texts-help', () => {
+      help.hidden = !help.hidden;
+      helpBtn.setAttribute('aria-expanded', String(!help.hidden));
+    });
+    helpBtn.setAttribute('aria-label', at('admin.texts.help_title'));
+    helpBtn.setAttribute('aria-expanded', 'false');
     const f = document.createDocumentFragment();
     f.append(
       el(
@@ -291,11 +307,12 @@ export class TextsPanel {
         download,
         copy,
         ...share,
+        helpBtn,
+        this.range,
         this.toast,
       ),
-      el('div', { className: 'muted', textContent: at('admin.texts.apply_hint') }),
+      el('div', { className: 'muted thint', textContent: at('admin.texts.apply_hint') }),
       help,
-      el('div', { className: 'tbar' }, this.range),
     );
     return f;
   }
@@ -557,7 +574,8 @@ export class TextsPanel {
     this.refreshRow(line);
     const ta = this.list.querySelector<HTMLTextAreaElement>('textarea[name=texts-edit]');
     ta?.focus({ preventScroll: true });
-    ta?.scrollIntoView({ block: 'nearest' });
+    // The whole box (text and buttons) in view, not just the text.
+    ta?.closest('[data-editing]')?.scrollIntoView({ block: 'nearest' });
   }
 
   private editor(line: TextLine, lang: Language, field: TextField): HTMLElement {
@@ -598,13 +616,23 @@ export class TextsPanel {
       close();
     });
     revert.disabled = !this.edits.has(id);
-    return el(
-      'div',
-      { className: 'tcell', dataset: { editing: id } },
-      ta,
-      err,
-      el('div', { className: 'row' }, save, cancel, revert),
-    );
+    const buttons = el('div', { className: 'row' }, save, cancel, revert);
+    // Phones: keep Save / Cancel above the on-screen keyboard (it shrinks the visual viewport).
+    const reveal = (): void => {
+      if (buttons.isConnected) buttons.scrollIntoView({ block: 'nearest' });
+    };
+    ta.addEventListener('focus', () => {
+      setTimeout(reveal, 300);
+    });
+    const vv = window.visualViewport;
+    if (vv !== null) {
+      const onResize = (): void => {
+        if (!buttons.isConnected) vv.removeEventListener('resize', onResize);
+        else if (document.activeElement === ta) reveal();
+      };
+      vv.addEventListener('resize', onResize);
+    }
+    return el('div', { className: 'tcell', dataset: { editing: id } }, ta, err, buttons);
   }
 
   /** Why an edit can't be saved (a dropped or added placeholder, an empty line), or null. */

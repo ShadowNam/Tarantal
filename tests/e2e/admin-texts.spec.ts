@@ -54,6 +54,15 @@ test.describe('admin Texts & voices', () => {
     const first = await hook(page);
     expect(first.adminTexts?.changed).toBe(0);
     expect(first.adminTexts?.apply).toBe(false);
+    // Phones: the header and toolbar leave room — the first row starts in the top 60 % of the
+    // screen when the tab opens.
+    if (touch) {
+      const top = await page
+        .locator('#tm-admin .trow')
+        .first()
+        .evaluate((e) => e.getBoundingClientRect().top / window.innerHeight);
+      expect(top).toBeLessThan(0.6);
+    }
     // Paged: never more than one page of rows in the DOM.
     expect(await page.locator('#tm-admin .trow').count()).toBeLessThanOrEqual(40);
     // Phones get one language at a time; English is a choice there and on desktop.
@@ -81,6 +90,8 @@ test.describe('admin Texts & voices', () => {
     await search(page, 'title.shed', 'main|title.shed');
     await press(page, touch, `${cell('main|title.shed')} [data-action=texts-edit]`);
     await page.locator('#tm-admin textarea[name=texts-edit]').fill(EDITED);
+    // The edit box's Save is on screen (not cut off under the toolbar or the screen's edge).
+    await expect(page.locator('#tm-admin [data-action=texts-save]')).toBeInViewport();
     await press(page, touch, '#tm-admin [data-action=texts-save]');
     await page.waitForFunction(() => window.__TM__?.adminTexts?.changed === 1, null, {
       timeout: 10_000,

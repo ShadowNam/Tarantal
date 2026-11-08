@@ -275,6 +275,8 @@ export class AdminPanel {
   }
 
   private markTab(texts: boolean): void {
+    // Phones (short screens): the texts tab's CSS keeps the header to the title and the tabs.
+    this.root.dataset['tab'] = texts ? 'texts' : 'maps';
     this.root.querySelector('[data-action=tab-maps]')?.setAttribute('aria-pressed', String(!texts));
     this.root.querySelector('[data-action=tab-texts]')?.setAttribute('aria-pressed', String(texts));
   }
