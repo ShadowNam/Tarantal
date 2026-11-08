@@ -52,4 +52,14 @@ describe('Brakkie art (D-069)', () => {
       }
     });
   }
+
+  it('v1.15 (D-077): every dog pose carries the same coat (fur strokes, the eye highlights)', () => {
+    const dogs = brakkieFrames().filter((f) => f.name !== 'bird');
+    const counts = dogs.map((f) => (frameArtForFit(f.name).match(/c-?\d/g) ?? []).length);
+    // 48 hair strokes on the body in every frame (the same coat whatever the pose).
+    for (const n of counts) expect(n).toBe(counts[0]);
+    expect(counts[0]).toBeGreaterThanOrEqual(40);
+    for (const f of dogs)
+      expect(frameArtForFit(f.name).match(/fill="#FFFFFF"/g)?.length).toBeGreaterThanOrEqual(2);
+  });
 });
