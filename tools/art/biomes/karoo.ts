@@ -1,7 +1,7 @@
 // Karoo autumn (bible §4.2, the home biome, in the first download): golden veld under a pale
 // autumn sky, flat-topped dolerite mesas and koppies in hazy lilac, karoo bossies, a dirt farm
-// track, a wire fence, the windpomp + corrugated reservoir, a rusty fictional bakkie, a potjie on
-// a fire, a fence-post bell and aloes. Light from the upper left. D-031.
+// track, a wire fence, the windpomp + corrugated reservoir, a dusty white fictional bakkie
+// (D-078), a potjie on a fire, a fence-post bell and aloes. Light from the upper left. D-031.
 import { verVeld } from './common';
 import { plantLook, seedTuft, veldShrub, type ShrubKind } from '../flora';
 import { bluegum, pepperTree, sweetThorn } from '../species';
@@ -1605,39 +1605,64 @@ function reservoir(ctx: PropCtx): string {
 }
 
 /**
- * D-035: the farm bakkie, semi-realistic. An old single-cab pickup facing right, with no badge or
- * brand: faded red paint over primer and rust, a swage line and panel gaps, a door with a chrome
- * handle and keyhole, a mirror on its arm, a windscreen and side glass reflecting the sky, a
- * slatted grille, a round headlight, amber indicators, red tail lights, chrome bumpers, a roll bar
- * and tie-down hooks on the load bin, treaded tyres on steel rims, dust and mud low down, two
- * dents. The spare wheel in the bin is the secret (content part at (−180, −40), 32 × 36).
+ * D-035, v1.16 (D-078): the farm bakkie, semi-realistic: a boxy old single-cab 4×4 pickup of the
+ * kind every Karoo farm has (the owner: "more a Hilux bakkie"), facing right, with no badge, brand
+ * or emblem. Dusty farm white: an upright square cab with a near-vertical back, a raked windscreen,
+ * a long flat bonnet, the nose turned a little to us so its plain grille (horizontal bars) and
+ * square headlights show; chunky black bumpers, boxy flared wheel arches, high ground clearance
+ * with the chassis and diff dark underneath, steel wheels on chunky all-terrain tyres; a long load
+ * bin with a black sports bar (roll bar) behind the cab, tie-down hooks and vertical tail lights;
+ * a tow hitch; dust and mud low down, a few rust spots and a dent. The spare wheel bolted on the
+ * bin side is the secret (content part at (−180, −40), 32 × 36).
  */
 function bakkie(ctx: PropCtx): string {
   const ink = shade(ctx.c('rust'), -0.7);
   const pen: Pen = { ink, w: Math.max(1.4, ctx.pen.w * 0.5) };
-  const paintBase = mix('#A6533A', ctx.c('rust'), 0.25);
-  const paintTop = shade(paintBase, 0.22);
-  const paintLow = shade(paintBase, -0.28);
+  const paintBase = mix('#F1EFE8', ctx.c('rust'), 0.04);
+  const paintTop = shade(paintBase, 0.1);
+  const paintLow = shade(paintBase, -0.18);
   const rust = ctx.c('rust');
   const mud = '#7A5A3C';
   const dust = '#C9A878';
-  const chrome = ['#F4F6F7', '#A9B1B6', '#5E666C'] as const;
-  const tyre = '#24201E';
-  const wheelR = 40;
-  const wheelY = 58;
+  const black = '#26221F';
+  const blackHi = '#5A5450';
+  const steel = ['#E4E6E4', '#B4B8B6', '#7A807E'] as const;
+  const wheelR = 42;
+  const wheelY = 56;
   const frontX = 140;
   const rearX = -128;
-  const archR = 50;
+  const sill = 34;
+  // Boxy wheel arches: straight sides, a flat top just clear of the tyre.
+  const archPts = (cx: number): Pt[] => [
+    [cx + 52, sill],
+    [cx + 47, 6],
+    [cx + 36, -4],
+    [cx - 36, -4],
+    [cx - 47, 6],
+    [cx - 52, sill],
+  ];
+  const archL = (cx: number): string =>
+    archPts(cx)
+      .map(([x, y]) => `L${r2(x)} ${r2(y)}`)
+      .join('');
   const bodyD =
-    `M-208 -46L-22 -46L-14 -54L-2 -97Q1 -102 8 -102L90 -102Q97 -102 101 -96L127 -50L194 -42` +
-    `Q211 -38 214 -25L216 38Q216 46 209 46L${r2(frontX + archR)} 46` +
-    `A${archR} ${archR} 0 0 0 ${r2(frontX - archR)} 46L${r2(rearX + archR)} 46` +
-    `A${archR} ${archR} 0 0 0 ${r2(rearX - archR)} 46L-203 46Q-208 46 -208 40Z`;
+    `M-212 -44Q-212 -47 -208 -47L-18 -47L-14 -98Q-13 -104 -6 -104L86 -104Q93 -104 96 -99` +
+    `L124 -55L200 -50Q209 -49 209 -40L210 ${sill - 4}Q210 ${sill} 206 ${sill}` +
+    archL(frontX) +
+    archL(rearX) +
+    `L-208 ${sill}Q-212 ${sill} -212 ${sill - 4}Z`;
+  // The nose turned a little to us: its front face (grille, headlight, indicator) beyond the side.
+  const faceD = polyD([
+    [208, -49],
+    [226, -45],
+    [228, sill - 2],
+    [210, sill],
+  ]);
   const id = nextId();
   const gPaint = nextId();
   const gGlass = nextId();
-  const gChrome = nextId();
   const gTyre = nextId();
+  const gDust = nextId();
   const parts: string[] = [];
   const stroke = (d: string, col: string, w: number, op = 1): string =>
     el('path', {
@@ -1651,88 +1676,91 @@ function bakkie(ctx: PropCtx): string {
     });
   const fill = (d: string, col: string, op = 1): string =>
     el('path', { d, fill: col, ...(op < 1 ? { 'fill-opacity': op } : {}) });
+  const rect = (x: number, y: number, w: number, h: number, col: string, rx = 0, sw = 1): string =>
+    el('rect', { x, y, width: w, height: h, rx, fill: col, stroke: ink, 'stroke-width': sw });
   parts.push(
     el(
       'linearGradient',
-      { id: gPaint, x1: 0, y1: -102, x2: 0, y2: 46, gradientUnits: 'userSpaceOnUse' },
+      { id: gPaint, x1: 0, y1: -104, x2: 0, y2: sill, gradientUnits: 'userSpaceOnUse' },
       el('stop', { offset: 0, 'stop-color': paintTop }),
-      el('stop', { offset: 0.45, 'stop-color': paintBase }),
+      el('stop', { offset: 0.5, 'stop-color': paintBase }),
       el('stop', { offset: 1, 'stop-color': paintLow }),
     ),
     el(
       'linearGradient',
-      { id: gGlass, x1: 0, y1: -96, x2: 30, y2: -50, gradientUnits: 'userSpaceOnUse' },
+      { id: gGlass, x1: 0, y1: -96, x2: 30, y2: -56, gradientUnits: 'userSpaceOnUse' },
       el('stop', { offset: 0, 'stop-color': '#DCEBF2' }),
       el('stop', { offset: 0.5, 'stop-color': '#8FB4C8' }),
       el('stop', { offset: 1, 'stop-color': '#4A6170' }),
     ),
     el(
       'linearGradient',
-      { id: gChrome, x1: 0, y1: 0, x2: 0, y2: 1 },
-      el('stop', { offset: 0, 'stop-color': chrome[0] }),
-      el('stop', { offset: 0.45, 'stop-color': chrome[1] }),
-      el('stop', { offset: 0.55, 'stop-color': chrome[2] }),
-      el('stop', { offset: 1, 'stop-color': chrome[1] }),
+      { id: gDust, x1: 0, y1: -6, x2: 0, y2: sill, gradientUnits: 'userSpaceOnUse' },
+      el('stop', { offset: 0, 'stop-color': dust, 'stop-opacity': 0 }),
+      el('stop', { offset: 0.5, 'stop-color': dust, 'stop-opacity': 0.4 }),
+      el('stop', { offset: 1, 'stop-color': mud, 'stop-opacity': 0.55 }),
     ),
     el(
       'radialGradient',
       { id: gTyre },
-      el('stop', { offset: 0.55, 'stop-color': '#3A3431' }),
-      el('stop', { offset: 0.85, 'stop-color': tyre }),
+      el('stop', { offset: 0.6, 'stop-color': '#3A3431' }),
+      el('stop', { offset: 0.85, 'stop-color': '#24201E' }),
       el('stop', { offset: 1, 'stop-color': '#141110' }),
     ),
   );
-  // Contact shadow, and the dark wheel wells behind the wheels.
-  parts.push(contactShadow(8, wheelY + wheelR - 4, 236, 10, 0.34));
-  for (const cx of [rearX, frontX])
-    parts.push(fill(ellipseD(cx, 46, archR + 1, archR + 1), '#1E1A18'));
+  // Contact shadow; the chassis, fuel tank and diff dark under the high body; the wheel wells.
+  parts.push(contactShadow(8, wheelY + wheelR - 4, 238, 10, 0.34));
+  parts.push(
+    fill(
+      polyD([
+        [-196, sill - 2],
+        [204, sill - 2],
+        [204, sill + 9],
+        [-196, sill + 9],
+      ]),
+      '#1E1A18',
+    ),
+    rect(-60, sill + 2, 70, 14, '#34302C', 3, 1),
+    fill(ellipseD(rearX, sill + 18, 16, 10), '#1E1A18'),
+  );
+  for (const cx of [rearX, frontX]) parts.push(fill(polyD(archPts(cx)), '#1E1A18'));
   // The body: paint gradient, then everything on the paint inside its clip.
   parts.push(el('clipPath', { id }, el('path', { d: bodyD })), fill(bodyD, `url(#${gPaint})`));
   const onPaint: string[] = [];
-  // Sky sheen along the shoulder, the swage line, the dark rocker panel.
+  // Sky sheen along the bin rail and the bonnet, the body crease, the darker sill.
   onPaint.push(
     fill(
       polyD([
-        [-210, -45],
-        [-20, -45],
-        [-20, -38],
-        [-210, -38],
+        [-214, -47],
+        [-16, -47],
+        [-16, -40],
+        [-214, -40],
       ]),
-      shade(paintTop, 0.35),
-      0.55,
+      '#FFFFFF',
+      0.6,
     ),
     fill(
       polyD([
-        [128, -48],
-        [196, -40],
-        [198, -34],
-        [128, -42],
+        [124, -55],
+        [210, -49],
+        [210, -43],
+        [124, -49],
       ]),
-      shade(paintTop, 0.35),
-      0.5,
+      '#FFFFFF',
+      0.6,
     ),
-    stroke('M-206 -12L212 -10', shade(paintTop, 0.3), 2.2, 0.8),
-    stroke('M-206 -9L212 -7', shade(paintLow, -0.25), 1.6, 0.8),
-    fill(
-      polyD([
-        [-210, 30],
-        [220, 30],
-        [220, 50],
-        [-210, 50],
-      ]),
-      shade(paintLow, -0.3),
-      0.7,
-    ),
+    stroke('M-210 -24L210 -24', '#FFFFFF', 2.2, 0.85),
+    stroke('M-210 -21L210 -21', shade(paintLow, -0.15), 1.6, 0.8),
+    stroke(`M-210 ${sill - 7}L210 ${sill - 7}`, shade(paintLow, -0.2), 1.2, 0.6),
   );
-  // Panel gaps: tailgate, bin/cab seam, door, bonnet line, fender seam.
+  // Panel gaps: tailgate, bin/cab seam, door, fender seam.
   onPaint.push(
-    stroke('M-196 -44L-196 40', ink, 1.3, 0.8),
-    stroke('M-18 -44L-18 44', ink, 1.6, 0.85),
-    stroke('M-8 -52L-6 34Q-6 42 2 42L104 42Q112 42 114 34L120 -44', ink, 1.5, 0.85),
-    stroke('M127 -48Q160 -46 200 -40', ink, 1.1, 0.6),
-    stroke('M190 -40L190 30', ink, 1.1, 0.6),
+    stroke('M-200 -45L-200 32', ink, 1.3, 0.75),
+    stroke('M-16 -46L-16 32', ink, 1.6, 0.85),
+    stroke('M-4 -100L-4 26Q-4 30 0 30L112 30Q116 30 116 26L118 -58', ink, 1.5, 0.85),
+    stroke('M184 -50L184 -6', ink, 1.1, 0.6),
   );
-  // Rust: around the arches and along the bin's foot (dark edges, lighter flecks).
+  // Rust spots round the arches and the bin's foot (dark edges, lighter flecks).
   const rustBlob = (x: number, y: number, rx: number, ry: number): string[] => {
     const pts: Pt[] = [];
     for (let k = 0; k < 10; k++) {
@@ -1742,62 +1770,78 @@ function bakkie(ctx: PropCtx): string {
     }
     const d = smoothD(pts, true, 1);
     return [
-      fill(d, shade(rust, -0.25), 0.85),
-      fill(ellipseD(x - rx * 0.2, y - ry * 0.2, rx * 0.5, ry * 0.4), shade(rust, 0.15), 0.6),
-      stroke(d, shade(rust, -0.5), 0.8, 0.6),
+      fill(d, shade(rust, -0.15), 0.8),
+      fill(ellipseD(x - rx * 0.2, y - ry * 0.2, rx * 0.5, ry * 0.4), shade(rust, 0.2), 0.6),
     ];
   };
   onPaint.push(
-    ...rustBlob(rearX - 56, 32, 16, 9),
-    ...rustBlob(rearX + 58, 30, 12, 7),
-    ...rustBlob(frontX - 58, 34, 10, 6),
-    ...rustBlob(-150, -36, 9, 4),
-    ...rustBlob(170, 26, 9, 5),
+    ...rustBlob(rearX - 58, 24, 9, 5),
+    ...rustBlob(rearX + 56, 26, 7, 4),
+    ...rustBlob(frontX + 54, 24, 6, 4),
   );
-  // Two dents: a soft dark crescent under a lit edge.
-  for (const [dx, dy, r] of [
-    [-70, -24, 16],
-    [62, 8, 12],
-  ] as const)
-    onPaint.push(
-      fill(ellipseD(dx + 2, dy + 2, r, r * 0.55), shade(paintBase, -0.35), 0.45),
-      stroke(
-        `M${r2(dx - r)} ${r2(dy - 1)}Q${r2(dx)} ${r2(dy - r * 0.7)} ${r2(dx + r)} ${r2(dy - 1)}`,
-        shade(paintTop, 0.4),
-        1.4,
-        0.7,
-      ),
-    );
-  // Dust over the lower third and mud thrown up behind the wheels.
-  const dustD = polyD([
-    [-212, 6],
-    [222, 10],
-    [222, 50],
-    [-212, 50],
-  ]);
-  onPaint.push(fill(dustD, dust, 0.28));
+  // A dent in the bin side: a soft dark crescent under a lit edge.
+  onPaint.push(
+    fill(ellipseD(-58, 2, 13, 7), shade(paintBase, -0.3), 0.4),
+    stroke('M-71 -1Q-60 -9 -45 -1', '#FFFFFF', 1.4, 0.7),
+  );
+  // Dust over the lower third and mud thrown up round the arches.
+  onPaint.push(
+    fill(
+      polyD([
+        [-214, -6],
+        [214, -6],
+        [214, sill + 2],
+        [-214, sill + 2],
+      ]),
+      `url(#${gDust})`,
+    ),
+  );
   for (const cx of [rearX, frontX])
-    for (let k = 0; k < 16; k++) {
-      const ang = Math.PI * (0.9 + ctx.rnd() * 0.5);
-      const rr = archR + 2 + ctx.rnd() * 22;
+    for (let k = 0; k < 8; k++) {
+      const ang = Math.PI * (0.95 + ctx.rnd() * 0.5);
+      const rr = 54 + ctx.rnd() * 18;
       const mx = cx + Math.cos(ang) * rr;
-      const my = 46 + Math.sin(ang) * rr * 0.6;
-      onPaint.push(fill(ellipseD(mx, my, 2 + ctx.rnd() * 4, 1.2 + ctx.rnd() * 2.2), mud, 0.65));
+      const my = sill + Math.sin(ang) * rr * 0.55;
+      onPaint.push(fill(ellipseD(mx, my, 2 + ctx.rnd() * 3.5, 1.2 + ctx.rnd() * 2), mud, 0.6));
     }
   // Fuel filler on the bin side.
   onPaint.push(
-    fill(ellipseD(-48, -24, 7, 7), shade(paintLow, -0.2)),
-    stroke(ellipseD(-48, -24, 7, 7), ink, 1, 0.7),
-    fill(ellipseD(-50, -26, 2.5, 2.5), shade(paintTop, 0.4), 0.7),
+    fill(ellipseD(-40, -32, 6.5, 6.5), shade(paintBase, -0.15)),
+    stroke(ellipseD(-40, -32, 6.5, 6.5), ink, 1, 0.7),
   );
   parts.push(g({ 'clip-path': `url(#${id})` }, ...onPaint));
   parts.push(stroke(bodyD, ink, pen.w));
-  // Side glass with the sky in it, a headrest behind, the rubber frame.
+  // The flared arch lips (black plastic flares, squared).
+  for (const cx of [rearX, frontX]) {
+    const d = polyD(archPts(cx), false);
+    parts.push(stroke(d, black, 7), stroke(d, blackHi, 1.4, 0.7));
+  }
+  // The front face: its own shade, the square headlight, the plain grille, the indicator.
+  parts.push(
+    fill(faceD, shade(paintBase, -0.1)),
+    stroke(faceD, ink, pen.w * 0.9),
+    rect(210, -44, 14, 15, '#7A807E', 1.5, 1),
+    rect(212, -42, 10, 11, '#F4EBC4', 1, 0.6),
+    fill(
+      polyD([
+        [213, -41],
+        [217, -41],
+        [213, -35],
+      ]),
+      '#FFFFFF',
+      0.95,
+    ),
+    rect(211, -27, 15, 22, black, 1.5, 1),
+    ...[0, 1, 2, 3].map((k) => stroke(`M212.5 ${-23 + k * 5}L224.5 ${-23 + k * 5}`, steel[1], 1.6)),
+    rect(211, -2, 12, 6, '#F2A33A', 1.5, 0.8),
+    fill(ellipseD(214, -0.5, 2, 1.2), '#FFE0A0', 0.8),
+  );
+  // Side glass with the sky in it, a headrest behind, the rubber frame; the windscreen's edge.
   const glassD = polyD([
-    [4, -94],
-    [90, -94],
-    [114, -54],
-    [4, -54],
+    [2, -96],
+    [84, -96],
+    [110, -59],
+    [2, -59],
   ]);
   const glassId = nextId();
   parts.push(
@@ -1805,174 +1849,98 @@ function bakkie(ctx: PropCtx): string {
     el('clipPath', { id: glassId }, el('path', { d: glassD })),
     g(
       { 'clip-path': `url(#${glassId})` },
-      fill(ellipseD(20, -66, 10, 14), '#2E3A42', 0.55),
+      fill(ellipseD(16, -70, 9, 13), '#2E3A42', 0.55),
       fill(
         polyD([
-          [30, -96],
-          [44, -96],
-          [22, -50],
-          [8, -50],
+          [30, -98],
+          [44, -98],
+          [24, -56],
+          [10, -56],
         ]),
         '#FFFFFF',
         0.45,
       ),
       fill(
         polyD([
-          [52, -96],
-          [58, -96],
-          [36, -50],
-          [30, -50],
+          [52, -98],
+          [58, -98],
+          [38, -56],
+          [32, -56],
         ]),
         '#FFFFFF',
         0.3,
       ),
-      fill(
-        polyD([
-          [4, -60],
-          [120, -64],
-          [120, -50],
-          [4, -50],
-        ]),
-        '#C9A878',
-        0.25,
-      ),
     ),
-    stroke(glassD, '#1E1A18', 2.4),
-    // Windscreen edge seen past the A-pillar.
-    stroke('M101 -96L127 -50', '#2A2522', 3),
-    stroke('M104 -94L125 -56', '#DCEBF2', 1, 0.7),
+    stroke(glassD, '#1E1A18', 2.6),
+    stroke('M96 -99L124 -55', '#2A2522', 3),
+    stroke('M99 -97L121 -61', '#DCEBF2', 1, 0.7),
   );
-  // Mirror on its arm, the door handle and keyhole.
+  // The square black mirror on the door's corner, the door handle and keyhole.
   parts.push(
-    stroke('M114 -58L126 -64', '#2A2522', 2.4),
-    el('rect', {
-      x: 122,
-      y: -78,
-      width: 14,
-      height: 17,
-      rx: 3,
-      fill: '#2A2522',
-      stroke: ink,
-      'stroke-width': 1,
-    }),
+    stroke('M110 -60L118 -66', black, 2.4),
+    rect(114, -80, 13, 16, black, 2, 1),
     fill(
       polyD([
-        [124, -76],
-        [128, -76],
-        [125, -64],
-        [124, -64],
+        [116, -78],
+        [119, -78],
+        [117, -67],
+        [116, -67],
       ]),
-      chrome[1],
-      0.8,
+      blackHi,
+      0.9,
     ),
-    el('rect', {
-      x: 2,
-      y: -40,
-      width: 20,
-      height: 5,
-      rx: 2.5,
-      fill: `url(#${gChrome})`,
-      stroke: ink,
-      'stroke-width': 0.8,
-    }),
-    fill(ellipseD(28, -37.5, 1.6, 1.6), '#2A2522'),
+    rect(4, -46, 18, 5, black, 2, 0.8),
+    fill(ellipseD(27, -43.5, 1.5, 1.5), black),
   );
-  // Roll bar behind the cab, tie-down hooks along the bin rail, tailgate latch, tail light.
+  // The sports bar (roll bar) behind the cab: the hoop's post, its top tube back, the brace down
+  // to the bin rail; the far post a shade darker. Tie-down hooks along the rail.
+  const bar = 'M-28 -47L-29 -90Q-29 -97 -36 -97L-58 -97Q-63 -97 -66 -92L-96 -47';
   parts.push(
-    stroke('M-30 -46L-30 -86Q-30 -91 -35 -91L-42 -91M-33 -84L-92 -46', '#2A2522', 5),
-    stroke('M-31.5 -48L-31.5 -84M-36 -82L-90 -48', chrome[0], 1.2, 0.5),
-    ...[-170, -130, -90, -50].map((hx) => stroke(`M${hx} -46q0 6 5 6`, chrome[1], 2)),
-    el('rect', {
-      x: -200,
-      y: -6,
-      width: 4,
-      height: 8,
-      fill: chrome[1],
-      stroke: ink,
-      'stroke-width': 0.6,
-    }),
-    el('rect', {
-      x: -210,
-      y: -42,
-      width: 7,
-      height: 26,
-      rx: 1.5,
-      fill: '#B5241E',
-      stroke: ink,
-      'stroke-width': 1,
-    }),
+    stroke('M-22 -47L-23 -93', '#141110', 5),
+    stroke(bar, black, 5.5),
+    stroke('M-30 -50L-31 -90M-38 -98.5L-57 -98.5M-66 -89L-92 -50', '#FFFFFF', 1.2, 0.45),
+    ...[-170, -130, -100].map((hx) => stroke(`M${hx} -46q0 6 5 6`, steel[1], 2)),
+  );
+  // Rear: vertical tail light, the black step bumper, the tow hitch (drawbar and ball).
+  parts.push(
+    rect(-216, -42, 8, 32, '#B5241E', 1.5, 1),
     fill(
       polyD([
-        [-209, -40],
-        [-206, -40],
-        [-206, -20],
-        [-209, -20],
+        [-215, -40],
+        [-212, -40],
+        [-212, -22],
+        [-215, -22],
       ]),
       '#F07A6A',
       0.7,
     ),
-    el('rect', {
-      x: -210,
-      y: -14,
-      width: 7,
-      height: 6,
-      fill: '#E9A23B',
-      stroke: ink,
-      'stroke-width': 0.8,
-    }),
+    rect(-216, -18, 8, 7, '#E9A23B', 1, 0.8),
+    rect(-236, 38, 26, 6, '#34302C', 1, 1),
+    rect(-232, 31, 3, 8, '#5E666C', 0.5, 0.6),
+    fill(ellipseD(-230.5, 30, 4.5, 4.5), '#8A9196'),
+    stroke(ellipseD(-230.5, 30, 4.5, 4.5), ink, 1),
+    fill(ellipseD(-232, 28.5, 1.5, 1.3), '#FFFFFF', 0.8),
+    rect(-224, 20, 22, 17, black, 2.5, 1.2),
+    stroke('M-222 22L-205 22', blackHi, 1.4, 0.8),
   );
-  // The nose: slatted grille, round headlight in a chrome ring, amber indicator.
+  // Front: the chunky black bumper wrapping round the nose.
   parts.push(
-    el('rect', { x: 205, y: -24, width: 10, height: 34, rx: 1, fill: '#2A2522' }),
-    ...[0, 1, 2, 3, 4, 5].map((k) => stroke(`M206 ${-20 + k * 5.5}h8`, chrome[1], 1.6)),
-    fill(ellipseD(202, -22, 9, 9), `url(#${gChrome})`),
-    fill(ellipseD(202, -22, 6.5, 6.5), '#F4EBC4'),
-    fill(ellipseD(200, -24.5, 2.6, 2.2), '#FFFFFF', 0.95),
-    stroke(ellipseD(202, -22, 9, 9), ink, 1),
-    el('rect', {
-      x: 196,
-      y: -10,
-      width: 10,
-      height: 6,
-      rx: 1.5,
-      fill: '#F2A33A',
-      stroke: ink,
-      'stroke-width': 0.8,
-    }),
-    fill(
-      polyD([
-        [197, -9],
-        [201, -9],
-        [201, -7],
-        [197, -7],
-      ]),
-      '#FFE0A0',
-      0.8,
-    ),
-  );
-  // Chrome bumpers (pitted at the ends), front and rear.
-  const bumper = (x: number, w: number): string[] => [
-    el('rect', {
-      x,
-      y: 20,
-      width: w,
-      height: 13,
-      rx: 3,
-      fill: `url(#${gChrome})`,
+    el('path', {
+      d: 'M196 18L224 16L232 19L232 34L226 37L196 37Z',
+      fill: black,
       stroke: ink,
       'stroke-width': 1.2,
+      'stroke-linejoin': 'round',
     }),
-    fill(ellipseD(x + w * 0.2, 31, 4, 1.5), '#6E5A48', 0.6),
-    fill(ellipseD(x + w * 0.8, 23, 3, 1.2), '#6E5A48', 0.5),
-  ];
-  parts.push(...bumper(184, 40), ...bumper(-218, 26));
+    stroke('M198 20L224 18L230 21', blackHi, 1.4, 0.8),
+  );
   // The spare wheel (the secret, content part at (−180, −40), 32 × 36): bolted to a bracket on
   // the outside of the bin by the tailgate, leaning back a little, in front of the bin side so
   // nearly all of its hit ellipse shows the wheel (review of #49: inside the bin, 58 % of it was
   // hidden and the plain panel triggered the secret).
   const spareTread = Array.from({ length: 14 }, (_, n) => {
     const a = (n / 14) * Math.PI * 2;
-    return `M${r2(-180 + Math.cos(a) * 29)} ${r2(-40 + Math.sin(a) * 33)}L${r2(-180 + Math.cos(a) * 32)} ${r2(-40 + Math.sin(a) * 36)}`;
+    return `M${r2(-180 + Math.cos(a) * 28)} ${r2(-40 + Math.sin(a) * 32)}L${r2(-180 + Math.cos(a) * 32)} ${r2(-40 + Math.sin(a) * 36)}`;
   }).join('');
   parts.push(
     contactShadow(-174, -2, 30, 4, 0.3),
@@ -1980,56 +1948,64 @@ function bakkie(ctx: PropCtx): string {
       { transform: 'rotate(-6 -180 -40)' },
       el('rect', { x: -186, y: -50, width: 12, height: 22, rx: 2, fill: '#3A3431' }),
       fill(ellipseD(-180, -40, 32, 36), `url(#${gTyre})`),
-      stroke(spareTread, '#4A4340', 2.2),
+      stroke(spareTread, '#4A4340', 3),
       stroke(ellipseD(-180, -40, 32, 36), shade('#24201E', -0.2), pen.w),
-      fill(ellipseD(-180, -40, 15, 17), '#C9CDD0'),
-      fill(ellipseD(-178, -38, 13, 15), '#9AA1A6', 0.5),
-      fill(ellipseD(-180, -40, 6, 7), '#8A9196'),
-      stroke(ellipseD(-180, -40, 15, 17), '#5E666C', 1.2),
+      fill(ellipseD(-180, -40, 16, 18), steel[0]),
+      fill(ellipseD(-178, -38, 13, 15), steel[1], 0.5),
+      fill(ellipseD(-180, -40, 6, 7), steel[2]),
+      stroke(ellipseD(-180, -40, 16, 18), '#5E666C', 1.2),
       fill(ellipseD(-186, -48, 4, 5), '#FFFFFF', 0.7),
       fill(ellipseD(-180, -40, 2.2, 2.2), '#3A3431'),
       fill(ellipseD(-180, -20, 26, 8), dust, 0.3),
     ),
   );
-  // The road wheels: treaded tyre, steel rim with holes, hub with nuts, dust on the rubber.
+  // The road wheels: chunky all-terrain tyres (block tread proud of the outline, lugs on the
+  // shoulder), steel rims with round holes and a lip, the hub and its nuts, dust on the rubber.
   const wheel = (cx: number): string => {
-    const tread: string[] = [];
-    for (let k = 0; k < 22; k++) {
-      const a = (k / 22) * Math.PI * 2;
+    const blocks: string[] = [];
+    for (let k = 0; k < 18; k++) {
+      const a = (k / 18) * Math.PI * 2;
       const c = Math.cos(a);
       const sn = Math.sin(a);
-      tread.push(
-        `M${r2(cx + c * (wheelR - 5))} ${r2(wheelY + sn * (wheelR - 5))}L${r2(cx + c * wheelR)} ${r2(wheelY + sn * wheelR)}`,
+      const tc = Math.cos(a + 0.18);
+      const ts = Math.sin(a + 0.18);
+      const ro = wheelR + 2;
+      const ri = wheelR - 9;
+      blocks.push(
+        `M${r2(cx + c * ri)} ${r2(wheelY + sn * ri)}L${r2(cx + c * ro)} ${r2(wheelY + sn * ro)}` +
+          `L${r2(cx + tc * ro)} ${r2(wheelY + ts * ro)}L${r2(cx + tc * ri)} ${r2(wheelY + ts * ri)}Z`,
       );
     }
     const holes: string[] = [];
     for (let k = 0; k < 6; k++) {
       const a = (k / 6) * Math.PI * 2 + 0.3;
-      holes.push(ellipseD(cx + Math.cos(a) * 13, wheelY + Math.sin(a) * 13, 3, 3));
+      holes.push(ellipseD(cx + Math.cos(a) * 14.5, wheelY + Math.sin(a) * 14.5, 3.4, 3.4));
     }
     const nuts: string[] = [];
-    for (let k = 0; k < 5; k++) {
-      const a = (k / 5) * Math.PI * 2;
-      nuts.push(ellipseD(cx + Math.cos(a) * 6, wheelY + Math.sin(a) * 6, 1.3, 1.3));
+    for (let k = 0; k < 6; k++) {
+      const a = (k / 6) * Math.PI * 2;
+      nuts.push(ellipseD(cx + Math.cos(a) * 6.5, wheelY + Math.sin(a) * 6.5, 1.3, 1.3));
     }
     return g(
       {},
       fill(ellipseD(cx, wheelY, wheelR, wheelR), `url(#${gTyre})`),
-      stroke(tread.join(''), '#4A4340', 3),
+      fill(blocks.join(''), '#3E3734'),
       stroke(ellipseD(cx, wheelY, wheelR, wheelR), ink, pen.w),
-      fill(ellipseD(cx, wheelY + 26, wheelR * 0.8, 10), dust, 0.35),
-      fill(ellipseD(cx, wheelY, 21, 21), '#D7DBDD'),
-      fill(ellipseD(cx + 4, wheelY + 4, 19, 19), '#9AA1A6', 0.6),
+      stroke(ellipseD(cx, wheelY, wheelR - 10, wheelR - 10), '#141110', 1.4, 0.8),
+      fill(ellipseD(cx, wheelY + 27, wheelR * 0.8, 10), dust, 0.35),
+      fill(ellipseD(cx, wheelY, 23, 23), steel[0]),
+      fill(ellipseD(cx + 4, wheelY + 4, 20, 20), steel[1], 0.6),
+      stroke(ellipseD(cx, wheelY, 19.5, 19.5), steel[2], 1.4),
       fill(holes.join(''), '#3A3431'),
-      fill(ellipseD(cx, wheelY, 9, 9), '#B9BFC3'),
-      fill(nuts.join(''), '#5E666C'),
-      stroke(ellipseD(cx, wheelY, 21, 21), '#4A5257', 1.4),
-      fill(ellipseD(cx - 7, wheelY - 9, 5, 3), '#FFFFFF', 0.7),
+      fill(ellipseD(cx, wheelY, 9, 9), steel[0]),
+      fill(nuts.join(''), steel[2]),
+      stroke(ellipseD(cx, wheelY, 23, 23), '#4A5257', 1.4),
+      fill(ellipseD(cx - 8, wheelY - 11, 5, 3), '#FFFFFF', 0.7),
     );
   };
   parts.push(wheel(rearX), wheel(frontX));
   // Mud flap behind the rear wheel.
-  parts.push(el('rect', { x: rearX + archR - 4, y: 44, width: 5, height: 30, fill: '#1E1A18' }));
+  parts.push(rect(rearX - 62, sill - 2, 10, 26, '#1E1A18', 1.5, 0.8));
   return g({}, ...parts);
 }
 
@@ -2371,7 +2347,7 @@ export const KAROO_PLAN: BiomeArtPlan = {
       frame: { w: 310, h: 560, ox: 225, oy: 210 },
     },
     'karoo/reservoir': { draw: reservoir },
-    'karoo/bakkie': { draw: bakkie },
+    'karoo/bakkie': { draw: bakkie, colours: 160 },
     'karoo/potjie': { draw: potjie },
     'karoo/fence_bell': { draw: fenceBell },
     'karoo/aloe_a': {
