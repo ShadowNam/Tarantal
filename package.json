@@ -30,6 +30,7 @@
     "assets:standins": "tsx tools/make-standins.ts",
     "assets:audit": "tsx tools/asset-audit.ts",
     "art:interim": "tsx tools/art/interim.ts",
+    "art:compare-polish": "tsx tools/art/polishCompare.ts",
     "audio:interim": "tsx tools/audio/interim.ts",
     "audio:voice": "tsx tools/audio/voice.ts",
     "audio:preview": "tsx tools/audio/preview.ts",
