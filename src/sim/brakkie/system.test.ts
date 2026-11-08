@@ -237,14 +237,12 @@ describe('Brakkie (D-069)', () => {
     for (let i = 0; i < 10; i++) r.sys.bagged('near', x0 + 300);
     expect(r.sys.view().queued).toBe(B.fetch.queueMax);
     const picked: number[] = [];
-    let carrying = 0;
     let maxCarry = 0;
     for (let i = 0; i < 60 * 60 && r.sys.view().fetches < 3; i++) {
       r.run(1);
       const v = r.sys.view();
       if (v.phase === 'pickup' && v.t === 1) picked.push(v.x);
-      carrying = v.carrying ? 1 : 0;
-      maxCarry = Math.max(maxCarry, carrying);
+      maxCarry = Math.max(maxCarry, v.carrying ? 1 : 0);
     }
     expect(r.sys.view().fetches).toBe(3);
     // One at a time, in the order they fell (each a different bird).
@@ -283,7 +281,10 @@ describe('Brakkie (D-069)', () => {
       r.run(1);
       const v = r.sys.view();
       const now = `${v.phase}:${v.pose}`;
-      if (now !== last && v.phase === 'trot') v.pose === 'run' ? runs++ : trots++;
+      if (now !== last && v.phase === 'trot') {
+        if (v.pose === 'run') runs++;
+        else trots++;
+      }
       last = now;
     }
     expect(runs).toBeGreaterThan(0);
