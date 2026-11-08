@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-11-08T11:36:00Z",
+ "updated": "2026-11-08T17:14:00Z",
  "by": "Claude",
- "summary": "Live on the test build: v1.14 Texts & voices (1.18.0, merged 13:36 Namibia time on 8 Nov). The admin page (?admin=1) has a Texts & voices tab: every line of text in the game (1,021) in English, Afrikaans, German and Dutch, with a ▶ button on Oupa's 108 voiced lines. Retype any line; your edits stay on your device until you download the corrections file and save it to Dropbox /AI-DEV/Tarantal-Madness/text-edits/, then Claude applies them and lists the voice lines to re-make. Next: art polish (Oupa's braai, the bakkie at night, Brakkie, the guineafowl and the baboons; Tank building), then Oupa's new voices once you say the texts are final.",
+ "summary": "Live on the test build: v1.15 Art polish (1.18.1, merged 19:14 Namibia time on 8 Nov). Oupa's braai has real fieldstones, logs, an enamel kettle and a brighter fire; Oupa and his camp chair have proper detail; the bakkie at night is a detailed pickup; the guineafowl has shaded, spotted plumage; Brakkie has smooth legs and a shaded coat; the baboons have lit backs and manes. Same sizes and hit boxes. Earlier today: v1.14 Texts & voices (admin → Texts & voices). Next: Oupa's new voices once you say the texts are final.",
  "current": {
-  "version": "1.18.0",
-  "commit": "705ad10"
+  "version": "1.18.1",
+  "commit": "e674855"
  },
  "links": [
   {
@@ -36,23 +36,23 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.18.0",
-   "note": "commit 705ad10, merged 8 Nov, 13:36 Namibia time (the test build deploys a few minutes after)"
+   "value": "1.18.1",
+   "note": "commit e674855, merged 8 Nov, 19:13 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "116",
-   "note": "#1 to #119"
+   "value": "118",
+   "note": "#1 to #121"
   },
   {
    "label": "Unit tests",
-   "value": "2,187",
+   "value": "2,201",
    "note": "plus the browser test suites on 3 devices"
   },
   {
    "label": "First download",
-   "value": "2.99 MB",
-   "note": "2,994.9 KB of the 3,072 KB budget"
+   "value": "3.03 MB",
+   "note": "3,026.8 KB of the 3,072 KB budget"
   },
   {
    "label": "Hunting areas",
@@ -2266,14 +2266,17 @@
    "requestedBy": "You, 8 Nov."
   },
   {
-   "id": "art-polish-oupa-s-braai-scene-oupa-chair",
-   "title": "Art polish: Oupa's braai scene (Oupa, chair, fire, kettle, real stones), the bakkie at night, a better coat for Brakkie, the guineafowl's spotted plumage and the baboons' fur (your request, 8 Nov)",
+   "id": "v1.15",
+   "title": "v1.15: Art polish — Oupa's braai (Oupa, camp chair, a brighter fire, enamel kettle, real fieldstones), the bakkie at night, Brakkie's coat, the guineafowl's shaded spotted plumage and the baboons' fur; version 1.18.1 (your request, 8 Nov)",
    "phase": "Version 1.x",
-   "status": "running",
-   "start": "2026-11-08T11:36:00Z",
-   "end": "2026-11-08T20:00:00Z",
-   "estimate": true,
-   "summary": "Tank task 337452ff"
+   "status": "done",
+   "start": "2026-11-08T10:30:42Z",
+   "end": "2026-11-08T17:13:05Z",
+   "estimate": false,
+   "prs": [
+    120
+   ],
+   "version": "1.15.0"
   },
   {
    "id": "oupa-s-new-voices-once-all-the-text-is-f",
@@ -2818,6 +2821,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-11-08T17:14:00Z",
+   "kind": "merge",
+   "text": "v1.15 Art polish is on the test build (1.18.1, #120): Oupa's braai, the bakkie at night, Brakkie, the guineafowl and the baboons, all redrawn with shading and texture; same sizes and hit boxes. Also merged today: #121 (Claude now reads your WhatsApp replies). Full CI green (29 jobs); screenshots on desktop, Pixel 7 and iPhone 14."
+  },
   {
    "at": "2026-11-08T11:36:00Z",
    "kind": "merge",
