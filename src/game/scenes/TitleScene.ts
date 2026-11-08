@@ -307,7 +307,10 @@ export class TitleScene extends Phaser.Scene {
       const run = slot(3);
       const settings = slot(4);
       const resume = this.ctx.run.current !== null;
-      drawButton(this, shed, t('title.shed'), 'secondary', 44);
+      const shedLabel = t('title.shed');
+      drawButton(this, shed, shedLabel, 'secondary', 44);
+      // v1.14 (D-076): the label as drawn (the owner's edits may have replaced it).
+      if (this.ctx.hook) this.ctx.hook.titleShedLabel = shedLabel;
       // M10: capture mode is unranked (slow-mo would inflate a Daily score): no Daily entry.
       const dailyOn = this.ctx.capture === null;
       if (dailyOn) {

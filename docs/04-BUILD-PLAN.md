@@ -99,16 +99,19 @@ Priority order after this review:
 
 1. **Finish validation and repair concrete gaps first.** D-070 fills the Harvest's four missing
    audio beds; local lint/format checks now exclude ignored scratch output in `tmp/`.
-2. **v1.13 veld cameos and field-guide entries — built, in review (PR #115, 1.17.0, D-075).**
+2. **v1.13 veld cameos and field-guide entries — merged (PR #115, 1.17.0, D-075).**
    The saved project log listed warthogs, baboons, springbok, elephants, ostrich and dung beetle
    cameos; the audit (GDD §11.3g) kept what already existed (the baboons, Namibië's ostrich pair,
    the far elephants' idle) and added the warthog family, dung beetle, leopard tortoise, Karoo
    ostrich sprint, springbok, gemsbok and the elephants' trumpet, with their field-guide entries
    in the shed Journal (the tree residents' entries came with D-072).
-3. **Final Oupa voices after the text is settled.** The saved plan calls for an en/af/de sample
+3. **v1.14 Texts & voices — built, in review (PR #119, 1.18.0, D-076).** The admin page's editor
+   for every player-facing line; the owner's exported corrections go in with `npm run text:apply`,
+   which lists the clips to re-make in `art-source/audio/voice/redo.json`.
+4. **Final Oupa voices after the text is settled** (input: `redo.json`). The saved plan calls for an en/af/de sample
    first and speech-to-text checks. Final voice selection and access to the chosen service remain
    external inputs.
-4. **Production assets and device release checks.** The asset audit still marks art/audio as
+5. **Production assets and device release checks.** The asset audit still marks art/audio as
    interim; its normal report passing does not satisfy the strict final-asset release gate.
    Real-device playtests, native-language review and store accounts/signing/listings remain
    release work. Android's test APK is already implemented; iOS and production store releases

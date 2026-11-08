@@ -6,23 +6,18 @@
 // overwritten (delete it and its sidecar to go back to the interim line).
 //   --lang en|af|de     one language      --only bark.x,bark.y   some lines
 //   --batch 12          lines per Python process
+//   --redo              v1.14 (D-076): only the lines art-source/audio/voice/redo.json lists per
+//                       language (npm run text:apply writes it); emptied after a successful run
 //   TTS_PYTHON=<venv>/bin/python   the Python with the TTS packages (default: python3)
 //   TTS_MODELS=<dir>               where the models are downloaded (default: tmp/tts-models)
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  baboonBarks,
-  harvestBarks,
-  brakkieBarks,
-  cameoBarks,
-  veldLifeBarks,
-  voicedLines,
-} from '../../src/game/audio/voiceLines';
+import { voicedKeys } from '../../src/game/audio/voicedKeys';
+import { readRedo, REDO_PATH, redoAfter } from '../textApply';
 import { RaidActionSchema } from '../../src/content/schemas';
 import { VOICE_LANGUAGES, type VoiceLanguage } from '../../src/i18n/i18n';
 import { loadContent, loadFeel } from '../testContent';
-import { STORY_LINE_IDS, sayKey } from '../../src/game/braai/story';
 
 const root = join(import.meta.dirname, '..', '..');
 const out = join(root, 'art-source', 'audio', 'voice');
@@ -30,7 +25,12 @@ const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(name);
   return i >= 0 ? process.argv[i + 1] : undefined;
 };
-const langs = (arg('--lang')?.split(',') ?? [...VOICE_LANGUAGES]) as VoiceLanguage[];
+const redoMode = process.argv.includes('--redo');
+const redoFile = redoMode ? readRedo(root) : null;
+const langs = (arg('--lang')?.split(',') ??
+  VOICE_LANGUAGES.filter(
+    (l) => redoFile === null || redoFile.redo[l].length > 0,
+  )) as VoiceLanguage[];
 const only = arg('--only')?.split(',');
 
 /** True when the WAV may be (re)written: absent, or an earlier interim one. */
@@ -45,23 +45,17 @@ function ours(wav: string): boolean {
   }
 }
 
-const lines = voicedLines(
-  loadFeel().barks,
-  loadContent().biomes,
-  loadContent().birds.meerkats,
-  loadContent().feesdae.specials.map((f) => f.barks),
-  [
-    ...veldLifeBarks(loadContent().birds),
-    ...baboonBarks(RaidActionSchema.options),
-    ...harvestBarks(),
-    // v1.12 (D-069): Oupa's Brakkie lines.
-    ...brakkieBarks(),
-    ...cameoBarks(),
-    // v1.11 (D-068): Oupa's story phrases at the braai (lazy table src/i18n/braai/).
-    ...STORY_LINE_IDS.map(sayKey),
-  ],
-).filter((l) => only === undefined || only.includes(l));
+// v1.14 (D-076): the one list the admin page's Texts & voices tab shows too.
+if (redoFile !== null && VOICE_LANGUAGES.every((l) => redoFile.redo[l].length === 0)) {
+  console.log(`audio:voice --redo — nothing listed in ${REDO_PATH}`);
+  process.exit(0);
+}
+const lines = voicedKeys(loadContent(), loadFeel().barks, RaidActionSchema.options).all.filter(
+  (l) => only === undefined || only.includes(l),
+);
 const jobs: { lang: string; key: string; text: string; out: string }[] = [];
+/** The lines this run makes, per language (a human recording's line stays on the redo list). */
+const made: Partial<Record<VoiceLanguage, string[]>> = {};
 for (const lang of langs) {
   if (!(VOICE_LANGUAGES as readonly string[]).includes(lang)) throw new Error(`no voice ${lang}`);
   // v1.8b (D-062): lines whose text lives in the lazy guide tables (the baboons') too.
@@ -78,6 +72,7 @@ for (const lang of langs) {
     >),
   };
   for (const key of lines) {
+    if (redoFile !== null && !redoFile.redo[lang].includes(key)) continue;
     const text = table[key];
     if (text === undefined) throw new Error(`${lang}.json has no ${key}`);
     const wav = join(out, lang, `${key}.wav`);
@@ -86,6 +81,7 @@ for (const lang of langs) {
       continue;
     }
     jobs.push({ lang, key, text, out: wav });
+    (made[lang] ??= []).push(key);
   }
 }
 const tmp = join(root, 'tmp');
@@ -110,3 +106,8 @@ for (let at = 0; at < jobs.length; at += batch) {
   if (r.status !== 0) process.exit(r.status ?? 1);
 }
 console.log(`audio:voice — ${jobs.length} lines in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+if (redoFile !== null) {
+  // Every batch succeeded (a failed one exits above): these clips are re-made.
+  writeFileSync(join(root, REDO_PATH), `${JSON.stringify(redoAfter(redoFile, made), null, 2)}\n`);
+  console.log(`audio:voice — ${REDO_PATH} updated (the lines just made are off the lists)`);
+}

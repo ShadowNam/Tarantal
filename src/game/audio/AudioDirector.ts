@@ -551,6 +551,12 @@ export class AudioDirector {
     return true;
   }
 
+  /** v1.14 (D-076): the voice bus for the admin page's ▶ (null before unlock or while muted). */
+  get voiceOut(): { readonly ctx: AudioContext; readonly bus: AudioNode } | null {
+    const { ctx, voiceBus } = this;
+    return ctx === null || voiceBus === null || this.muted ? null : { ctx, bus: voiceBus };
+  }
+
   setMuted(reason: MuteReason, on: boolean): void {
     if (on) this.muteReasons.add(reason);
     else this.muteReasons.delete(reason);
