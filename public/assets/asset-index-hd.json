@@ -1816,26 +1816,26 @@
         "pages": [
           {
             "image": {
-              "path": "assets/common-hd/birds/tarentaal-far@2x-0.be7db92c089f.png",
-              "bytes": 90198,
-              "hash": "be7db92c089f"
+              "path": "assets/common-hd/birds/tarentaal-far@2x-0.29b330667c5b.png",
+              "bytes": 95939,
+              "hash": "29b330667c5b"
             },
             "data": {
-              "path": "assets/common-hd/birds/tarentaal-far@2x-0.6e3b43da2ede.json",
+              "path": "assets/common-hd/birds/tarentaal-far@2x-0.ec95552698cc.json",
               "bytes": 7396,
-              "hash": "6e3b43da2ede"
+              "hash": "ec95552698cc"
             }
           },
           {
             "image": {
-              "path": "assets/common-hd/birds/tarentaal-far@2x-1.a5649c281f7a.png",
-              "bytes": 41579,
-              "hash": "a5649c281f7a"
+              "path": "assets/common-hd/birds/tarentaal-far@2x-1.da46753fe3d7.png",
+              "bytes": 43902,
+              "hash": "da46753fe3d7"
             },
             "data": {
-              "path": "assets/common-hd/birds/tarentaal-far@2x-1.8a7c6d1fe50c.json",
+              "path": "assets/common-hd/birds/tarentaal-far@2x-1.f91cc5b578a8.json",
               "bytes": 3365,
-              "hash": "8a7c6d1fe50c"
+              "hash": "f91cc5b578a8"
             }
           }
         ]
@@ -1844,26 +1844,26 @@
         "pages": [
           {
             "image": {
-              "path": "assets/common-hd/birds/tarentaal-mid@2x-0.46f72d08cab4.png",
-              "bytes": 442243,
-              "hash": "46f72d08cab4"
+              "path": "assets/common-hd/birds/tarentaal-mid@2x-0.120494a540ff.png",
+              "bytes": 508001,
+              "hash": "120494a540ff"
             },
             "data": {
-              "path": "assets/common-hd/birds/tarentaal-mid@2x-0.096fa51d9583.json",
+              "path": "assets/common-hd/birds/tarentaal-mid@2x-0.81d474f8a089.json",
               "bytes": 8348,
-              "hash": "096fa51d9583"
+              "hash": "81d474f8a089"
             }
           },
           {
             "image": {
-              "path": "assets/common-hd/birds/tarentaal-mid@2x-1.a2dd9fc48ec1.png",
-              "bytes": 137760,
-              "hash": "a2dd9fc48ec1"
+              "path": "assets/common-hd/birds/tarentaal-mid@2x-1.f8ca9d4b16f9.png",
+              "bytes": 161953,
+              "hash": "f8ca9d4b16f9"
             },
             "data": {
-              "path": "assets/common-hd/birds/tarentaal-mid@2x-1.0c8cd6ce85a3.json",
+              "path": "assets/common-hd/birds/tarentaal-mid@2x-1.f2b1192ebbf4.json",
               "bytes": 2684,
-              "hash": "0c8cd6ce85a3"
+              "hash": "f2b1192ebbf4"
             }
           }
         ]

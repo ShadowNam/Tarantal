@@ -39,6 +39,9 @@ describe('guineafowl plumage (D-077)', () => {
     for (const creature of Object.keys(cfg.birds.variants)) {
       const svg = birdFrameSvg(cfg, content, creature, 'mid', 'alert', 0);
       expect(svg).toContain('id="b-dotG"');
+      // v1.15 review: the back's rim light and the folded wing's own light.
+      expect(svg).toContain('id="b-rimG"');
+      expect(svg).toContain('id="b-fwingG"');
       const flap = birdFrameSvg(cfg, content, creature, 'mid', 'flap', 1);
       expect(flap).toContain('id="b-dotG"');
     }

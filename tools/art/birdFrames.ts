@@ -43,9 +43,8 @@ export function planeLook(cfg: ArtConfig, content: ContentBundle, plane: PlaneId
     inner: line * cfg.birds.innerLine,
     dotR: cfg.birds.dots[plane].r,
     dotSpacing: cfg.birds.dots[plane].spacing,
-    // v1.15 (D-077): no feather scallops (the helmeted guineafowl's plumage is spotted, not
-    // scaled); their bytes pay for the spots' shading and the darker primaries.
-    scallops: false,
+    // v1.15 (D-077 review): feather rows as dark scallops between the spot rows, near and mid.
+    scallops: plane === 'mid',
   };
 }
 
