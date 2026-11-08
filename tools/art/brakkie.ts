@@ -86,8 +86,9 @@ interface Paints {
 
 function paints(): Paints {
   return {
-    white: coat(C.white, C.whiteMid, C.whiteShade),
-    whiteFar: coat(C.whiteMid, C.whiteShade, '#7E7466'),
+    // v1.15 review: warm light on top, a cool grey underside.
+    white: coat('#FFF9EE', '#EFE7DA', '#A9AEB8'),
+    whiteFar: coat('#DCD6CC', '#B9B8B8', '#80838E'),
     tan: coat(C.tanLit, C.tan, C.tanShade),
     fowl: coat('#6A6E7E', C.fowl, C.fowlShade),
   };
@@ -139,72 +140,65 @@ interface Leg {
   readonly paw: P;
 }
 
-/** v1.15 (D-077): shade down a limb's back edge (light from the upper left), a lit edge on its
- *  front, the coat's hair in a few strokes. */
-function limbShade(a: P, b: P, w: number, dark: boolean): string {
-  const dx = b[0] - a[0];
-  const dy = b[1] - a[1];
-  const l = Math.hypot(dx, dy) || 1;
-  // The side facing down-right (away from the light).
-  let nx = -dy / l;
-  let ny = dx / l;
-  if (nx + ny < 0) {
-    nx = -nx;
-    ny = -ny;
+/** v1.15 (D-077 review): one smooth tapered leg, hip → knee → paw, as a single outline (no joint
+ *  lines): a Catmull-Rom shape through both sides of the bone. */
+function legD(l: Leg, upper: number): string {
+  const pts = [l.hip, l.knee, l.paw];
+  const widths = [upper, 13.5, 11];
+  const left: P[] = [];
+  const right: P[] = [];
+  for (let i = 0; i < 3; i++) {
+    const p = pts[i] ?? [0, 0];
+    const prev = pts[Math.max(0, i - 1)] ?? p;
+    const next = pts[Math.min(2, i + 1)] ?? p;
+    const dx = next[0] - prev[0];
+    const dy = next[1] - prev[1];
+    const n = Math.hypot(dx, dy) || 1;
+    const w = (widths[i] ?? 12) / 2;
+    left.push([p[0] - (dy / n) * w, p[1] + (dx / n) * w]);
+    right.push([p[0] + (dy / n) * w, p[1] - (dx / n) * w]);
   }
-  const o = w * 0.3;
-  const at = (t: number, k: number): string =>
-    `${r2(a[0] + dx * t + nx * o * k)} ${r2(a[1] + dy * t + ny * o * k)}`;
-  return (
-    line(`M${at(0.1, 1)}L${at(0.9, 1)}`, dark ? '#7E7466' : C.whiteShade, w * 0.26).replace(
-      '/>',
-      ' opacity="0.45"/>',
-    ) +
-    line(
-      `M${at(0.45, 0.2)}l${r2(dx * 0.1)} ${r2(dy * 0.1 + 1)}M${at(0.6, -0.3)}l${r2(dx * 0.1)} ${r2(dy * 0.1 + 1)}`,
-      C.whiteShade,
-      1,
-    ).replace('/>', ' opacity="0.6"/>')
-  );
+  return smoothD([...left, ...right.reverse()], true, 0.8);
 }
 
 function leg(l: Leg, fill: string, front: boolean, far = false): string {
   const upper = front ? 20 : 26;
   const id = uid('lc');
-  const thigh = limbD(l.hip, l.knee, upper, 14);
-  const shin = limbD(l.knee, l.paw, 14, 12);
+  const limb = legD(l, upper);
   const paw = ellipseD(l.paw[0] + 4, l.paw[1] - 3, 10, 6);
+  const ink = (d: string): string =>
+    el('path', {
+      d,
+      fill: C.ink,
+      stroke: C.ink,
+      'stroke-width': INK * 2,
+      'stroke-linejoin': 'round',
+    });
   return (
-    inkPath(thigh, fill) +
-    inkPath(shin, fill) +
-    inkPath(paw, fill) +
-    el(
-      'clipPath',
-      { id },
-      el('path', { d: thigh }),
-      el('path', { d: shin }),
-      el('path', { d: paw }),
-    ) +
+    // One silhouette: both shapes inked together, then filled together (no line at the ankle).
+    ink(limb) +
+    ink(paw) +
+    el('path', { d: limb, fill }) +
+    el('path', { d: paw, fill }) +
+    el('clipPath', { id }, el('path', { d: limb }), el('path', { d: paw })) +
     g(
       { 'clip-path': `url(#${id})` },
-      // The body's shadow over the top of the leg.
+      // The body's soft shadow over the top of the leg; the far legs a gentle grey.
       el('path', {
-        d: ellipseD(l.hip[0], l.hip[1] - 2, upper * 0.9, upper * 0.55),
-        fill: C.whiteShade,
-        opacity: far ? 0.2 : 0.3,
+        d: ellipseD(l.hip[0], l.hip[1] - 4, upper * 0.9, upper * 0.6),
+        fill: far ? '#8C8E96' : C.whiteShade,
+        opacity: far ? 0.35 : 0.22,
       }),
-      limbShade(l.hip, l.knee, upper, far),
-      limbShade(l.knee, l.paw, 14, far),
-      // Toes on the paw and its shade underneath.
+      // Neat toes and the pad's shade under the paw.
       line(
-        `M${r2(l.paw[0] + 4)} ${r2(l.paw[1] - 6)}l1 4M${r2(l.paw[0] + 9)} ${r2(l.paw[1] - 6)}l1 4`,
-        C.whiteShade,
-        1.2,
+        `M${r2(l.paw[0] + 5)} ${r2(l.paw[1] - 5)}l0.6 3M${r2(l.paw[0] + 9.5)} ${r2(l.paw[1] - 5)}l0.6 3`,
+        far ? '#7E7466' : C.whiteShade,
+        1,
       ),
       el('path', {
-        d: ellipseD(l.paw[0] + 4, l.paw[1], 10, 2.4),
-        fill: C.whiteShade,
-        opacity: 0.7,
+        d: ellipseD(l.paw[0] + 4, l.paw[1] + 0.5, 10, 2),
+        fill: far ? '#7E7466' : C.whiteShade,
+        opacity: 0.6,
       }),
     )
   );
@@ -267,10 +261,16 @@ function torso(p: Paints, b: Pose['body']): string {
       el('path', {
         d: ellipseD(-b.rx * 0.72, -b.ry * 0.5, b.rx * 0.42, b.ry * 0.62),
         fill: p.tan.url,
+        stroke: C.tanShade,
+        'stroke-width': 2.4,
+        'stroke-opacity': 0.7,
       }),
       el('path', {
         d: ellipseD(-b.rx * 0.05, -b.ry * 0.95, b.rx * 0.26, b.ry * 0.36),
         fill: p.tan.url,
+        stroke: C.tanShade,
+        'stroke-width': 2.4,
+        'stroke-opacity': 0.7,
       }),
       // v1.15 (D-077): the coat's darker cream along the spine.
       el('path', {
@@ -303,24 +303,37 @@ function fur(b: Pose['body']): string {
   const rnd = prng(4242);
   const pale: string[] = [];
   const dark: string[] = [];
-  for (let row = 0; row < 6; row++) {
-    const v = -0.82 + row * 0.3;
-    for (let k = 0; k < 8; k++) {
-      const u = -0.8 + k * 0.22 + (rnd() - 0.5) * 0.1 + (row % 2) * 0.11;
-      const x = u * b.rx;
-      const y = v * b.ry * Math.sqrt(Math.max(0, 1 - u * u)) + (rnd() - 0.5) * 3;
-      const len = 10 + rnd() * 6;
-      // Hair lies back toward the tail and curves down the flank.
-      const droop = v * 4 + 1.5;
-      const seg = `M${r2(x)} ${r2(y)}c${r2(-len * 0.3)} ${r2(-1)} ${r2(-len * 0.7)} ${r2(droop * 0.4)} ${r2(-len)} ${r2(droop)}`;
-      const inSaddle =
-        ((x + b.rx * 0.72) / (b.rx * 0.42)) ** 2 + ((y + b.ry * 0.5) / (b.ry * 0.62)) ** 2 < 1;
-      (inSaddle ? dark : pale).push(seg);
-    }
+  // v1.15 review: on the white coat only a fringe of short hair along the edges (the back line
+  // and the belly line), lying back toward the tail.
+  for (let k = 0; k < 28; k++) {
+    const t = (k / 28) * Math.PI * 2 + (rnd() - 0.5) * 0.08;
+    const x = Math.cos(t) * b.rx * 0.95;
+    const y = Math.sin(t) * b.ry * 0.9;
+    const len = 6 + rnd() * 4;
+    const droop = Math.sin(t) * 3;
+    pale.push(
+      `M${r2(x)} ${r2(y)}c${r2(-len * 0.3)} ${r2(-0.5)} ${r2(-len * 0.7)} ${r2(droop * 0.4)} ${r2(-len)} ${r2(droop)}`,
+    );
   }
+  // Dense hair in the tan saddle and the back patch.
+  const patches: readonly [number, number, number, number, number][] = [
+    [-b.rx * 0.72, -b.ry * 0.5, b.rx * 0.42, b.ry * 0.62, 16],
+    [-b.rx * 0.05, -b.ry * 0.95, b.rx * 0.26, b.ry * 0.36, 8],
+  ];
+  for (const [cx, cy, ax, ay, n] of patches)
+    for (let k = 0; k < n; k++) {
+      const a = rnd() * Math.PI * 2;
+      const rr = Math.sqrt(rnd()) * 0.85;
+      const x = cx + Math.cos(a) * ax * rr;
+      const y = cy + Math.sin(a) * ay * rr;
+      const len = 6 + rnd() * 4;
+      dark.push(
+        `M${r2(x)} ${r2(y)}c${r2(-len * 0.3)} ${r2(-0.5)} ${r2(-len * 0.7)} ${r2(0.6)} ${r2(-len)} ${r2(1.6)}`,
+      );
+    }
   return (
-    line(pale.join(''), C.whiteShade, 1).replace('/>', ' opacity="0.4"/>') +
-    line(dark.join(''), C.tanShade, 1).replace('/>', ' opacity="0.5"/>')
+    line(pale.join(''), C.whiteShade, 1.1).replace('/>', ' opacity="0.55"/>') +
+    line(dark.join(''), C.tanShade, 1.1).replace('/>', ' opacity="0.65"/>')
   );
 }
 
@@ -417,6 +430,7 @@ function headArt(p: Paints, h: Pose['head'], mouth: Pose['mouth'], ears: Pose['e
     line('M20 -4Q28 -2 34 -4', C.whiteShade, 1.2).replace('/>', ' opacity="0.7"/>'),
     el('path', { d: ellipseD(43, -4, 6, 5), fill: C.nose, stroke: C.ink, 'stroke-width': 1.5 }),
     el('circle', { cx: 41.5, cy: -6, r: 1.6, fill: '#8A8A90' }),
+    el('path', { d: ellipseD(41.2, -6.4, 2.6, 1.4), fill: '#FFFFFF', opacity: 0.85 }),
     el('path', { d: 'M44 -2.6q1.6 -1 3 0', fill: 'none', stroke: '#000000', 'stroke-width': 1 }),
     line('M43 1L42 5', C.ink, 1),
     // Eye: wide when he yelps.
@@ -431,7 +445,7 @@ function headArt(p: Paints, h: Pose['head'], mouth: Pose['mouth'], ears: Pose['e
       stroke: '#5A3418',
       'stroke-width': 1,
     }),
-    el('circle', { cx: 15.6, cy: -9.6, r: 1.5, fill: '#FFFFFF' }),
+    el('circle', { cx: 15.8, cy: -9.8, r: 2.1, fill: '#FFFFFF' }),
     el('circle', { cx: 12.4, cy: -6.4, r: 0.7, fill: '#FFFFFF', opacity: 0.8 }),
     // Brow.
     line(`M7 ${mouth === 'yelp' ? -16 : -14}Q14 -17 20 -13`, C.ink, 2),
