@@ -1000,8 +1000,8 @@ function dancing(step: DanceStep): string {
     parts.push(arm(p, [40, shoulders + 14], [66, shoulders - 26], [70, shoulders - 84], -10));
     parts.push(arm(p, [-40, shoulders + 14], [-66, shoulders + 54], [-36, belt - 8], 30));
   } else {
-    parts.push(arm(p, [40, shoulders + 14], [72, shoulders + 44], [92, shoulders + 12], -40));
-    parts.push(arm(p, [-40, shoulders + 14], [-72, shoulders + 44], [-92, shoulders + 12], 40));
+    parts.push(arm(p, [40, shoulders + 14], [72, shoulders + 44], [90, shoulders + 12], -40));
+    parts.push(arm(p, [-40, shoulders + 14], [-72, shoulders + 44], [-90, shoulders + 12], 40));
   }
   return g({ transform: `scale(${OUPA_K})` }, ...parts);
 }
@@ -1024,7 +1024,9 @@ function poker(): string {
 
 // --- the fire ------------------------------------------------------------------------------------
 
-/** One flame frame: three layers of tongues from the base (0, 0) upward, frame `i` of 4. */
+/** One flame frame: three layers of tongues from the base (0, 0) upward, frame `i` of 4 (v1.15:
+ *  deep red at the root and the edges → orange → yellow tips, a white-hot heart low down, a
+ *  soft halo, licks breaking off). */
 function flame(i: number): string {
   const rnd = prng(4100 + i * 97);
   const tongue = (w: number, h: number, dx: number, lean: number): string => {
@@ -1043,35 +1045,44 @@ function flame(i: number): string {
       0.55,
     );
   };
+  // Vertical gradients (top → bottom): each layer's tip is its lightest colour.
   const outer = linear(
     [
-      [0, '#FF6A10', 0],
-      [0.25, '#FF4A0C', 0.75],
-      [1, '#C81E06', 0.95],
+      [0, '#FF8A1A', 0.1],
+      [0.2, '#FF6A10', 0.8],
+      [0.6, '#D8300A', 0.95],
+      [1, '#8A1406', 1],
     ],
     0,
     1,
   );
   const mid = linear(
     [
-      [0, '#FFB030', 0],
-      [0.3, '#FF9A1E', 0.9],
-      [1, '#FF6A10', 1],
+      [0, '#FFD040', 0.2],
+      [0.25, '#FFB030', 0.95],
+      [0.7, '#FF7A14', 1],
+      [1, '#E0400A', 1],
     ],
     0,
     1,
   );
   const core = linear(
     [
-      [0, '#FFF2B0', 0.2],
-      [0.4, '#FFE27A', 1],
-      [1, '#FFC24A', 1],
+      [0, '#FFF6C8', 0.3],
+      [0.35, '#FFEA90', 1],
+      [1, '#FFC84A', 1],
     ],
     0,
     1,
   );
-  const parts: string[] = [defs(outer, mid, core)];
+  const halo = radial([
+    [0, '#FF9A3A', 0.45],
+    [0.6, '#FF6A1A', 0.15],
+    [1, '#FF6A1A', 0],
+  ]);
+  const parts: string[] = [defs(outer, mid, core, halo)];
   const H = FLAME.oy - 4;
+  parts.push(path(ellipseD(0, -H * 0.3, 26, H * 0.42), halo.url));
   for (let k = 0; k < 4; k++) {
     const dx = (k - 1.5) * 7 + (rnd() - 0.5) * 6;
     parts.push(
@@ -1087,13 +1098,257 @@ function flame(i: number): string {
   parts.push(
     path(tongue(8, H * (0.28 + rnd() * 0.12), (rnd() - 0.5) * 4, (rnd() - 0.5) * 8), core.url),
   );
-  // A loose lick breaking off the top.
+  // The white-hot heart at the root and two bright inner streaks.
+  parts.push(path(ellipseD((rnd() - 0.5) * 3, -3, 7, 3.4), '#FFF8E0', { opacity: 0.6 }));
+  for (let k = 0; k < 2; k++) {
+    const x = (k - 0.5) * 8 + (rnd() - 0.5) * 3;
+    parts.push(
+      stroke(
+        `M${r2(x)} -6Q${r2(x + (rnd() - 0.5) * 6)} ${r2(-H * 0.2)} ${r2(x + (rnd() - 0.5) * 8)} ${r2(-H * (0.3 + rnd() * 0.1))}`,
+        '#FFF2B0',
+        1.6,
+        0.6,
+      ),
+    );
+  }
+  // Loose licks breaking off the top (one yellow, one red-orange).
   const ly = -H * (0.82 + rnd() * 0.14);
-  parts.push(path(ellipseD((rnd() - 0.5) * 16, ly, 2.6, 5), '#FF9A2A', { opacity: 0.8 }));
+  parts.push(path(ellipseD((rnd() - 0.5) * 16, ly, 2.6, 5), '#FFB03A', { opacity: 0.85 }));
+  parts.push(
+    path(ellipseD((rnd() - 0.5) * 22, -H * (0.62 + rnd() * 0.1), 1.8, 3.6), '#FF6A1A', {
+      opacity: 0.7,
+    }),
+  );
   return g({}, ...parts);
 }
 
-/** The hearth: stones round the coals, the grid across, the coffee pot on its left edge. */
+/** v1.15 (D-077): one fieldstone of the fire ring. */
+export interface HearthStone {
+  readonly x: number;
+  readonly y: number;
+  readonly rx: number;
+  readonly ry: number;
+  /** Outline points (irregular, its own shape). */
+  readonly pts: readonly P[];
+  /** Base colour (granite grey, ochre sandstone, dark dolerite, pale quartzite). */
+  readonly colour: string;
+  readonly front: boolean;
+}
+
+const STONE_COLOURS = ['#6E6A66', '#8C7C68', '#46444A', '#9C968C', '#7A5E48'] as const;
+
+/** v1.15: the ring of fieldstones round the coals: a back row (lit on the face toward us and the
+ *  fire) and a front row (lit on top, toward the fire), every stone its own size, shape and rock. */
+export function hearthStones(): readonly HearthStone[] {
+  const rnd = prng(733);
+  const out: HearthStone[] = [];
+  const ring = (
+    n: number,
+    from: number,
+    to: number,
+    ry: number,
+    dy: number,
+    front: boolean,
+  ): void => {
+    for (let k = 0; k < n; k++) {
+      const a = from + ((k + 0.5) / n) * (to - from) + (rnd() - 0.5) * 0.12;
+      const x = Math.cos(a) * 58;
+      const y = Math.sin(a) * ry + dy;
+      const rx = 9 + rnd() * 5;
+      const sy = 5.5 + rnd() * 3.5;
+      const m = 7 + Math.floor(rnd() * 3);
+      const pts: P[] = [];
+      for (let j = 0; j < m; j++) {
+        const t = (j / m) * Math.PI * 2;
+        const f = 0.72 + rnd() * 0.36;
+        // Flatter bottoms: stones sit on the ground.
+        const yy = Math.sin(t) * sy * f;
+        pts.push([x + Math.cos(t) * rx * f, y + (yy > 0 ? yy * 0.7 : yy)]);
+      }
+      const colour = STONE_COLOURS[Math.floor(rnd() * STONE_COLOURS.length)] ?? '#7A7068';
+      out.push({ x, y, rx, ry: sy, pts, colour, front });
+    }
+  };
+  ring(7, Math.PI, Math.PI * 2, 10, -2, false);
+  ring(7, 0, Math.PI, 9, 6, true);
+  return out;
+}
+
+/** Mixes two #RRGGBB colours (t = 0 → a). */
+function mix(a: string, b: string, t: number): string {
+  const p = (h: string, k: number): number => parseInt(h.slice(k, k + 2), 16);
+  return `#${[1, 3, 5]
+    .map((k) =>
+      Math.round(p(a, k) + (p(b, k) - p(a, k)) * t)
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')}`;
+}
+
+/** One stone: its rock colour lit warm on the side toward the fire (the ring's middle), cool and
+ *  dark on the far side, a few speckles and a crack, a contact shadow. */
+function stone(s: HearthStone, k: number): string {
+  // Toward the fire in objectBoundingBox terms: back-row stones face us (down), front-row stones
+  // face up; the side stones also face inward.
+  const ix = Math.max(-1, Math.min(1, -s.x / 40));
+  const iy = s.front ? -1 : 0.6;
+  const len = Math.hypot(ix, iy) || 1;
+  const id = uid('st');
+  const gr = el(
+    'linearGradient',
+    {
+      id,
+      x1: r2(0.5 - (ix / len) * 0.5),
+      y1: r2(0.5 - (iy / len) * 0.5),
+      x2: r2(0.5 + (ix / len) * 0.5),
+      y2: r2(0.5 + (iy / len) * 0.5),
+    },
+    el('stop', { offset: 0, 'stop-color': mix(s.colour, '#0E0C14', 0.7) }),
+    el('stop', { offset: 0.5, 'stop-color': s.colour }),
+    el('stop', { offset: 0.85, 'stop-color': mix(s.colour, '#FFB070', 0.45) }),
+    el('stop', { offset: 1, 'stop-color': mix(s.colour, '#FFD8A0', 0.6) }),
+  );
+  const d = smoothD(s.pts, true, 0.45);
+  const rnd = prng(919 + k * 31);
+  const speck: string[] = [];
+  for (let j = 0; j < 5; j++)
+    speck.push(
+      path(
+        ellipseD(s.x + (rnd() - 0.5) * s.rx * 1.2, s.y + (rnd() - 0.5) * s.ry, 0.9, 0.7),
+        j % 2 === 0 ? mix(s.colour, '#000000', 0.5) : mix(s.colour, '#FFFFFF', 0.4),
+        { opacity: 0.7 },
+      ),
+    );
+  const cx = s.x + (rnd() - 0.5) * s.rx * 0.6;
+  return g(
+    {},
+    el('defs', {}, gr),
+    path(ellipseD(s.x, s.y + s.ry * 0.7, s.rx * 1.05, s.ry * 0.45), '#0A0604', { opacity: 0.55 }),
+    edge(d, `url(#${id})`, 0.9, mix(s.colour, '#100A08', 0.75)),
+    clipped(
+      d,
+      ...speck,
+      stroke(
+        `M${r2(cx)} ${r2(s.y - s.ry)}L${r2(cx + 2)} ${r2(s.y - s.ry * 0.2)}L${r2(cx - 1)} ${r2(s.y + s.ry * 0.4)}`,
+        mix(s.colour, '#000000', 0.6),
+        0.7,
+        0.6,
+      ),
+    ),
+  );
+}
+
+/** A log lying from `a` (its cut outer end) to `b` (its burning end in the coals): bark, the
+ *  cut end's rings, a charred end with glowing cracks. */
+function log(a: P, b: P, w: number): string {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const l = Math.hypot(dx, dy) || 1;
+  const nx = -dy / l;
+  const ny = dx / l;
+  const bark = linear(
+    [
+      [0, '#B07848'],
+      [0.25, '#7A5236'],
+      [0.6, '#4A3020'],
+      [1, '#1A100A'],
+    ],
+    0,
+    1,
+  );
+  const d = limbD(a, b, w, w * 0.9);
+  const at = (t: number, o: number): P => [a[0] + dx * t + nx * o, a[1] + dy * t + ny * o];
+  const ridges: string[] = [];
+  for (let k = -1; k <= 1; k++) {
+    const p0 = at(0.12, k * w * 0.26);
+    const p1 = at(0.6, k * w * 0.24 + 0.6);
+    ridges.push(`M${r2(p0[0])} ${r2(p0[1])}L${r2(p1[0])} ${r2(p1[1])}`);
+  }
+  const char = at(0.62, 0);
+  const crack = [0.68, 0.78, 0.88].map((t) => {
+    const p0 = at(t, -w * 0.3);
+    const p1 = at(t + 0.03, w * 0.3);
+    return `M${r2(p0[0])} ${r2(p0[1])}L${r2(p1[0])} ${r2(p1[1])}`;
+  });
+  return g(
+    {},
+    defs(bark),
+    edge(d, bark.url, 1.2, '#120A06'),
+    clipped(
+      d,
+      stroke(ridges.join(''), '#1A100A', 0.8, 0.7),
+      // The charred half: black, the cracks glowing.
+      path(
+        `M${r2(char[0] - nx * w)} ${r2(char[1] - ny * w)}L${r2(b[0] - nx * w + dx * 0.2)} ${r2(b[1] - ny * w + dy * 0.2)}L${r2(b[0] + nx * w + dx * 0.2)} ${r2(b[1] + ny * w + dy * 0.2)}L${r2(char[0] + nx * w)} ${r2(char[1] + ny * w)}Z`,
+        '#140C0A',
+        { opacity: 0.9 },
+      ),
+      stroke(crack.join(''), '#FF7A2A', 1, 0.9),
+      path(ellipseD(b[0], b[1], w * 0.5, w * 0.45), '#FF9A3A', { opacity: 0.7 }),
+    ),
+    // The cut end: pale wood with its rings.
+    edge(ellipseD(a[0], a[1], w * 0.32, w * 0.5), '#C8A070', 0.9, '#3A2414'),
+    stroke(ellipseD(a[0], a[1], w * 0.18, w * 0.3), '#7A5236', 0.6, 0.8),
+  );
+}
+
+/** The enamel camp kettle, its base at (0, 0): blue enamel (chips showing the black iron), a
+ *  black rim, a domed lid and knob, a spout away from the fire, a wire bail with a wooden grip,
+ *  soot up its base, the fire's warm line on its right. */
+function kettle(): string {
+  const body = lit3(C.enamelShade, C.enamel, C.enamelLit);
+  const soot = linear(
+    [
+      [0, '#0A0A0E', 0],
+      [0.55, '#0A0A0E', 0],
+      [1, '#0A0A0E', 0.85],
+    ],
+    0,
+    1,
+  );
+  const bodyD = 'M-11 0Q-13 -6 -12 -12Q-11 -18 -6 -19L6 -19Q11 -18 12 -12Q13 -6 11 0Z';
+  const chips: readonly [number, number, number][] = [
+    [-7, -9, 1.1],
+    [4, -5, 0.8],
+    [8, -12, 0.7],
+  ];
+  return g(
+    {},
+    defs(body, soot),
+    // The spout (left, away from the fire) behind the body.
+    edge('M-10 -9Q-16 -10 -19 -18L-17 -19Q-14 -14 -9 -13Z', body.url, 1.1),
+    path(ellipseD(-18, -18.6, 1.6, 0.9), '#0E1420'),
+    edge(bodyD, body.url, 1.4),
+    clipped(
+      bodyD,
+      path('M-14 -20L14 -20L14 2L-14 2Z', soot.url),
+      ...chips.map(([x, y, r]) =>
+        g(
+          {},
+          path(ellipseD(x, y, r * 1.3, r), '#E8EEF4', { opacity: 0.6 }),
+          path(ellipseD(x + 0.2, y + 0.1, r * 0.9, r * 0.7), '#14141A'),
+        ),
+      ),
+      stroke('M-8 -16Q-10 -10 -9 -3', '#E8F0FF', 1.2, 0.45),
+      stroke('M10 -17Q12 -10 10 -1', '#FFB070', 1.4, 0.8),
+    ),
+    // Rim, lid and knob.
+    edge(ellipseD(0, -19, 7, 2.2), '#1C2A40', 1),
+    edge('M-6 -19.5Q0 -24 6 -19.5Z', body.url, 0.9),
+    edge(ellipseD(0, -23.6, 1.8, 1.4), '#14141A', 0.8),
+    path(ellipseD(0.8, -24, 0.7, 0.5), '#FFC890'),
+    // The wire bail over the top, pivots at the rim's ends, a wooden grip.
+    stroke('M-10 -14Q-10 -29 0 -29Q10 -29 10 -14', '#1A1A1E', 1.4),
+    stroke('M2 -28.6Q8 -27 9.6 -18', '#FFA060', 0.7, 0.8),
+    edge('M-4 -30.6L4 -30.6L4 -27.4L-4 -27.4Z', '#6A4426', 0.8),
+    path(ellipseD(-10, -14, 1.2, 1.2), '#1A1A1E'),
+    path(ellipseD(10, -14, 1.2, 1.2), '#FFB070'),
+  );
+}
+
+/** The hearth: a ring of fieldstones round the glowing coals, two logs burning in, the grid
+ *  across, the enamel kettle on its left end. */
 function hearth(): string {
   const coal = radial([
     [0, '#FFD27A', 1],
@@ -1101,64 +1356,46 @@ function hearth(): string {
     [0.8, '#A0200A', 1],
     [1, '#3A0A04', 1],
   ]);
-  const stoneG = linear(
-    [
-      [0, C.stoneShade],
-      [0.55, C.stone],
-      [1, C.stoneLit],
-    ],
-    0.3,
-    -1,
-  );
   const rnd = prng(733);
-  const parts: string[] = [defs(coal, stoneG)];
-  // The coal bed and a few lumps glowing through the ash.
-  parts.push(path(ellipseD(0, 2, 50, 11), '#2A0A06'));
+  const stones = hearthStones();
+  const parts: string[] = [defs(coal)];
+  // The coal bed: ash at the edge, coals glowing through, a few lumps (some ashen, some white-hot).
+  parts.push(path(ellipseD(0, 2, 52, 11), '#2A0A06'));
   parts.push(path(ellipseD(0, 0, 44, 9), coal.url));
-  for (let i = 0; i < 9; i++) {
-    const x = (rnd() - 0.5) * 70;
+  parts.push(stroke(ellipseD(0, 1, 47, 9.6), '#6A5A54', 1.4, 0.5));
+  // The back row of stones.
+  stones.forEach((s, k) => {
+    if (!s.front) parts.push(stone(s, k));
+  });
+  for (let i = 0; i < 11; i++) {
+    const x = (rnd() - 0.5) * 72;
     const y = (rnd() - 0.5) * 8;
+    const hot = i % 3 === 0;
     parts.push(
       edge(
-        ellipseD(x, y, 6 + rnd() * 3, 3 + rnd() * 2),
-        i % 3 === 0 ? '#FFB04A' : '#C8340E',
-        1,
+        ellipseD(x, y, 5 + rnd() * 3, 2.6 + rnd() * 2),
+        hot ? '#FFB04A' : i % 3 === 1 ? '#C8340E' : '#4A2A22',
+        0.9,
         '#3A0A04',
       ),
     );
+    if (!hot)
+      parts.push(stroke(`M${r2(x - 3)} ${r2(y)}L${r2(x + 2)} ${r2(y + 1)}`, '#FF8A2A', 0.8, 0.8));
+    else parts.push(path(ellipseD(x + 1, y - 0.6, 2.2, 1), '#FFF2C0', { opacity: 0.8 }));
   }
-  // Stones: the back row first, the front row lit from above by the fire.
-  for (let i = 0; i < 6; i++) {
-    const a = Math.PI + (i / 5) * Math.PI;
-    const x = Math.cos(a) * 62;
-    const y = Math.sin(a) * 10 - 2;
-    parts.push(edge(ellipseD(x, y, 11 + rnd() * 4, 7 + rnd() * 2), stoneG.url, 1.6));
-  }
+  // Two logs burning in from the left and the right (their ends in the coals).
+  parts.push(log([-56, 4], [-10, -4], 9));
+  parts.push(log([54, 2], [12, -5], 8));
   // The grid: a frame with bars, catching the glow.
   parts.push(stroke('M-46 -10L46 -10M-46 -10L-50 6M46 -10L50 6', '#1A1414', 3));
   for (let x = -40; x <= 40; x += 8) parts.push(stroke(`M${x} -14L${x + 2} -6`, '#2A2220', 1.6));
   parts.push(stroke('M-46 -14L46 -14', '#2A2220', 2.4));
   parts.push(stroke('M-30 -15L34 -15', '#FF9A4A', 1, 0.6));
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 5) * Math.PI;
-    const x = Math.cos(a) * 64;
-    const y = Math.sin(a) * 9 + 6;
-    parts.push(edge(ellipseD(x, y, 12 + rnd() * 4, 7 + rnd() * 2), stoneG.url, 1.6));
-    parts.push(path(ellipseD(x + 2, y - 4, 7, 2), C.stoneLit, { opacity: 0.6 }));
-  }
-  // The coffee pot (a blue enamel moerkoffie kettle) on the grid's left end.
-  const pot = lit3(C.enamelShade, C.enamel, C.enamelLit);
-  parts.push(defs(pot));
-  parts.push(
-    g(
-      { transform: 'translate(-34 -14)' },
-      edge('M-10 0L-12 -18Q0 -24 12 -18L10 0Z', pot.url, 1.6),
-      edge('M12 -14Q20 -16 22 -24', 'none', 3),
-      edge(ellipseD(0, -19, 7, 2.4), '#E0E8F0', 1.2),
-      edge(ellipseD(0, -23, 3, 2), '#1C2A40', 1),
-      stroke('M-6 -16L-7 -4', '#E8F0FF', 1.4, 0.5),
-    ),
-  );
+  // The front row of stones over the coals' edge.
+  stones.forEach((s, k) => {
+    if (s.front) parts.push(stone(s, k));
+  });
+  parts.push(g({ transform: 'translate(-34 -9.5) scale(0.8)' }, kettle()));
   return g({}, ...parts);
 }
 
@@ -1309,67 +1546,193 @@ function southernCross(): string {
   );
 }
 
-/** The bakkie: a generic pickup, side view, nose to the left, its wheels on y = 0 at ±104. */
-function bakkie(): string {
-  const body = linear(
+/** One of the bakkie's wheels at (x, −18): a treaded tyre, a steel rim with its holes and lug
+ *  nuts, the hub; the fire's warm light on the left of the tread, the moon's on top. */
+function wheel(x: number): string {
+  const cy = -18;
+  const tread: string[] = [];
+  for (let k = 0; k < 28; k++) {
+    const a = (k / 28) * Math.PI * 2;
+    const c = Math.cos(a);
+    const s = Math.sin(a);
+    tread.push(
+      `M${r2(x + c * 22.5)} ${r2(cy + s * 22.5)}L${r2(x + c * 26.5)} ${r2(cy + s * 26.5)}`,
+    );
+  }
+  const rim = radial(
     [
-      [0, '#1A1E2A'],
-      [1, '#0A0C12'],
+      [0, '#9AA0AA', 1],
+      [0.6, '#5A606A', 1],
+      [1, '#262A32', 1],
+    ],
+    0.4,
+    0.35,
+    0.7,
+  );
+  const holes: string[] = [];
+  for (let k = 0; k < 6; k++) {
+    const a = (k / 6) * Math.PI * 2 + 0.3;
+    holes.push(ellipseD(x + Math.cos(a) * 9, cy + Math.sin(a) * 9, 2, 2));
+  }
+  const lugs: string[] = [];
+  for (let k = 0; k < 5; k++) {
+    const a = (k / 5) * Math.PI * 2;
+    lugs.push(ellipseD(x + Math.cos(a) * 4.2, cy + Math.sin(a) * 4.2, 0.9, 0.9));
+  }
+  return g(
+    {},
+    defs(rim),
+    path(ellipseD(x, cy, 26.5, 26.5), '#08090C'),
+    stroke(tread.join(''), '#1C1E24', 2.4),
+    path(ellipseD(x, cy, 21, 21), '#121318'),
+    stroke(ellipseD(x, cy, 18, 18), '#2A2C34', 1, 0.8),
+    edge(ellipseD(x, cy, 14, 14), rim.url, 1, '#0A0A0E'),
+    path(holes.join(''), '#0A0B10'),
+    edge(ellipseD(x, cy, 5.6, 5.6), '#B8BEC8', 0.8, '#1A1C22'),
+    path(lugs.join(''), '#2A2C34'),
+    // Light: the fire on the tyre's left shoulder, the moon along its top.
+    stroke(
+      `M${r2(x - 20)} ${r2(cy - 17)}A26 26 0 0 0 ${r2(x - 25)} ${r2(cy + 8)}`,
+      '#FF9A50',
+      2,
+      0.55,
+    ),
+    stroke(
+      `M${r2(x - 12)} ${r2(cy - 23.5)}A26 26 0 0 1 ${r2(x + 14)} ${r2(cy - 22.5)}`,
+      '#8EA4D0',
+      1.4,
+      0.45,
+    ),
+    stroke(
+      `M${r2(x - 11)} ${r2(cy - 6)}A14 14 0 0 1 ${r2(x - 3)} ${r2(cy - 13.6)}`,
+      '#FFC890',
+      1.2,
+      0.8,
+    ),
+  );
+}
+
+/** The bakkie: a generic single-cab pickup (no badge, no brand), side view, nose to the left,
+ *  its wheels on y = 0 at ±104. Faded red paint by night: panels and door lines, a swage line,
+ *  wheel arches, side glass with a faint sky reflection, chrome bumpers and a mirror catching the
+ *  fire (on the left), the load bay with its tailgate, the red tail light and a dim headlight
+ *  glint; the moon's cool rim along every top edge. */
+function bakkie(): string {
+  const paint = linear(
+    [
+      [0, '#5E342E'],
+      [0.35, '#40252A'],
+      [0.8, '#24181C'],
+      [1, '#140E12'],
     ],
     0,
     1,
   );
+  const glass = linear(
+    [
+      [0, '#3A4A6E'],
+      [0.45, '#1C2438'],
+      [1, '#0C1220'],
+    ],
+    0.6,
+    1,
+  );
+  const chrome = linear(
+    [
+      [0, '#D8DEE8'],
+      [0.4, '#7A808C'],
+      [0.6, '#30343C'],
+      [1, '#9AA0AA'],
+    ],
+    0,
+    1,
+  );
+  const fireSide = linear(
+    [
+      [0, '#FF9A50', 0.45],
+      [0.25, '#FF9A50', 0],
+      [1, '#FF9A50', 0],
+    ],
+    1,
+    0,
+  );
+  const outline: P[] = [
+    [-150, -36],
+    [-146, -62],
+    [-96, -70],
+    [-66, -104],
+    [6, -106],
+    [16, -72],
+    [150, -72],
+    [154, -30],
+    [150, -20],
+    [-148, -20],
+  ];
+  const bodyD = smoothD(outline, true, 0.25);
+  // Wheel arches: the body cut round each wheel, dark inside.
+  const arch = (x: number): string =>
+    `M${x - 33} -20L${x - 33} -24A33 33 0 0 1 ${x + 33} -24L${x + 33} -20Z`;
   return g(
     {},
-    defs(body),
-    path(
-      smoothD(
-        [
-          [-150, -36],
-          [-146, -64],
-          [-96, -70],
-          [-66, -104],
-          [6, -106],
-          [18, -70],
-          [150, -70],
-          [154, -30],
-          [150, -20],
-          [-148, -20],
-        ],
-        true,
-        0.25,
+    defs(paint, glass, chrome, fireSide),
+    // The ground shadow.
+    path(ellipseD(0, 2, 150, 5), '#000000', { opacity: 0.45 }),
+    edge(bodyD, paint.url, 1.6, '#06070A'),
+    clipped(
+      bodyD,
+      path(arch(-104) + arch(104), '#050608'),
+      // The fire's warmth on the nose and the cab's front.
+      path('M-160 -110L40 -110L40 0L-160 0Z', fireSide.url),
+      // The swage line along the flank: a lit ridge over a shade line.
+      stroke('M-146 -50L150 -50', '#8A5444', 1.6, 0.7),
+      stroke('M-146 -47L150 -47', '#140C0E', 1.4, 0.7),
+      // Panel gaps: the bonnet's edge, the door, the cab's back, the bin's front, the tailgate.
+      stroke(
+        'M-96 -70L-92 -24M-62 -98L-62 -24L-2 -24L0 -72M14 -72L16 -24M140 -72L140 -22',
+        '#0A0608',
+        1.2,
+        0.9,
       ),
-      body.url,
+      stroke('M-60 -97L-60 -25M16 -71L18 -25M142 -71L142 -23', '#7A4A3E', 0.8, 0.5),
+      // The door handle and keyhole, chrome catching the fire.
+      edge('M-14 -64L-2 -64L-2 -60L-14 -60Z', chrome.url, 0.8, '#0A0A0E'),
+      path(ellipseD(-6, -55, 1, 1), '#0A0A0E'),
+      // The load bin's top rail and its tie-down hooks.
+      stroke('M18 -69L148 -69', '#140C0E', 2, 0.8),
+      stroke('M44 -66l0 4M84 -66l0 4M124 -66l0 4', '#A0A6B0', 1.4, 0.8),
+      // Dust and mud low down.
+      path('M-150 -30L150 -30L150 -20L-150 -20Z', '#2A1E18', { opacity: 0.5 }),
     ),
-    // Windows: a faint sky reflection.
-    path(
-      polyD([
-        [-88, -72],
-        [-62, -98],
-        [-20, -98],
-        [-20, -72],
-      ]),
-      '#2A3450',
-      { opacity: 0.8 },
-    ),
-    path(
-      polyD([
-        [-14, -98],
-        [2, -98],
-        [10, -72],
-        [-14, -72],
-      ]),
-      '#2A3450',
-      { opacity: 0.8 },
-    ),
+    path(arch(-104) + arch(104), 'none'),
+    stroke('M-137 -24A33 33 0 0 1 -71 -24M71 -24A33 33 0 0 1 137 -24', '#7A4A3E', 1.4, 0.7),
+    // Windows: the side glass and the cab's back glass, a sky streak and a star across them.
+    edge('M-88 -72L-62 -98L-20 -98L-20 -72Z', glass.url, 1, '#06070A'),
+    edge('M-14 -98L2 -98L10 -72L-14 -72Z', glass.url, 1, '#06070A'),
+    path('M-70 -72L-50 -98L-40 -98L-60 -72Z', '#8EA4D0', { opacity: 0.18 }),
+    path('M-44 -72L-26 -96L-22 -96L-40 -72Z', '#8EA4D0', { opacity: 0.12 }),
+    path(ellipseD(-6, -90, 0.9, 0.9), '#E8EEFF', { opacity: 0.9 }),
+    // The mirror on its arm at the windscreen's foot, its chrome edge in firelight.
+    stroke('M-84 -73L-89 -77', '#1A1A20', 2),
+    edge('M-97 -86L-88 -86L-87 -75L-98 -75Z', '#2A2C34', 1, '#06070A'),
+    stroke('M-97 -85L-97.6 -76', '#FFB070', 1.4, 0.85),
+    // Bumpers (chrome), the headlight's dim glint, an amber indicator, the red tail light.
+    edge('M-156 -38L-142 -38L-142 -26L-156 -26Z', chrome.url, 1, '#06070A'),
+    stroke('M-155 -37L-155 -27', '#FFB070', 1.6, 0.9),
+    edge('M146 -36L157 -36L157 -24L146 -24Z', chrome.url, 1, '#06070A'),
+    edge(ellipseD(-147, -54, 3.6, 6), '#3A3A30', 0.8, '#06070A'),
+    path(ellipseD(-148, -55, 2, 3.4), '#FFF0C0', { opacity: 0.55 }),
+    path(ellipseD(-146, -44, 1.6, 2.4), '#D88A2A', { opacity: 0.9 }),
+    edge('M148 -66L154 -66L154 -46L148 -46Z', '#8A140E', 0.8, '#06070A'),
+    path('M149 -64L153 -64L153 -54L149 -54Z', '#FF4A2A', { opacity: 0.8 }),
+    path(ellipseD(153, -56, 4, 10), '#FF3A1A', { opacity: 0.15 }),
     // Wheels.
-    ...[-104, 104].map((x) =>
-      g({}, path(ellipseD(x, -18, 26, 26), '#06070A'), path(ellipseD(x, -18, 11, 11), '#1C2028')),
-    ),
-    // A cool rim of sky light on the roof and bonnet, a warm glint from the fire on the tail.
-    stroke('M-146 -64L-96 -70L-66 -104L6 -106L18 -70L150 -70', '#6C80B0', 2, 0.55),
-    stroke('M150 -66L154 -32', '#FF9A4A', 2.4, 0.7),
-    stroke('M118 -60L146 -60', '#FF9A4A', 1.4, 0.4),
+    wheel(-104),
+    wheel(104),
+    // The moon's cool rim along the top edges, the fire's warm one down the nose.
+    stroke('M-146 -62L-96 -70L-66 -104L6 -106L16 -72L150 -72', '#8EA4D0', 1.8, 0.6),
+    stroke('M-65 -103L5 -105', '#C8D4F0', 1, 0.5),
+    stroke('M-149 -38L-146 -60', '#FF9A50', 2, 0.8),
+    stroke('M-95 -70L-67 -102', '#FF9A50', 1.2, 0.5),
   );
 }
 
@@ -1446,3 +1809,9 @@ export function renderBraaiSheet(k = 1): Rgba {
 
 /** The star tile's edge must wrap: used by the tests. */
 export const BRAAI_ART = { starTile: STAR_TILE } as const;
+
+/** v1.15 (D-077): one frame's art round its origin, for the fit tests. */
+export const frameArtForFit = (name: BraaiFrame): string => {
+  seq = 0;
+  return frameArt(name);
+};
