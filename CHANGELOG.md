@@ -7,8 +7,24 @@ Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (
 
 Decision record D-077. From the product owner's request of 8 Nov ("increase the graphic quality").
 
-- Work in progress: Oupa's braai, the bakkie at night, Brakkie, the guineafowl and the baboons get
-  shading, texture and detail (same style, same sizes).
+- **Oupa's braai:** Oupa's clothes with folds, seams, buttons and a stitched belt; a banded hat
+  with a guineafowl feather; a beard of strands; laced velskoene; a real tubular camp chair with
+  sagging stitched canvas and a wooden armrest.
+- **The fire:** dark red edges, orange, yellow tips and a white-hot core, separate tongues, logs
+  burning in; the ring round it is now fieldstones (no more tyres); a chipped enamel camp kettle
+  with a wire handle.
+- **The bakkie at night:** panels, glass with a sky reflection, chrome catching the firelight,
+  treaded wheels on steel rims, the load bin and tailgate, tail light and headlight.
+- **Brakkie:** smooth legs, a warm-lit coat with a cool underside, fur at the edges and in his tan
+  patches, bright eyes and a wet nose.
+- **Guineafowl (every bird and morph):** a lit slate back and dark underside, a rim light, lit
+  spots of many sizes (tiny on the neck), feather rows, a horn casque, shaded wattles. Same shapes
+  and hit boxes.
+- **Baboons:** a lit back and shoulders, darker belly and limbs, a tufted mane, pale cheeks, a lit
+  muzzle and eye shine.
+- Downloads: the first download grows 32 KB (the guineafowl), still under 3 MB; HD texture memory
+  unchanged. `npm run art:compare-polish` writes before | after sheets.
+
 ## [1.18.0] — v1.14: Texts & voices, an editor for every line (8 Nov 2026)
 
 Decision record D-076. From the product owner's request of 8 Nov ("a list of all the text and
