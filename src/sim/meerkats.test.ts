@@ -71,7 +71,7 @@ const outPose = (m: MeerkatView): boolean =>
 function shootMeerkat(s: Sim, c: Content, m: MeerkatView, col: ColonyView): SimEvent[] {
   const mk = c.birds.meerkats;
   const shape = m.pose === 'sentinel' ? mk.hitboxes.tall : mk.hitboxes.low;
-  const k = c.scoring.planes[col.plane].scale * (m.pup ? mk.pupScale : 1);
+  const k = c.scoring.planes[col.plane].scale * mk.sizeMul * (m.pup ? mk.pupScale : 1);
   reloaded(s);
   settle(s);
   return run(
@@ -337,7 +337,7 @@ describe('meerkat colonies (v1.7, D-044)', () => {
       col: ColonyView,
     ): Extract<SimEvent, { type: 'meerkatHit' }>[] => {
       const box = m.pose === 'sentinel' || m.pose === 'stand' ? mk.hitboxes.tall : mk.hitboxes.low;
-      const k = c.scoring.planes[col.plane].scale;
+      const k = c.scoring.planes[col.plane].scale * mk.sizeMul;
       const at = aimAt(sfOf(c, col), m.x + box.body.ox * k * m.facing, m.y + box.body.oy * k);
       return ofType(run(s, 1, at), 'meerkatHit');
     };
@@ -404,7 +404,7 @@ describe('meerkat colonies (v1.7, D-044)', () => {
     const sat = biomeOf(c, KAL).layouts.find((l) => l.id === 'sat');
     const def = sat?.colonies?.[0];
     if (sat === undefined || def === undefined) throw new Error('no Saturday colony');
-    const k = c.scoring.planes.mid.scale;
+    const k = c.scoring.planes.mid.scale * mk.sizeMul;
     sat.colonies = [
       {
         ...def,

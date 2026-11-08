@@ -27,16 +27,17 @@ describe('meerkat colony checks (v1.7, D-044)', () => {
   });
 
   it('counts the highest mound: a sentinel on it must not stand in front of the mid birds', () => {
-    // Monday's near colony sits at 966 so that its tallest mound (28 px) keeps clear; at 950 the
-    // sentinel on that mound would reach into the mid birds' band (review of v1.7).
+    // Monday's near colony sits at 990 so that its tallest mound (26 px) keeps clear; at 974 the
+    // sentinel on that mound would reach into the mid birds' band (review of v1.7; 966 → 990 when
+    // the meerkats grew to their real size, D-078).
     const lower = kalahariWith((cols) =>
-      cols.map((c) => (c.layer === 'near' ? { ...c, y: 950 } : c)),
+      cols.map((c) => (c.layer === 'near' ? { ...c, y: 974 } : c)),
     );
     expect(issues(lower).join('\n')).toMatch(/stands in front of the mid plane's birds/);
     const flat = kalahariWith((cols) =>
       cols.map((c) =>
         c.layer === 'near'
-          ? { ...c, y: 950, burrows: c.burrows.map((b) => ({ ...b, mound: 6 })) }
+          ? { ...c, y: 974, burrows: c.burrows.map((b) => ({ ...b, mound: 6 })) }
           : c,
       ),
     );

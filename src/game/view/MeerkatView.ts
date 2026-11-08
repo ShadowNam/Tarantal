@@ -139,6 +139,8 @@ export class MeerkatView {
       this.art.set(col.id, art);
     }
     const seen = new Set<number>();
+    // D-078: the meerkats themselves (not their mounds) are sizeMul bigger than the plane's scale.
+    const body = scale * this.tuning.sizeMul;
     for (const m of col.meerkats) {
       seen.add(m.id);
       const barkAt = this.barking.get(m.id);
@@ -153,7 +155,7 @@ export class MeerkatView {
         img,
         name,
         m,
-        scale * k * (m.pup && name !== null && !name.startsWith('pup_') ? this.tuning.pupScale : 1),
+        body * k * (m.pup && name !== null && !name.startsWith('pup_') ? this.tuning.pupScale : 1),
       );
       // Digging flicks sand behind it, on sim time.
       let flick = art.flicks.get(m.id);
@@ -167,8 +169,8 @@ export class MeerkatView {
         const ph = (m.poseTicks % 18) / 18;
         flick
           .setVisible(digging && ph < 0.7)
-          .setPosition(m.x - m.facing * (18 + ph * 26) * scale, m.y - ph * (1 - ph) * 60 * scale)
-          .setScale(scale * k * (0.6 + ph * 0.5))
+          .setPosition(m.x - m.facing * (18 + ph * 26) * body, m.y - ph * (1 - ph) * 60 * body)
+          .setScale(body * k * (0.6 + ph * 0.5))
           .setAlpha(1 - ph)
           .setFlipX(m.facing < 0);
       }
@@ -264,7 +266,8 @@ export class MeerkatView {
       c.meerkats.map((m) => {
         const kind = shapeOf(m.pose) ?? 'low';
         const body = this.tuning.hitboxes[kind].body;
-        const k = this.planeScale[c.plane] * (m.pup ? this.tuning.pupScale : 1);
+        const k =
+          this.planeScale[c.plane] * this.tuning.sizeMul * (m.pup ? this.tuning.pupScale : 1);
         const x = this.parallax.screenX(c.plane, m.x);
         return {
           id: m.id,

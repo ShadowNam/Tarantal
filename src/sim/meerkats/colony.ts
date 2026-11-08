@@ -111,7 +111,8 @@ export interface ColonyState {
   readonly layerId: string;
   readonly plane: PlaneId;
   readonly scrollFactor: number;
-  /** The plane's scale (sizes, speeds). */
+  /** The plane's scale (sizes, speeds; a meerkat's own size and the body-sized gaps are also × the
+   *  tuning's sizeMul, D-078). */
   readonly scale: number;
   /** Ground line of the mounds. */
   readonly ground: number;
@@ -226,7 +227,7 @@ export function createColony(
       id: nextId(),
       pup: true,
       mother: mother.id,
-      x: mother.x - mother.facing * tuning.pupGapPx * scale,
+      x: mother.x - mother.facing * tuning.pupGapPx * scale * tuning.sizeMul,
       pose: mother.pose === 'hidden' ? 'hidden' : 'sit',
       dur: mother.pose === 'hidden' ? mother.dur + secondsToTicks(tuning.pup.startDelaySeconds) : 0,
       look: 0,
@@ -263,7 +264,7 @@ function setPose(m: Meerkat, pose: MeerkatPose, dur: number): void {
  * mothers and are left out.
  */
 export function spacedSpot(c: ColonyState, m: Meerkat, x: number, T: MeerkatTuning): number {
-  const min = T.bodyWidthPx * T.spacingBodyMul * c.scale;
+  const min = T.bodyWidthPx * T.spacingBodyMul * c.scale * T.sizeMul;
   const taken: number[] = [];
   for (const o of c.meerkats) {
     if (o === m || o.pup || o.shot) continue;
@@ -287,7 +288,7 @@ export function spacedSpot(c: ColonyState, m: Meerkat, x: number, T: MeerkatTuni
 /** The sentinel takes the highest mound: adults settled too close to it step aside (around
  *  it, not under it), and one standing there in a dash runs on. */
 function makeRoom(c: ColonyState, sentinel: Meerkat, x: number, T: MeerkatTuning): void {
-  const min = T.bodyWidthPx * T.spacingBodyMul * c.scale;
+  const min = T.bodyWidthPx * T.spacingBodyMul * c.scale * T.sizeMul;
   const near = (p: number): boolean => Math.abs(p - x) < min - 1e-6;
   for (const o of c.meerkats) {
     if (o === sentinel || o.pup || o.shot) continue;
@@ -443,7 +444,7 @@ export function dash(c: ColonyState, leader: Meerkat, ctx: ColonyCtx): void {
   const line = [leader, ...calmNow.slice(0, want - 1)];
   const dir = target.x >= leader.x ? 1 : -1;
   // Nose to tail: about one body length apart.
-  const gap = T.bodyWidthPx * T.dash.gapBodyMul * c.scale;
+  const gap = T.bodyWidthPx * T.dash.gapBodyMul * c.scale * T.sizeMul;
   const mid = (leader.x + target.x) / 2;
   line.forEach((m, i) => {
     m.burrow = to;
@@ -479,10 +480,11 @@ function stepPup(c: ColonyState, p: Meerkat, ctx: ColonyCtx): void {
     return;
   }
   if (p.pose === 'emerge' || p.pose === 'dive') return;
-  const want = mum.x - mum.facing * T.pupGapPx * c.scale;
+  const want = mum.x - mum.facing * T.pupGapPx * c.scale * T.sizeMul;
   // Close by, but never inside her outline.
-  const tooClose = Math.abs(mum.x - p.x) < T.bodyWidthPx * T.pup.minGapBodyMul * c.scale;
-  if (tooClose || Math.abs(want - p.x) > T.pupGapPx * c.scale * T.pup.followSlack) {
+  const tooClose =
+    Math.abs(mum.x - p.x) < T.bodyWidthPx * T.pup.minGapBodyMul * c.scale * T.sizeMul;
+  if (tooClose || Math.abs(want - p.x) > T.pupGapPx * c.scale * T.sizeMul * T.pup.followSlack) {
     if (p.pose !== 'run' || Math.abs(p.goalX - want) > 2) runTo(p, want, 'sit');
   } else if (p.pose === 'run' && Math.abs(p.goalX - p.x) <= 1) {
     arrive(c, p, ctx, 'sit');
@@ -728,7 +730,7 @@ export function familyOut(c: ColonyState): boolean {
  *  stand in it, or after lineUpSeconds). */
 export function lineUp(c: ColonyState, T: MeerkatTuning): void {
   const row = [...c.meerkats].sort((a, b) => Number(a.pup) - Number(b.pup) || a.id - b.id);
-  const gap = T.familiefoto.rowGapPx * c.scale;
+  const gap = T.familiefoto.rowGapPx * c.scale * T.sizeMul;
   row.forEach((m, i) => {
     runTo(m, c.cx + (i - (row.length - 1) / 2) * gap, 'photo');
   });

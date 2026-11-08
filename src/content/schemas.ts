@@ -391,6 +391,11 @@ export const MeerkatsSchema = obj({
   /** Hit shapes from the feet (sim position): standing tall, low (sit, dig, run) and a peeking
    *  head; mirrored by facing like a bird's. */
   hitboxes: obj({ tall: hitboxSchema, low: hitboxSchema, peek: hitboxSchema }),
+  /** v1.16 (D-078): the meerkats' size on top of the plane's scale, so one stands its real
+   *  0.3 m next to the guineafowl. Grows the drawn meerkat (not its mound), its hit shapes and
+   *  the body-sized gaps (spacing, a dash's file, the pup's gap, the photo row); not the forage
+   *  reach or the run speed. */
+  sizeMul: z.number().gt(0).max(2),
   /** A pup's size against an adult's. */
   pupScale: z.number().gt(0).max(1),
   /** Chance a colony has a pup trailing its mother. */

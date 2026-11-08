@@ -75,7 +75,7 @@
       "swirlMs": 2400,
       "settleMs": 900,
       "poolCap": 36,
-      "sizePx": 54,
+      "sizePx": 93,
       "dartChance": 0.3,
       "flapTicks": 3
     },

@@ -50,7 +50,7 @@ describe('meerkat dash file (v1.7, D-044)', () => {
     if (leader === undefined) throw new Error('no meerkat');
     T.dash.group = [3, 3];
     dash(c, leader, ctx);
-    const gap = T.bodyWidthPx * T.dash.gapBodyMul;
+    const gap = T.bodyWidthPx * T.dash.gapBodyMul * T.sizeMul;
     let row: number[] = [];
     for (let t = 0; t < 600 && row.length < 3; t++) {
       stepColony(c, ctx);
@@ -101,10 +101,10 @@ describe('meerkat dash file (v1.7, D-044)', () => {
         if (pup.pose !== 'sit' || c.phase === 'lineUp' || c.phase === 'photo') continue;
         checked++;
         const d = Math.abs(pup.x - mum.x);
-        expect(d).toBeGreaterThanOrEqual(T.bodyWidthPx * T.pup.minGapBodyMul - 1e-6);
+        expect(d).toBeGreaterThanOrEqual(T.bodyWidthPx * T.pup.minGapBodyMul * T.sizeMul - 1e-6);
         // Close: never further off than the gap plus its follow slack (unless she runs).
         if (mum.pose !== 'run')
-          expect(d).toBeLessThanOrEqual(T.pupGapPx * (1 + T.pup.followSlack) + 1e-6);
+          expect(d).toBeLessThanOrEqual(T.pupGapPx * T.sizeMul * (1 + T.pup.followSlack) + 1e-6);
       }
     }
     expect(checked).toBeGreaterThan(1000);
