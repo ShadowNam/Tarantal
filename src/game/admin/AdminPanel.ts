@@ -18,6 +18,7 @@ import {
 } from '../../meta/admin';
 import type { AdminContext } from './AdminContext';
 import { entryFacts, entryLabel, gunLabel, groupLabel } from './adminLabels';
+import type { TextsPanelDeps } from './texts/TextsPanel';
 
 const STYLE_ID = 'tm-admin-style';
 const ADMIN_CSS = `
@@ -110,11 +111,19 @@ export interface AdminPanelHooks {
   readonly onRange?: () => void;
   /** D-045: the Project overview button (its code loads on demand; the web build's page only). */
   readonly onProject?: () => void;
+  /** v1.14 (D-076): the Texts & voices tab (its code and tables load when it opens). */
+  readonly texts?: Omit<TextsPanelDeps, 'content'>;
 }
 
 export class AdminPanel {
   private readonly root: HTMLElement;
   private save: AdminSave;
+  /** v1.14 (D-076): the list page's body (the maps list and detail, or the Texts & voices tab). */
+  private cols: HTMLElement | null = null;
+  private mapsBody: Node[] = [];
+  private textsOpen = false;
+  /** Bumped on every tab change: a Texts chunk that arrives after the owner left is dropped. */
+  private tabVisit = 0;
 
   constructor(
     private readonly admin: AdminContext,
@@ -170,6 +179,7 @@ export class AdminPanel {
       'header',
       {},
       el('h1', { textContent: at('admin.title') }),
+      ...this.tabs(),
       el('span', {
         className: 'muted',
         dataset: { role: 'progress' },
@@ -241,10 +251,66 @@ export class AdminPanel {
       );
       list.appendChild(item);
     }
-    this.root.append(header, el('div', { className: 'cols' }, list, detail));
+    this.cols = el('div', { className: 'cols' }, list, detail);
+    this.root.append(header, this.cols);
     this.fillDetail(detail, sel);
     list.querySelector('[aria-selected=true]')?.scrollIntoView({ block: 'center' });
     this.hooks.onView?.('list', sel.id);
+  }
+
+  /** v1.14 (D-076): the list page's tabs: the maps (reviews) and Texts & voices. */
+  private tabs(): HTMLButtonElement[] {
+    if (this.hooks.texts === undefined) return [];
+    const maps = button(at('admin.tab_maps'), 'tab-maps', () => {
+      this.showMaps();
+    });
+    const texts = button(at('admin.tab_texts'), 'tab-texts', () => {
+      void this.showTexts();
+    });
+    maps.setAttribute('role', 'tab');
+    texts.setAttribute('role', 'tab');
+    maps.setAttribute('aria-pressed', 'true');
+    texts.setAttribute('aria-pressed', 'false');
+    return [maps, texts];
+  }
+
+  private markTab(texts: boolean): void {
+    this.root.querySelector('[data-action=tab-maps]')?.setAttribute('aria-pressed', String(!texts));
+    this.root.querySelector('[data-action=tab-texts]')?.setAttribute('aria-pressed', String(texts));
+  }
+
+  private showMaps(): void {
+    const cols = this.cols;
+    if (cols === null || !this.textsOpen) return;
+    this.textsOpen = false;
+    this.tabVisit++;
+    cols.replaceChildren(...this.mapsBody);
+    this.markTab(false);
+  }
+
+  /** Opens the Texts & voices tab (its chunk, with the lazy text tables, loads now). */
+  private async showTexts(): Promise<void> {
+    const cols = this.cols;
+    const deps = this.hooks.texts;
+    if (cols === null || deps === undefined || this.textsOpen) return;
+    this.textsOpen = true;
+    const visit = ++this.tabVisit;
+    this.mapsBody = [...cols.childNodes];
+    this.markTab(true);
+    cols.replaceChildren(
+      el('p', { className: 'muted mt', textContent: at('admin.texts.loading') }),
+    );
+    try {
+      const m = await import('./texts/TextsPanel');
+      if (visit !== this.tabVisit) return;
+      const panel = new m.TextsPanel({ ...deps, content: this.content });
+      cols.replaceChildren(panel.root);
+    } catch {
+      // Offline: back to the maps, with the reason in the toast.
+      this.showMaps();
+      const toast = this.root.querySelector('[data-role=toast]');
+      if (toast) toast.textContent = at('admin.texts.load_failed');
+    }
   }
 
   /** Refreshes the list row of an entry (status dot, stars) and the reviewed count. */

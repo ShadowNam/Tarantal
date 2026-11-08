@@ -4,6 +4,7 @@
 import * as Phaser from 'phaser';
 import { t } from '../../i18n/i18n';
 import { freshLoadShown } from '../../platform/freshLoad';
+import { buildInfo } from '../ui/buildStamp';
 import type { AdminPanel } from '../admin/AdminPanel';
 import { projectHref, projectRequested } from '../admin/adminProject';
 import type { GameContext } from '../GameContext';
@@ -72,6 +73,17 @@ export class AdminScene extends Phaser.Scene {
             }),
             {
               ...(data.view === 'list' && data.range !== undefined ? { onRange: data.range } : {}),
+              // v1.14 (D-076): the Texts & voices tab (list page).
+              ...(data.view === 'list'
+                ? {
+                    texts: {
+                      feel: this.ctx.feel,
+                      audio: this.ctx.audio,
+                      build: { version: buildInfo().version, commit: buildInfo().sha },
+                      hook,
+                    },
+                  }
+                : {}),
               ...(projectOn
                 ? {
                     onProject: () => {

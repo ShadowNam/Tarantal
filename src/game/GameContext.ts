@@ -134,11 +134,33 @@ export interface TestHook {
   scene: 'start' | 'hunt' | 'tally' | 'run' | 'challenge' | 'admin' | 'skietbaan' | 'range';
   /** v1.2x (D-034): the admin page on screen (list or play card), or null. */
   admin: { view: 'list' | 'play'; selected: string | null; entries: number } | null;
+  /** v1.14 (D-076): the admin page's Texts & voices tab (null until it opens). */
+  adminTexts: {
+    /** Lines listed in all, and on the page after the search and filters. */
+    lines: number;
+    shown: number;
+    /** Keys on the current page (`table|key`). */
+    page: string[];
+    /** Lines with an edit. */
+    changed: number;
+    /** "Use my edits in the game". */
+    apply: boolean;
+    /** The line and language being edited (`table|key|lang|field`), or null. */
+    editing: string | null;
+    /** The last Save's refusal (a placeholder message), or null. */
+    error: string | null;
+    /** The last exported corrections file (Download / Copy / Share), or null. */
+    lastExport: string | null;
+    /** The last ▶: its clip key and what happened. */
+    played: { key: string; result: 'played' | 'missing' | 'failed' } | null;
+  } | null;
   /** v1.3x (D-037): the Skietbaan (setup page or the range), or null. */
   range: RangeHookState | null;
   /** 24 Oct update, e2e only: true holds the Skietbaan's markers and plate swings still (a
    *  screenshot under software GL is slower than a 0.6 s marker). */
   rangeHold?: boolean;
+  /** v1.14 (D-076): the title's Gun Shed button label as drawn. */
+  titleShedLabel?: string;
   /** v1.6 (D-042): the build stamp on screen (text, whether it shows, its size and box). */
   stamp?: {
     text: string;

@@ -397,6 +397,7 @@ const hook: TestHook = {
   inputKind: null,
   menu: null,
   admin: null,
+  adminTexts: null,
   range: null,
   capture: null,
   fontsReady: false,
