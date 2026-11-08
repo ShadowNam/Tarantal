@@ -93,5 +93,8 @@
   "admin.texts.loading": "Laai die tekste…",
   "admin.texts.table.names": "Afrikaanse name",
   "admin.texts.empty_text": "'n Reël kan nie leeg wees nie.",
-  "admin.texts.load_failed": "Die tekste het nie gelaai nie (aflyn?). Probeer weer."
+  "admin.texts.load_failed": "Die tekste het nie gelaai nie (aflyn?). Probeer weer.",
+  "admin.texts.dropped": "{n} van jou veranderinge is nou in die spel: van hierdie lys verwyder.",
+  "admin.texts.now_says": "Die spel sê nou: {text}",
+  "admin.texts.keep_mine": "Hou myne"
 }

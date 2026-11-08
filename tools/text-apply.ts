@@ -52,6 +52,8 @@ if (r.conflicts.length > 0 && r.applied.length === 0) {
   );
   process.exit(1);
 }
+for (const e of r.already)
+  console.log(`  already in: ${e.table}/${e.lang} ${e.key} (${e.field})`);
 for (const e of r.applied)
   console.log(`  ${e.table}/${e.lang} ${e.key} (${e.field}): ${JSON.stringify(e.to)}`);
 console.log(`  ${dryRun ? 'would write' : 'wrote'} ${r.written.join(', ') || 'nothing'}`);

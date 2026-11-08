@@ -75,6 +75,9 @@ export interface Conflict {
 
 export interface ApplyResult {
   readonly applied: readonly Correction[];
+  /** Edits the files already have (the text is their `to`): skipped, never a conflict — a device
+   *  still holding last round's corrections exports them again. */
+  readonly already: readonly Correction[];
   readonly conflicts: readonly Conflict[];
   /** Files written (relative paths); none when a conflict stopped the run. */
   readonly written: readonly string[];
@@ -104,6 +107,7 @@ export function applyCorrections(root: string, file: Corrections, opts: ApplyOpt
   };
   const conflicts: Conflict[] = [];
   const ok: Correction[] = [];
+  const already: Correction[] = [];
   for (const e of file.edits) {
     if (e.field === 'say' && !(VOICE_LANGUAGES as readonly string[]).includes(e.lang)) {
       conflicts.push({ edit: e, now: null, reason: 'not-voice-language' });
@@ -114,12 +118,16 @@ export function applyCorrections(root: string, file: Corrections, opts: ApplyOpt
     const now = typeof v === 'string' ? v : null;
     // A `say` line that doesn't exist yet is '' (the tab's original for it).
     const cur = now ?? (e.field === 'say' ? '' : null);
+    // An emptied `say` is the line without one ('').
+    const target = e.field === 'say' && e.to.trim() === '' ? '' : e.to;
     if (cur === null) conflicts.push({ edit: e, now: null, reason: 'missing' });
+    else if (cur === target) already.push(e);
     else if (cur !== e.from) conflicts.push({ edit: e, now, reason: 'changed' });
     else ok.push(e);
   }
   const redo: Record<VoiceLanguage, string[]> = { en: [], af: [], de: [] };
-  if (conflicts.length > 0 && !opts.forceRest) return { applied: [], conflicts, written: [], redo };
+  if (conflicts.length > 0 && !opts.forceRest)
+    return { applied: [], already, conflicts, written: [], redo };
 
   const touched = new Set<string>();
   for (const e of ok) {
@@ -147,7 +155,7 @@ export function applyCorrections(root: string, file: Corrections, opts: ApplyOpt
   if (opts.dryRun !== true)
     for (const rel of touched)
       writeFileSync(join(root, rel), `${JSON.stringify(docs.get(rel), null, 2)}\n`);
-  return { applied: ok, conflicts, written: [...touched].sort(), redo };
+  return { applied: ok, already, conflicts, written: [...touched].sort(), redo };
 }
 
 export interface RedoFile {

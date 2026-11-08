@@ -18,6 +18,8 @@ import {
   collectLines,
   currentOf,
   editId,
+  rebaseEdit,
+  reconcileEdits,
   editMap,
   exportEdits,
   exportFileName,
@@ -148,6 +150,10 @@ export class TextsPanel {
   private readonly byId: ReadonlyMap<string, TextLine>;
   private store: TextEditStore;
   private edits: EditMap;
+  /** Edits dropped on load because the game has them now. */
+  private readonly dropped: number;
+  /** Edits whose original changed since they were made (`table|key|lang|field`). */
+  private readonly stale: Set<string>;
   private filter: LineFilter = { query: '', voicedOnly: false, changedOnly: false, group: null };
   private lang: LangView;
   private page = 0;
@@ -172,7 +178,14 @@ export class TextsPanel {
     const voiced = voicedKeys(deps.content, deps.feel.barks, deps.raidActions);
     this.lines = collectLines(TEXT_TABLE_DATA, voiced.group, SAY_DATA);
     this.byId = new Map(this.lines.map((l) => [l.id, l]));
-    this.store = deps.edits.load();
+    // A build that shipped the owner's corrections: edits the tables now have are dropped, edits
+    // whose original changed are flagged (shown with the text now: keep or revert).
+    const stored = deps.edits.load();
+    const rec = reconcileEdits(this.lines, stored.edits);
+    this.store = { ...stored, edits: rec.edits };
+    if (rec.dropped.length > 0) deps.edits.save(this.store);
+    this.dropped = rec.dropped.length;
+    this.stale = new Set(rec.stale);
     this.edits = editMap(this.store.edits);
     // Phones (narrow): one language at a time; wider screens: all four side by side.
     this.lang = window.innerWidth >= 1000 ? 'all' : 'en';
@@ -187,6 +200,7 @@ export class TextsPanel {
       this.setStore({ ...this.store, apply: !this.store.apply });
     });
     this.root.append(this.toolbar(), this.list, this.pager);
+    if (this.dropped > 0) this.say(fill(at('admin.texts.dropped'), { n: this.dropped }));
     this.render();
     void loadVoiceIndex().then((v) => {
       this.clips = v;
@@ -476,7 +490,49 @@ export class TextsPanel {
     );
     b.dataset['lang'] = lang;
     wrap.append(b);
-    if (edited) {
+    if (edited && this.stale.has(id)) {
+      // Made over an older text: show the text the game has now; keep the edit or revert it.
+      const now = originalOf(line, lang, field);
+      wrap.append(
+        el('span', {
+          className: 'terr',
+          dataset: { role: 'texts-stale' },
+          textContent: fill(at('admin.texts.now_says'), {
+            text: now === '' ? at('admin.texts.empty') : now,
+          }),
+        }),
+        el(
+          'div',
+          { className: 'row' },
+          btn(
+            at('admin.texts.keep_mine'),
+            'texts-keep',
+            () => {
+              this.stale.delete(id);
+              this.setStore({
+                ...this.store,
+                edits: rebaseEdit(this.store.edits, line, lang, field),
+              });
+              this.refreshRow(line);
+            },
+            'tsmall',
+          ),
+          btn(
+            at('admin.texts.revert'),
+            'texts-revert-stale',
+            () => {
+              this.stale.delete(id);
+              this.setStore({
+                ...this.store,
+                edits: withoutEdit(this.store.edits, line, lang, field),
+              });
+              this.refreshRow(line);
+            },
+            'tsmall',
+          ),
+        ),
+      );
+    } else if (edited) {
       const was = originalOf(line, lang, field);
       wrap.append(
         el('span', {
@@ -531,11 +587,13 @@ export class TextsPanel {
         this.republish();
         return;
       }
+      this.stale.delete(id);
       this.setStore({ ...this.store, edits: withEdit(this.store.edits, line, lang, field, to) });
       close();
     });
     const cancel = btn(at('admin.texts.cancel'), 'texts-cancel', close);
     const revert = btn(at('admin.texts.revert'), 'texts-revert', () => {
+      this.stale.delete(id);
       this.setStore({ ...this.store, edits: withoutEdit(this.store.edits, line, lang, field) });
       close();
     });

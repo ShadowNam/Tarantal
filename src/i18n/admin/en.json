@@ -93,5 +93,8 @@
   "admin.texts.loading": "Loading the texts…",
   "admin.texts.table.names": "Afrikaans names",
   "admin.texts.empty_text": "A line can't be empty.",
-  "admin.texts.load_failed": "The texts didn't load (offline?). Try again."
+  "admin.texts.load_failed": "The texts didn't load (offline?). Try again.",
+  "admin.texts.dropped": "{n} of your edits are in the game now: cleared from this list.",
+  "admin.texts.now_says": "The game now says: {text}",
+  "admin.texts.keep_mine": "Keep mine"
 }

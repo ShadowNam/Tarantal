@@ -12,6 +12,8 @@ import {
   exportFileName,
   filterLines,
   LINE_GROUPS,
+  rebaseEdit,
+  reconcileEdits,
   withEdit,
   withoutEdit,
   type LineFilter,
@@ -188,5 +190,58 @@ describe('exportEdits', () => {
       'voiced',
     ]);
     expect(exportFileName(out.exportedAt)).toBe('tarantal-text-edits-2026-11-08-1405.json');
+  });
+});
+
+describe('reconcileEdits', () => {
+  const shed = byId.get('main|title.shed');
+  const weavers = byId.get('main|bark.weavers');
+  if (shed === undefined || weavers === undefined) throw new Error('lines missing');
+  const base = { table: 'main', lang: 'en', field: 'text' } as const;
+
+  it('drops edits the tables now have, flags those whose original changed, keeps orphans', () => {
+    const shipped = { ...base, key: 'title.shed', from: 'Gun Shack', to: shed.text.en ?? '' };
+    const stale = {
+      ...base,
+      key: 'title.shed',
+      lang: 'af',
+      from: 'Ou teks',
+      to: 'Nuwe teks',
+    } as const;
+    const fresh = withEdit([], weavers, 'de', 'text', 'Neu!')[0];
+    const gone = { ...base, key: 'title.no_longer_here', from: 'a', to: 'b' };
+    const sayNl = {
+      ...base,
+      key: 'bark.weavers',
+      lang: 'nl',
+      field: 'say',
+      from: '',
+      to: 'x',
+    } as const;
+    if (fresh === undefined) throw new Error('no edit');
+    const r = reconcileEdits(lines, [shipped, stale, fresh, gone, sayNl]);
+    expect(r.dropped).toEqual([shipped]);
+    expect(r.edits).toEqual([stale, fresh, gone, sayNl]);
+    expect([...r.stale]).toEqual(['main|title.shed|af|text']);
+    expect(r.orphans).toEqual([gone, sayNl]);
+  });
+
+  it('an emptied `say` the tables no longer have counts as shipped', () => {
+    const v = lines.find((l) => l.voiced && l.say.en === undefined);
+    if (v === undefined) throw new Error('no voiced line without say');
+    const e = {
+      table: v.table,
+      key: v.key,
+      lang: 'en',
+      field: 'say',
+      from: 'old',
+      to: '',
+    } as const;
+    expect(reconcileEdits(lines, [e]).dropped).toEqual([e]);
+  });
+
+  it('Keep mine takes the edit over the text now', () => {
+    const stale = { ...base, key: 'title.shed', from: 'Ou', to: 'Mine' };
+    expect(rebaseEdit([stale], shed, 'en', 'text')).toEqual([{ ...stale, from: shed.text.en }]);
   });
 });

@@ -102,6 +102,21 @@ describe('applyCorrections', () => {
     expect(raw('src/i18n/af.json')).toBe(readFileSync(join(FIXTURES, 'src/i18n/af.json'), 'utf8'));
   });
 
+  it('skips an edit the files already have (last round’s corrections exported again)', () => {
+    const f = file([
+      { key: 'title.shed', from: 'Gun Shed', to: 'The Shed' },
+      { key: 'bark.weavers', field: 'say', from: '/tsː, tsː/ Leave our nest!', to: '' },
+    ]);
+    const first = applyCorrections(root, f, { forceRest: false, voiced });
+    expect(first.applied).toHaveLength(2);
+    const again = applyCorrections(root, f, { forceRest: false, voiced });
+    expect(again.conflicts).toEqual([]);
+    expect(again.applied).toEqual([]);
+    expect(again.already.map((e) => e.key)).toEqual(['title.shed', 'bark.weavers']);
+    expect(again.written).toEqual([]);
+    expect(again.redo).toEqual({ en: [], af: [], de: [] });
+  });
+
   it('refuses everything when an edit’s `from` changed, unless --force-rest', () => {
     const edits = file([
       { key: 'title.shed', from: 'Gun Shed', to: 'The Shed' },

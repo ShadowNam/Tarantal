@@ -210,6 +210,59 @@ export function withoutEdit(
   return edits.filter((e) => editId(e) !== id);
 }
 
+/** An edit taken over the table's text now: from = the current text (the owner keeps his `to`). */
+export function rebaseEdit(
+  edits: readonly TextEdit[],
+  line: TextLine,
+  lang: Language,
+  field: TextField,
+): TextEdit[] {
+  const id = editId({ table: line.table, key: line.key, lang, field });
+  const from = originalOf(line, lang, field);
+  return edits.map((e) => (editId(e) === id ? { ...e, from } : e));
+}
+
+export interface Reconciled {
+  /** The edits to keep (stale and orphaned ones included). */
+  readonly edits: readonly TextEdit[];
+  /** Edits the tables already have (`to` is the text now): dropped on load. */
+  readonly dropped: readonly TextEdit[];
+  /** Edits whose `from` is no longer the text: the tab shows the text now, keep or revert. */
+  readonly stale: ReadonlySet<string>;
+  /** Edits of lines (or languages, or `say` fields) no longer in the game. */
+  readonly orphans: readonly TextEdit[];
+}
+
+/** The stored edits against the tables as they are now (a new build may have shipped them). */
+export function reconcileEdits(lines: readonly TextLine[], edits: readonly TextEdit[]): Reconciled {
+  const byId = new Map(lines.map((l) => [l.id, l]));
+  const keep: TextEdit[] = [];
+  const dropped: TextEdit[] = [];
+  const orphans: TextEdit[] = [];
+  const stale = new Set<string>();
+  for (const e of edits) {
+    const line = byId.get(`${e.table}|${e.key}`);
+    const exists =
+      line !== undefined &&
+      line.text[e.lang] !== undefined &&
+      (e.field === 'text' ||
+        (line.voiced && (VOICE_LANGUAGES as readonly string[]).includes(e.lang)));
+    if (!exists) {
+      orphans.push(e);
+      keep.push(e);
+      continue;
+    }
+    const now = originalOf(line, e.lang, e.field);
+    const target = e.field === 'say' && e.to.trim() === '' ? '' : e.to;
+    if (now === target) dropped.push(e);
+    else {
+      if (now !== e.from) stale.add(editId(e));
+      keep.push(e);
+    }
+  }
+  return { edits: keep, dropped, stale, orphans };
+}
+
 // --- search and filters ---------------------------------------------------------------------------
 
 export interface LineFilter {

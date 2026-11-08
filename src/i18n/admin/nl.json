@@ -93,5 +93,8 @@
   "admin.texts.loading": "De teksten laden…",
   "admin.texts.table.names": "Afrikaanse namen",
   "admin.texts.empty_text": "Een regel mag niet leeg zijn.",
-  "admin.texts.load_failed": "De teksten zijn niet geladen (offline?). Probeer het opnieuw."
+  "admin.texts.load_failed": "De teksten zijn niet geladen (offline?). Probeer het opnieuw.",
+  "admin.texts.dropped": "{n} van je wijzigingen zitten nu in het spel: uit deze lijst gehaald.",
+  "admin.texts.now_says": "Het spel zegt nu: {text}",
+  "admin.texts.keep_mine": "Mijn versie houden"
 }
