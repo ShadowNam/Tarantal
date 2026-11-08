@@ -57,16 +57,17 @@ interface Coat {
 
 /** Chacma colours (the far frames get the same; the far haze is the layer's tint). */
 const MALE: Coat = {
+  // v1.15 review: more contrast — a lighter olive-grey lit back, a darker belly and muzzle.
   coat: '#776650',
-  lit: '#9A8869',
-  dark: '#4B3F31',
-  belly: '#8F8372',
-  face: '#4A403C',
+  lit: '#B2A47E',
+  dark: '#3A3026',
+  belly: '#5E5446',
+  face: '#352B2A',
   hand: '#2C2723',
   lid: '#CDBFAF',
   pad: '#9A7A74',
 };
-const MOTHER: Coat = { ...MALE, coat: '#7E6E58', lit: '#A29174', belly: '#978B7A' };
+const MOTHER: Coat = { ...MALE, coat: '#7E6E58', lit: '#B8A985', belly: '#665B4C' };
 const BABY: Coat = {
   coat: '#2E2824',
   lit: '#4A403A',
@@ -650,8 +651,8 @@ function headParts(p: Pose, coat: Coat, small: boolean): string[] {
   out.push(
     el('path', {
       d: ellipseD(hx + dir[0] * 0.01 - 0.01, hy + 0.045, r * 0.62, r * 0.42),
-      fill: shade(coat.belly, 0.25),
-      opacity: 0.6,
+      fill: shade(coat.lit, 0.35),
+      opacity: 0.85,
     }),
   );
   // The long dark muzzle (a tapered snout), the nostrils at its tip.
@@ -684,10 +685,10 @@ function headParts(p: Pose, coat: Coat, small: boolean): string[] {
   out.push(
     el('path', {
       d: smoothD([add(m0a, mul(nn, 0.018)), add(m1a, mul(nn, 0.014))], false, 0.6),
-      stroke: shade(coat.face, 0.45),
-      'stroke-width': 0.016,
+      stroke: shade(coat.face, 0.6),
+      'stroke-width': 0.02,
       fill: 'none',
-      opacity: 0.55,
+      opacity: 0.85,
       'stroke-linecap': 'round',
     }),
   );
@@ -822,7 +823,9 @@ function headParts(p: Pose, coat: Coat, small: boolean): string[] {
     out.push(el('path', { d: ellipseD(ex, ey, 0.022, 0.014), fill: coat.lid }));
     out.push(el('path', { d: ellipseD(ex + 0.005, ey + 0.003, 0.0095, 0.01), fill: '#2A1A10' }));
     if (!small) {
-      out.push(el('path', { d: ellipseD(ex + 0.002, ey, 0.004, 0.004), fill: '#F2E8D8' }));
+      out.push(
+        el('path', { d: ellipseD(ex + 0.002, ey - 0.001, 0.0055, 0.0055), fill: '#FFFFFF' }),
+      );
       out.push(
         el('path', {
           d: ellipseD(ex + 0.009, ey + 0.007, 0.002, 0.002),
@@ -984,7 +987,7 @@ function baby(p: Pose, k = 1): string[] {
 export function drawBaboon(p: Pose, coat: Coat, small: boolean, seed: number): string {
   const defs: string[] = [];
   const parts: string[] = [];
-  const far = shade(coat.coat, -0.18);
+  const far = shade(coat.coat, -0.32);
   const w = small ? 0.016 : 0.008;
   // Contact shadow (not while tumbling).
   if (p.spin === undefined || Math.abs(p.spin) < 30) {
@@ -1039,10 +1042,11 @@ export function drawBaboon(p: Pose, coat: Coat, small: boolean, seed: number): s
     el(
       'linearGradient',
       { id: gid, gradientUnits: 'userSpaceOnUse', x1: 0, y1: r2(box.y0), x2: 0, y2: r2(box.y1) },
-      el('stop', { offset: 0, 'stop-color': coat.lit, 'stop-opacity': 0.75 }),
-      el('stop', { offset: 0.45, 'stop-color': coat.coat, 'stop-opacity': 0 }),
-      el('stop', { offset: 0.75, 'stop-color': coat.belly, 'stop-opacity': 0.5 }),
-      el('stop', { offset: 1, 'stop-color': coat.dark, 'stop-opacity': 0.7 }),
+      el('stop', { offset: 0, 'stop-color': shade(coat.lit, 0.15), 'stop-opacity': 0.95 }),
+      el('stop', { offset: 0.3, 'stop-color': coat.lit, 'stop-opacity': 0.55 }),
+      el('stop', { offset: 0.5, 'stop-color': coat.coat, 'stop-opacity': 0 }),
+      el('stop', { offset: 0.72, 'stop-color': coat.belly, 'stop-opacity': 0.7 }),
+      el('stop', { offset: 1, 'stop-color': coat.dark, 'stop-opacity': 0.9 }),
     ),
   );
   body.push(
@@ -1059,23 +1063,35 @@ export function drawBaboon(p: Pose, coat: Coat, small: boolean, seed: number): s
   );
   body.push(fur(tclip.id, box, coat, seed, small ? 1.4 : 0.65));
   if (p.mane === true) {
-    // The male's rougher shoulder cape: darker strokes over the shoulders.
+    // v1.15 review: the male's shoulder cape as tufts inside the outline — pointed locks laid
+    // back over the shoulders, lit ones on top, dark ones between them.
     const sh = p.front;
-    const strokes: string[] = [];
+    const back = unit(sub(p.rear, p.front));
+    const lit: string[] = [];
+    const dk: string[] = [];
     const rnd = prng(seed + 7);
-    for (let i = 0; i < (small ? 6 : 22); i++) {
-      const x = sh[0] - 0.16 + rnd() * 0.22;
-      const y = sh[1] - 0.12 + rnd() * 0.16;
-      strokes.push(`M${r2(x)} ${r2(y)}l${r2(-0.03 - rnd() * 0.03)} ${r2(0.02 + rnd() * 0.03)}`);
+    const n = small ? 8 : 26;
+    for (let i = 0; i < n; i++) {
+      const x = sh[0] - 0.2 + rnd() * 0.24;
+      const y = sh[1] - 0.13 + rnd() * 0.2;
+      const len = 0.05 + rnd() * 0.05;
+      const w = small ? 0.02 : 0.012;
+      const tip: V = [x + back[0] * len, y + back[1] * len + 0.025];
+      const nn = nrm(back);
+      const d = `M${r2(x + nn[0] * w)} ${r2(y + nn[1] * w)}Q${r2(x + back[0] * len * 0.5)} ${r2(y + back[1] * len * 0.5 + 0.01)} ${r2(tip[0])} ${r2(tip[1])}Q${r2(x + back[0] * len * 0.4)} ${r2(y + back[1] * len * 0.4 + 0.02)} ${r2(x - nn[0] * w)} ${r2(y - nn[1] * w)}Z`;
+      (y < sh[1] - 0.02 ? lit : dk).push(d);
     }
     body.push(
       el('path', {
-        d: strokes.join(''),
-        stroke: shade(coat.coat, -0.25),
-        'stroke-width': small ? 0.02 : 0.012,
-        fill: 'none',
-        'stroke-linecap': 'round',
-        opacity: 0.7,
+        d: dk.join(''),
+        fill: shade(coat.coat, -0.35),
+        opacity: 0.8,
+        'clip-path': `url(#${tclip.id})`,
+      }),
+      el('path', {
+        d: lit.join(''),
+        fill: shade(coat.lit, 0.1),
+        opacity: 0.85,
         'clip-path': `url(#${tclip.id})`,
       }),
     );
