@@ -1050,8 +1050,8 @@ function flame(i: number): string {
     [
       [0, '#FF8A1A', 0.1],
       [0.2, '#FF6A10', 0.8],
-      [0.6, '#D8300A', 0.95],
-      [1, '#8A1406', 1],
+      [0.55, '#C8240A', 0.95],
+      [1, '#6A0C04', 1],
     ],
     0,
     1,
@@ -1068,9 +1068,9 @@ function flame(i: number): string {
   );
   const core = linear(
     [
-      [0, '#FFF6C8', 0.3],
-      [0.35, '#FFEA90', 1],
-      [1, '#FFC84A', 1],
+      [0, '#FFFFF0', 0.4],
+      [0.3, '#FFFBE0', 1],
+      [1, '#FFE27A', 1],
     ],
     0,
     1,
@@ -1083,10 +1083,19 @@ function flame(i: number): string {
   const parts: string[] = [defs(outer, mid, core, halo)];
   const H = FLAME.oy - 4;
   parts.push(path(ellipseD(0, -H * 0.3, 26, H * 0.42), halo.url));
+  // v1.15 review: separate outer tongues with darker red edges (each its own flame).
   for (let k = 0; k < 4; k++) {
-    const dx = (k - 1.5) * 7 + (rnd() - 0.5) * 6;
+    const dx = (k - 1.5) * 9 + (rnd() - 0.5) * 5;
+    const d = tongue(8 + rnd() * 3, H * (0.6 + rnd() * 0.4), dx, (rnd() - 0.5) * 18);
     parts.push(
-      path(tongue(10 + rnd() * 4, H * (0.6 + rnd() * 0.4), dx, (rnd() - 0.5) * 18), outer.url),
+      el('path', {
+        d,
+        fill: outer.url,
+        stroke: '#7A0E04',
+        'stroke-width': 1.3,
+        'stroke-opacity': 0.75,
+        'stroke-linejoin': 'round',
+      }),
     );
   }
   for (let k = 0; k < 3; k++) {
@@ -1096,10 +1105,10 @@ function flame(i: number): string {
     );
   }
   parts.push(
-    path(tongue(8, H * (0.28 + rnd() * 0.12), (rnd() - 0.5) * 4, (rnd() - 0.5) * 8), core.url),
+    path(tongue(10, H * (0.36 + rnd() * 0.12), (rnd() - 0.5) * 4, (rnd() - 0.5) * 8), core.url),
   );
   // The white-hot heart at the root and two bright inner streaks.
-  parts.push(path(ellipseD((rnd() - 0.5) * 3, -3, 7, 3.4), '#FFF8E0', { opacity: 0.6 }));
+  parts.push(path(ellipseD((rnd() - 0.5) * 3, -5, 8, 5), '#FFFFF4', { opacity: 0.9 }));
   for (let k = 0; k < 2; k++) {
     const x = (k - 0.5) * 8 + (rnd() - 0.5) * 3;
     parts.push(
@@ -1111,14 +1120,20 @@ function flame(i: number): string {
       ),
     );
   }
-  // Loose licks breaking off the top (one yellow, one red-orange).
-  const ly = -H * (0.82 + rnd() * 0.14);
-  parts.push(path(ellipseD((rnd() - 0.5) * 16, ly, 2.6, 5), '#FFB03A', { opacity: 0.85 }));
-  parts.push(
-    path(ellipseD((rnd() - 0.5) * 22, -H * (0.62 + rnd() * 0.1), 1.8, 3.6), '#FF6A1A', {
-      opacity: 0.7,
-    }),
-  );
+  // Loose tongues breaking off above (small flames of their own: one orange-yellow, one red).
+  const lick = (x: number, y: number, w: number, h: number, fill: string): string =>
+    g(
+      { transform: `translate(${r2(x)} ${r2(y)})` },
+      el('path', {
+        d: tongue(w, h, 0, (rnd() - 0.5) * 4),
+        fill,
+        stroke: '#7A0E04',
+        'stroke-width': 0.8,
+        'stroke-opacity': 0.6,
+      }),
+    );
+  parts.push(lick((rnd() - 0.5) * 14, -H * (0.8 + rnd() * 0.08), 3, 9, '#FFA52A'));
+  parts.push(lick((rnd() - 0.5) * 24, -H * (0.66 + rnd() * 0.08), 2.4, 7, '#E8420E'));
   return g({}, ...parts);
 }
 
