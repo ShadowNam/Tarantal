@@ -74,6 +74,9 @@ describe('baboon troops sit on their ridges, nothing floating (D-062)', () => {
   }
 });
 
+/** v1.16 (D-078): the ridge troop's busts, cut flat at the ridge's edge. */
+const BUSTS: readonly string[] = ['r_peek_a', 'r_peek_b', 'r_mother_peek'];
+
 describe('baboon frames (D-062)', () => {
   for (const name of BABOON_FRAME_NAMES)
     it(`${name}: inside its box, on its feet`, () => {
@@ -95,9 +98,14 @@ describe('baboon frames (D-062)', () => {
       expect(o.y, 'top').toBeGreaterThan(0);
       expect(o.x + o.w, 'right').toBeLessThan(b.w);
       expect(o.y + o.h, 'bottom').toBeLessThan(b.h);
-      // The tumble, and the ridge frames drawn tilted (climbing over the ridge, a youngster's
-      // tumble in play), have no feet on the ground.
-      if (name.startsWith('fx_') || ['tumble', 'r_down', 'r_up', 'r_play_b'].includes(name)) return;
+      // v1.16 (D-078): a bust (head and shoulders peeking over the ridge) is cut flat at the
+      // origin row, the ridge's edge: its lowest art is exactly there (no contact shadow).
+      if (BUSTS.includes(name)) {
+        expect(Math.abs(o.y + o.h - b.oy), 'the cut at the origin').toBeLessThanOrEqual(1);
+        return;
+      }
+      // The tumble has no feet on the ground.
+      if (name.startsWith('fx_') || name === 'tumble') return;
       // Feet: the lowest art (the contact shadow aside, faint) is at the origin row.
       expect(Math.abs(o.y + o.h - b.oy), 'feet at the origin').toBeLessThanOrEqual(FEET_PX);
     });
@@ -109,7 +117,8 @@ describe('baboon coat and face detail (D-077)', () => {
       const svg = drawFrame(name, frameSeed(name));
       const coats = (svg.match(/class="limb-coat"/g) ?? []).length;
       const props = name === 'r_rock' || name.startsWith('fx_');
-      expect(coats, name).toBe(props ? 0 : 4);
+      // A bust shows only its two arms' tops above the ridge's edge (no legs): 2 coats.
+      expect(coats, name).toBe(props ? 0 : BUSTS.includes(name) ? 2 : 4);
       // The raiders (near, profile) carry the nostrils; the ridge troop (r_*) is too small and
       // the moon looks back at us face-on (its own nostrils).
       const profileRaider = !props && !name.startsWith('r_') && !name.startsWith('moon');
