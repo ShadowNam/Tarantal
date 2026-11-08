@@ -530,6 +530,103 @@ function limbD(l: Limb, w0: number, w1: number): string {
   );
 }
 
+/** v1.15 (D-077): a limb's coat — shade down its underside (light from the upper left), a lit
+ *  ridge on top and short hair strokes along it, clipped to the limb. Returns [defs, art]. */
+function limbCoat(
+  l: Limb,
+  w0: number,
+  w1: number,
+  coat: Coat,
+  seed: number,
+  small: boolean,
+): [string, string] {
+  const clip = clipOf([limbD(l, w0, w1)]);
+  const shadeD: string[] = [];
+  const litD: string[] = [];
+  for (let i = 0; i + 1 < l.length; i++) {
+    const a = l[i] ?? [0, 0];
+    const b = l[i + 1] ?? [0, 0];
+    let n = nrm(unit(sub(b, a)));
+    // The shade side faces down-right (away from the light).
+    if (n[0] + n[1] < 0) n = mul(n, -1);
+    const w = (w0 + ((w1 - w0) * i) / Math.max(1, l.length - 1)) * 0.36;
+    shadeD.push(
+      `M${r2(a[0] + n[0] * w)} ${r2(a[1] + n[1] * w)}L${r2(b[0] + n[0] * w)} ${r2(b[1] + n[1] * w)}`,
+    );
+    litD.push(
+      `M${r2(a[0] - n[0] * w)} ${r2(a[1] - n[1] * w)}L${r2(b[0] - n[0] * w)} ${r2(b[1] - n[1] * w)}`,
+    );
+  }
+  // Hair along the limb: short strokes laid toward the hand or foot.
+  const rnd = prng(seed);
+  const hair: string[] = [];
+  const per = small ? 3 : 9;
+  for (let i = 0; i + 1 < l.length; i++) {
+    const a = l[i] ?? [0, 0];
+    const b = l[i + 1] ?? [0, 0];
+    const d = unit(sub(b, a));
+    const n = nrm(d);
+    const w = (w0 + ((w1 - w0) * i) / Math.max(1, l.length - 1)) * 0.4;
+    for (let k = 0; k < per; k++) {
+      const t = (k + rnd()) / per;
+      const o = (rnd() - 0.5) * 2 * w;
+      const x = a[0] + (b[0] - a[0]) * t + n[0] * o;
+      const y = a[1] + (b[1] - a[1]) * t + n[1] * o;
+      const len = 0.02 + rnd() * 0.015;
+      hair.push(
+        `M${r2(x)} ${r2(y)}l${r2(d[0] * len + n[0] * 0.004)} ${r2(d[1] * len + n[1] * 0.004)}`,
+      );
+    }
+  }
+  const sw = (k: number): number => (small ? k * 1.8 : k);
+  return [
+    clip.def,
+    g(
+      { class: 'limb-coat', 'clip-path': `url(#${clip.id})` },
+      el('path', {
+        d: shadeD.join(''),
+        stroke: coat.dark,
+        'stroke-width': r2(sw(0.03)),
+        'stroke-linecap': 'round',
+        fill: 'none',
+        opacity: 0.45,
+      }),
+      el('path', {
+        d: litD.join(''),
+        stroke: coat.lit,
+        'stroke-width': r2(sw(0.012)),
+        'stroke-linecap': 'round',
+        fill: 'none',
+        opacity: 0.45,
+      }),
+      el('path', {
+        d: hair.join(''),
+        stroke: shade(coat.coat, -0.3),
+        'stroke-width': r2(sw(0.0045)),
+        'stroke-linecap': 'round',
+        fill: 'none',
+        opacity: 0.6,
+      }),
+    ),
+  ];
+}
+
+/** v1.15 (D-077): a hand or foot (dark leathery skin): the knuckles' lit edge, finger creases. */
+function digits(x: number, y: number, rx: number, ry: number, coat: Coat): string {
+  return el('path', {
+    d:
+      `M${r2(x - rx * 0.5)} ${r2(y - ry * 0.1)}l${r2(rx * 0.12)} ${r2(ry * 0.8)}` +
+      `M${r2(x)} ${r2(y - ry * 0.2)}l${r2(rx * 0.1)} ${r2(ry * 0.9)}` +
+      `M${r2(x + rx * 0.45)} ${r2(y - ry * 0.1)}l${r2(rx * 0.08)} ${r2(ry * 0.8)}` +
+      `M${r2(x - rx * 0.8)} ${r2(y - ry * 0.55)}Q${r2(x)} ${r2(y - ry * 1.1)} ${r2(x + rx * 0.8)} ${r2(y - ry * 0.55)}`,
+    stroke: shade(coat.hand, 0.35),
+    'stroke-width': r2(rx * 0.09),
+    'stroke-linecap': 'round',
+    fill: 'none',
+    opacity: 0.6,
+  });
+}
+
 function headParts(p: Pose, coat: Coat, small: boolean): string[] {
   const [hx, hy] = p.head;
   const r = 0.105;
@@ -547,6 +644,14 @@ function headParts(p: Pose, coat: Coat, small: boolean): string[] {
       d: ellipseD(hx - 0.03, hy - 0.05, r * 0.7, r * 0.42),
       fill: coat.lit,
       opacity: 0.55,
+    }),
+  );
+  // v1.15 (D-077): the chacma's paler grey cheek and jaw fur behind the muzzle.
+  out.push(
+    el('path', {
+      d: ellipseD(hx + dir[0] * 0.01 - 0.01, hy + 0.045, r * 0.62, r * 0.42),
+      fill: shade(coat.belly, 0.25),
+      opacity: 0.6,
     }),
   );
   // The long dark muzzle (a tapered snout), the nostrils at its tip.
@@ -586,6 +691,29 @@ function headParts(p: Pose, coat: Coat, small: boolean): string[] {
       'stroke-linecap': 'round',
     }),
   );
+  // v1.15 (D-077): the ridges down the muzzle's side and the mouth line.
+  out.push(
+    el('path', {
+      d:
+        smoothD([add(lerpV(m0a, m0b, 0.35), mul(dir, 0.02)), lerpV(m1a, m1b, 0.35)], false, 0.6) +
+        smoothD([add(lerpV(m0a, m0b, 0.6), mul(dir, 0.03)), lerpV(m1a, m1b, 0.6)], false, 0.6),
+      stroke: shade(coat.face, -0.4),
+      'stroke-width': small ? 0.008 : 0.005,
+      fill: 'none',
+      opacity: 0.7,
+      'stroke-linecap': 'round',
+    }),
+  );
+  if (p.open !== true)
+    out.push(
+      el('path', {
+        d: smoothD([lerpV(m0b, m1b, 0.3), add(m1b, mul(dir, -0.01))], false, 0.6),
+        stroke: '#1A1210',
+        'stroke-width': small ? 0.008 : 0.005,
+        fill: 'none',
+        'stroke-linecap': 'round',
+      }),
+    );
   if (p.open === true) {
     // An open mouth: the gape, and (males) a canine.
     const g0 = add(lerpV(m0b, m1b, 0.25), mul(nn, -0.01));
@@ -610,6 +738,35 @@ function headParts(p: Pose, coat: Coat, small: boolean): string[] {
       fill: '#1A1614',
     }),
   );
+  // v1.15 (D-077): the nose pad's light and two nostrils at the snout's end.
+  if (!small) {
+    out.push(
+      el('path', {
+        d: ellipseD(tip[0] - dir[0] * 0.01, tip[1] - 0.018, 0.008, 0.004),
+        fill: shade(coat.face, 0.4),
+        opacity: 0.7,
+      }),
+    );
+    out.push(
+      el('path', {
+        d:
+          ellipseD(
+            tip[0] + dir[0] * 0.014 + nn[0] * 0.006,
+            tip[1] + dir[1] * 0.014 + nn[1] * 0.006,
+            0.006,
+            0.004,
+          ) +
+          ellipseD(
+            tip[0] + dir[0] * 0.006 + nn[0] * 0.012,
+            tip[1] + dir[1] * 0.006 + nn[1] * 0.012,
+            0.005,
+            0.0035,
+          ),
+        fill: '#0E0A08',
+        class: 'nostrils',
+      }),
+    );
+  }
   // Brow ridge, pale eyelid, the eye.
   const ex = hx + dir[0] * 0.04 + 0.01;
   const ey = hy - 0.025;
@@ -630,6 +787,26 @@ function headParts(p: Pose, coat: Coat, small: boolean): string[] {
       'stroke-linecap': 'round',
     }),
   );
+  // v1.15 (D-077): the heavy brow ridge catches the light; the socket under it is in shade.
+  out.push(
+    el('path', {
+      d: smoothD(
+        [
+          [ex - 0.045, ey - 0.042],
+          [ex + 0.015, ey - 0.056],
+          [ex + 0.04, ey - 0.036],
+        ],
+        false,
+        0.6,
+      ),
+      stroke: coat.lit,
+      'stroke-width': small ? 0.012 : 0.007,
+      fill: 'none',
+      opacity: 0.8,
+      'stroke-linecap': 'round',
+    }),
+  );
+  out.push(el('path', { d: ellipseD(ex, ey - 0.006, 0.03, 0.02), fill: coat.dark, opacity: 0.35 }));
   if (p.shut === true)
     out.push(
       el('path', {
@@ -644,8 +821,16 @@ function headParts(p: Pose, coat: Coat, small: boolean): string[] {
     // near raider at phone size (the 3 Nov 0.018 × 0.011 eye vanished there).
     out.push(el('path', { d: ellipseD(ex, ey, 0.022, 0.014), fill: coat.lid }));
     out.push(el('path', { d: ellipseD(ex + 0.005, ey + 0.003, 0.0095, 0.01), fill: '#2A1A10' }));
-    if (!small)
+    if (!small) {
       out.push(el('path', { d: ellipseD(ex + 0.002, ey, 0.004, 0.004), fill: '#F2E8D8' }));
+      out.push(
+        el('path', {
+          d: ellipseD(ex + 0.009, ey + 0.007, 0.002, 0.002),
+          fill: '#F2E8D8',
+          opacity: 0.7,
+        }),
+      );
+    }
   }
   // Fine cheek fur follows the jaw rather than a circular cartoon face outline.
   const cheek = clipOf([ellipseD(hx - 0.025, hy + 0.005, r * 0.88, r * 0.9)]);
@@ -825,6 +1010,17 @@ export function drawBaboon(p: Pose, coat: Coat, small: boolean, seed: number): s
   // Far limbs (shaded), the tail, the torso, near legs, near arm, head.
   body.push(part(limbD(p.legs[0], 0.11, 0.05), far, w));
   body.push(part(limbD(p.arms[0], 0.085, 0.05), far, w));
+  {
+    const farCoat: Coat = { ...coat, coat: far, lit: coat.coat, dark: shade(coat.dark, -0.2) };
+    for (const [l, w0, w1, sd] of [
+      [p.legs[0], 0.11, 0.05, 151],
+      [p.arms[0], 0.085, 0.05, 171],
+    ] as const) {
+      const [d, art] = limbCoat(l, w0, w1, farCoat, seed + sd, small);
+      defs.push(d);
+      body.push(art);
+    }
+  }
   const tail = p.tail;
   body.push(part(limbD(tail, 0.05, 0.03), coat.coat, w));
   const tclip = clipOf([torsoD(p)]);
@@ -901,8 +1097,14 @@ export function drawBaboon(p: Pose, coat: Coat, small: boolean, seed: number): s
     );
   }
   body.push(part(limbD(p.legs[1], 0.13, 0.055), coat.coat, w));
+  {
+    const [d, art] = limbCoat(p.legs[1], 0.13, 0.055, coat, seed + 101, small);
+    defs.push(d);
+    body.push(art);
+  }
   const toe = p.legs[1][p.legs[1].length - 1] ?? [0, 0];
   body.push(part(ellipseD(toe[0], toe[1] - 0.018, 0.055, 0.022), coat.hand, w));
+  if (!small) body.push(digits(toe[0] + 0.01, toe[1] - 0.018, 0.05, 0.02, coat));
   const toeF = p.legs[0][p.legs[0].length - 1] ?? [0, 0];
   body.push(part(ellipseD(toeF[0], toeF[1] - 0.018, 0.05, 0.02), shade(coat.hand, -0.1), w));
   if (p.baby === true) body.push(...baby(p, small ? 1.45 : 1));
@@ -935,8 +1137,14 @@ export function drawBaboon(p: Pose, coat: Coat, small: boolean, seed: number): s
   if (p.back === true) body.push(...faceOn(p.head, coat, p.open === true));
   else body.push(...headParts(p, coat, small));
   body.push(part(limbD(p.arms[1], 0.1, 0.055), coat.coat, w));
+  {
+    const [d, art] = limbCoat(p.arms[1], 0.1, 0.055, coat, seed + 131, small);
+    defs.push(d);
+    body.push(art);
+  }
   const hand = p.arms[1][p.arms[1].length - 1] ?? [0, 0];
   body.push(part(ellipseD(hand[0], hand[1], 0.042, 0.03), coat.hand, w));
+  if (!small) body.push(digits(hand[0], hand[1], 0.042, 0.03, coat));
   const handF = p.arms[0][p.arms[0].length - 1] ?? [0, 0];
   body.push(part(ellipseD(handF[0], handF[1], 0.04, 0.028), shade(coat.hand, -0.1), w));
   if (p.item === 'fruit' || p.item === 'throwFruit')
