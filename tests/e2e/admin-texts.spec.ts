@@ -2,6 +2,7 @@
 // Pixel 7, iPhone 14): open the tab, search a known key, a placeholder dropped is refused, edit
 // a title line, turn on "Use my edits in the game", read the edit on the title (and ✎ on the
 // build stamp), the export carries it, a voiced line has its ▶ and "spoken as", then revert.
+import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 import { boot, collectErrors, hook, isLandscape, isTouchProject } from './helpers';
 
@@ -111,12 +112,34 @@ test.describe('admin Texts & voices', () => {
     expect(stored.edits).toContain(EDITED);
     expect(stored.save).not.toContain(EDITED);
 
-    // The export carries the edit (Download sets the hook's copy of the file).
-    await press(page, touch, '#tm-admin [data-action=texts-download]');
-    await page.waitForFunction(() => window.__TM__?.adminTexts?.lastExport != null, null, {
-      timeout: 10_000,
-    });
-    const file = JSON.parse((await hook(page)).adminTexts?.lastExport ?? '{}') as {
+    // The export carries the edit: the downloaded file (Chromium), or on WebKit, where blob
+    // downloads are unreliable under Playwright, the Copy path (clipboard, or the box to copy by
+    // hand when the clipboard is blocked).
+    let text: string;
+    if (info.project.use.browserName !== 'webkit') {
+      const [download] = await Promise.all([
+        page.waitForEvent('download', { timeout: 30_000 }),
+        press(page, touch, '#tm-admin [data-action=texts-download]'),
+      ]);
+      expect(download.suggestedFilename()).toMatch(
+        /^tarantal-text-edits-\d{4}-\d{2}-\d{2}-\d{4}\.json$/,
+      );
+      text = readFileSync(await download.path(), 'utf8');
+    } else {
+      await press(page, touch, '#tm-admin [data-action=texts-copy]');
+      await page.waitForFunction(() => window.__TM__?.adminTexts?.lastExport != null, null, {
+        timeout: 10_000,
+      });
+      const toast = page.locator('#tm-admin [data-role=texts-toast]');
+      await expect(toast).not.toHaveText('');
+      const box = page.locator('#tm-admin textarea.texport');
+      text =
+        (await box.count()) > 0
+          ? await box.inputValue()
+          : ((await hook(page)).adminTexts?.lastExport ?? '');
+    }
+    expect(text).toBe((await hook(page)).adminTexts?.lastExport);
+    const file = JSON.parse(text) as {
       version: number;
       build: { version: string; commit: string };
       edits: {
