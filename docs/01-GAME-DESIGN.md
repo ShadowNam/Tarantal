@@ -769,6 +769,18 @@ Namibian carvers turn into key rings and ornaments (sources: D-056).
   far bird below the ridge lands on a male (no cost), not on a mother; and the mothers' seats are
   never in the line of fire of a fruit, a secret or a tell in front (a shot at the sausages never
   costs 15). In the sim (own stream `baboons`).
+- **Hidden on the koppies, peeking out (1.19.0, D-078; the owner: "they need to hide better
+  between the mountains and peek out and then hide again").** The troop keeps **behind the ridge
+  line**: a hidden member is not drawn and can't be hit. Its seats are spread along the ridge and
+  the gaps between its hills (±520 ridge px of the troop's middle, `tools/art/troopSeats.ts`), not a
+  row on one crest. One at a time, on staggered seeded timings (`hideSeconds` 3–9 s), a member
+  rises over the edge — **head and shoulders**, looking round for 2.5–5 s (`peek`) — then ducks
+  back; now and then a male (the lookout three times as often) **climbs up to sit on top as the
+  sentinel** for 6–11 s, then drops back. At most **`maxVisible` = 2** show at once (a raid's
+  lookout and raiders come up on top of that). Rising and ducking take 0.4 s; only all the way up
+  is a member hittable. While hidden a member may creep to another free seat (mothers and the
+  lookout keep theirs). A raid's warning brings the lookout up barking and the raiders up for a
+  look before they duck over the ridge; a scared troop ducks out of sight at once.
 - **Never targets up there.** A hit on a mother (and her baby) costs **15** (once per 2 s) only
   when the shot was **aimed at her** (its aim point on her body or head), with every gun; a stray
   pellet or stone that strikes her (a spread or a Kettie stone's drop at a bird below, the wind)
@@ -864,7 +876,13 @@ has two dogs. Bles never shows on screen; Brakkie does.)
   trot.
 - **Fetch (visual only, no points):** after a bag on the near or mid plane, once the spot is clear
   of live birds, he races to where the bird fell, picks it up and carries it back to Oupa, off
-  the panorama at the bakkie side; he comes back a while later. A mid-plane fetch runs into the
+  the panorama at the bakkie side; he comes back a while later. **Since 1.19.0 (D-078; the owner:
+  "he needs to run a bit more around to pick up shot down guineafowls")** he fetches most birds
+  that fall in reach (`fetch.chance` 0.85, within 640 screen px of the centre), **one at a time
+  from a queue** of up to 3 in the order they fell; with more waiting he is back out after
+  0.8–1.5 s (else 3–5 s). Between fetches he is livelier: shorter rests (1.2–3.5 s), longer
+  steps, and a run instead of a trot on about a third of them (`roam.runChance`). A hit empties
+  his queue. A mid-plane fetch runs into the
   scene (he can't be hit while crossing between planes).
 - **Bark:** now and then he barks at a flock foraging on the mid plane in view, which **alerts it**
   (one threat, like a shot's; a small, tuned effect).
