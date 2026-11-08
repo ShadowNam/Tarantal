@@ -47,6 +47,14 @@ describe('text edits store', () => {
     expect(loadTextEdits()).toEqual(EMPTY_TEXT_EDITS);
   });
 
+  it('keeps the valid edits when one is malformed', () => {
+    writeText(
+      TEXT_EDITS_KEY,
+      JSON.stringify({ ...store, edits: [store.edits[0], { key: 'x' }, store.edits[1]] }),
+    );
+    expect(loadTextEdits()).toEqual({ ...store, edits: [store.edits[0], store.edits[1]] });
+  });
+
   it('reads a broken or foreign value as no edits', () => {
     writeText(TEXT_EDITS_KEY, '{"version":2}');
     expect(loadTextEdits()).toEqual(EMPTY_TEXT_EDITS);

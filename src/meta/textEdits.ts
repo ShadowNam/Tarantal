@@ -60,19 +60,18 @@ export function isTextEdit(v: unknown): v is TextEdit {
   );
 }
 
-function isStore(v: unknown): v is TextEditStore {
+/** The store's shell (each edit is checked on its own: one bad edit never loses the others). */
+function isShell(v: unknown): v is { version: 1; apply: boolean; edits: unknown[] } {
   if (typeof v !== 'object' || v === null) return false;
   const s = v as Record<string, unknown>;
-  return (
-    s['version'] === 1 &&
-    typeof s['apply'] === 'boolean' &&
-    Array.isArray(s['edits']) &&
-    s['edits'].every(isTextEdit)
-  );
+  return s['version'] === 1 && typeof s['apply'] === 'boolean' && Array.isArray(s['edits']);
 }
 
 export function loadTextEdits(): TextEditStore {
-  return onDevice(() => readValue(TEXT_EDITS_KEY, EMPTY_TEXT_EDITS, isStore));
+  const s = onDevice(() => readValue(TEXT_EDITS_KEY, null, isShell));
+  return s === null
+    ? EMPTY_TEXT_EDITS
+    : { version: 1, apply: s.apply, edits: s.edits.filter(isTextEdit) };
 }
 
 export function storeTextEdits(s: TextEditStore): void {
