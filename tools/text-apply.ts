@@ -42,7 +42,11 @@ for (const c of r.conflicts) {
         ? 'no such key'
         : c.reason === 'not-voice-language'
           ? `no voice in ${e.lang}`
-          : `now ${JSON.stringify(c.now)}, the edit expected ${JSON.stringify(e.from)}`
+          : c.reason === 'empty'
+            ? 'the new text is empty'
+            : c.reason === 'placeholders'
+              ? `placeholders changed (dropped ${JSON.stringify(c.missing ?? [])}, added ${JSON.stringify(c.extra ?? [])})`
+              : `now ${JSON.stringify(c.now)}, the edit expected ${JSON.stringify(e.from)}`
     }`,
   );
 }
@@ -52,8 +56,7 @@ if (r.conflicts.length > 0 && r.applied.length === 0) {
   );
   process.exit(1);
 }
-for (const e of r.already)
-  console.log(`  already in: ${e.table}/${e.lang} ${e.key} (${e.field})`);
+for (const e of r.already) console.log(`  already in: ${e.table}/${e.lang} ${e.key} (${e.field})`);
 for (const e of r.applied)
   console.log(`  ${e.table}/${e.lang} ${e.key} (${e.field}): ${JSON.stringify(e.to)}`);
 console.log(`  ${dryRun ? 'would write' : 'wrote'} ${r.written.join(', ') || 'nothing'}`);
@@ -69,3 +72,5 @@ if (!dryRun) {
   writeFileSync(path, `${JSON.stringify(redo, null, 2)}\n`);
   console.log(`  wrote ${REDO_PATH}`);
 }
+// --force-rest applied the others; the conflicts left still fail the run.
+if (r.conflicts.length > 0) process.exitCode = 1;

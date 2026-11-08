@@ -9,6 +9,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { z } from 'zod';
+import { checkTokens } from '../src/game/admin/texts/textLines';
 import { LANGUAGES, TEXT_TABLES, VOICE_LANGUAGES, type VoiceLanguage } from '../src/i18n/i18n';
 
 export const CorrectionsSchema = z.object({
@@ -70,7 +71,10 @@ export interface Conflict {
   readonly edit: Correction;
   /** The file's text now (null: the key isn't there). */
   readonly now: string | null;
-  readonly reason: 'changed' | 'missing' | 'not-voice-language';
+  readonly reason: 'changed' | 'missing' | 'not-voice-language' | 'placeholders' | 'empty';
+  /** placeholders: the ones dropped and added. */
+  readonly missing?: readonly string[];
+  readonly extra?: readonly string[];
 }
 
 export interface ApplyResult {
@@ -111,6 +115,23 @@ export function applyCorrections(root: string, file: Corrections, opts: ApplyOpt
   for (const e of file.edits) {
     if (e.field === 'say' && !(VOICE_LANGUAGES as readonly string[]).includes(e.lang)) {
       conflicts.push({ edit: e, now: null, reason: 'not-voice-language' });
+      continue;
+    }
+    // The tab refuses these too; a hand-edited or old file must not slip them in (flavour names
+    // and `say` lines aren't checked by content:validate).
+    if (e.field === 'text' && e.to.trim() === '') {
+      conflicts.push({ edit: e, now: null, reason: 'empty' });
+      continue;
+    }
+    const tokens = checkTokens(e.from, e.to);
+    if (!tokens.ok && !(e.field === 'say' && e.to.trim() === '')) {
+      conflicts.push({
+        edit: e,
+        now: null,
+        reason: 'placeholders',
+        missing: tokens.missing,
+        extra: tokens.extra,
+      });
       continue;
     }
     const h = holder(doc(fileOf(e)), e, false);

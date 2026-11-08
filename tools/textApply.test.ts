@@ -141,6 +141,31 @@ describe('applyCorrections', () => {
     expect(read('src/i18n/en.json')['hud.score']).toBe('{n} points');
   });
 
+  it('refuses an edit that drops or adds a placeholder, or empties a line', () => {
+    const r = applyCorrections(
+      root,
+      file([
+        { key: 'hud.score', lang: 'af', from: '{n} punte', to: 'punte' },
+        { key: 'hud.score', from: '{n} points', to: '{n} {x} points' },
+        { key: 'title.shed', from: 'Gun Shed', to: '  ' },
+        { key: 'title.shed', table: 'names', from: 'Geweerskuur', to: 'Skuur {n}' },
+        { key: 'bark.miss', field: 'say', from: '', to: 'Ag nee {n}' },
+      ]),
+      { forceRest: true, voiced },
+    );
+    expect(r.applied).toEqual([]);
+    expect(r.conflicts.map((c) => [c.edit.key, c.edit.table, c.reason])).toEqual([
+      ['hud.score', 'main', 'placeholders'],
+      ['hud.score', 'main', 'placeholders'],
+      ['title.shed', 'main', 'empty'],
+      ['title.shed', 'names', 'placeholders'],
+      ['bark.miss', 'main', 'placeholders'],
+    ]);
+    expect(r.conflicts[0]?.missing).toEqual(['{n}']);
+    expect(r.conflicts[1]?.extra).toEqual(['{x}']);
+    expect(read('src/i18n/af.json')['hud.score']).toBe('{n} punte');
+  });
+
   it('a dry run writes nothing', () => {
     const r = applyCorrections(root, file([{ key: 'title.shed', from: 'Gun Shed', to: 'X' }]), {
       forceRest: false,
