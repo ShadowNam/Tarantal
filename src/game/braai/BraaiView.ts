@@ -170,6 +170,21 @@ export function resetBraaiFiles(): void {
 
 // --- the view -------------------------------------------------------------------------------------
 
+/** v1.15 (D-077): the bakkie frame's screen rect from its wheel line and scale (design px). */
+export function bakkieRect(b: { x: number; y: number; scale: number }): Rect {
+  const f = braaiFrames().find((x) => x.name === 'bakkie');
+  const w = f?.w ?? 320;
+  const h = f?.h ?? 124;
+  const ox = f?.ox ?? 160;
+  const oy = f?.oy ?? 120;
+  return {
+    x: Math.round(b.x - ox * b.scale),
+    y: Math.round(b.y - oy * b.scale),
+    w: Math.round(w * b.scale),
+    h: Math.round(h * b.scale),
+  };
+}
+
 /** What the e2e hook shows of the braai (design px rects). */
 export interface BraaiHook {
   sheet: 'standard' | 'hd';
@@ -177,6 +192,8 @@ export interface BraaiHook {
   fire: Rect | null;
   /** The fire's base and Oupa's feet (null when left out): e2e reads real pixels there. */
   firePoint: { x: number; y: number } | null;
+  /** v1.15 (D-077): the bakkie's frame on screen (art previews crop it). */
+  bakkie: Rect;
   flame: number;
   spark: number;
   pose: Pose;
@@ -335,6 +352,7 @@ export class BraaiView {
         L.fire === null
           ? null
           : { x: Math.round(L.fire.x), y: Math.round(L.fire.y - 30 * L.scale) },
+      bakkie: bakkieRect(L.bakkie),
       flame: 0,
       spark: 0,
       pose: 'sit_idle',
