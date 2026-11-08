@@ -4168,6 +4168,76 @@ them out of the entry chunk, +1.5 KB gzip), and portal/store builds drop the sto
   the title and the tabs, the toolbars scroll sideways, help opens from "?", and Save stays above
   the keyboard.
 
+### D-077 — v1.15 Art polish: the braai, the bakkie, Brakkie, the guineafowl and the baboons (8 Nov 2026)
+
+**What.** Higher-quality code-drawn art for five items, in the same painted-cartoon family, from
+our own art tools only (no external images or services):
+- **Die Braai** (`tools/art/braai.ts`): Oupa with fabric folds and shading on shirt and shorts
+  (yoke, buttoned placket, pocket flaps, the cloth bunched over a stitched belt), a hat with a band,
+  a guineafowl feather, stitched and shaded brim, a beard of strands, a nose, crow's feet and ruddy
+  cheeks, ribbed socks, laced velskoene with a welted sole; a tubular camp chair (lit and cool
+  edges per tube, stitched sagging canvas, a wooden armrest, rivet, rubber feet). The fire: four
+  frames as before, tongues from dark red edges through orange to yellow tips, a white-hot core,
+  separate tongues breaking off above, a halo; two logs burning in (bark, charred ends with glowing
+  cracks, cut ends). The ring: 14 fieldstones of five rocks, each its own shape and size, lit on
+  the fire side — no longer read as tyres. An enamel camp kettle (chips, black rim, lid knob,
+  spout, wire bail with a wooden grip, soot, a firelit rim), scaled to fit the unchanged 62 px
+  hearth frame.
+- **The bakkie at night** (`bakkie()` in the same file): a generic single-cab pickup with no badge
+  — panels, door and swage lines, wheel arches, side glass with a sky streak, chrome bumpers and
+  mirror catching the fire, treaded tyres on steel rims with lug nuts, the load bin's rail,
+  tie-downs and tailgate, a red tail light and a dim headlight; the moon's rim on the top edges.
+  The daytime Karoo prop (`karoo/bakkie`, D-035) and the `ProceduralAssetFactory` placeholder are
+  separate and unchanged.
+- **Brakkie** (`tools/art/brakkie.ts`): smooth one-piece tapered legs (one outline hip → paw, no
+  joint lines), a warm-lit coat with a cool grey underside, the far legs a gentle grey, hair
+  strokes only along the edges and in the tan patches (darker patch edges), clearer eye and wet-nose
+  highlights, ear and muzzle detail.
+- **The guineafowl** (`tools/art/bird.ts`, every frame of every creature and morph): a lighter
+  slate-blue back and near-black underside (base palette `highlight #6E7A92`, `plumage #363C4C`,
+  `shadow #14161D`), a rim light along the back, white spots lit like the body (bright on the back,
+  dim underneath), of more varied size (0.65–1.4 ×) and much smaller toward the neck, in neater rows
+  (jitter 0.28); feather rows as dark scallops between the spot rows on the mid plane (the plane the
+  game is played on; not near, for bytes); the folded wing lit like the body with a lit covert
+  edge and darker primaries; a horn casque with a dark side; shaded, wet-lit wattles; a highlight
+  down the legs.
+- **The baboons** (`tools/art/baboons.ts`): more contrast — a lighter olive-grey lit back and
+  shoulders, a darker belly and far limbs, every limb shaded and furred, the male's mane as tufts
+  inside the outline, paler cheeks, a darker muzzle with a lit bridge, its ridges and nostrils, a
+  heavier lit brow, brighter eye shine, finger creases.
+- `npm run art:compare-polish` (`tools/art/polishCompare.ts`) writes BEFORE | AFTER sheets of the
+  five items without a browser (before = the art at `c9a6135e`), into
+  `docs/art-preview/compare/v115-polish-before-after-*.png`; `tests/e2e/art-preview-polish.spec.ts`
+  shoots them in the game (Standard and one HD boot per device; on demand). The braai's test hook
+  gains the bakkie's screen rect for it.
+
+**Why.** The product owner (8 Nov): "We need to still increase the graphic quality of these items
+here" (Oupa's braai, the bakkie at night), "maybe the dog needs a little bit better texture", "also
+improve the guineafowl textures … also the dog texture, and the babbons". The supervisor's review
+of the first pass (same day): braai and bakkie good; the fire needed a brighter core and separate
+tongues; the guineafowl, Brakkie and baboons had to change visibly at game size.
+
+**Kept.** Every canvas size, anchor and layout coordinate (the hearth frame stays 62 px: the
+1024 × 864 braai sheet has no room for more); frame counts and timing; silhouettes, so
+`content/birds.json` hit boxes and baboon boxes are unchanged (`tools/art/fit.test.ts`); sim and
+content untouched (golden replays unchanged); no new per-frame work.
+
+**Budgets (before → after, main 705ad10c/4ab777ef → this branch).** First download (gzip): web
+2,994.9 → 3,026.8 KB (cap 3,072), Poki 2,985.7 → 3,017.7, CrazyGames 2,985.8 → 3,017.8; all
+`npm run size -- --strict` OK. The growth is the first-download guineafowl pages (+32.7 KB: the
+mid page carries the volume shading and the feather rows); the brief asked for "≤ its current
+size", the review asked for a visible change at game size — the review won, with 45 KB left under
+the 3 MB cap. Lazy chunks: braai 298.9 → 307.7, brakkie 55.4 → 56.4, baboons 101.0 → 117.2,
+bushveld-winter 1,480.9 → 1,502.8, okavango-spring 1,481.4 → 1,513.0, late 1,457.6 → 1,500.4,
+common-hd 934.0 → 1,042.8 KB (all inside their caps). HD texture memory: unchanged on every hunt
+(no texture's width or height changed — only bytes and hashes in `asset-index*.json`), so the
+tightest hunts stay at the ~245–247 MB measured before (≤ 256 MB).
+
+**Tests.** `tools/art/braaiArt.test.ts` (frames fit with a margin; ≥ 12 distinct fieldstones of
+≥ 4 rocks), `tools/art/birdPlumage.test.ts` (lit spots per frame: ≥ 300 near, ≥ 120 mid, ≥ 30 far;
+rim light and wing light in every morph), Brakkie's coat the same in every pose, every baboon frame
+shades all four limbs and the raiders show nostrils.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

@@ -88,7 +88,7 @@ reworked), with source files (PSD/Krita/Spine) kept as evidence of authorship.
 
 | Part | Hex |
 |---|---|
-| Plumage base / shadow / highlight | `#2C303C` / `#1D2029` / `#4A5060` (D-035; was `#2E2F45` / `#1F2033`) |
+| Plumage base / shadow / highlight | `#363C4C` / `#14161D` / `#6E7A92` (D-077; D-035 had `#2C303C` / `#1D2029` / `#4A5060`) |
 | Dots | `#F4F1E8` |
 | Face skin / highlight | `#2F7DE1` / `#6FB3FF` |
 | Wattles | `#D7263D` |
@@ -97,6 +97,14 @@ reworked), with source files (PSD/Krita/Spine) kept as evidence of authorship.
 | Iris | `#4A2A18` |
 | Legs | `#3C3D42` (D-035; was `#6B5B4B`) |
 | Ink | `#1B1410` |
+
+**v1.15 (D-077) polish.** Volume first: a lighter slate-blue back lit from the upper left, a
+near-black underside and a rim light along the back edge. The white spots share that light (bright
+on the back, dim underneath), vary in size (bigger and rounder on back and flanks, tiny toward the
+neck) and sit in rows; on the mid plane dark scallops between the rows suggest feather rows. The
+folded wing is lit like the body with a lit covert edge and darker primaries; the casque is horn
+with a light and a dark side; the wattles are shaded with a wet highlight; the legs carry a
+highlight line. Same silhouettes in every frame and morph (the hit boxes never move).
 
 ### 3.2 Variants and bosses (all built as **skins/attachments on the same rig**)
 | Id | Change from base |
@@ -683,6 +691,11 @@ lookout's two-note "wa-hoo" bark, a hit raider's screech, each raid's own sound 
 a crunch of fruit or mielie, the throw's whoosh, the moon's rude raspberry, the chase's yelps), and
 the thump of a bagged one.
 
+**v1.15 (D-077) polish.** More contrast and form: a lighter olive-grey lit back and shoulders, a
+darker belly and far limbs, every limb shaded on its underside and furred along its length; the
+male's mane as pointed tufts inside the outline (never past it); paler grey cheeks; a darker muzzle
+with a lit bridge, side ridges and two nostrils; a heavy lit brow over a shaded socket; eye shine.
+
 ### 5.4 Die Oes: the farm field, warthogs and the farm workers (1.11.0, D-063)
 Interim at the D-035 bar (review round 1: the sheet's figures are semi-realistic, drawn from
 posed skeletons like the baboons, no ink, layered shading and texture, so HD adds detail). **The field** (`oes`): a warm late-summer sky, a
@@ -748,6 +761,11 @@ mouth open), dig (front low, rump and tail up), the startled yelp (ears flat, ta
 wide), and the guineafowl he carries (limp and whole, no blood), held at his mouth in the running
 frames. On the near plane he is a little smaller than a standing guineafowl (his head ~150 px up
 at 1×); on the mid plane by its plane scale; tinted with the layer's map light.
+
+**v1.15 (D-077) polish.** Legs are one smooth tapered outline each (hip → paw, no joint lines);
+the near legs white, the far legs a gentle grey. The coat is warm-lit on top and cool grey
+underneath; hair strokes only along the edges and inside the tan patches (whose edges are darker).
+A clear white eye highlight and a wet highlight on the nose.
 
 ### 5.7 Veld cameos (1.17.0, D-075)
 Interim at the D-035 bar, inked Bosveld Comic in daylight; true to each area's wildlife, never shown
@@ -828,6 +846,18 @@ host at his own fire, never a joke.
   Halloween's pumpkin lantern — from the special's own sheet, beside its framed slate.
 - *Sheet:* `braai/sheet`, a 2× master (1024 × 864) packed at 1× with its HD twin; soft and repeating
   frames at half or quarter size (docs/06).
+
+**v1.15 (D-077) polish.** Oupa's clothes carry folds (pull creases from the hip and armpits, the
+shirt bunched over the belt), a yoke seam, buttons and stitched pocket flaps; his hat a stitched,
+shaded brim, a leather band and a guineafowl feather; his beard is strands, not a blob. The camp
+chair is tubes (a warm line on the fire side, a cool one on the other) with stitched, sagging canvas
+and a wooden armrest. The fire's tongues run from dark red edges through orange to yellow tips over
+a white-hot core, with separate tongues breaking off; two logs burn in. The ring is fieldstones —
+every stone its own shape, size and rock, lit on the fire side, a contact shadow under it — never
+uniform dark ellipses (they read as tyres). The kettle is chipped blue enamel with a black rim, a
+wire bail and soot. The bakkie at night: a generic pickup (no badge) with panels, glass with a sky
+streak, chrome catching the fire, treaded tyres on steel rims, a red tail light; the moon's rim on
+its top edges.
 
 ## 7. FX
 Feather bursts (palette-tinted per variant), dust puffs, muzzle flash + smoke, shell ejection,

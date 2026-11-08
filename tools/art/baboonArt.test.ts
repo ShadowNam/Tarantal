@@ -102,3 +102,18 @@ describe('baboon frames (D-062)', () => {
       expect(Math.abs(o.y + o.h - b.oy), 'feet at the origin').toBeLessThanOrEqual(FEET_PX);
     });
 });
+
+describe('baboon coat and face detail (D-077)', () => {
+  it('every baboon frame shades and furs all four limbs; near profile faces show the nostrils', () => {
+    for (const name of BABOON_FRAME_NAMES) {
+      const svg = drawFrame(name, frameSeed(name));
+      const coats = (svg.match(/class="limb-coat"/g) ?? []).length;
+      const props = name === 'r_rock' || name.startsWith('fx_');
+      expect(coats, name).toBe(props ? 0 : 4);
+      // The raiders (near, profile) carry the nostrils; the ridge troop (r_*) is too small and
+      // the moon looks back at us face-on (its own nostrils).
+      const profileRaider = !props && !name.startsWith('r_') && !name.startsWith('moon');
+      expect((svg.match(/class="nostrils"/g) ?? []).length, name).toBe(profileRaider ? 1 : 0);
+    }
+  });
+});

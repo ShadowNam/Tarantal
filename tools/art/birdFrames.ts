@@ -43,7 +43,8 @@ export function planeLook(cfg: ArtConfig, content: ContentBundle, plane: PlaneId
     inner: line * cfg.birds.innerLine,
     dotR: cfg.birds.dots[plane].r,
     dotSpacing: cfg.birds.dots[plane].spacing,
-    scallops: plane === 'near',
+    // v1.15 (D-077 review): feather rows as dark scallops between the spot rows, mid plane only (bytes: D-077).
+    scallops: plane === 'mid',
   };
 }
 

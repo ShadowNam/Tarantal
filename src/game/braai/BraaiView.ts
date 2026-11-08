@@ -29,6 +29,7 @@ import { CHRISTMAS_SHEET, xmasKeyIn } from '../feesdae/christmasKeys';
 import { HALLOWEEN_SHEET } from '../feesdae/feesdaeAssets';
 import { NEWYEAR_SHEET } from '../feesdae/newyearKeys';
 import {
+  braaiFrame,
   braaiFrames,
   braaiTexelsPerPx,
   flameFrame,
@@ -170,6 +171,18 @@ export function resetBraaiFiles(): void {
 
 // --- the view -------------------------------------------------------------------------------------
 
+/** v1.15 (D-077): the bakkie frame's screen rect from its wheel line and scale (design px). */
+export function bakkieRect(b: { x: number; y: number; scale: number }): Rect {
+  const f = braaiFrame('bakkie');
+  if (f === undefined) throw new Error('braai sheet has no bakkie frame');
+  return {
+    x: Math.round(b.x - f.ox * b.scale),
+    y: Math.round(b.y - f.oy * b.scale),
+    w: Math.round(f.w * b.scale),
+    h: Math.round(f.h * b.scale),
+  };
+}
+
 /** What the e2e hook shows of the braai (design px rects). */
 export interface BraaiHook {
   sheet: 'standard' | 'hd';
@@ -177,6 +190,8 @@ export interface BraaiHook {
   fire: Rect | null;
   /** The fire's base and Oupa's feet (null when left out): e2e reads real pixels there. */
   firePoint: { x: number; y: number } | null;
+  /** v1.15 (D-077): the bakkie's frame on screen (art previews crop it). */
+  bakkie: Rect;
   flame: number;
   spark: number;
   pose: Pose;
@@ -335,6 +350,7 @@ export class BraaiView {
         L.fire === null
           ? null
           : { x: Math.round(L.fire.x), y: Math.round(L.fire.y - 30 * L.scale) },
+      bakkie: bakkieRect(L.bakkie),
       flame: 0,
       spark: 0,
       pose: 'sit_idle',

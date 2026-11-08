@@ -153,7 +153,8 @@ export function drawBird(i: DrawInput): string {
   const { pose: p, shape } = i;
   const cy = shape.body.oy;
   const bodyM = mul(T(p.x, p.y), about(0, cy, mul(R(p.rot), about(0, p.pivotY, S(p.sx, p.sy)))));
-  const out: string[] = [];
+  // v1.15 (D-077): the spots share the body's light (bright on the lit back, dimmer under).
+  const out: string[] = [el('defs', {}, dotGradient(i))];
   const bodyT = matrix(bodyM);
   const flight = p.wing.kind === 'flight' ? p.wing : null;
   // Far wing (behind everything).
@@ -189,6 +190,26 @@ export function drawBird(i: DrawInput): string {
 }
 
 // --- D-035 texture helpers ---------------------------------------------------------------------
+
+/** v1.15 (D-077): the spots' paint, lit like the body (upper left, in body units): white on the
+ *  back, the palette's dot colour on the flanks, toward the shadow under the belly. */
+function dotGradient(i: DrawInput): string {
+  const { rx, ry, oy } = i.shape.body;
+  return el(
+    'radialGradient',
+    {
+      id: `${i.id}-dotG`,
+      cx: -rx * 0.3,
+      cy: oy - ry * 0.45,
+      r: rx * 1.45,
+      gradientUnits: 'userSpaceOnUse',
+    },
+    el('stop', { offset: 0, 'stop-color': '#FFFFFF' }),
+    el('stop', { offset: 0.45, 'stop-color': mixHex(i.pal.dots, '#FFFFFF', 0.4) }),
+    el('stop', { offset: 0.75, 'stop-color': i.pal.dots }),
+    el('stop', { offset: 1, 'stop-color': mixHex(i.pal.dots, i.pal.shadow, 0.6) }),
+  );
+}
 
 /** Mixes two #RRGGBB colours (t = 0 → a). */
 function mixHex(a: string, b: string, t: number): string {
@@ -331,7 +352,7 @@ function dotField(
   // Each spot sits in a faint dark ring (the feather around it).
   return el('path', {
     d: dots.join(''),
-    fill: i.pal.dots,
+    fill: `url(#${i.id}-dotG)`,
     stroke: i.pal.shadow,
     'stroke-width': r2(Math.max(0.5, r * 0.4)),
     'stroke-opacity': 0.55,
@@ -356,10 +377,12 @@ function body(i: DrawInput): string {
         r: rx * 1.45,
         gradientUnits: 'userSpaceOnUse',
       },
-      el('stop', { offset: 0, 'stop-color': i.pal.highlight }),
-      el('stop', { offset: 0.45, 'stop-color': i.pal.plumage }),
-      el('stop', { offset: 0.85, 'stop-color': i.pal.shadow }),
-      el('stop', { offset: 1, 'stop-color': mixHex(i.pal.shadow, '#000000', 0.25) }),
+      // v1.15 review: real volume — a light grey-blue back, a near-black underside.
+      el('stop', { offset: 0, 'stop-color': mixHex(i.pal.highlight, '#FFFFFF', 0.12) }),
+      el('stop', { offset: 0.3, 'stop-color': i.pal.highlight }),
+      el('stop', { offset: 0.58, 'stop-color': i.pal.plumage }),
+      el('stop', { offset: 0.82, 'stop-color': i.pal.shadow }),
+      el('stop', { offset: 1, 'stop-color': mixHex(i.pal.shadow, '#000000', 0.45) }),
     ),
     el('clipPath', { id: cid }, el('path', { d })),
     inked(d, `url(#${gid})`, i.cfg.ink, 0),
@@ -370,6 +393,32 @@ function body(i: DrawInput): string {
       opacity: 0.35,
       'clip-path': `url(#${cid})`,
     }),
+    // v1.15 review: a soft rim light along the back's edge (fading out down the flanks).
+    el(
+      'linearGradient',
+      {
+        id: `${i.id}-rimG`,
+        x1: 0,
+        y1: r2(oy - ry),
+        x2: 0,
+        y2: r2(oy),
+        gradientUnits: 'userSpaceOnUse',
+      },
+      el('stop', {
+        offset: 0,
+        'stop-color': mixHex(i.pal.highlight, '#FFFFFF', 0.45),
+        'stop-opacity': 0.9,
+      }),
+      el('stop', { offset: 1, 'stop-color': i.pal.highlight, 'stop-opacity': 0 }),
+    ),
+    el('path', {
+      d,
+      fill: 'none',
+      stroke: `url(#${i.id}-rimG)`,
+      'stroke-width': r2(ry * 0.16),
+      'clip-path': `url(#${cid})`,
+    }),
+    // Feather rows: darker scallops between the rows of spots.
     !i.look.scallops
       ? ''
       : scallops(
@@ -377,11 +426,11 @@ function body(i: DrawInput): string {
           cid,
           -rx * 1.1,
           oy - ry * 1.1,
-          rx * 1.1,
-          oy + ry * 1.1,
-          i.look.dotSpacing * i.dotScale * 1.15,
-          mixHex(i.pal.highlight, i.pal.dots, 0.15),
-          0.35,
+          rx * 0.9,
+          oy + ry * 0.1,
+          i.look.dotSpacing * i.dotScale,
+          mixHex(i.pal.shadow, '#000000', 0.3),
+          0.55,
         ),
     dotField(
       i,
@@ -398,7 +447,7 @@ function body(i: DrawInput): string {
         const tail = Math.max(0, Math.min(1, (-x / rx - 0.45) / 0.55));
         return 1 - v.bellyThin * belly - v.tailThin * tail;
       },
-      (x) => 1 - 0.38 * Math.max(0, Math.min(1, (x / rx - 0.1) / 0.8)),
+      (x) => 1 - 0.55 * Math.max(0, Math.min(1, (x / rx - 0.05) / 0.8)),
     ),
     el('path', {
       d,
@@ -492,10 +541,42 @@ function foldedWing(i: DrawInput): string {
   });
   return [
     el('clipPath', { id: cid }, el('path', { d })),
-    inked(d, i.pal.plumage, i.cfg.ink, 0),
+    // v1.15 review: the folded wing shares the body's light (lit top, shaded lower edge).
+    el(
+      'linearGradient',
+      {
+        id: `${cid}G`,
+        x1: 0,
+        y1: r2(pivot[1] - 30),
+        x2: 0,
+        y2: r2(pivot[1] + 50),
+        gradientUnits: 'userSpaceOnUse',
+      },
+      el('stop', { offset: 0, 'stop-color': i.pal.highlight }),
+      el('stop', { offset: 0.5, 'stop-color': i.pal.plumage }),
+      el('stop', { offset: 1, 'stop-color': i.pal.shadow }),
+    ),
+    inked(d, `url(#${cid}G)`, i.cfg.ink, 0),
     el('path', {
       d: ellipseD(pivot[0] - 90 * (rx / 110), pivot[1] + 40, 110, 22),
       fill: i.pal.shadow,
+      opacity: 0.5,
+      'clip-path': `url(#${cid})`,
+    }),
+    // v1.15 review: the coverts' lighter edges — the wing's top edge lit, two covert rows.
+    el('path', {
+      d: smoothD(pts.slice(0, 4), false, 0.6),
+      fill: 'none',
+      stroke: mixHex(i.pal.highlight, '#FFFFFF', 0.3),
+      'stroke-width': r2(Math.max(1, i.look.line * 1.2)),
+      'stroke-linecap': 'round',
+      opacity: 0.75,
+      'clip-path': `url(#${cid})`,
+    }),
+    // v1.15 (D-077): the primaries at the folded wing's tip, darker than the coverts.
+    el('path', {
+      d: ellipseD(pivot[0] - 168 * (rx / 110), pivot[1] + 20 * (ry / 85), 58 * (rx / 110), 40),
+      fill: mixHex(i.pal.shadow, '#000000', 0.3),
       'clip-path': `url(#${cid})`,
     }),
     dotField(
@@ -639,6 +720,26 @@ function flightWing(i: DrawInput, angle: number, len: number, far: boolean): str
     el('clipPath', { id: cid }, el('path', { d })),
     inked(d, fill, i.cfg.ink, 0),
     far ? '' : el('path', { d: covert, fill: i.pal.highlight, 'clip-path': `url(#${cid})` }),
+    // v1.15 (D-077): the primaries (the wing's outer third, the fingers) darker.
+    el('path', {
+      d: polyD(
+        place(
+          [
+            [-110, -100],
+            [40, -100],
+            [40, -200],
+            [-110, -200],
+          ],
+          shoulder[0],
+          shoulder[1],
+          angle,
+          k,
+          len * k,
+        ),
+      ),
+      fill: mixHex(fill, '#000000', 0.35),
+      'clip-path': `url(#${cid})`,
+    }),
     dotField(
       i,
       cid,
@@ -794,6 +895,16 @@ function legStroke(i: DrawInput, d: string, opacity = 1, toes = ''): string {
     toes === '' ? '' : line(toes, i.cfg.ink, t + i.look.line * 1.0),
     line(d, i.pal.legs, w),
     toes === '' ? '' : line(toes, i.pal.legs, t),
+    // v1.15 review: a highlight line down the leg (lit from the upper left).
+    el('path', {
+      d,
+      fill: 'none',
+      stroke: mixHex(i.pal.legs, '#FFFFFF', 0.45),
+      'stroke-width': w * 0.22,
+      'stroke-linecap': 'round',
+      transform: `translate(${r2(-w * 0.22)} 0)`,
+      opacity: 0.8,
+    }),
     // D-035: scutes down the front of the leg.
     el('path', {
       d,
@@ -1104,8 +1215,18 @@ function casqueShape(i: DrawInput, r: number, front: boolean): string {
         ? `M${r2(-0.28 * r)} ${r2((-0.6 - t * 1.1) * r)}Q0 ${r2((-0.66 - t * 1.1) * r)} ${r2(0.28 * r)} ${r2((-0.6 - t * 1.1) * r)}`
         : `M${r2((-0.5 - t * 0.6) * r)} ${r2((-0.55 - t * 0.9) * r)}Q${r2((-0.2 - t * 0.6) * r)} ${r2((-0.5 - t * 0.95) * r)} ${r2((0.1 - t * 0.5) * r)} ${r2((-0.75 - t * 0.6) * r)}`,
     );
+  const cq = `${i.id}-cq`;
   return [
     inked(d, i.pal.casque, ink, i.look.line),
+    // v1.15 review: horn with a lit side and a dark side (the back edge in shade).
+    el('clipPath', { id: cq }, el('path', { d })),
+    el('path', {
+      d: front
+        ? ellipseD(-0.28 * r, -1.2 * r, 0.2 * r, 0.9 * r)
+        : ellipseD(-0.95 * r, -1.55 * r, 0.5 * r, 0.22 * r),
+      fill: mixHex(i.pal.casque, '#2A1A10', 0.55),
+      'clip-path': `url(#${cq})`,
+    }),
     el('path', { d: hi, fill: i.pal.casqueHi }),
     el('path', {
       d: ridges.join(''),
@@ -1203,7 +1324,20 @@ function wattle(i: DrawInput, x: number, y: number, r: number, dark: boolean): s
     [x + r * 0.05 * k, y + r * 0.82 * k],
     [x - r * 0.16 * k, y + r * 0.56 * k],
   ]);
-  return inked(d, dark ? i.pal.wattleShadow : i.pal.wattle, i.cfg.ink, i.look.line * 0.8);
+  // v1.15 review: shaded wattles — a dark lower lobe, a wet highlight on top.
+  return (
+    inked(d, dark ? i.pal.wattleShadow : i.pal.wattle, i.cfg.ink, i.look.line * 0.8) +
+    el('path', {
+      d: ellipseD(x + r * 0.05 * k, y + r * 0.62 * k, r * 0.12 * k, r * 0.14 * k),
+      fill: mixHex(i.pal.wattleShadow, '#000000', 0.3),
+      opacity: 0.7,
+    }) +
+    el('path', {
+      d: ellipseD(x + r * 0.02 * k, y + r * 0.22 * k, r * 0.07 * k, r * 0.1 * k),
+      fill: '#FFD8D8',
+      opacity: 0.75,
+    })
+  );
 }
 
 function sideHead(i: DrawInput, r: number): string {
