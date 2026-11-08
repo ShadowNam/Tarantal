@@ -1,9 +1,9 @@
 {
-  "updated": "2026-11-07T18:56:00Z",
-  "summary": "Live on the test build: v1.13 veld cameos (1.17.0, merged 19:14 Namibia time on 7 Nov). Every area now has its own visitors: a warthog family and a dung beetle in the Bushveld, a leopard tortoise and a sprinting ostrich in the Karoo, a pronking springbok herd in the Kalahari (its alarm makes the nearest flock nervous), gemsbok in Namibië, and Okavango elephants that flap and trumpet when a flock flushes. Pellets pass through them; a shot aimed at one costs 10 points and a scolding. Oupa's journal has a new \"Seen in the veld\" page. Next: Oupa's new voices (needs the OpenRouter key), then a final phone playtest and the store releases.",
+  "updated": "2026-11-08T11:36:00Z",
+  "summary": "Live on the test build: v1.14 Texts & voices (1.18.0, merged 13:36 Namibia time on 8 Nov). The admin page (?admin=1) has a Texts & voices tab: every line of text in the game (1,021) in English, Afrikaans, German and Dutch, with a ▶ button on Oupa's 108 voiced lines. Retype any line; your edits stay on your device until you download the corrections file and save it to Dropbox /AI-DEV/Tarantal-Madness/text-edits/, then Claude applies them and lists the voice lines to re-make. Next: art polish (Oupa's braai, the bakkie at night, Brakkie, the guineafowl and the baboons; Tank building), then Oupa's new voices once you say the texts are final.",
   "current": {
-    "version": "1.17.0",
-    "commit": "b5fc409d"
+    "version": "1.18.0",
+    "commit": "705ad10c"
   },
   "links": [
     {
@@ -34,23 +34,23 @@
   "numbers": [
     {
       "label": "Version on the test build",
-      "value": "1.17.0",
-      "note": "commit b5fc409d, merged 19:14 on 7 Nov"
+      "value": "1.18.0",
+      "note": "commit 705ad10c, merged 13:36 on 8 Nov"
     },
     {
       "label": "Pull requests merged",
-      "value": "115",
-      "note": "#1 to #118"
+      "value": "116",
+      "note": "#1 to #119"
     },
     {
       "label": "Unit tests",
-      "value": "2,158",
+      "value": "2,187",
       "note": "plus the browser test suites on 3 devices"
     },
     {
       "label": "First download",
       "value": "2.99 MB",
-      "note": "2,993.6 KB of the 3,072 KB budget"
+      "note": "2,994.9 KB of the 3,072 KB budget"
     },
     {
       "label": "Hunting areas",
@@ -68,8 +68,8 @@
     },
     {
       "label": "Decisions logged",
-      "value": "75",
-      "note": "D-001 to D-075 on main"
+      "value": "76",
+      "note": "D-001 to D-076"
     }
   ],
   "needsYou": [
@@ -1071,6 +1071,18 @@
       "summary": "Veld cameos: a warthog family, a dung beetle, a leopard tortoise, a sprinting ostrich, a pronking springbok herd, gemsbok, trumpeting elephants, and a \"Seen in the veld\" page in Oupa's journal; version 1.17.0.",
       "requestedBy": "You: the v1.9–v1.13 list, in your order.",
       "status": "done"
+    },
+    "v1.14": {
+      "owner": "Tank built it (task f3543593) with a second round of review fixes; Claude ran an independent review, the screenshots on desktop, Pixel 7 and iPhone 14 and full CI, and merged it (#119)",
+      "summary": "Texts & voices: an admin page listing every line of text and every voice line in four languages, with play buttons; retype any line and send the corrections file.",
+      "requestedBy": "You, 8 Nov.",
+      "status": "done"
+    },
+    "art-polish": {
+      "owner": "Tank builds it (task 337452ff, started 8 Nov 12:35 Namibia); Claude runs the screenshots and checks",
+      "summary": "Better art for Oupa's braai (Oupa, chair, fire, kettle, real stones), the bakkie at night, Brakkie's coat, the guineafowl's spotted plumage and the baboons' fur.",
+      "requestedBy": "You, 8 Nov.",
+      "status": "running"
     }
   },
   "suggestions": [
@@ -2255,6 +2267,11 @@
       "at": "2026-11-07T18:54:00Z",
       "kind": "merge",
       "text": "Test added (#118): the language picker on the loading screen never covers a title button and hides under the admin page, so phone taps always land."
+    },
+    {
+      "at": "2026-11-08T11:36:00Z",
+      "kind": "merge",
+      "text": "v1.14 Texts & voices is on the test build (1.18.0, #119): every line of text and every voice line in the admin page, with play buttons and an editor; your corrections go to Dropbox and back into the game. Full CI green (29 jobs); screenshots reviewed on desktop, Pixel 7 and iPhone 14."
     }
   ]
 }
