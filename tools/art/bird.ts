@@ -153,7 +153,8 @@ export function drawBird(i: DrawInput): string {
   const { pose: p, shape } = i;
   const cy = shape.body.oy;
   const bodyM = mul(T(p.x, p.y), about(0, cy, mul(R(p.rot), about(0, p.pivotY, S(p.sx, p.sy)))));
-  const out: string[] = [];
+  // v1.15 (D-077): the spots share the body's light (bright on the lit back, dimmer under).
+  const out: string[] = [el('defs', {}, dotGradient(i))];
   const bodyT = matrix(bodyM);
   const flight = p.wing.kind === 'flight' ? p.wing : null;
   // Far wing (behind everything).
@@ -189,6 +190,25 @@ export function drawBird(i: DrawInput): string {
 }
 
 // --- D-035 texture helpers ---------------------------------------------------------------------
+
+/** v1.15 (D-077): the spots' paint, lit like the body (upper left, in body units): white on the
+ *  back, the palette's dot colour on the flanks, toward the shadow under the belly. */
+function dotGradient(i: DrawInput): string {
+  const { rx, ry, oy } = i.shape.body;
+  return el(
+    'radialGradient',
+    {
+      id: `${i.id}-dotG`,
+      cx: -rx * 0.3,
+      cy: oy - ry * 0.45,
+      r: rx * 1.45,
+      gradientUnits: 'userSpaceOnUse',
+    },
+    el('stop', { offset: 0, 'stop-color': mixHex(i.pal.dots, '#FFFFFF', 0.6) }),
+    el('stop', { offset: 0.5, 'stop-color': i.pal.dots }),
+    el('stop', { offset: 0.95, 'stop-color': mixHex(i.pal.dots, i.pal.shadow, 0.5) }),
+  );
+}
 
 /** Mixes two #RRGGBB colours (t = 0 → a). */
 function mixHex(a: string, b: string, t: number): string {
@@ -331,7 +351,7 @@ function dotField(
   // Each spot sits in a faint dark ring (the feather around it).
   return el('path', {
     d: dots.join(''),
-    fill: i.pal.dots,
+    fill: `url(#${i.id}-dotG)`,
     stroke: i.pal.shadow,
     'stroke-width': r2(Math.max(0.5, r * 0.4)),
     'stroke-opacity': 0.55,
@@ -498,6 +518,12 @@ function foldedWing(i: DrawInput): string {
       fill: i.pal.shadow,
       'clip-path': `url(#${cid})`,
     }),
+    // v1.15 (D-077): the primaries at the folded wing's tip, darker than the coverts.
+    el('path', {
+      d: ellipseD(pivot[0] - 168 * (rx / 110), pivot[1] + 20 * (ry / 85), 58 * (rx / 110), 40),
+      fill: mixHex(i.pal.shadow, '#000000', 0.3),
+      'clip-path': `url(#${cid})`,
+    }),
     dotField(
       i,
       cid,
@@ -639,6 +665,26 @@ function flightWing(i: DrawInput, angle: number, len: number, far: boolean): str
     el('clipPath', { id: cid }, el('path', { d })),
     inked(d, fill, i.cfg.ink, 0),
     far ? '' : el('path', { d: covert, fill: i.pal.highlight, 'clip-path': `url(#${cid})` }),
+    // v1.15 (D-077): the primaries (the wing's outer third, the fingers) darker.
+    el('path', {
+      d: polyD(
+        place(
+          [
+            [-110, -100],
+            [40, -100],
+            [40, -200],
+            [-110, -200],
+          ],
+          shoulder[0],
+          shoulder[1],
+          angle,
+          k,
+          len * k,
+        ),
+      ),
+      fill: mixHex(fill, '#000000', 0.35),
+      'clip-path': `url(#${cid})`,
+    }),
     dotField(
       i,
       cid,

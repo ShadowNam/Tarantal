@@ -7770,14 +7770,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/late/birds/generaal-mid@1x-0.5e2310bae400.png",
-                "bytes": 162978,
-                "hash": "5e2310bae400"
+                "path": "assets/late/birds/generaal-mid@1x-0.7e536c9c7ba5.png",
+                "bytes": 162745,
+                "hash": "7e536c9c7ba5"
               },
               "data": {
-                "path": "assets/late/birds/generaal-mid@1x-0.1d30f8460667.json",
+                "path": "assets/late/birds/generaal-mid@1x-0.cc9714703a73.json",
                 "bytes": 7729,
-                "hash": "1d30f8460667"
+                "hash": "cc9714703a73"
               }
             }
           ]
@@ -7923,14 +7923,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/okavango-spring/birds/kuifkop-mid@1x-0.02f03bb8aca4.png",
-                "bytes": 137384,
-                "hash": "02f03bb8aca4"
+                "path": "assets/okavango-spring/birds/kuifkop-mid@1x-0.0d55908f11bc.png",
+                "bytes": 137900,
+                "hash": "0d55908f11bc"
               },
               "data": {
-                "path": "assets/okavango-spring/birds/kuifkop-mid@1x-0.6ee93da489a4.json",
+                "path": "assets/okavango-spring/birds/kuifkop-mid@1x-0.09c22610d434.json",
                 "bytes": 7725,
-                "hash": "6ee93da489a4"
+                "hash": "09c22610d434"
               }
             }
           ]
@@ -8028,14 +8028,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/okavango-spring/birds/kuifkop_koning-mid@1x-0.aba0377e9f96.png",
-                "bytes": 142807,
-                "hash": "aba0377e9f96"
+                "path": "assets/okavango-spring/birds/kuifkop_koning-mid@1x-0.ba7e56e81e87.png",
+                "bytes": 144305,
+                "hash": "ba7e56e81e87"
               },
               "data": {
-                "path": "assets/okavango-spring/birds/kuifkop_koning-mid@1x-0.d4e91d634e1c.json",
+                "path": "assets/okavango-spring/birds/kuifkop_koning-mid@1x-0.6f29f2a00f53.json",
                 "bytes": 7727,
-                "hash": "d4e91d634e1c"
+                "hash": "6f29f2a00f53"
               }
             }
           ]
@@ -8191,14 +8191,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/bushveld-winter/birds/ou_grys-mid@1x-0.adfb1a8273fa.png",
-                "bytes": 148190,
-                "hash": "adfb1a8273fa"
+                "path": "assets/bushveld-winter/birds/ou_grys-mid@1x-0.66055eb69bce.png",
+                "bytes": 154284,
+                "hash": "66055eb69bce"
               },
               "data": {
-                "path": "assets/bushveld-winter/birds/ou_grys-mid@1x-0.d67294d5f875.json",
+                "path": "assets/bushveld-winter/birds/ou_grys-mid@1x-0.5412add85c9c.json",
                 "bytes": 7722,
-                "hash": "d67294d5f875"
+                "hash": "5412add85c9c"
               }
             }
           ]
@@ -8462,14 +8462,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/common/birds/tarentaal-far@1x-0.8591a9988026.png",
-                "bytes": 48050,
-                "hash": "8591a9988026"
+                "path": "assets/common/birds/tarentaal-far@1x-0.59dea6c19413.png",
+                "bytes": 48259,
+                "hash": "59dea6c19413"
               },
               "data": {
-                "path": "assets/common/birds/tarentaal-far@1x-0.e05c00a6d2fc.json",
+                "path": "assets/common/birds/tarentaal-far@1x-0.c71992411497.json",
                 "bytes": 10498,
-                "hash": "e05c00a6d2fc"
+                "hash": "c71992411497"
               }
             }
           ]
@@ -8605,26 +8605,26 @@
           "pages": [
             {
               "image": {
-                "path": "assets/common/birds/tarentaal-mid@1x-0.03f01e83e076.png",
-                "bytes": 163059,
-                "hash": "03f01e83e076"
+                "path": "assets/common/birds/tarentaal-mid@1x-0.f0f80cd0a2ae.png",
+                "bytes": 165864,
+                "hash": "f0f80cd0a2ae"
               },
               "data": {
-                "path": "assets/common/birds/tarentaal-mid@1x-0.ee699465a790.json",
+                "path": "assets/common/birds/tarentaal-mid@1x-0.316c178981fc.json",
                 "bytes": 8328,
-                "hash": "ee699465a790"
+                "hash": "316c178981fc"
               }
             },
             {
               "image": {
-                "path": "assets/common/birds/tarentaal-mid@1x-1.ca325c1d3745.png",
-                "bytes": 47649,
-                "hash": "ca325c1d3745"
+                "path": "assets/common/birds/tarentaal-mid@1x-1.2829b788ba60.png",
+                "bytes": 48840,
+                "hash": "2829b788ba60"
               },
               "data": {
-                "path": "assets/common/birds/tarentaal-mid@1x-1.454c6fc7b909.json",
+                "path": "assets/common/birds/tarentaal-mid@1x-1.c7d1cf9b0b4f.json",
                 "bytes": 2674,
-                "hash": "454c6fc7b909"
+                "hash": "c7d1cf9b0b4f"
               }
             }
           ]
@@ -8760,14 +8760,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/common/birds/tarentaal-near@1x-0.fafa71acc016.png",
-                "bytes": 124819,
-                "hash": "fafa71acc016"
+                "path": "assets/common/birds/tarentaal-near@1x-0.3ddf741bd361.png",
+                "bytes": 117810,
+                "hash": "3ddf741bd361"
               },
               "data": {
-                "path": "assets/common/birds/tarentaal-near@1x-0.b61a1af09b97.json",
+                "path": "assets/common/birds/tarentaal-near@1x-0.9f2505753f11.json",
                 "bytes": 2118,
-                "hash": "b61a1af09b97"
+                "hash": "9f2505753f11"
               }
             }
           ]
@@ -8813,26 +8813,26 @@
           "pages": [
             {
               "image": {
-                "path": "assets/late/birds/tarentaal_lavendel-far@1x-0.590a9260ab79.png",
-                "bytes": 31662,
-                "hash": "590a9260ab79"
+                "path": "assets/late/birds/tarentaal_lavendel-far@1x-0.088ccfb52c67.png",
+                "bytes": 31632,
+                "hash": "088ccfb52c67"
               },
               "data": {
-                "path": "assets/late/birds/tarentaal_lavendel-far@1x-0.dd761f501c13.json",
+                "path": "assets/late/birds/tarentaal_lavendel-far@1x-0.c9b21f7e9fec.json",
                 "bytes": 6869,
-                "hash": "dd761f501c13"
+                "hash": "c9b21f7e9fec"
               }
             },
             {
               "image": {
-                "path": "assets/late/birds/tarentaal_lavendel-far@1x-1.9a28491dc727.png",
-                "bytes": 3219,
-                "hash": "9a28491dc727"
+                "path": "assets/late/birds/tarentaal_lavendel-far@1x-1.1867fe80b5e0.png",
+                "bytes": 3215,
+                "hash": "1867fe80b5e0"
               },
               "data": {
-                "path": "assets/late/birds/tarentaal_lavendel-far@1x-1.eb2549075206.json",
+                "path": "assets/late/birds/tarentaal_lavendel-far@1x-1.69f1a31668df.json",
                 "bytes": 730,
-                "hash": "eb2549075206"
+                "hash": "69f1a31668df"
               }
             }
           ]
@@ -8926,14 +8926,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/late/birds/tarentaal_lavendel-mid@1x-0.142e54bc5662.png",
-                "bytes": 155666,
-                "hash": "142e54bc5662"
+                "path": "assets/late/birds/tarentaal_lavendel-mid@1x-0.c00fa090d6b5.png",
+                "bytes": 152564,
+                "hash": "c00fa090d6b5"
               },
               "data": {
-                "path": "assets/late/birds/tarentaal_lavendel-mid@1x-0.b4bba2f5dc79.json",
+                "path": "assets/late/birds/tarentaal_lavendel-mid@1x-0.ed7df4369957.json",
                 "bytes": 7740,
-                "hash": "b4bba2f5dc79"
+                "hash": "ed7df4369957"
               }
             }
           ]
@@ -9029,26 +9029,26 @@
           "pages": [
             {
               "image": {
-                "path": "assets/late/birds/tarentaal_wit-far@1x-0.9b52535a9db3.png",
-                "bytes": 33094,
-                "hash": "9b52535a9db3"
+                "path": "assets/late/birds/tarentaal_wit-far@1x-0.17f79e4d6ec6.png",
+                "bytes": 33533,
+                "hash": "17f79e4d6ec6"
               },
               "data": {
-                "path": "assets/late/birds/tarentaal_wit-far@1x-0.46f7596501f0.json",
+                "path": "assets/late/birds/tarentaal_wit-far@1x-0.0832bce0209c.json",
                 "bytes": 6864,
-                "hash": "46f7596501f0"
+                "hash": "0832bce0209c"
               }
             },
             {
               "image": {
-                "path": "assets/late/birds/tarentaal_wit-far@1x-1.7fcd1d62966a.png",
-                "bytes": 3165,
-                "hash": "7fcd1d62966a"
+                "path": "assets/late/birds/tarentaal_wit-far@1x-1.76626cf91461.png",
+                "bytes": 3155,
+                "hash": "76626cf91461"
               },
               "data": {
-                "path": "assets/late/birds/tarentaal_wit-far@1x-1.069730c1e24b.json",
+                "path": "assets/late/birds/tarentaal_wit-far@1x-1.95c10519f26b.json",
                 "bytes": 725,
-                "hash": "069730c1e24b"
+                "hash": "95c10519f26b"
               }
             }
           ]
@@ -9142,14 +9142,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/late/birds/tarentaal_wit-mid@1x-0.1d763d56cb4a.png",
-                "bytes": 160822,
-                "hash": "1d763d56cb4a"
+                "path": "assets/late/birds/tarentaal_wit-mid@1x-0.c32365459802.png",
+                "bytes": 162683,
+                "hash": "c32365459802"
               },
               "data": {
-                "path": "assets/late/birds/tarentaal_wit-mid@1x-0.cd94bcdd67fd.json",
+                "path": "assets/late/birds/tarentaal_wit-mid@1x-0.613e3e503356.json",
                 "bytes": 7735,
-                "hash": "cd94bcdd67fd"
+                "hash": "613e3e503356"
               }
             }
           ]
