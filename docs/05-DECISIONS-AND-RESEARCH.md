@@ -4158,6 +4158,16 @@ them out of the entry chunk, +1.5 KB gzip), and portal/store builds drop the sto
 (raw `VITE_PLATFORM` flag). First download, gzip, main → 1.18.0: web 2,993.7 → 2,994.9 KB, Poki
 2,984.9 → 2,985.6 KB, CrazyGames 2,985.1 → 2,985.7 KB (`npm run size -- --strict` OK).
 
+- *Review round 2.* Corrections that shipped no longer block the next round: `text:apply` skips an
+  edit whose text is already its `to`, and the tab drops such edits on load and flags edits whose
+  original changed (shown with the text now: Keep mine or Revert). Edits for lines no longer in the
+  game are listed with Revert. `text:apply` also refuses placeholder changes and empty lines. The
+  privacy paragraph's Afrikaans-names wording (`privacyNames`) is listed, and edits win over it. A
+  malformed edit no longer clears the store. `npm run audio:voice -- --redo` re-makes the clips
+  `redo.json` lists and takes them off. Phones: on short screens the texts tab keeps the header to
+  the title and the tabs, the toolbars scroll sideways, help opens from "?", and Save stays above
+  the keyboard.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
