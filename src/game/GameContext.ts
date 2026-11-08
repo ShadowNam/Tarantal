@@ -153,6 +153,8 @@ export interface TestHook {
     lastExport: string | null;
     /** The last ▶: its clip key and what happened. */
     played: { key: string; result: 'played' | 'missing' | 'failed' } | null;
+    /** Edits of lines no longer in the game (listed in their own box, still exported). */
+    orphans: number;
   } | null;
   /** v1.3x (D-037): the Skietbaan (setup page or the range), or null. */
   range: RangeHookState | null;

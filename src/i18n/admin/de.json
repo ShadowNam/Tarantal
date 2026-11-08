@@ -96,5 +96,6 @@
   "admin.texts.load_failed": "Die Texte wurden nicht geladen (offline?). Versuch es noch mal.",
   "admin.texts.dropped": "{n} deiner Änderungen sind jetzt im Spiel: aus dieser Liste entfernt.",
   "admin.texts.now_says": "Das Spiel sagt jetzt: {text}",
-  "admin.texts.keep_mine": "Meine behalten"
+  "admin.texts.keep_mine": "Meine behalten",
+  "admin.texts.orphans": "Änderungen für Zeilen, die es im Spiel nicht mehr gibt ({n}) — noch im Export; nimm die zurück, die du nicht brauchst."
 }

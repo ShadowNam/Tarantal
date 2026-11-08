@@ -6,7 +6,7 @@
 // Its own lazy chunk (with the text tables it lists): AdminPanel imports it when the tab opens.
 import { fill, LANGUAGES, VOICE_LANGUAGES, type Language } from '../../../i18n/i18n';
 import type { Feel, ContentBundle } from '../../../content/schemas';
-import type { TextEditStore, TextField } from '../../../meta/textEdits';
+import type { TextEdit, TextEditStore, TextField } from '../../../meta/textEdits';
 import { loadVoiceIndex, type VoiceIndex } from '../../assets/voiceIndex';
 import { voiceKey } from '../../assets/AssetManifest';
 import type { AudioDirector } from '../../audio/AudioDirector';
@@ -69,6 +69,8 @@ const TEXTS_CSS = `
 #tm-admin .tnoclip{font-size:12px;color:#a8977c;font-style:italic}
 #tm-admin .tsmall{font:inherit;font-size:13px;min-height:40px;padding:2px 10px;border-radius:8px;border:1px dashed #8a7458;
   background:none;color:#C9BFA6;cursor:pointer;align-self:flex-start;touch-action:manipulation}
+#tm-admin .torphans{border:1px dashed #e58a2e;border-radius:8px;padding:4px 8px;margin:6px 0}
+#tm-admin .torphans[hidden]{display:none}
 #tm-admin .terr{color:#ff9a7a;font-size:13px}
 #tm-admin .tpager{display:flex;gap:8px;align-items:center;justify-content:center;margin:10px 0 4px}
 #tm-admin .texport{width:100%;min-height:120px;font-family:ui-monospace,monospace;font-size:12px}
@@ -161,6 +163,8 @@ export class TextsPanel {
   private readonly dropped: number;
   /** Edits whose original changed since they were made (`table|key|lang|field`). */
   private readonly stale: Set<string>;
+  /** The box listing edits of lines no longer in the game (empty: hidden). */
+  private readonly orphanBox: HTMLElement;
   private filter: LineFilter = { query: '', voicedOnly: false, changedOnly: false, group: null };
   private lang: LangView;
   private page = 0;
@@ -206,7 +210,9 @@ export class TextsPanel {
     this.applyBtn = btn(at('admin.texts.apply'), 'texts-apply', () => {
       this.setStore({ ...this.store, apply: !this.store.apply });
     });
-    this.root.append(this.toolbar(), this.list, this.pager);
+    this.orphanBox = el('div', { className: 'torphans', dataset: { role: 'texts-orphans' } });
+    this.root.append(this.toolbar(), this.orphanBox, this.list, this.pager);
+    this.renderOrphans();
     if (this.dropped > 0) this.say(fill(at('admin.texts.dropped'), { n: this.dropped }));
     this.render();
     void loadVoiceIndex().then((v) => {
@@ -361,11 +367,53 @@ export class TextsPanel {
       error: this.error,
       lastExport: this.lastExport,
       played: this.played,
+      orphans: this.orphans().length,
     };
   }
 
   private republish(): void {
     this.publish(this.lines.filter((l) => isChanged(l, this.edits)).length);
+  }
+
+  /** Stored edits whose line (or language, or `say` field) is no longer in the game. */
+  private orphans(): TextEdit[] {
+    return reconcileEdits(this.lines, this.store.edits).orphans.slice();
+  }
+
+  private renderOrphans(): void {
+    const list = this.orphans();
+    this.orphanBox.hidden = list.length === 0;
+    if (list.length === 0) {
+      this.orphanBox.replaceChildren();
+      return;
+    }
+    this.orphanBox.replaceChildren(
+      el('h3', { textContent: fill(at('admin.texts.orphans'), { n: list.length }) }),
+      ...list.map((e) =>
+        el(
+          'div',
+          { className: 'row', dataset: { orphan: editId(e) } },
+          el('span', {
+            className: 'tkey',
+            textContent: `${e.key} · ${e.table} · ${e.lang.toUpperCase()}${e.field === 'say' ? ` · ${at('admin.texts.spoken_as')}` : ''}`,
+          }),
+          el('span', { className: 'twas', textContent: e.to }),
+          btn(
+            at('admin.texts.revert'),
+            'texts-revert-orphan',
+            () => {
+              const id = editId(e);
+              this.setStore({
+                ...this.store,
+                edits: this.store.edits.filter((x) => editId(x) !== id),
+              });
+              this.renderOrphans();
+            },
+            'tsmall',
+          ),
+        ),
+      ),
+    );
   }
 
   private renderPage(): void {

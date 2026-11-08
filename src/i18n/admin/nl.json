@@ -96,5 +96,6 @@
   "admin.texts.load_failed": "De teksten zijn niet geladen (offline?). Probeer het opnieuw.",
   "admin.texts.dropped": "{n} van je wijzigingen zitten nu in het spel: uit deze lijst gehaald.",
   "admin.texts.now_says": "Het spel zegt nu: {text}",
-  "admin.texts.keep_mine": "Mijn versie houden"
+  "admin.texts.keep_mine": "Mijn versie houden",
+  "admin.texts.orphans": "Wijzigingen voor regels die niet meer in het spel zitten ({n}) — nog in je export; draai terug wat je niet nodig hebt."
 }

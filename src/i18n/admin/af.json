@@ -96,5 +96,6 @@
   "admin.texts.load_failed": "Die tekste het nie gelaai nie (aflyn?). Probeer weer.",
   "admin.texts.dropped": "{n} van jou veranderinge is nou in die spel: van hierdie lys verwyder.",
   "admin.texts.now_says": "Die spel sê nou: {text}",
-  "admin.texts.keep_mine": "Hou myne"
+  "admin.texts.keep_mine": "Hou myne",
+  "admin.texts.orphans": "Veranderinge vir reëls wat nie meer in die spel is nie ({n}) — nog in jou uitvoer; kanselleer dié wat jy nie nodig het nie."
 }
