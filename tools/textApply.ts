@@ -195,29 +195,64 @@ export interface RedoFile {
   readonly redo: Readonly<Record<VoiceLanguage, readonly string[]>>;
 }
 
+const REDO_COMMENT =
+  'v1.14 (D-076): voiced lines whose text or `say` changed (npm run text:apply), per voice language. `npm run audio:voice -- --redo` re-makes exactly these clips and empties the lists (a line kept by a human recording stays listed); the later voices job may read it the same way.';
+
+/** redo.json as it is (tolerant: an old or hand-edited file without some fields reads as empty). */
+export function readRedo(root: string): RedoFile {
+  const path = join(root, REDO_PATH);
+  const empty = { en: [], af: [], de: [] };
+  let raw: unknown = null;
+  if (existsSync(path)) {
+    try {
+      raw = JSON.parse(readFileSync(path, 'utf8'));
+    } catch {
+      raw = null;
+    }
+  }
+  const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+  const lists = (typeof o['redo'] === 'object' && o['redo'] !== null ? o['redo'] : {}) as Record<
+    string,
+    unknown
+  >;
+  const redo: Record<VoiceLanguage, string[]> = { ...empty };
+  for (const l of VOICE_LANGUAGES) {
+    const v = lists[l];
+    redo[l] = Array.isArray(v) ? v.filter((k): k is string => typeof k === 'string') : [];
+  }
+  const sources = Array.isArray(o['sources'])
+    ? o['sources'].filter((k): k is string => typeof k === 'string')
+    : [];
+  return { version: 1, $comment: REDO_COMMENT, sources, redo };
+}
+
+/** redo.json without the clips just re-made (`done`); no sources left once every list is empty. */
+export function redoAfter(
+  file: RedoFile,
+  done: Readonly<Partial<Record<VoiceLanguage, readonly string[]>>>,
+): RedoFile {
+  const redo = {} as Record<VoiceLanguage, string[]>;
+  for (const l of VOICE_LANGUAGES) {
+    const d = new Set(done[l] ?? []);
+    redo[l] = file.redo[l].filter((k) => !d.has(k));
+  }
+  const left = VOICE_LANGUAGES.some((l) => redo[l].length > 0);
+  return { version: 1, $comment: REDO_COMMENT, sources: left ? file.sources : [], redo };
+}
+
 /** redo.json with this run's keys added to any already listed (until the voices job clears it). */
 export function mergeRedo(
   root: string,
   source: string,
   redo: Readonly<Record<VoiceLanguage, readonly string[]>>,
 ): RedoFile {
-  const path = join(root, REDO_PATH);
-  let old: RedoFile | null = null;
-  if (existsSync(path)) {
-    try {
-      old = JSON.parse(readFileSync(path, 'utf8')) as RedoFile;
-    } catch {
-      old = null;
-    }
-  }
+  const old = readRedo(root);
   const merged = {} as Record<VoiceLanguage, string[]>;
-  for (const l of VOICE_LANGUAGES)
-    merged[l] = [...new Set([...(old?.redo[l] ?? []), ...redo[l]])].sort();
+  for (const l of VOICE_LANGUAGES) merged[l] = [...new Set([...old.redo[l], ...redo[l]])].sort();
   return {
     version: 1,
-    $comment:
-      'v1.14 (D-076): voiced lines whose text or `say` changed (npm run text:apply), per voice language: the clips the voices job re-makes. That job empties these lists.',
-    sources: [...new Set([...(old?.sources ?? []), source])],
+    $comment: REDO_COMMENT,
+    sources: [...new Set([...old.sources, source])],
     redo: merged,
   };
 }

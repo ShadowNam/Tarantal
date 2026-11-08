@@ -300,8 +300,10 @@ admin page's Texts & voices tab and exports a corrections file (saved to Dropbox
 tables and `tools/audio/voice.config.json`, and writes `art-source/audio/voice/redo.json`:
 `{ version: 1, sources: [the files applied], redo: { en: [keys], af: [...], de: [...] } }`, the
 voiced lines whose spoken words changed (a text edit under an existing `say` line changes nothing
-Oupa says and is not listed). That file is the input of the later voices job (the OpenRouter voices):
-it re-makes exactly those clips per language, then empties the lists. Dutch has no voice of its own.
+Oupa says and is not listed). `npm run audio:voice -- --redo` re-makes
+exactly those clips with the interim voices and takes them off the lists after a successful run (a
+line kept by a human recording stays listed); the later voices job (the OpenRouter voices) reads the
+same lists. Dutch has no voice of its own.
 
 **Interim voices** (v1.5): `npm run audio:voice` makes the interim packs offline with open-source
 TTS (`tools/audio/voice.ts`, `voice_tts.py`, `voice.config.json`; engines and licences in art

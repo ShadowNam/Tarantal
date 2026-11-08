@@ -7,6 +7,8 @@ import {
   CorrectionsSchema,
   fileOf,
   mergeRedo,
+  readRedo,
+  redoAfter,
   REDO_PATH,
   VOICE_CONFIG,
   type Correction,
@@ -225,5 +227,24 @@ describe('redo list', () => {
     expect(mergeRedo(root, 'c.json', { en: [], af: [], de: ['bark.z'] }).sources).toEqual([
       'c.json',
     ]);
+  });
+
+  it('reads an old or broken redo.json as empty lists, and empties what audio:voice made', () => {
+    const path = join(root, REDO_PATH);
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, JSON.stringify({ version: 1, sources: ['a.json'] }));
+    expect(readRedo(root).redo).toEqual({ en: [], af: [], de: [] });
+    expect(mergeRedo(root, 'b.json', { en: ['bark.x'], af: [], de: [] }).redo.en).toEqual([
+      'bark.x',
+    ]);
+    writeFileSync(path, 'not json');
+    expect(readRedo(root).sources).toEqual([]);
+    const f = mergeRedo(root, 'c.json', { en: ['bark.x', 'bark.y'], af: ['bark.x'], de: [] });
+    const partly = redoAfter(f, { en: ['bark.x'] });
+    expect(partly.redo).toEqual({ en: ['bark.y'], af: ['bark.x'], de: [] });
+    expect(partly.sources).toEqual(['c.json']);
+    const done = redoAfter(partly, { en: ['bark.y'], af: ['bark.x'] });
+    expect(done.redo).toEqual({ en: [], af: [], de: [] });
+    expect(done.sources).toEqual([]);
   });
 });
