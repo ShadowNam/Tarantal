@@ -642,6 +642,28 @@ export const BaboonsSchema = obj({
      *  the panorama. */
     alertRadiusU: fraction,
   }),
+  /** v1.16 (D-078): the troop's calls (view only: never in the sim). A male's echoing "wa-hoo"
+   *  every wahooSeconds while the troop is on the ridge (and with each raid's warning); a bark
+   *  when a member is up over the edge and the aim comes within aimNearPx of it (at most every
+   *  aimBarkSeconds); now and then a grunt (a youngster: a squeal) as one comes up for a look; a
+   *  scream from a raider scared off. Idle calls keep minGapSeconds apart. levelDb mixes them under
+   *  the music; each plane is quieter by planeDb, the far ones dulled by farLowpassHz. */
+  calls: obj({
+    wahooSeconds: range(pos),
+    minGapSeconds: pos,
+    aimBarkSeconds: pos,
+    aimNearPx: pos,
+    gruntChance: fraction,
+    squealChance: fraction,
+    levelDb: z.number().max(0),
+    planeDb: obj({
+      near: z.number().max(0),
+      mid: z.number().max(0),
+      far: z.number().max(0),
+      ver: z.number().max(0),
+    }),
+    farLowpassHz: pos,
+  }),
   hit: obj({
     hitsToBag: posInt,
     /** A bagged raider pays this many times a guineafowl's base on its plane (an event bonus:

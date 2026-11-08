@@ -13,7 +13,7 @@ import type * as Phaser from 'phaser';
 import type { BaboonTuning } from '../../../content/schemas';
 import type { SimEvent } from '../../../sim/events';
 import type { BaboonView as SimBaboon, PlaneId, RaiderView, SimState } from '../../../sim/types';
-import type { AudioDirector } from '../../audio/AudioDirector';
+import type { AudioDirector, Synth } from '../../audio/AudioDirector';
 import { designSize } from '../../layout';
 import type { ParallaxView } from '../ParallaxView';
 import { riseOf } from '../../../sim/baboons/baboons';
@@ -27,7 +27,17 @@ import {
   baboonTexelsPerPx,
   type BaboonFrame,
 } from './baboonSheet';
-import { BABOON_SOUNDS, BABOON_SYNTH, RAID_SOUND, type BaboonSound } from './baboonSounds';
+import { BaboonCalls } from './baboonCalls';
+import {
+  BABOON_CALLS,
+  BABOON_SOUNDS,
+  BABOON_SYNTH,
+  RAID_SOUND,
+  type BaboonCall,
+} from './baboonSounds';
+
+/** A call with no synth stand-in: silent until its recording arrives. */
+const SILENT: Synth = () => 0;
 
 /** Ticks per frame: walking, running, a peek's look round, the bark, an action's swap. */
 const WALK_TICKS = 8;
@@ -157,6 +167,9 @@ export class BaboonView {
   private hookList: BaboonHook[] = [];
   /** Raiders whose action's sound has played (cleared when they go). */
   private readonly actHeard = new Set<number>();
+  /** v1.16 (D-078): each ridge member's pose last frame (a look starting: maybe a grunt). */
+  private readonly lastPose = new Map<number, string>();
+  private readonly calls: BaboonCalls;
   /** Milliseconds the last update took (perf.spec: baboonMs). */
   lastMs = 0;
   private readonly tumbleTicks: number;
@@ -173,6 +186,8 @@ export class BaboonView {
   ) {
     this.tumbleTicks = Math.max(1, Math.round(tuning.hit.tumbleSeconds * 60));
     this.riseTicks = secondsToTicks(tuning.troop.riseSeconds);
+    // The calls' timing draws: view only (sounds never touch the sim).
+    this.calls = new BaboonCalls(tuning.calls, Math.random);
   }
 
   /** True once the delivered sheet (Standard or its HD twin) is under the key. */
@@ -489,45 +504,129 @@ export class BaboonView {
     this.lastMs = this.now() - t0;
   }
 
-  /** The baboons' sounds: the lookout's bark, a hit raider's screech, the raid's own sound when
-   *  a raider gets to work, the thump of a bagged one. */
-  handle(events: readonly SimEvent[], state: SimState, audio: AudioDirector, width: number): void {
+  /** The baboons' sounds: the troop's own calls (v1.16, D-078: baboonCalls.ts, rate-limited —
+   *  the echoing wa-hoo, the aimed bark, grunts and squeals, a scared raider's scream), the raid's
+   *  own sound when a raider gets to work, the thump of a bagged one. `aim`: the crosshair on
+   *  screen (design px), or null when it isn't up. */
+  handle(
+    events: readonly SimEvent[],
+    state: SimState,
+    audio: AudioDirector,
+    width: number,
+    aim: { readonly x: number; readonly y: number } | null = null,
+  ): void {
+    const tick = state.tick;
+    const troops = state.baboons?.troops ?? [];
     for (const e of events) {
-      let sound: BaboonSound | null = null;
-      let plane: PlaneId | null = null;
-      let x = 0;
       if (e.type === 'baboonRaidWarned') {
-        const troop = state.baboons?.troops.find((t) => t.id === e.troopId);
+        const troop = troops.find((t) => t.id === e.troopId);
         const m = troop?.members.find((b) => b.id === e.baboonId);
         if (troop !== undefined && m !== undefined) {
-          sound = 'bark';
-          plane = troop.plane;
-          x = m.x;
+          this.calls.warn(tick);
+          this.call('wahoo', troop.plane, m.x, audio, width);
         }
       } else if (e.type === 'baboonHit') {
-        sound =
-          e.role === 'raider' && e.hitsLeft > 0 ? 'screech' : e.role === 'raider' ? null : 'bark';
-        plane = e.plane;
-        x = e.x;
+        if (e.role === 'raider' && e.hitsLeft > 0) {
+          // Hit once and running for it: the scream.
+          this.calls.scream();
+          this.call('scream', e.plane, e.x, audio, width);
+        } else if (e.role !== 'raider') {
+          this.calls.warn(tick);
+          this.call('wahoo', e.plane, e.x, audio, width);
+        }
       } else if (e.type === 'baboonBagged') {
-        sound = 'thump';
-        plane = e.plane;
-        x = e.x;
+        audio.playExtra(
+          BABOON_SOUNDS.thump,
+          this.pan(e.plane, e.x, width),
+          BABOON_SYNTH.thump,
+          1,
+          this.levelDb(e.plane),
+        );
       } else if (e.type === 'troopFled' && e.cause === 'loud') {
-        sound = 'bark';
-        plane = e.plane;
-        x = e.x;
+        this.calls.warn(tick);
+        this.call('wahoo', e.plane, e.x, audio, width);
       }
-      if (sound !== null && plane !== null)
-        audio.playExtra(BABOON_SOUNDS[sound], this.pan(plane, x, width), BABOON_SYNTH[sound]);
+    }
+    for (const troop of troops) {
+      let caller: SimBaboon | null = null;
+      for (const m of troop.members) {
+        const was = this.lastPose.get(m.id);
+        if (was !== m.pose) this.lastPose.set(m.id, m.pose);
+        const up = m.pose === 'peek' || m.pose === 'sentinel';
+        if (up && was === 'hide') {
+          const c = this.calls.cameUp(tick, m.role === 'juvenile');
+          if (c !== null) this.call(c, troop.plane, m.x, audio, width);
+        }
+        if (caller === null && (m.role === 'lookout' || m.role === 'male')) caller = m;
+        // The aim comes near one looking over the edge: it barks at the gun.
+        if (up && aim !== null && this.nearAim(troop.layerId, m.x, m.y, aim)) {
+          if (this.calls.aimed(tick)) this.call('bark', troop.plane, m.x, audio, width);
+        }
+      }
+      // The idle wa-hoo from behind the ridge (a male's place), while the troop is there.
+      if (caller !== null && this.calls.wahoo(tick, !troop.fled))
+        this.call('wahoo', troop.plane, caller.x, audio, width);
     }
     // A raider getting to work: its action's sound (once per raider).
     for (const r of state.baboons?.raiders ?? [])
       if (r.phase === 'act' && !this.actHeard.has(r.id)) {
         this.actHeard.add(r.id);
         const sound = RAID_SOUND[r.action];
-        audio.playExtra(BABOON_SOUNDS[sound], this.pan(r.plane, r.x, width), BABOON_SYNTH[sound]);
+        audio.playExtra(
+          BABOON_SOUNDS[sound],
+          this.pan(r.plane, r.x, width),
+          BABOON_SYNTH[sound],
+          1,
+          this.levelDb(r.plane),
+        );
       }
+  }
+
+  /** A troop call from layer x on a plane: its recording (else the old synth), at its distance. */
+  private call(
+    c: BaboonCall | 'bark',
+    plane: PlaneId,
+    x: number,
+    audio: AudioDirector,
+    width: number,
+  ): void {
+    const key = c === 'bark' ? BABOON_SOUNDS.bark : BABOON_CALLS[c];
+    const synth = c === 'scream' ? BABOON_SYNTH.screech : BABOON_SYNTH.bark;
+    const far = plane === 'far' || plane === 'ver';
+    audio.playExtra(
+      key,
+      this.pan(plane, x, width),
+      c === 'grunt' || c === 'squeal' ? SILENT : synth,
+      1,
+      this.levelDb(plane),
+      far ? this.tuning.calls.farLowpassHz : 0,
+    );
+  }
+
+  private levelDb(plane: PlaneId): number {
+    return this.tuning.calls.levelDb + this.tuning.calls.planeDb[plane];
+  }
+
+  /** The aim (screen design px) within aimNearPx of a ridge member's head and shoulders. */
+  private nearAim(
+    layerId: string,
+    x: number,
+    y: number,
+    aim: { readonly x: number; readonly y: number },
+  ): boolean {
+    const layer = this.parallax.layer(layerId);
+    if (layer === undefined) return false;
+    const sx = layer.root.x + x * layer.root.scaleX;
+    const sy = layer.root.y + y * layer.root.scaleY;
+    const r = this.tuning.calls.aimNearPx;
+    const dx = aim.x - sx;
+    const dy = aim.y - sy;
+    return dx * dx + dy * dy <= r * r;
+  }
+
+  /** e2e: the troop's calls so far (the rate limit). */
+  get callCounts(): Readonly<BaboonCalls['counts']> {
+    return this.calls.counts;
   }
 
   private pan(plane: PlaneId, x: number, width: number): number {

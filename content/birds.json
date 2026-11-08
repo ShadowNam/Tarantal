@@ -952,6 +952,18 @@
       "backSeconds": [6, 10],
       "alertRadiusU": 0.12
     },
+    "calls": {
+      "$comment": "v1.16 (D-078): the troop's calls (BaboonView, view only). A wa-hoo every 20–40 s while the troop is on the ridge (and with each raid's warning); a bark when the aim comes near one up over the edge (at most every 10 s); grunts and a youngster's squeal as they come up; a raider's scream when scared off. Idle calls keep 4 s apart; −4 dB under the music, quieter and duller on far planes.",
+      "wahooSeconds": [20, 40],
+      "minGapSeconds": 4,
+      "aimBarkSeconds": 10,
+      "aimNearPx": 140,
+      "gruntChance": 0.3,
+      "squealChance": 0.25,
+      "levelDb": -4,
+      "planeDb": { "near": 0, "mid": -3, "far": -7, "ver": -11 },
+      "farLowpassHz": 3000
+    },
     "hit": {
       "hitsToBag": 2,
       "pointsMul": 3,

@@ -495,6 +495,7 @@ const hook: TestHook = {
   tellMs: 0,
   baboons: null,
   baboonRaid: null,
+  baboonCalls: null,
   baboonMs: 0,
   brakkie: null,
   brakkieMs: 0,

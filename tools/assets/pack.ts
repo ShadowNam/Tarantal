@@ -883,6 +883,8 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       if (o.catalog.entries.get(key)?.group === BRAAI_GROUP) group = BRAAI_GROUP;
       // v1.12 (D-069): Brakkie's with "brakkie".
       if (o.catalog.entries.get(key)?.group === BRAKKIE_GROUP) group = BRAKKIE_GROUP;
+      // v1.16 (D-078): the baboons' calls with "baboons" (after the first download).
+      if (o.catalog.entries.get(key)?.group === BABOON_GROUP) group = BABOON_GROUP;
       // v1.13 (D-075): the cameos' with their area's "cameos-<area>".
       const cameoG = o.catalog.entries.get(key)?.group;
       if (cameoG?.startsWith('cameos-') === true) group = cameoG;

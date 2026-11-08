@@ -9,12 +9,12 @@
       "group": "baboons",
       "origin": "interim",
       "file": {
-        "path": "assets/baboons/img/baboons_sheet.787ecead5242.png",
-        "bytes": 120094,
-        "hash": "787ecead5242"
+        "path": "assets/baboons/img/baboons_sheet.4b9a7a4dc6ff.png",
+        "bytes": 115128,
+        "hash": "4b9a7a4dc6ff"
       },
       "width": 756,
-      "height": 910,
+      "height": 868,
       "originX": 0,
       "originY": 0
     },
@@ -33,9 +33,9 @@
       "group": "braai",
       "origin": "interim",
       "file": {
-        "path": "assets/braai/img/braai_sheet.a8183d73d5dd.png",
-        "bytes": 42416,
-        "hash": "a8183d73d5dd"
+        "path": "assets/braai/img/braai_sheet.d2bd376c5c9a.png",
+        "bytes": 42540,
+        "hash": "d2bd376c5c9a"
       },
       "width": 512,
       "height": 432,
@@ -3276,9 +3276,9 @@
       "group": "karoo-autumn",
       "origin": "interim",
       "file": {
-        "path": "assets/karoo-autumn/img/karoo_bakkie.6afbf44d9f26.png",
-        "bytes": 15559,
-        "hash": "6afbf44d9f26"
+        "path": "assets/karoo-autumn/img/karoo_bakkie.4e5264325fd2.png",
+        "bytes": 14164,
+        "hash": "4e5264325fd2"
       },
       "width": 500,
       "height": 300
@@ -9878,6 +9878,78 @@
       "loop": false,
       "lufs": -14,
       "peakDb": -8.6
+    },
+    "sfx/baboon_grunt": {
+      "group": "baboons",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/baboons/audio/sfx/baboon_grunt.36f4763c63be.ogg",
+        "bytes": 9505,
+        "hash": "36f4763c63be"
+      },
+      "mp3": {
+        "path": "assets/baboons/audio/sfx/baboon_grunt.58cc1578f337.mp3",
+        "bytes": 9980,
+        "hash": "58cc1578f337"
+      },
+      "loop": false,
+      "lufs": -20.6,
+      "peakDb": -1
+    },
+    "sfx/baboon_scream": {
+      "group": "baboons",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/baboons/audio/sfx/baboon_scream.b94145a33fdb.ogg",
+        "bytes": 12086,
+        "hash": "b94145a33fdb"
+      },
+      "mp3": {
+        "path": "assets/baboons/audio/sfx/baboon_scream.ec7469d52f4a.mp3",
+        "bytes": 9439,
+        "hash": "ec7469d52f4a"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -6.8
+    },
+    "sfx/baboon_squeal": {
+      "group": "baboons",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/baboons/audio/sfx/baboon_squeal.51196cfe84cc.ogg",
+        "bytes": 10475,
+        "hash": "51196cfe84cc"
+      },
+      "mp3": {
+        "path": "assets/baboons/audio/sfx/baboon_squeal.cfa94747cc28.mp3",
+        "bytes": 9570,
+        "hash": "cfa94747cc28"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -7.5
+    },
+    "sfx/baboon_wahoo": {
+      "group": "baboons",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/baboons/audio/sfx/baboon_wahoo.36ae7a577ee2.ogg",
+        "bytes": 19733,
+        "hash": "36ae7a577ee2"
+      },
+      "mp3": {
+        "path": "assets/baboons/audio/sfx/baboon_wahoo.d77d33cfd4fc.mp3",
+        "bytes": 17762,
+        "hash": "d77d33cfd4fc"
+      },
+      "loop": false,
+      "lufs": -16.6,
+      "peakDb": -1
     },
     "sfx/bat_squeak": {
       "group": "feesdae",

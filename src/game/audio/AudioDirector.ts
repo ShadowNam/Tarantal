@@ -733,12 +733,22 @@ export class AudioDirector {
 
   /** 24 Oct (D-037): a sound a lazy chunk brings (its recording once added, else its synth).
    *  v1.8 (D-050): `rate` pitches a recording (the tin cans' clink rises with the chain). */
-  playExtra(key: string, pan: number, synth: Synth, rate = 1): void {
+  playExtra(key: string, pan: number, synth: Synth, rate = 1, levelDb = 0, lowpassHz = 0): void {
     if (this.ctx === null || this.muted) return;
-    this.voice(key, pan, this.sfxBus, synth, rate);
+    this.voice(key, pan, this.sfxBus, synth, rate, levelDb, lowpassHz);
   }
 
-  private voice(key: string, pan: number, bus: GainNode | null, synth: Synth, pitch = 1): void {
+  /** v1.16 (D-078): `levelDb` (≤ 0) and `lowpassHz` (0 = none) set a call's distance (the
+   *  baboons' calls from a far ridge). */
+  private voice(
+    key: string,
+    pan: number,
+    bus: GainNode | null,
+    synth: Synth,
+    pitch = 1,
+    levelDb = 0,
+    lowpassHz = 0,
+  ): void {
     const { ctx, noise } = this;
     if (ctx === null || bus === null || noise === null) return;
     // v1.9 (D-066): the soundscape is the lowest priority: a game sound that finds every voice
@@ -749,6 +759,21 @@ export class AudioDirector {
     const panner = ctx.createStereoPanner();
     panner.pan.value = Math.max(-MAX_PAN, Math.min(MAX_PAN, pan * MAX_PAN));
     panner.connect(bus);
+    // The voice's input: the panner, or a distance gain (and low-pass) in front of it.
+    let input: AudioNode = panner;
+    if (levelDb < 0 || lowpassHz > 0) {
+      const gain = ctx.createGain();
+      gain.gain.value = 10 ** (levelDb / 20);
+      gain.connect(panner);
+      input = gain;
+      if (lowpassHz > 0) {
+        const lp = ctx.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.value = lowpassHz;
+        lp.connect(gain);
+        input = lp;
+      }
+    }
     this.voices++;
     const buf = this.buffers.get(key);
     let seconds: number;
@@ -758,11 +783,11 @@ export class AudioDirector {
       // v1.7b (D-046): Boeretroos slows the effects (lower and longer); music stays.
       const rate = (bus === this.sfxBus ? this.soundRate : 1) * pitch;
       if (rate !== 1) src.playbackRate.value = rate;
-      src.connect(panner);
+      src.connect(input);
       src.start();
       seconds = buf.duration / rate;
     } else {
-      seconds = synth(ctx, panner, noise);
+      seconds = synth(ctx, input, noise);
     }
     this.env.setTimer(
       () => {

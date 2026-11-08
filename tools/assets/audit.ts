@@ -8,6 +8,7 @@ import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
 import { NUT_SHEET } from '../../src/game/view/palms/makalaniSheet';
 import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
 import { BABOON_SHEET } from '../../src/game/view/baboon/baboonKeys';
+import { BABOON_CALLS } from '../../src/game/view/baboon/baboonSounds';
 import { HARVEST_SHEET } from '../../src/game/view/harvest/harvestKeys';
 import { REENBUI_SHEET } from '../../src/game/view/reenbui/reenbuiKeys';
 import { BRAAI_SHEET, BRAAI_SOUNDS } from '../../src/game/braai/braaiKeys';
@@ -125,6 +126,8 @@ function usages(
   // v1.12 (D-069): Brakkie's sounds by their table key (BRAKKIE_SOUNDS.bark …).
   const dogSound = Object.entries(BRAKKIE_SOUNDS).find(([, k]) => k === key)?.[0];
   if (dogSound !== undefined) needles.push(new RegExp(`BRAKKIE_SOUNDS\\.${dogSound}\\b`));
+  // v1.16 (D-078): the baboons' calls by their table (BABOON_CALLS[call], BaboonView.call()).
+  if (Object.values<string>(BABOON_CALLS).includes(key)) needles.push(/\bBABOON_CALLS\[/);
   // v1.13 (D-075): the cameo sheets by their table (CAMEO_SHEETS[area], CameoView) and the
   // sounds by their table key (CAMEO_SOUNDS.grunt …).
   if (Object.values<string>(CAMEO_SHEETS).includes(key)) needles.push(/\bCAMEO_SHEETS\[/);
