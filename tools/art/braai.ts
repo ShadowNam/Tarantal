@@ -191,134 +191,280 @@ function paints(): Paints {
   };
 }
 
-/** His khaki bush hat: a soft crown with a dent, a band, the brim curled a little. */
-function bushHat(p: Paints): string {
+/** v1.15 (D-077): children clipped to the shape `d` (folds, strands and texture stay inside). */
+function clipped(d: string, ...children: string[]): string {
+  const id = uid('cp');
   return g(
     {},
-    edge(
-      smoothD(
-        [
-          [-50, 2],
-          [-30, -6],
-          [30, -6],
-          [50, 2],
-          [30, 8],
-          [-30, 8],
-        ],
-        true,
-        0.7,
-      ),
-      p.hat.url,
-      2.2,
+    el('clipPath', { id }, el('path', { d })),
+    g({ 'clip-path': `url(#${id})` }, ...children),
+  );
+}
+
+/** v1.15: a dashed stitch line. */
+const stitch = (d: string, colour: string, w: number, dash: number, op = 0.8): string =>
+  el('path', {
+    d,
+    fill: 'none',
+    stroke: colour,
+    'stroke-width': w,
+    'stroke-dasharray': `${r2(dash)} ${r2(dash * 0.9)}`,
+    'stroke-linecap': 'round',
+    opacity: op,
+  });
+
+/** v1.15: a cloth fold: a shade crease with the lit ridge beside it (toward the fire). */
+const fold = (d: string, ridge: string, w = 1.6): string =>
+  g({}, stroke(d, C.khakiShade, w, 0.75), stroke(ridge, C.khakiLit, w * 0.7, 0.5));
+
+/** One guineafowl feather tucked in the hat band (slate grey, white spots). */
+function feather(): string {
+  const d = smoothD(
+    [
+      [0, 0],
+      [-4, -10],
+      [-2, -24],
+      [3, -30],
+      [5, -18],
+      [3, -6],
+    ],
+    true,
+    0.7,
+  );
+  return g(
+    { transform: 'translate(-22 -6) rotate(-28)' },
+    edge(d, '#3C4250', 1),
+    stroke('M1 -2Q0 -16 3 -28', '#1E222A', 0.8),
+    ...[
+      [-1, -8],
+      [2, -12],
+      [-1, -16],
+      [2, -20],
+      [0.5, -24],
+    ].map(([x, y]) => path(ellipseD(x ?? 0, y ?? 0, 0.9, 0.9), '#F4F0E8')),
+  );
+}
+
+/** His khaki bush hat: a soft crown with a pinched dent, a leather band with a guineafowl
+ *  feather, the brim curled a little with its stitching and its shaded underside. */
+function bushHat(p: Paints): string {
+  const brim = smoothD(
+    [
+      [-50, 2],
+      [-30, -6],
+      [30, -6],
+      [50, 2],
+      [30, 8],
+      [-30, 8],
+    ],
+    true,
+    0.7,
+  );
+  const crown = smoothD(
+    [
+      [-28, -2],
+      [-26, -26],
+      [-10, -36],
+      [0, -30],
+      [10, -36],
+      [26, -26],
+      [28, -2],
+    ],
+    true,
+    0.6,
+  );
+  return g(
+    {},
+    edge(brim, p.hat.url, 2.2),
+    clipped(
+      brim,
+      // The underside shows under the front edge, darker; the fire catches the right rim.
+      path('M-52 4Q0 14 52 4L52 12L-52 12Z', C.hatShade, { opacity: 0.7 }),
+      stroke('M30 -4Q46 -2 48 3', C.hatLit, 1.6, 0.8),
     ),
-    edge(
-      smoothD(
-        [
-          [-28, -2],
-          [-26, -26],
-          [-10, -36],
-          [0, -30],
-          [10, -36],
-          [26, -26],
-          [28, -2],
-        ],
-        true,
-        0.6,
-      ),
-      p.hat.url,
-      2.2,
+    stitch('M-44 2Q-28 -3 0 -3Q28 -3 44 2', C.hatShade, 0.8, 2.2, 0.7),
+    edge(crown, p.hat.url, 2.2),
+    clipped(
+      crown,
+      // Shade in the pinch and down the sky side, the felt's soft lit flank on the fire side.
+      path('M-30 -40L-14 -40L-20 0L-30 0Z', C.hatShade, { opacity: 0.35 }),
+      stroke('M-6 -30Q0 -22 6 -30', C.hatShade, 2, 0.9),
+      stroke('M-4 -28Q-2 -16 -3 -8', C.hatShade, 1.2, 0.5),
+      stroke('M14 -30Q22 -24 24 -12', C.hatLit, 1.6, 0.8),
+      stroke('M-18 -30Q-22 -20 -22 -8', '#2E261C', 1, 0.4),
     ),
+    // The leather band, its stitched edge and a brass ring.
     edge(
       polyD([
-        [-28, -8],
-        [28, -8],
+        [-28, -9],
+        [28, -9],
         [28, -1],
         [-28, -1],
       ]),
       '#3A2A1C',
       1.4,
     ),
-    stroke('M-6 -30Q0 -22 6 -30', C.hatShade, 1.6),
-    stroke('M14 -30Q22 -24 24 -12', C.hatLit, 1.4, 0.7),
+    stroke('M-26 -7.5L26 -7.5', '#6A4A2E', 0.8, 0.8),
+    stroke('M6 -3L26 -3', '#7A5634', 0.8, 0.6),
+    edge(ellipseD(20, -5, 2.6, 3), '#C89A52', 0.8),
+    feather(),
   );
 }
 
 /** Oupa's head (D-064's face) by firelight, his bush hat on (or not: the dance raises it). */
 function head(p: Paints, hat: boolean, mouthOpen = false): string {
+  const face = ellipseD(0, -2, 30, 34);
+  const beardD = smoothD(
+    [
+      [-30, 4],
+      [-26, 30],
+      [-14, 52],
+      [0, 58],
+      [14, 52],
+      [26, 30],
+      [30, 4],
+      [16, 16],
+      [0, 14],
+      [-16, 16],
+    ],
+    true,
+    0.7,
+  );
+  const tache = smoothD(
+    [
+      [-20, 14],
+      [-8, 8],
+      [0, 11],
+      [8, 8],
+      [20, 14],
+      [8, 18],
+      [0, 16],
+      [-8, 18],
+    ],
+    true,
+    0.7,
+  );
+  // Beard strands: curling down from the cheeks to the point, darker under, lit on the fire side.
+  const rnd = prng(311);
+  const strands: string[] = [];
+  for (let k = 0; k < 22; k++) {
+    const x0 = -26 + (k / 21) * 52 + (rnd() - 0.5) * 4;
+    const y0 = 10 + Math.abs(x0) * 0.2 + rnd() * 6;
+    const x1 = x0 * 0.45 + (rnd() - 0.5) * 6;
+    const y1 = 40 + (1 - Math.abs(x0) / 30) * 14 + rnd() * 4;
+    const mx = (x0 + x1) / 2 + (x0 < 0 ? -4 : 4);
+    const colour = k % 3 === 0 ? C.beardShade : x0 > 6 ? C.beardLit : '#EEEAE4';
+    strands.push(
+      stroke(
+        `M${r2(x0)} ${r2(y0)}Q${r2(mx)} ${r2((y0 + y1) / 2)} ${r2(x1)} ${r2(y1)}`,
+        colour,
+        k % 3 === 0 ? 1.1 : 0.9,
+        k % 3 === 0 ? 0.7 : 0.8,
+      ),
+    );
+  }
   return g(
     {},
     edge(ellipseD(-31, 2, 7, 11), C.skinShade, 2),
     edge(ellipseD(31, 2, 7, 11), C.skinLit, 2),
-    edge(ellipseD(0, -2, 30, 34), p.face.url, 2.2),
+    // The ears' inner curl.
+    stroke('M-32 -4Q-36 2 -31 9', '#3A2420', 1.2, 0.8),
+    stroke('M32 -4Q36 2 31 9', C.skin, 1.2, 0.9),
+    edge(face, p.face.url, 2.2),
+    clipped(
+      face,
+      // The sky side of the face in cool shade, the brim's shadow over the brow, forehead lines.
+      path('M-34 -40L-16 -40Q-24 0 -14 40L-34 40Z', '#3A2C3A', { opacity: 0.22 }),
+      ...(hat
+        ? [path(ellipseD(0, -22, 34, 9), '#2A1810', { opacity: 0.35 })]
+        : [
+            stroke('M-16 -22Q0 -26 16 -22', C.skinShade, 1.1, 0.6),
+            stroke('M-12 -27Q0 -30 12 -27', C.skinShade, 1, 0.5),
+          ]),
+      // Crow's feet from the laughing eyes, the cheeks ruddy in the heat.
+      stroke('M-21 -4L-25 -6M-21 -2L-25 -1', C.skinShade, 0.9, 0.7),
+      stroke('M21 -4L25 -6M21 -2L25 -1', '#8A4A34', 0.9, 0.7),
+      path(ellipseD(-17, 5, 6, 3.6), '#D06048', { opacity: 0.3 }),
+      path(ellipseD(20, 6, 6, 3.6), '#F07A5A', { opacity: 0.5 }),
+    ),
     // Thin white hair at the temples when the hat is off.
     ...(hat
       ? []
       : [
           stroke('M-28 -18Q-20 -34 0 -36Q20 -34 28 -18', C.beard, 5, 0.9),
           stroke('M-24 -24Q-14 -32 -4 -32', C.beardLit, 2, 0.8),
+          stroke('M4 -33Q16 -32 24 -24', C.beardLit, 1.4, 0.7),
         ]),
-    edge(
-      smoothD(
-        [
-          [-30, 4],
-          [-26, 30],
-          [-14, 52],
-          [0, 58],
-          [14, 52],
-          [26, 30],
-          [30, 4],
-          [16, 16],
-          [0, 14],
-          [-16, 16],
-        ],
-        true,
-        0.7,
-      ),
-      p.beard.url,
-      2,
-      '#4A4650',
+    edge(beardD, p.beard.url, 2, '#4A4650'),
+    clipped(
+      beardD,
+      path('M-34 0L-18 0Q-20 30 -6 64L-34 64Z', C.beardShade, { opacity: 0.35 }),
+      ...strands,
     ),
+    // The nose: a sun-browned bulb, lit on the fire side, nostrils.
     edge(
       smoothD(
         [
-          [-20, 14],
-          [-8, 8],
-          [0, 11],
-          [8, 8],
-          [20, 14],
-          [8, 18],
-          [0, 16],
-          [-8, 18],
+          [-3, -4],
+          [4, -4],
+          [8, 6],
+          [6, 11],
+          [-5, 11],
+          [-8, 6],
         ],
         true,
-        0.7,
+        0.8,
       ),
-      C.beard,
-      1.6,
-      '#4A4650',
+      p.face.url,
+      1.4,
+      '#3A2018',
+    ),
+    path(ellipseD(4, 4, 2.4, 3), C.skinLit, { opacity: 0.8 }),
+    path(ellipseD(-3, 10, 1.6, 1), '#3A1A14', { opacity: 0.7 }),
+    path(ellipseD(4, 10, 1.6, 1), '#3A1A14', { opacity: 0.7 }),
+    edge(tache, C.beard, 1.6, '#4A4650'),
+    clipped(
+      tache,
+      stroke('M-18 14Q-10 12 -4 14M-16 16Q-10 15 -6 17', C.beardShade, 0.9, 0.8),
+      stroke('M4 14Q10 12 18 14M6 17Q10 15 16 16', C.beardLit, 0.9, 0.9),
     ),
     mouthOpen ? edge(ellipseD(0, 25, 6, 5), '#3A1A14', 1.6) : stroke('M-6 24Q0 28 6 24', C.ink, 2),
-    path(ellipseD(2, 4, 6, 6), C.skinLit, { opacity: 0.55 }),
+    ...(mouthOpen ? [path(ellipseD(0, 28, 3.4, 1.8), '#B8504A', { opacity: 0.9 })] : []),
     stroke('M-17 -6Q-12 -10 -7 -6', C.ink, 2.6),
     stroke('M7 -6Q12 -10 17 -6', C.ink, 2.6),
+    // A wet glint in each eye's crease (the fire on the right).
+    path(ellipseD(14, -8, 1.3, 0.9), '#FFE8C8', { opacity: 0.9 }),
+    path(ellipseD(-10, -8, 1.1, 0.8), '#E8E0F0', { opacity: 0.6 }),
     stroke('M-19 -14Q-12 -19 -5 -15', C.beard, 4),
     stroke('M5 -15Q12 -19 19 -14', C.beardLit, 4),
-    path(ellipseD(20, 6, 5, 3), '#F07A5A', { opacity: 0.5 }),
+    stroke('M-17 -15L-13 -18M-12 -16L-9 -18M8 -16L11 -18M13 -16L17 -18', C.beardShade, 0.7, 0.8),
     ...(hat ? [g({ transform: 'translate(0 -24) rotate(-3)' }, bushHat(p))] : []),
   );
 }
 
-/** A hand (a mitten with a thumb), its back toward us. */
+/** A hand (a mitten with a thumb), its back toward us: knuckles, a lit edge. */
 function hand(p: Paints, cx: number, cy: number, rot: number, r = 10): string {
   return g(
     { transform: `translate(${r2(cx)} ${r2(cy)}) rotate(${r2(rot)})` },
     edge(ellipseD(0, 0, r, r * 1.1), p.skin.url, 1.8),
     edge(ellipseD(r * 0.8, -r * 0.5, r * 0.42, r * 0.6), p.skin.url, 1.4),
     stroke(`M${-r * 0.5} ${r * 0.2}L${r * 0.4} ${r * 0.3}`, C.skinShade, 1, 0.7),
+    stroke(
+      `M${-r * 0.6} ${-r * 0.35}L${-r * 0.35} ${-r * 0.5}M${-r * 0.15} ${-r * 0.55}L${r * 0.1} ${-r * 0.65}`,
+      C.skinShade,
+      0.9,
+      0.6,
+    ),
+    stroke(
+      `M${r * 0.6} ${-r * 0.1}Q${r * 0.9} ${r * 0.4} ${r * 0.4} ${r * 0.85}`,
+      C.skinLit,
+      1,
+      0.7,
+    ),
   );
 }
 
-/** The enamel mug, handle right; its rim at (0, 0). */
+/** The enamel mug, handle right; its rim at (0, 0): a dark rim, a chip, coffee, steam. */
 function mug(): string {
   const body = lit3(C.enamelShade, C.enamel, C.enamelLit);
   return g(
@@ -335,108 +481,288 @@ function mug(): string {
       body.url,
       1.8,
     ),
+    stroke('M-11.5 22.5L12 22.5', '#14223A', 2, 0.8),
     edge(ellipseD(0.5, 0, 12.5, 3.4), '#E8EEF4', 1.4),
+    stroke('M-11 0.6Q0.5 4.6 12 0.6', '#1C2A40', 1.2, 0.9),
     path(ellipseD(0.5, 0.6, 10, 2.2), '#3A2010'),
+    path(ellipseD(-6, 14, 2.2, 1.6), '#F4F0E8', { opacity: 0.9 }),
+    path(ellipseD(-6, 14, 1.2, 0.9), '#1A1A20'),
     stroke('M-8 6L-8 20', '#E8F0FF', 1.4, 0.4),
+    stroke('M11 4L10.5 20', '#FFB070', 1.2, 0.6),
     // Steam: two soft curls.
     stroke('M-3 -6Q-7 -14 -2 -20Q2 -26 -2 -32', '#E8E4E0', 2, 0.35),
     stroke('M5 -5Q1 -12 6 -18', '#E8E4E0', 1.6, 0.3),
   );
 }
 
-/** A leg from hip to foot with a knee: shorts on the thigh, the bare shin, sock and velskoen. */
+/** A leg from hip to foot with a knee: shorts on the thigh (hem, creases), the bare shin, a
+ *  ribbed sock folded over, and a velskoen with laces, a welted sole and a scuffed toe. */
 function leg(p: Paints, hip: P, knee: P, foot: P, toe: 1 | -1): string {
   const ankle: P = [foot[0], foot[1] - 30];
   const sockTop: P = [
     foot[0] + (knee[0] - foot[0]) * 0.22,
     foot[1] - 30 - (foot[1] - 30 - knee[1]) * 0.22,
   ];
+  const hem: P = [knee[0] + (hip[0] - knee[0]) * 0.18, knee[1] + (hip[1] - knee[1]) * 0.18];
+  const thigh = limbD(hip, hem, 34, 28);
+  const lerp = (a: P, b: P, t: number): P => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  // Across-the-limb unit vector at the hem (for the cuff and the creases).
+  const tx = hem[0] - hip[0];
+  const ty = hem[1] - hip[1];
+  const tl = Math.hypot(tx, ty) || 1;
+  const nx = -ty / tl;
+  const ny = tx / tl;
+  const across = (c: P, w: number, bend = 0): string =>
+    `M${r2(c[0] - nx * w)} ${r2(c[1] - ny * w)}Q${r2(c[0] + (tx / tl) * bend)} ${r2(c[1] + (ty / tl) * bend)} ${r2(c[0] + nx * w)} ${r2(c[1] + ny * w)}`;
+  const cuff = lerp(hip, hem, 0.84);
+  const along = (off: number, bulge: number, reach: number): string => {
+    const m = lerp(hip, hem, reach * 0.55);
+    const e = lerp(hip, hem, reach);
+    return `M${r2(hip[0] + nx * off)} ${r2(hip[1] + ny * off)}Q${r2(m[0] + nx * bulge)} ${r2(m[1] + ny * bulge)} ${r2(e[0] + nx * off)} ${r2(e[1] + ny * off)}`;
+  };
+  const shoe = smoothD(
+    [
+      [foot[0] - 13, foot[1] - 26],
+      [foot[0] + 11, foot[1] - 26],
+      [foot[0] + 14 + toe * 10, foot[1] - 10],
+      [foot[0] + 12 + toe * 16, foot[1]],
+      [foot[0] - 14 + toe * 2, foot[1]],
+    ],
+    true,
+    0.6,
+  );
+  const fx = foot[0];
+  const fy = foot[1];
+  const lace = [0, 1]
+    .map((k) => {
+      const y = fy - 22 + k * 5;
+      const x = fx + 2 + toe * k * 3;
+      return `M${r2(x - 5)} ${r2(y)}L${r2(x + 5)} ${r2(y + 3)}M${r2(x + 5)} ${r2(y)}L${r2(x - 5)} ${r2(y + 3)}`;
+    })
+    .join('');
   return g(
     {},
     edge(limbD(knee, ankle, 22, 16), p.skin.url, 2),
+    // The shin's lit ridge and the calf in shade.
+    stroke(
+      `M${r2(knee[0] + 6)} ${r2(knee[1] + 8)}L${r2(ankle[0] + 5)} ${r2(ankle[1] - 6)}`,
+      C.skinLit,
+      1.4,
+      0.6,
+    ),
     edge(limbD(sockTop, ankle, 19, 18), p.sock.url, 1.6),
-    // The velskoen: a rounded boot with a sole, toe forward (or to one side).
-    edge(
-      smoothD(
-        [
-          [foot[0] - 13, foot[1] - 26],
-          [foot[0] + 11, foot[1] - 26],
-          [foot[0] + 14 + toe * 10, foot[1] - 10],
-          [foot[0] + 12 + toe * 16, foot[1]],
-          [foot[0] - 14 + toe * 2, foot[1]],
-        ],
-        true,
-        0.6,
-      ),
-      p.suede.url,
-      2,
+    // The folded-over sock top (a band) and its ribs.
+    stroke(
+      `M${r2(sockTop[0] - 9)} ${r2(sockTop[1] + 3)}L${r2(sockTop[0] + 9)} ${r2(sockTop[1] + 3)}`,
+      C.sockShade,
+      1.2,
+      0.7,
     ),
     stroke(
-      `M${foot[0] - 14 + toe * 2} ${foot[1] - 3}L${foot[0] + 12 + toe * 16} ${foot[1] - 3}`,
-      '#1A100A',
-      2.6,
+      [0.35, 0.5, 0.65, 0.8]
+        .map((t) => {
+          const c = lerp(sockTop, ankle, t);
+          return `M${r2(c[0] - 7)} ${r2(c[1])}L${r2(c[0] + 7)} ${r2(c[1])}`;
+        })
+        .join(''),
+      C.sockShade,
+      0.8,
+      0.55,
     ),
-    // Shorts over the thigh to just above the knee, a crease.
-    edge(
-      limbD(
-        hip,
-        [knee[0] + (hip[0] - knee[0]) * 0.18, knee[1] + (hip[1] - knee[1]) * 0.18],
-        34,
-        28,
+    edge(shoe, p.suede.url, 2),
+    clipped(
+      shoe,
+      // Laces over the instep, the eyelets, a scuffed lit toe, the welt and its stitching.
+      stroke(lace, '#D8B888', 0.7, 0.6),
+      path(ellipseD(fx + 10 + toe * 12, fy - 9, 6, 4), C.velskoenLit, { opacity: 0.55 }),
+      stroke(`M${fx - 12} ${fy - 15}Q${fx - 6} ${fy - 9} ${fx - 12} ${fy - 4}`, '#1E120A', 1, 0.6),
+    ),
+    stroke(`M${fx - 14 + toe * 2} ${fy - 3}L${fx + 12 + toe * 16} ${fy - 3}`, '#1A100A', 2.6),
+    stitch(
+      `M${fx - 12 + toe * 2} ${fy - 5.6}L${fx + 10 + toe * 16} ${fy - 5.6}`,
+      '#C8A070',
+      0.6,
+      1.4,
+      0.7,
+    ),
+    // Shorts over the thigh to just above the knee: the hem's cuff, creases from the hip.
+    edge(thigh, p.khaki.url, 2.2),
+    clipped(
+      thigh,
+      stroke(across(cuff, 18, -1), C.khakiShade, 1.4, 0.8),
+      stroke(across(lerp(cuff, hem, 0.35), 18, -1), C.khakiLit, 0.9, 0.6),
+      // Pull creases running along the thigh from the hip toward the knee.
+      fold(along(4, 8, 0.7), along(7, 11, 0.7), 1.2),
+      fold(along(-6, -2, 0.5), along(-3, 1, 0.5), 1),
+      // The underside of the thigh in shade.
+      stroke(
+        `M${r2(hip[0] - nx * 15)} ${r2(hip[1] - ny * 15)}L${r2(hem[0] - nx * 13)} ${r2(hem[1] - ny * 13)}`,
+        C.khakiShade,
+        5,
+        0.4,
       ),
-      p.khaki.url,
-      2.2,
     ),
     path(ellipseD(knee[0] + 1, knee[1] + 2, 6, 5), C.skinLit, { opacity: 0.45 }),
+    stroke(
+      `M${knee[0] - 4} ${knee[1] + 7}Q${knee[0]} ${knee[1] + 9} ${knee[0] + 4} ${knee[1] + 7}`,
+      C.skinShade,
+      0.9,
+      0.6,
+    ),
   );
 }
 
-/** An arm: the rolled sleeve at the shoulder, upper arm to elbow, forearm to the hand. */
+/** An arm: the rolled sleeve (its cuff and folds) at the shoulder, upper arm to elbow, forearm
+ *  to the hand. */
 function arm(p: Paints, shoulder: P, elbow: P, wrist: P, handRot: number): string {
+  const mid: P = [
+    shoulder[0] + (elbow[0] - shoulder[0]) * 0.5,
+    shoulder[1] + (elbow[1] - shoulder[1]) * 0.5,
+  ];
+  const sleeve = limbD(shoulder, mid, 30, 24);
+  const dx = mid[0] - shoulder[0];
+  const dy = mid[1] - shoulder[1];
+  const l = Math.hypot(dx, dy) || 1;
+  const nx = -dy / l;
+  const ny = dx / l;
+  const at = (t: number, w: number): string => {
+    const c: P = [shoulder[0] + dx * t, shoulder[1] + dy * t];
+    return `M${r2(c[0] - nx * w)} ${r2(c[1] - ny * w)}Q${r2(c[0] + (dx / l) * 3)} ${r2(c[1] + (dy / l) * 3)} ${r2(c[0] + nx * w)} ${r2(c[1] + ny * w)}`;
+  };
+  const along = (off: number, bulge: number): string =>
+    `M${r2(shoulder[0] + nx * off)} ${r2(shoulder[1] + ny * off)}Q${r2(shoulder[0] + dx * 0.4 + nx * bulge)} ${r2(shoulder[1] + dy * 0.4 + ny * bulge)} ${r2(shoulder[0] + dx * 0.75 + nx * off)} ${r2(shoulder[1] + dy * 0.75 + ny * off)}`;
   return g(
     {},
     edge(limbD(shoulder, elbow, 20, 16), p.skin.url, 1.8),
     edge(limbD(elbow, wrist, 16, 13), p.skin.url, 1.8),
-    edge(
-      limbD(
-        shoulder,
-        [
-          shoulder[0] + (elbow[0] - shoulder[0]) * 0.5,
-          shoulder[1] + (elbow[1] - shoulder[1]) * 0.5,
-        ],
-        30,
-        24,
-      ),
-      p.khaki.url,
-      2,
+    // Sinew along the forearm's lit side.
+    stroke(
+      `M${r2(elbow[0] + (wrist[0] - elbow[0]) * 0.2)} ${r2(elbow[1] + (wrist[1] - elbow[1]) * 0.2)}L${r2(elbow[0] + (wrist[0] - elbow[0]) * 0.8)} ${r2(elbow[1] + (wrist[1] - elbow[1]) * 0.8)}`,
+      C.skinLit,
+      1.2,
+      0.45,
+    ),
+    edge(sleeve, p.khaki.url, 2),
+    clipped(
+      sleeve,
+      // The rolled cuff: a band, its lit roll, then a crease up toward the shoulder seam.
+      stroke(at(0.82, 16), C.khakiShade, 1.8, 0.85),
+      stroke(at(0.9, 16), C.khakiLit, 1.2, 0.7),
+      fold(along(4, 8), along(7, 11), 1.1),
     ),
     hand(p, wrist[0], wrist[1], handRot),
   );
 }
 
-/** The shirt and belt: a torso from the shoulders (y top) to the belt (y bottom). */
+/** The shirt and belt: a torso from the shoulders (y top) to the belt (y bottom): collar,
+ *  buttoned placket, flap pockets with buttons, a yoke seam, folds from the arms and the cloth
+ *  bunching over the belt, a worn belt with a brass buckle. */
 function torso(p: Paints, top: number, bottom: number, lean = 0): string {
   const l = lean;
+  const body = smoothD(
+    [
+      [-38 + l * 0.2, bottom],
+      [-44 + l * 0.6, bottom - 50],
+      [-32 + l, top + 6],
+      [0 + l, top],
+      [32 + l, top + 6],
+      [44 + l * 0.6, bottom - 50],
+      [38 + l * 0.2, bottom],
+    ],
+    true,
+    0.6,
+  );
+  const pocket = (x0: number, x1: number): string => {
+    const a = x0 + l * 0.8;
+    const b = x1 + l * 0.8;
+    const m = (a + b) / 2;
+    return g(
+      {},
+      edge(
+        polyD([
+          [a, top + 26],
+          [b, top + 26],
+          [b, top + 48],
+          [a, top + 48],
+        ]),
+        p.khaki.url,
+        1.4,
+      ),
+      stitch(
+        `M${a + 2} ${top + 30}L${a + 2} ${top + 46}L${b - 2} ${top + 46}L${b - 2} ${top + 30}`,
+        C.khakiShade,
+        0.6,
+        1.3,
+        0.7,
+      ),
+      // The flap, its shadow and button.
+      edge(
+        polyD([
+          [a - 1, top + 25],
+          [b + 1, top + 25],
+          [b + 1, top + 32],
+          [m, top + 35],
+          [a - 1, top + 32],
+        ]),
+        p.khaki.url,
+        1.2,
+      ),
+      stroke(`M${a} ${top + 34}L${m} ${top + 37}L${b} ${top + 34}`, C.khakiShade, 1.4, 0.5),
+      edge(ellipseD(m, top + 32, 1.6, 1.6), '#5A4A36', 0.6),
+    );
+  };
   return g(
     {},
-    edge(
-      smoothD(
-        [
-          [-38 + l * 0.2, bottom],
-          [-44 + l * 0.6, bottom - 50],
-          [-32 + l, top + 6],
-          [0 + l, top],
-          [32 + l, top + 6],
-          [44 + l * 0.6, bottom - 50],
-          [38 + l * 0.2, bottom],
-        ],
-        true,
+    edge(body, p.khaki.url, 2.4),
+    clipped(
+      body,
+      // The sky side in deeper shade, the fire side's warm rim.
+      path(
+        `M${-48 + l} ${top}L${-30 + l} ${top}Q${-36 + l} ${(top + bottom) / 2} ${-28} ${bottom}L${-48} ${bottom}Z`,
+        C.khakiShade,
+        { opacity: 0.35 },
+      ),
+      stroke(
+        `M${34 + l} ${top + 10}Q${44 + l * 0.6} ${bottom - 50} ${38 + l * 0.2} ${bottom}`,
+        '#FFC88A',
+        2.4,
+        0.45,
+      ),
+      // The yoke seam across the shoulders.
+      stitch(
+        `M${-32 + l} ${top + 14}Q${l} ${top + 10} ${32 + l} ${top + 14}`,
+        C.khakiShade,
+        0.7,
+        1.6,
         0.6,
       ),
-      p.khaki.url,
-      2.4,
+      // Folds: from the armpits down toward the belt, the cloth bunched over the belt.
+      fold(
+        `M${-34 + l * 0.7} ${top + 30}Q${-24 + l * 0.5} ${top + 56} ${-28 + l * 0.4} ${bottom - 22}`,
+        `M${-31 + l * 0.7} ${top + 32}Q${-21 + l * 0.5} ${top + 56} ${-25 + l * 0.4} ${bottom - 24}`,
+      ),
+      fold(
+        `M${34 + l * 0.7} ${top + 30}Q${26 + l * 0.5} ${top + 58} ${30 + l * 0.4} ${bottom - 20}`,
+        `M${31 + l * 0.7} ${top + 32}Q${23 + l * 0.5} ${top + 58} ${27 + l * 0.4} ${bottom - 22}`,
+      ),
+      fold(
+        `M${-30 + l * 0.3} ${bottom - 12}Q${-18 + l * 0.3} ${bottom - 18} ${-8 + l * 0.3} ${bottom - 11}`,
+        `M${-28 + l * 0.3} ${bottom - 15}Q${-18 + l * 0.3} ${bottom - 21} ${-10 + l * 0.3} ${bottom - 14}`,
+        1.3,
+      ),
+      fold(
+        `M${8 + l * 0.3} ${bottom - 11}Q${18 + l * 0.3} ${bottom - 19} ${30 + l * 0.3} ${bottom - 12}`,
+        `M${10 + l * 0.3} ${bottom - 14}Q${18 + l * 0.3} ${bottom - 22} ${28 + l * 0.3} ${bottom - 15}`,
+        1.3,
+      ),
+      stroke(
+        `M${-26 + l * 0.4} ${bottom - 6}Q${-20 + l * 0.4} ${bottom - 18} ${-28 + l * 0.5} ${bottom - 30}`,
+        C.khakiShade,
+        1.2,
+        0.8,
+      ),
     ),
-    // Collar, placket, flap pockets.
+    // Collar, placket and its buttons.
     edge(
       polyD([
         [-14 + l, top + 2],
@@ -456,33 +782,17 @@ function torso(p: Paints, top: number, bottom: number, lean = 0): string {
       1.4,
     ),
     stroke(`M${l} ${top + 16}L${l * 0.3} ${bottom}`, C.khakiShade, 1.4),
-    edge(
-      polyD([
-        [-30 + l * 0.8, top + 26],
-        [-12 + l * 0.8, top + 26],
-        [-12 + l * 0.8, top + 48],
-        [-30 + l * 0.8, top + 48],
-      ]),
-      p.khaki.url,
-      1.4,
+    stroke(`M${l + 2.6} ${top + 18}L${l * 0.3 + 2.6} ${bottom - 8}`, C.khakiLit, 0.8, 0.6),
+    ...[0.22, 0.48, 0.74].map((t) =>
+      edge(
+        ellipseD(l + (l * 0.3 - l) * t - 1.6, top + 16 + (bottom - top - 16) * t, 1.7, 1.7),
+        '#5A4A36',
+        0.6,
+      ),
     ),
-    edge(
-      polyD([
-        [12 + l * 0.8, top + 26],
-        [30 + l * 0.8, top + 26],
-        [30 + l * 0.8, top + 48],
-        [12 + l * 0.8, top + 48],
-      ]),
-      p.khaki.url,
-      1.4,
-    ),
-    stroke(
-      `M${-26 + l * 0.4} ${bottom - 6}Q${-20 + l * 0.4} ${bottom - 18} ${-28 + l * 0.5} ${bottom - 30}`,
-      C.khakiShade,
-      1.2,
-      0.8,
-    ),
-    // Belt and buckle.
+    pocket(-30, -12),
+    pocket(12, 30),
+    // Belt (worn leather, stitched edges, a keeper loop) and buckle.
     edge(
       polyD([
         [-38, bottom - 8],
@@ -493,6 +803,14 @@ function torso(p: Paints, top: number, bottom: number, lean = 0): string {
       '#3A2618',
       1.6,
     ),
+    stitch(
+      `M-36 ${bottom - 6}L36 ${bottom - 6}M-36 ${bottom}L36 ${bottom}`,
+      '#8A6040',
+      0.5,
+      1.4,
+      0.7,
+    ),
+    stroke(`M8 ${bottom - 7}L32 ${bottom - 7}`, '#A06A3A', 1, 0.6),
     edge(
       polyD([
         [-5, bottom - 9],
@@ -503,35 +821,121 @@ function torso(p: Paints, top: number, bottom: number, lean = 0): string {
       '#D8A060',
       1.2,
     ),
+    edge(
+      polyD([
+        [-2.6, bottom - 6],
+        [2.6, bottom - 6],
+        [2.6, bottom],
+        [-2.6, bottom],
+      ]),
+      '#3A2618',
+      0.6,
+      '#7A5220',
+    ),
+    stroke(`M3 ${bottom - 8}L4 ${bottom + 2}`, '#FFE0A0', 0.8, 0.8),
+    edge(
+      polyD([
+        [9, bottom - 9],
+        [13, bottom - 9],
+        [13, bottom + 3],
+        [9, bottom + 3],
+      ]),
+      '#2E1E12',
+      0.8,
+    ),
   );
 }
 
 type SeatPose = 'idle' | 'sip' | 'poke';
 
-/** The canvas camp chair, side view (facing right): its slanted back and seat behind him, the
- *  near arm rest and X legs in front. */
+/** A tube of the chair's frame: dark steel, the fire's warm line along its lit side, the sky's
+ *  cool line on the other. */
+function tube(a: P, b: P, w: number, near: boolean): string {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const l = Math.hypot(dx, dy) || 1;
+  const nx = (-dy / l) * w * 0.22;
+  const ny = (dx / l) * w * 0.22;
+  // The lit side is the one facing right (the fire).
+  const s = nx > 0 || (nx === 0 && ny < 0) ? 1 : -1;
+  return g(
+    {},
+    edge(limbD(a, b, w, w), near ? C.steel : '#26262C', near ? 1.4 : 1.2),
+    stroke(
+      `M${r2(a[0] + nx * s)} ${r2(a[1] + ny * s)}L${r2(b[0] + nx * s)} ${r2(b[1] + ny * s)}`,
+      C.steelLit,
+      Math.max(0.8, w * 0.22),
+      near ? 0.9 : 0.5,
+    ),
+    stroke(
+      `M${r2(a[0] - nx * s)} ${r2(a[1] - ny * s)}L${r2(b[0] - nx * s)} ${r2(b[1] - ny * s)}`,
+      '#6A7088',
+      Math.max(0.6, w * 0.14),
+      near ? 0.5 : 0.3,
+    ),
+  );
+}
+
+/** The canvas camp chair, side view (facing right): its slanted back and sagging seat sling
+ *  behind him (stitched hems, a seam), the far frame; the near armrest (a wooden rest on its
+ *  post), the X legs with a rivet and rubber feet in front. */
 function campChair(back: boolean): string {
   const cv = lit3(C.canvasShade, C.canvas, C.canvasLit);
-  if (back)
+  if (back) {
+    const backD =
+      'M-60 -236Q-46 -232 -36 -228Q-28 -170 -14 -110Q-30 -104 -40 -100Q-52 -170 -60 -236Z';
+    const seatD = 'M-42 -108Q6 -88 52 -106L50 -90Q4 -74 -40 -92Z';
     return g(
       {},
       defs(cv),
-      // The far frame (darker), the canvas back slanting back, the seat sling.
-      edge(limbD([-58, -238], [-30, -96], 6, 6), '#26262C', 1.2),
-      edge('M-60 -236Q-46 -232 -36 -228L-14 -110Q-30 -104 -40 -100Z', cv.url, 2),
-      stroke('M-52 -200L-34 -196', C.canvasShade, 1.4, 0.6),
-      edge('M-42 -108Q6 -96 52 -106L50 -90Q4 -82 -40 -92Z', cv.url, 2),
-      edge(limbD([-66, -236], [-36, -96], 7, 7), C.steel, 1.4),
+      // The far frame (darker), the canvas back slanting back, the seat sling sagging.
+      tube([-58, -238], [-30, -96], 6, false),
+      edge(backD, cv.url, 2),
+      clipped(
+        backD,
+        stitch('M-56 -230Q-46 -226 -38 -222', C.canvasLit, 0.8, 2, 0.7),
+        stitch('M-55 -226Q-48 -168 -36 -106', C.canvasShade, 0.8, 2, 0.8),
+        stroke('M-52 -200L-34 -196', C.canvasShade, 1.4, 0.6),
+        stroke('M-48 -170Q-38 -168 -28 -164', C.canvasShade, 1.2, 0.5),
+        stroke('M-46 -168Q-36 -166 -27 -162', C.canvasLit, 0.8, 0.4),
+        // The canvas weave: faint threads.
+        stroke(
+          [0, 1, 2, 3, 4, 5, 6].map((k) => `M-58 ${-224 + k * 18}L-20 ${-218 + k * 18}`).join(''),
+          C.canvasShade,
+          0.5,
+          0.35,
+        ),
+      ),
+      edge(seatD, cv.url, 2),
+      clipped(
+        seatD,
+        path('M-44 -100Q6 -80 54 -98L54 -86L-44 -86Z', C.canvasShade, { opacity: 0.6 }),
+        stitch('M-38 -104Q6 -85 48 -102', C.canvasLit, 0.8, 2, 0.7),
+      ),
+      tube([-66, -236], [-36, -96], 7, true),
+      // The back's top cap.
+      edge(ellipseD(-66, -237, 4.4, 3.4), '#1A1A1E', 1),
     );
+  }
   return g(
     {},
-    // The near arm rest and its post, the X legs, a cross bar on the ground.
-    edge(limbD([-40, -150], [40, -140], 8, 8), C.steel, 1.4),
-    stroke('M-36 -153L36 -143', C.steelLit, 1.2, 0.8),
-    edge(limbD([34, -142], [44, -96], 6, 6), C.steel, 1.2),
-    edge(limbD([-40, -96], [54, 0], 6, 6), C.steel, 1.4),
-    edge(limbD([50, -96], [-44, 0], 6, 6), C.steelLit, 1.4),
+    // The near armrest: a wooden rest (grain, the fire on its edge) on the frame, its post.
+    tube([34, -142], [44, -96], 6, true),
+    edge(
+      'M-44 -154Q-40 -158 -30 -157L42 -147Q48 -146 46 -140L44 -137L-42 -146Q-46 -148 -44 -154Z',
+      '#6A4426',
+      1.4,
+    ),
+    stroke('M-38 -153L40 -144', '#C88A50', 1.2, 0.8),
+    stroke('M-30 -150L10 -146M14 -146L34 -143', '#3A2414', 0.6, 0.6),
+    // The X legs, their rivet, rubber feet and the ground bar.
+    tube([-40, -96], [54, 0], 6, true),
+    tube([50, -96], [-44, 0], 6, true),
+    edge(ellipseD(5, -48, 3, 3), '#8A8A92', 1),
+    path(ellipseD(6, -49, 1.2, 1.2), '#FFD0A0'),
     stroke('M-48 0L58 0', '#1A1A1E', 3),
+    edge(ellipseD(-44, 0, 5, 2.6), '#101012', 1),
+    edge(ellipseD(54, 0, 5, 2.6), '#101012', 1),
   );
 }
 
