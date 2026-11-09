@@ -214,7 +214,10 @@ export const HORNBILL_CLING: BPt = [
   HOLLOWS.slit.y + 22 * RESIDENT_TRUE_MUL.hornbill,
 ];
 /** Where its body is when it clings (a flight lands and leaves there, not at its feet). */
-const HORNBILL_BODY: BPt = [HORNBILL_CLING[0], HORNBILL_CLING[1] - 13 * RESIDENT_TRUE_MUL.hornbill];
+export const HORNBILL_BODY: BPt = [
+  HORNBILL_CLING[0],
+  HORNBILL_CLING[1] - 13 * RESIDENT_TRUE_MUL.hornbill,
+];
 const HB = { fly: 1.6, feed: 0.7, wait: 0.9 } as const;
 
 function hornbill(u: number, d: number, duck: number | null, tick: number): ResidentPose {
@@ -236,7 +239,8 @@ function hornbill(u: number, d: number, duck: number | null, tick: number): Resi
     const s = [sprite(feeding ? 'hornbill_feed' : 'hornbill_cling', HORNBILL_CLING, true)];
     // The female's beak tip shows in the slit while he feeds her.
     if (feeding) s.unshift(sprite('beak_tip', slit));
-    return { s, at: HORNBILL_CLING };
+    // D-082: a near shot is measured from its body (the true-size bird reaches ~90 px above its feet).
+    return { s, at: HORNBILL_BODY };
   };
   if (duck !== null && u >= duck) {
     const k = (u - duck) / 1.4;

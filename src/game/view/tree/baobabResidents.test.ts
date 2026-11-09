@@ -3,6 +3,8 @@ import { loadFeel } from '../../../../tools/testContent';
 import { TICKS_PER_SECOND } from '../../../sim/clock';
 import { HOLLOWS } from './baobabShape';
 import {
+  HORNBILL_BODY,
+  HORNBILL_CLING,
   RESIDENT_IDS,
   beeSprites,
   residentPose,
@@ -117,6 +119,21 @@ describe('baobab residents (D-057)', () => {
     for (let tick = v.start; tick < v.end; tick += 2)
       tip ||= residentPose(t, v, tick, null).sprites.some((s) => s.frame === 'beak_tip');
     expect(tip).toBe(true);
+  });
+
+  it('a near shot at the clinging hornbill is measured from its body, and it flies off from there (D-082)', () => {
+    const v = visits('hornbill', 11, false, true)[0];
+    if (v === undefined) throw new Error('no visit');
+    let cling: number | null = null;
+    for (let tick = v.start; tick < v.end && cling === null; tick += 2)
+      if (residentPose(t, v, tick, null).sprites.some((s) => s.frame.startsWith('hornbill_cling')))
+        cling = tick;
+    if (cling === null) throw new Error('it never clung');
+    expect(residentPose(t, v, cling, null).at).toEqual(HORNBILL_BODY);
+    expect(HORNBILL_BODY[1]).toBeLessThan(HORNBILL_CLING[1]);
+    const away = residentPose(t, v, cling + 1, cling).sprites[0];
+    if (away === undefined) throw new Error('no flight');
+    expect(Math.abs(away.y - HORNBILL_BODY[1])).toBeLessThan(Math.abs(away.y - HORNBILL_CLING[1]));
   });
 
   it('the bees swirl round their crack and open up after a near shot', () => {
