@@ -531,7 +531,7 @@ export function withWindParams(b: ContentBundle, params: URLSearchParams): Conte
                 ...x.omen.wind,
                 strength: [0.95, 0.95],
                 directionChangeSeconds: [120, 120],
-                gusts: { everySeconds: [0.5, 0.5], seconds: [6, 6], add: 0.3 },
+                gusts: { everySeconds: [0.5, 0.5], seconds: [6, 6], add: 0.3, riseShare: 0.3 },
               },
             },
           },
