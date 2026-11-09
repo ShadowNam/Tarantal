@@ -309,7 +309,8 @@ export const createHarvestSystem: HarvestSystemFactory = (
   const viaHoleSpots = holeSpots(spots, map, gapW);
   const patchFrac = Hh.patchAt;
   let holeOpen = hx !== null;
-  let holeAcc = 0;
+  // The first yearling at firstAfterSeconds, then one every 60 / youngPerMin seconds.
+  let holeAcc = 1 - (Hh.firstAfterSeconds * Hh.youngPerMin) / 60;
   // The intro family's spot: the gap-side mid spot nearest the gap.
   const introSpot =
     midSpots

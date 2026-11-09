@@ -1929,6 +1929,8 @@ const harvestSchema = modeSetupSchema.extend({
    *  workers patch it at patchAt of the rush: none come through after. */
   hole: obj({
     youngPerMin: nonNeg,
+    /** When the first one comes (seconds into the rush); then one every 60 / youngPerMin. */
+    firstAfterSeconds: nonNeg,
     patchAt: fraction,
     youngScale: z.number().gt(0).max(1),
     youngHitsToBag: posInt,

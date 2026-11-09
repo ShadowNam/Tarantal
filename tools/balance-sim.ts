@@ -185,8 +185,7 @@ export function playRows(job: Job): HuntRow[] {
         else if (e.type === 'harvestFenceClosed') {
           rushScore = sim.snapshot().score;
           rushCrop = e.crop;
-        }
-        else if (e.type === 'phase2Ended')
+        } else if (e.type === 'phase2Ended')
           p2 = {
             cropAtStart: e.cropAtStart,
             crop: e.crop,
