@@ -1586,8 +1586,14 @@ export const BiomeSchema = obj({
          *  linear between planes by scroll factor). Absent: far and Ver 1, near and mid 0. */
         driftPlaneMul: allPlanes(nonNeg).optional(),
         /** v1.17 (D-079): gusts — every everySeconds (gap) one lasting `seconds`, adding up to
-         *  `add` to the strength at its peak (never above 1). Drift and visuals only. */
-        gusts: obj({ everySeconds: range(pos), seconds: range(pos), add: nonNeg }).optional(),
+         *  `add` to the strength at its peak (never above 1). Drift and visuals only. D-080:
+         *  `riseShare` — the share of a gust spent rising to its peak (the rest is its fall). */
+        gusts: obj({
+          everySeconds: range(pos),
+          seconds: range(pos),
+          add: nonNeg,
+          riseShare: z.number().gt(0).lt(1).default(0.3),
+        }).optional(),
       })
       .optional(),
     /** M8 Okavango sun-showers: a shower every `everySeconds` (gap) for `lastSeconds`, drawn from

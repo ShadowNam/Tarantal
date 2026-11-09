@@ -50,6 +50,9 @@ function roll(w: Wind, rng: RandomStream): void {
   );
 }
 
+/** A gust's rise share when content leaves it out (the v1.17 shape). */
+const DEFAULT_RISE_SHARE = 0.3;
+
 const PLANE_ORDER: readonly PlaneId[] = ['near', 'mid', 'far', 'ver'];
 
 export function createWind(
@@ -124,12 +127,14 @@ export function tickWind(w: Wind, rng: RandomStream): false | 'changed' | 'gust'
   return 'changed';
 }
 
-/** 0..1: how far into its peak the gust is (a quick rise, a slower fall), 0 without one. */
+/** 0..1: how far into its peak the gust is (a quick rise over `riseShare` of it, then the fall
+ *  over the rest — omen.wind.gusts.riseShare, D-080), 0 without one. */
 export function gustLevel(w: Wind): number {
   if (w.gust === null) return 0;
   const p = (w.t - w.gust.start) / w.gust.len;
   if (p < 0 || p >= 1) return 0;
-  return p < 0.3 ? p / 0.3 : (1 - p) / 0.7;
+  const rise = w.cfg.gusts?.riseShare ?? DEFAULT_RISE_SHARE;
+  return p < rise ? p / rise : (1 - p) / (1 - rise);
 }
 
 /** The strength now: the period's plus the gust's (never above 1). */

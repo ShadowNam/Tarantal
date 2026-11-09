@@ -5,6 +5,7 @@ import { loadContent } from '../../../tools/testContent';
 import { createStream } from '../rng';
 import {
   createWind,
+  gustLevel,
   planeDriftMul,
   strengthNow,
   tickWind,
@@ -143,5 +144,23 @@ describe('gusts (v1.17, D-079)', () => {
       return [rng.u32(), rng.u32(), rng.u32()];
     };
     expect(draws(true)).toEqual(draws(false));
+  });
+
+  it('rise over riseShare of the gust from content, then fall (D-080)', () => {
+    expect(cfg.gusts?.riseShare).toBe(0.3);
+    const level = (riseShare: number, at: number): number => {
+      const gusts = cfg.gusts;
+      if (gusts === undefined) throw new Error('the Karoo has gusts');
+      const w = createWind({ ...cfg, gusts: { ...gusts, riseShare } }, createStream(1), planes);
+      w.gust = { start: 0, len: 100 };
+      w.t = at;
+      return gustLevel(w);
+    };
+    // Today's shape: the peak at 30 % of the gust, the fall over the other 70 %.
+    expect(level(0.3, 30)).toBeCloseTo(1, 9);
+    expect(level(0.3, 15)).toBeCloseTo(0.5, 9);
+    expect(level(0.3, 65)).toBeCloseTo(0.5, 9);
+    expect(level(0.5, 50)).toBeCloseTo(1, 9);
+    expect(level(0.5, 25)).toBeCloseTo(0.5, 9);
   });
 });
