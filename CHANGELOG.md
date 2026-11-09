@@ -7,9 +7,23 @@ Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (
 
 Decision record D-080. The owner's answer of 9 Nov: "yes make all animals true size".
 
+- **Every animal at its real size beside the guineafowl** (within 15 %): the far herds and far
+  ostriches (no longer 0.57× / 0.45×: a far elephant 144 → 253 px, a giraffe 225 → 395, an
+  ostrich 89 → 197), Namibië's ostrich pair (197 → 552 px tall), the baboons (a sitting male
+  151 → 176 px on the mid plane), the Harvest's warthogs (0.33 → 0.7 m at the back) and
+  piglets, Brakkie (a true Jack Russell, 110 → 154 px at the shoulder), the veld cameos (the
+  warthog family, springbok, gemsbok, the ostrich sprint and the leopard tortoise, 2.6–3.4×
+  bigger, redrawn) and the weaver colony's birds. Hit and penalty areas grow with them.
+- **Kept on purpose:** the dung beetle (bigger than life so you can see it) and the bakkie (a
+  stage prop: at true size it would be as tall as the windpomp; the owner decides).
+- **Fairer penalties:** an ostrich or its nest costs −10 only for a shot aimed at it, like the
+  baboons, Brakkie and the cameos; and a shot with a bird within 260 px of the aim point (once
+  120) is never charged to a cameo or an ostrich.
 - **Brakkie's points** only show when the flock can burst up (the bird cap too).
 - **Gusts:** the rise of a gust is a tuning value; a gust that starts as the wind turns is no
   longer lost.
+- **Behind the scenes:** the far herds and the weaver colony have no separate HD art (HD texture
+  memory stays under 256 MB); the braai tally's frame time is measured after a short warm-up.
 
 ## [1.20.0] — v1.17: Brakkie the companion and real wind (9 Nov 2026)
 

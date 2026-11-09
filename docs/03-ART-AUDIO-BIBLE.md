@@ -369,6 +369,48 @@ in `docs/balance/perspective.md` (e.g. far: springbok 63 px at the shoulder, ost
 head, giraffe 395 px). Mid props keep their stage-set scale (a true 9 m windpomp would be 2 000 px).
 Bird atlases are drawn per plane at the plane's scale (`npm run art:interim -- --only birds`).
 
+**Every animal at true size (v1.17b, D-080).** The owner, 9 Nov 2026: "yes make all animals true
+size". Every animal is drawn at its real size beside the guineafowl on its plane (the yardstick:
+0.5 m, its size and hit boxes never change), within ±15 % (`tools/sizes.ts`, held by
+`tools/sizes.test.ts`); hit and penalty areas grow with the drawing. The scale table (design px at
+1080; real size in m; v1.17 → v1.17b):
+
+| animal | measure | real | plane | px (v1.17 → v1.17b) |
+|---|---|---|---|---|
+| guineafowl (yardstick) | standing | 0.5 | near · mid · far · Ver | 263 · 110 · 39 · 18 (unchanged) |
+| far elephant | shoulder | 3.2 | far | 144 → 253 |
+| far giraffe | head top | 5.0 | far | 225 → 395 |
+| far zebra | shoulder | 1.35 | far | 61 → 107 |
+| far wildebeest | shoulder | 1.4 | far | 63 → 111 |
+| far gemsbok (and the oryx in the mirage) | shoulder | 1.2 | far | 54 → 95 |
+| far springbok | shoulder | 0.8 | far | 36 → 63 |
+| far lechwe | shoulder | 1.0 | far | 45 → 79 |
+| far ostrich | head top | 2.5 | far | 89 → 197 |
+| mid ostrich (Namibië's pair) | head top, standing | 2.5 | mid | 197 → 552 |
+| baboon, sitting male (raider · ridge) | crown | 0.8 | mid · far | 151 · 54 → 176 · 63 |
+| baboon, sitting mother | crown | 0.65 | far | 44 → 52 |
+| Harvest warthog | back | 0.7 | mid · near | 74 · 175 → 155 · 368 |
+| Harvest piglet | back | 0.3 | mid · near | 33 · 79 → 70 · 166 |
+| Brakkie (Jack Russell) | shoulder | 0.3 | near · mid | 110 · 46 → 154 · 65 |
+| cameo warthog sow | back | 0.7 | mid | 57 → 154 |
+| cameo springbok | shoulder | 0.8 | mid | 60 → 177 |
+| cameo gemsbok | shoulder | 1.2 | mid | 78 → 265 |
+| cameo ostrich | head top | 2.5 | mid | 200 → 552 |
+| cameo leopard tortoise | shell top | 0.25 | near | 50 → 130 |
+| colony weaver | wingspan | 0.22 | near · mid · far · Ver | 32 · 22 · 12 · 8 → 116 · 49 · 17 · 8 |
+| tells, meerkats, angry weavers | — | — | — | true since D-078 |
+
+Kept off true size, each for a reason: the **dung beetle** (drawn about twice its true size on
+purpose, so it reads at all), the **bakkie** (a stage-set prop: true, it would be 398 px tall and
+~1 050 long on the mid plane, as tall as the 9 m windpomp drawn at 395 px and three times the
+1.5 m reservoir drawn at 133; the owner decides). Props stay on their stage-set scale (trees,
+windpompe, the reservoir, the hippo), so a true-size animal can look big against them.
+**Texture memory (HD ≤ 256 MB on every hunt):** the far herds redrawn at true size are Standard
+in HD (they stand on the far veld, itself Standard in HD; 1 texture px per design px is a phone's
+screen px); the cameos are redrawn from their vector shapes at the new size at 0.25 sheet px per
+drawn px (HD 0.5); the colony's sheet is drawn at 3× (its own HD); the mid ostriches, the baboons,
+the warthogs and Brakkie draw their sheets larger (the ostrich at 0.54 texture px per drawn px).
+
 **v1.6 review round (D-042, 25 Oct).**
 - **Windpomp:** a classic multi-blade farm wheel, after the product owner's reference photos (25 Oct):
   20 galvanised sails, one every 18°, narrow at the hub and wide at the slanted tips, which stand
@@ -389,11 +431,11 @@ Bird atlases are drawn per plane at the plane's scale (`npm run art:interim -- -
   net between angular chestnut patches); browsing, walking, head up, drinking; calves.
 - **Far animals** (D-054, 1.9.1; `tools/art/farFauna.ts`, herds in
   `src/game/view/faunaHerds.ts`) are drawn from their anatomy at their **real size beside the
-  guineafowl on their plane** (D-049 targets, docs/balance/perspective.md) **× 0.57 for every
-  species, the ostrich × 0.45** (the product owner: smaller with distance; one multiplier keeps
-  shared herds in proportion): far elephant 144 px at the shoulder, giraffe 225 to the head,
-  zebra 61, wildebeest 63, gemsbok 54, springbok 36, lechwe 45, ostrich 89 to the head; the Ver
-  waterhole the same way. `feel.json fauna.sizeMul`. Young ones 55–70 % of an
+  guineafowl on their plane** (D-049 targets, docs/balance/perspective.md); D-054's × 0.57 (the
+  ostrich × 0.45) is superseded by **D-080: true size** (`feel.json fauna.sizeMul` 1): far elephant
+  253 px at the shoulder, giraffe 395 to the head, zebra 107, wildebeest 111, gemsbok 95, springbok
+  63, lechwe 79, ostrich 197 to the head; the Ver waterhole the same way. Since D-080 the herd
+  sheets have no HD twin (Standard in HD, like the far veld they stand on). Young ones 55–70 % of an
   adult (elephant calves 50 %) with bigger heads and longer legs; cows and hens a little smaller.
   - *Anatomy:* jointed legs (elbow, knee, fetlock, pastern and a tapering hoof in front; stifle,
     hock, fetlock behind), never sticks; a barrel with withers, back, croup and a tucked flank;
@@ -475,8 +517,9 @@ few dart at the camera, and they settle back after about 3–4 s; mid and far ne
 bursts.
 
 #### 4.3b The colony's everyday life (1.9.4, D-057)
-Round every family nest, all hunt long: 6–12 sociable weavers in sight, about 1.3× true size
-against the tree, darting out from under the nest and looping in the open sky either side of the
+Round every family nest, all hunt long: 6–12 sociable weavers in sight (D-080: at their true
+size beside the guineafowl, a ~0.22 m wingspan; 1.9.4 drew them about 1.3× true size against the
+stage-scaled tree; the sheet is drawn at 3× for them), darting out from under the nest and looping in the open sky either side of the
 trunk, a few perched on the thatch roof and the branches either side,
 hopping and pecking on the ground below, going back in (frames: flap ×2, glide, perch, hop, peck).
 Now and then an **African pygmy falcon** (tiny, white below, grey above, a red-orange eye ring, a
@@ -584,8 +627,8 @@ twisted, lit along the top. The cover is a sheet of variants (`namibie/veld`: th
 per plane, tufts, a dry clump, two bushes, branches), placed at 0.4–1.6× of its drawn size.
 
 #### 4.5d The ostriches (1.9.7, D-059)
-Same proportions and coat as the far-fauna ostrich, 197 px to the head on the mid plane (the D-054
-far-ostrich proportion). Cock: black plumes with white wing tips and tail, pinkish-grey bare neck
+Same proportions and coat as the far-fauna ostrich, drawn at 197 px to the head on the mid plane
+and shown ×2.8 since D-080 (`birds.json ostriches.sizeMul`): its true 2.5 m, 552 px. Cock: black plumes with white wing tips and tail, pinkish-grey bare neck
 and thighs, red shins. Hen: grey-brown, greyish-white plumes, grey skin. Layered shading (a lit
 back, a shaded belly, plume texture strokes), long legs with scaled shanks and two toes, a small
 head with a flat bill, a big dark eye with lashes and a bristly crown. Thin edges a shade darker
@@ -675,10 +718,10 @@ survive serialization before scaling. One sheet
 HD the 2× in `baboons-hd`), frames facing
 right with the origin at the feet, each box fitted to its drawing (`tools/art/baboonBoxes.ts`
 writes `src/game/view/baboon/baboonBoxes.ts`): **raiders** at the mid plane's size (a sitting male
-151 px at 1080): walk ×4, run ×2, the hat (wearing Oupa's khaki bush hat, scratching under it),
+151 px at 1080, shown 176 px since D-080: the true 0.8 m): walk ×4, run ×2, the hat (wearing Oupa's khaki bush hat, scratching under it),
 fruit and mielie (eating, 2 each), the tap and the throw (up on the hind legs), the moon (on a
 fence post, its back to us, looking over its shoulder), the tumble and lying still; **the ridge** at
-the far plane's size (54 px): sit, groom, look, the lookout's bark (2), walk (2), play (2), the
+the far plane's size (54 px, shown 63 since D-080): sit, groom, look, the lookout's bark (2), walk (2), play (2), the
 mother sitting and walking (2), climbing down and up; plus the thrown fruit and the tap's water.
 Youngsters are the male frames at 0.56, mothers their own frames at 0.82. The far frames have
 darker, warmer fur than the raiders (they sit against the far ridge's pale haze) and a 1.45×
@@ -735,7 +778,10 @@ the gap's panel: whole, broken with two tipped posts and curled wire, three repa
 again); the pumpkin patch on the near plane; sunflower clumps in the foreground. **One sheet**
 (`oes/harvest`, the map's lazy group, a 2× master; frames face right, origin at the feet, boxes
 fitted by `tools/art/harvestBoxes.ts`): the warthog (grey-brown, a sparse dark mane, tusks and
-warts and two curved upper tusks, a bristle mane; trot ×4 with the tail straight up like an
+warts and two curved upper tusks, a bristle mane (D-080: shown at its true 0.7 m at the back,
+`modes.json warthogs.heightPx` 175 → 368, the piglets 0.45 of that; the farm workers are left as
+they are — people, not in the owner's "all animals" — so a warthog stands taller than a worker);
+trot ×4 with the tail straight up like an
 aerial, dig ×2 kneeling on the front knees with the snout in the soil, run ×2, the tumble and lying
 still — no blood), piglets (lighter, faint stripes; trot ×2, run), three farm
 workers — respectful, cheerful, simple overalls and boots, varied people (a woman with a headscarf
@@ -780,7 +826,9 @@ the storm's own gloom, rain and lightning do the rest.
 Interim at the D-035 bar, inked Bosveld Comic in daylight (lit from the upper left). A smooth-coated
 Jack Russell terrier: mostly white, a tan head with a white blaze down the muzzle, tan button ears
 folded forward, a tan saddle at the base of his short, high-carried tail and a small patch on his
-back, a black nose, bright dark eyes. Brave, busy, cheeky — never shown hurt. **One sheet**
+back, a black nose, bright dark eyes. Brave, busy, cheeky — never shown hurt. **D-080:** shown
+×1.4 (`brakkie.json sizeMul`): a true Jack Russell, ~0.3 m at the shoulder (154 px near); the bird in
+his mouth keeps its size. **One sheet**
 (`brakkie/sheet`, 512 × 256 at 1×, its own lazy group `brakkie`, the HD twin `brakkie-hd` its 2×
 master; 0.5 MiB on the GPU, a unit test caps it): every frame authored at half size and drawn ×2,
 facing right with the origin at his feet (boxes fitted to the drawing with a 6 px margin; an art
@@ -818,9 +866,11 @@ hurt, no blood. One sheet per area (`cameos/<area>`, its own lazy group `cameos-
 `cameos-<area>-hd` its 2× master; ≤ 0.5 MiB each on the GPU at 1×, a unit test caps them at 1 MiB;
 the Okavango has none): every frame authored at half size and drawn ×2, facing right with the origin
 at the feet (boxes with a 6 px margin; art tests check the margins, that the feet reach the ground
-line and that the edges are a shade darker than the body), sized as drawn on its plane (true height
-× the plane's scale × the far herds' 0.57; the ostrich at Namibië's mid size; the beetle about twice
-its true size). **Bushveld:** a warthog sow (trot ×2 tail straight up with its tuft, kneeling on her
+line and that the edges are a shade darker than the body), sized as drawn on its plane. D-080:
+every kind at its true size beside the guineafowl (`cameoSheet.ts CAMEO_SIZE_MUL` = content
+`cameos.json kinds.*.sizeMul`: warthogs 2.7, springbok 2.95, gemsbok 3.4, ostrich 2.76, tortoise
+2.6), redrawn from the same vector shapes at the new size at 0.25 sheet px per drawn px (HD 0.5);
+the dung beetle stays about twice its true size on purpose. **Bushveld:** a warthog sow (trot ×2 tail straight up with its tuft, kneeling on her
 front knees to feed, bolt ×2) and piglets (Die Oes's rig at mid size, faint stripes); a glossy
 black-bronze dung beetle head down pushing its straw-flecked ball with its hind legs (four frames
 roll the ball a quarter turn), tipped on its back, righting itself. **Karoo:** a leopard tortoise
