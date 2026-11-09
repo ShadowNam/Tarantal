@@ -23,12 +23,12 @@
     },
     "brakkie/sheet": {
       "file": {
-        "path": "assets/brakkie-hd/img/brakkie_sheet.b840a8c77a30.png",
-        "bytes": 201964,
-        "hash": "b840a8c77a30"
+        "path": "assets/brakkie-hd/img/brakkie_sheet.78ec6cd7db5a.png",
+        "bytes": 216285,
+        "hash": "78ec6cd7db5a"
       },
       "width": 1344,
-      "height": 1146,
+      "height": 1058,
       "scale": 0.5
     },
     "bushveld/aloe_a": {
@@ -63,12 +63,12 @@
     },
     "bushveld/baobab_life": {
       "file": {
-        "path": "assets/bushveld-winter-hd/img/bushveld_baobab_life.d640cb7e7e04.png",
-        "bytes": 17660,
-        "hash": "d640cb7e7e04"
+        "path": "assets/bushveld-winter-hd/img/bushveld_baobab_life.d72216a40d2b.png",
+        "bytes": 28719,
+        "hash": "d72216a40d2b"
       },
-      "width": 512,
-      "height": 516,
+      "width": 672,
+      "height": 894,
       "scale": 0.5
     },
     "bushveld/boulder_a": {
@@ -433,12 +433,12 @@
     },
     "namibie/ostriches": {
       "file": {
-        "path": "assets/namibie-hd/img/namibie_ostriches.ab191dfcdbb4.png",
-        "bytes": 384171,
-        "hash": "ab191dfcdbb4"
+        "path": "assets/namibie-hd/img/namibie_ostriches.f19e4eea6936.png",
+        "bytes": 314711,
+        "hash": "f19e4eea6936"
       },
       "width": 2880,
-      "height": 2956,
+      "height": 2292,
       "scale": 0.5
     },
     "oes/farmhouse": {

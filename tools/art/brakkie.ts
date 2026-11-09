@@ -899,47 +899,172 @@ function pose(name: BrakkieFrame): Pose {
   }
 }
 
-/** The guineafowl he carries, hanging limp from the origin (his mouth): whole, no blood. */
+/** The carried bird's tilt (deg, breast end down: it hangs a little). */
+const BIRD_TILT = 4;
+
+/** A point of the carried bird's body frame, tilted (BIRD_TILT) round the grip. */
+function birdPt([x, y]: P): P {
+  const a = (BIRD_TILT * Math.PI) / 180;
+  return [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a) - 3];
+}
+
+/**
+ * The guineafowl he carries, limp and whole (no blood), held across his jaws by the middle of its
+ * back (the origin, his mouth). v1.20.2 (D-082): at its true size on the near plane — the D-069
+ * bird was ~82 px long (0.16 m, 0.27× a real one, held by the neck); this one is ~300 px bill to
+ * tail along its body (a helmeted guineafowl's 0.55–0.58 m beside the 263 px standing
+ * yardstick), as long as the dog: the slate, white-pearled body across his muzzle and chest, the
+ * bare blue neck and the head (red wattles, the horny casque, the eye closed) drooping in front of
+ * his forelegs, the short tail over his neck, the legs folded back under the belly. It hangs no
+ * lower than ~95 px below his mouth, clear of the ground in every running frame (his mouth is
+ * 100–111 px up). Drawn from these shapes at its size (0.5 sheet px per px, 1.0 in HD).
+ */
 function bird(p: Paints): string {
-  const spots: string[] = [];
-  // The white pearl spots in staggered rows over the slate body.
-  for (let row = 0; row < 4; row++)
-    for (let i = 0; i < 6; i++) {
-      const x = 16 + i * 10 + (row % 2) * 5;
-      const y = 12 + row * 8;
-      spots.push(el('circle', { cx: x, cy: y, r: 1.9, fill: C.fowlSpot }));
+  const T = (pts: readonly P[]): P[] => pts.map(birdPt);
+  // The body: a rounded, humped back (the grip near its top), a full breast at the front (+x),
+  // tapering to the rump.
+  const body = smoothD(
+    T([
+      [-88, 22],
+      [-58, 4],
+      [-18, -2],
+      [22, 0],
+      [58, 10],
+      [86, 28],
+      [94, 48],
+      [80, 68],
+      [42, 79],
+      [-8, 79],
+      [-52, 70],
+      [-84, 50],
+    ]),
+    true,
+    0.9,
+  );
+  // The folded wing, loosened.
+  const wing = smoothD(
+    T([
+      [-74, 24],
+      [-36, 14],
+      [14, 14],
+      [52, 22],
+      [44, 46],
+      [6, 57],
+      [-44, 58],
+      [-82, 47],
+    ]),
+    true,
+    0.9,
+  );
+  // The short tail drooping off the rump.
+  const tail = smoothD(
+    T([
+      [-82, 24],
+      [-108, 32],
+      [-130, 46],
+      [-128, 62],
+      [-106, 66],
+      [-82, 50],
+    ]),
+    true,
+    0.9,
+  );
+  // The white pearl spots in staggered rows over the slate body, the wing and the tail (a real
+  // guineafowl is covered in them).
+  const rnd = prng(5501);
+  let spotD = '';
+  for (let row = 0; row < 9; row++)
+    for (let i = 0; i < 21; i++) {
+      const [x, y] = birdPt([
+        -112 + i * 11 + (row % 2) * 5.5 + (rnd() - 0.5) * 3,
+        -6 + row * 10 + (rnd() - 0.5) * 3,
+      ]);
+      spotD += ellipseD(x, y, 2.5, 2.2);
     }
-  const body = smoothD([
-    [8, 6],
-    [36, 6],
-    [64, 16],
-    [72, 32],
-    [56, 42],
-    [24, 40],
-    [10, 26],
-  ]);
-  const id = uid('fw');
+  const clipped = (shape: string, opacity: number): string[] => {
+    const id = uid('fw');
+    return [
+      el('clipPath', { id }, el('path', { d: shape })),
+      g({ 'clip-path': `url(#${id})` }, el('path', { d: spotD, fill: C.fowlSpot, opacity })),
+    ];
+  };
+  // The neck droops from the breast's top: feathered and dark below, the bare blue skin above;
+  // the head hangs crown-down at its end.
+  const root = birdPt([86, 30]);
+  const mid: P = [root[0] + 14, root[1] + 18];
+  const end: P = [mid[0] + 8, mid[1] + 14];
+  const hx = end[0] + 3;
+  const hy = end[1] + 10;
+  // The legs, folded back under the belly (a shot bird's), toes curled.
+  const legs = (
+    [
+      [
+        [22, 74],
+        [-6, 90],
+      ],
+      [
+        [38, 72],
+        [12, 88],
+      ],
+    ] as const
+  ).flatMap(([a, b]) => {
+    const ta = birdPt(a);
+    const [bx, by] = birdPt(b);
+    const shank = `M${r2(ta[0])} ${r2(ta[1])}L${r2(bx)} ${r2(by)}`;
+    const toes = `M${r2(bx)} ${r2(by)}l-9 2M${r2(bx)} ${r2(by)}l-8 6M${r2(bx)} ${r2(by)}l-3 8`;
+    return [
+      line(shank, C.ink, 8),
+      line(toes, C.ink, 5.2),
+      line(shank, '#5E6270', 4.4),
+      line(toes, '#5E6270', 2.2),
+    ];
+  });
   return g(
     {},
-    // Legs dangling.
-    line('M60 38L66 52M52 40L54 54', C.ink, 3),
+    ...legs,
+    // The tail, then the body over it, then the wing, each pearled.
+    inkPath(tail, p.fowl.url),
+    ...clipped(tail, 0.85),
     inkPath(body, p.fowl.url),
-    el('clipPath', { id }, el('path', { d: body })),
-    g({ 'clip-path': `url(#${id})` }, ...spots),
-    // The neck in his mouth, the head hanging: blue face, red wattle, the casque.
-    inkPath(limbD([12, 10], [2, 22], 9, 7), C.fowlFace, 2),
-    inkPath(ellipseD(0, 26, 7, 6), C.fowlFace, 2),
-    el('path', { d: ellipseD(2, 33, 3, 4), fill: C.fowlWattle }),
+    ...clipped(body, 1),
+    inkPath(wing, C.fowlShade, 2.4),
+    ...clipped(wing, 0.8),
+    // The neck: the dark feathered base, the bare blue skin, a few bristles.
+    inkPath(limbD(root, mid, 30, 20), C.fowlShade),
+    inkPath(limbD([mid[0] - 1, mid[1] - 4], end, 17, 14), C.fowlFace, 2.6),
+    line(
+      `M${r2(mid[0] - 5)} ${r2(mid[1] + 5)}l-5 2M${r2(mid[0] - 2)} ${r2(mid[1] + 12)}l-5 2`,
+      C.ink,
+      1.4,
+    ),
+    // The head, crown down: the casque pointing down and back, the blue face, the red wattles,
+    // the bill forward, the eye closed.
     el('path', {
       d: polyD([
-        [-3, 21],
-        [0, 13],
-        [4, 21],
+        [hx - 9, hy + 5],
+        [hx - 20, hy + 17],
+        [hx + 1, hy + 11],
       ]),
       fill: C.casque,
       stroke: C.ink,
-      'stroke-width': 1.2,
+      'stroke-width': 2.2,
+      'stroke-linejoin': 'round',
     }),
+    inkPath(ellipseD(hx, hy, 13, 14), C.fowlFace, 2.6),
+    el('path', { d: ellipseD(hx - 4, hy + 7, 6, 4.5), fill: C.fowlWattle }),
+    el('path', {
+      d: polyD([
+        [hx + 9, hy - 4],
+        [hx + 24, hy + 2],
+        [hx + 9, hy + 6],
+      ]),
+      fill: C.casque,
+      stroke: C.ink,
+      'stroke-width': 2.2,
+      'stroke-linejoin': 'round',
+    }),
+    inkPath(ellipseD(hx + 7, hy - 10, 4.5, 7), C.fowlWattle, 1.8),
+    line(`M${r2(hx - 2)} ${r2(hy - 1)}l7 1`, C.ink, 2),
   );
 }
 

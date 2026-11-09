@@ -696,7 +696,8 @@ a busy small hole). Test flags (v1.8c): `?harvestDuck=<s>` (a struck worker stay
   layer, inside it, clear of colonies and own-layer secrets, never in front of the bird bands or
   secrets behind. **v1.17b (D-080):** `ostriches.sizeMul` (2.8) grows the birds and the nest to a
   true 2.5 m (drawing, hit shapes, `heightPx`; not the walks, the wander or the scare radius;
-  `OstrichFamilyView.size`). At that size the pair stands in front of the far and Ver bands on
+  `OstrichFamilyView.size`). **v1.17c (D-082):** the hen is `ostriches.henScale` (0.73) of that
+  — her hit shapes and her height in the scare band (`birdSize()`); the nest keeps the pair's. At that size the pair stands in front of the far and Ver bands on
   every map, so an ostrich `HitExtra` is pass-through like a cameo (`resolvePellet`: anything
   behind takes the pellet; never blocks a touch snap) and the checks no longer test what is behind
   (`ostrichBehind` records it); width and band are scaled by `sizeMul`. The aimed-at rule

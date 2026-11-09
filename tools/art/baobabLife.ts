@@ -11,6 +11,7 @@ import {
   residentFrames,
   type ResidentFrame,
 } from '../../src/game/view/tree/residentSheet';
+import { RESIDENT_TRUE_MUL } from '../../src/game/view/tree/residentTrueSize';
 import type { Rgba } from '../assets/image';
 import { renderSvg } from './raster';
 import { mix, nextId, shade } from './scenery';
@@ -97,8 +98,9 @@ function galagoHead(cy: number, turn: number, paws: boolean): string {
 function galago(frame: ResidentFrame): string {
   // Review R1: 1.6× bigger (the eyes read as eyes), and masked by its hole: only what is inside
   // the opening shows, plus the ears above its upper rim; the lower rim hides the chin and body.
+  // D-082: at its true size, 1.07 (a lesser bushbaby's head ~0.06 m wide: 13 px at mid).
   const h = HOLLOWS.galago;
-  const k = 1.6;
+  const k = 1.6 * RESIDENT_TRUE_MUL.galago;
   const cy = frame === 'galago_ears' ? 13 : frame === 'galago_eyes' ? 8 : 4;
   const turn = frame === 'galago_look' ? 1 : 0;
   const paws = frame === 'galago_out' || frame === 'galago_look';
@@ -124,8 +126,16 @@ function galago(frame: ResidentFrame): string {
     paws
       ? g(
           {},
-          inked(ellipseD(-6.5, h.ry * 0.78, 2.8, 2), '#C8B8A6', 0.6),
-          inked(ellipseD(6.5, h.ry * 0.78, 2.8, 2), '#C8B8A6', 0.6),
+          inked(
+            ellipseD(-6.5 * (k / 1.6), h.ry * 0.78, 2.8 * (k / 1.6), 2 * (k / 1.6)),
+            '#C8B8A6',
+            0.6,
+          ),
+          inked(
+            ellipseD(6.5 * (k / 1.6), h.ry * 0.78, 2.8 * (k / 1.6), 2 * (k / 1.6)),
+            '#C8B8A6',
+            0.6,
+          ),
         )
       : '',
   );
@@ -349,7 +359,8 @@ function hornbillClinging(feed: boolean): string {
     inked('M-7 -22Q-10 -10 -6 2Q-2 -2 -1 -12Q-2 -20 -7 -22Z', HB_BLACK, 0.7),
     spots('M-6 -16Q-7 -8 -5 -2'),
     stroke('M-1 -1L2 1M1 -1L4 0', '#6A5A48', 1.1),
-    // Feeding, the bill reaches the slit at (14, −22) from the feet (HORNBILL_CLING).
+    // Feeding, the bill reaches the slit at (14, −22) from the feet (HORNBILL_CLING; × the
+    // hornbill's true-size scale, D-082).
     feed ? hornbillHead(-2, -27, 0.45, 14) : hornbillHead(1, -32, -0.2, 14),
   );
 }
@@ -394,12 +405,20 @@ function bee(): string {
 function drawFrame(name: ResidentFrame): string {
   if (name.startsWith('galago_')) return galago(name);
   if (name.startsWith('squirrel_')) return squirrel(name);
-  if (name === 'owl_fly_a' || name === 'owl_fly_b') return owlFlying(name === 'owl_fly_a');
+  // D-082: the flying owl and the hornbill at their true size (residentSheet.ts RESIDENT_TRUE_MUL).
+  if (name === 'owl_fly_a' || name === 'owl_fly_b')
+    return g({ transform: `scale(${RESIDENT_TRUE_MUL.owlFly})` }, owlFlying(name === 'owl_fly_a'));
   if (name.startsWith('owl_')) return owlInCavity(name);
   if (name === 'hornbill_fly_a' || name === 'hornbill_fly_b')
-    return hornbillFlying(name === 'hornbill_fly_a');
+    return g(
+      { transform: `scale(${RESIDENT_TRUE_MUL.hornbill})` },
+      hornbillFlying(name === 'hornbill_fly_a'),
+    );
   if (name === 'hornbill_cling' || name === 'hornbill_feed')
-    return hornbillClinging(name === 'hornbill_feed');
+    return g(
+      { transform: `scale(${RESIDENT_TRUE_MUL.hornbill})` },
+      hornbillClinging(name === 'hornbill_feed'),
+    );
   if (name === 'beak_tip')
     return g({}, fill(ellipseD(0, 0, 2.6, 6.4), '#120B08'), hornbillBill(-0.6, -1.5, 1.25, 6.2));
   if (name.startsWith('buffalo_')) return buffaloWeaver(name);

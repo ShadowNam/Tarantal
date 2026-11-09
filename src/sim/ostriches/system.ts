@@ -10,8 +10,10 @@ import type { RandomStream } from '../rng';
 import type { OstrichFamilyView } from '../types';
 import type { HitExtra } from '../weapons/hitTest';
 import {
+  birdSize,
   createFamily,
   nestShape,
+  scareBands,
   scareFamily,
   shapesOf,
   stepFamily,
@@ -101,15 +103,17 @@ export const createOstrichSystem: OstrichSystemFactory = (biome, content, rng, h
 
   function extras(add: (layerId: string, e: HitExtra) => void): void {
     for (const f of families) {
-      for (const b of f.birds)
+      for (const b of f.birds) {
+        const k = birdSize(f, b, os);
         for (const sh of shapesOf(b.pose, os))
           add(f.layerId, {
             kind: 'ostrich',
             ostrichId: b.id,
-            x: b.x + sh.ox * f.size * b.facing,
-            y: f.ground + sh.oy * f.size,
-            shape: { type: 'ellipse', rx: sh.rx * f.size, ry: sh.ry * f.size },
+            x: b.x + sh.ox * k * b.facing,
+            y: f.ground + sh.oy * k,
+            shape: { type: 'ellipse', rx: sh.rx * k, ry: sh.ry * k },
           });
+      }
       const n = nestShape(f, os);
       if (n !== null && f.nest !== null)
         add(f.layerId, {
@@ -135,17 +139,12 @@ export const createOstrichSystem: OstrichSystemFactory = (biome, content, rng, h
       const uy = (p.y - y) / ry;
       return ux * ux + uy * uy <= 1;
     };
-    for (const b of f.birds)
+    for (const b of f.birds) {
+      const k = birdSize(f, b, os);
       for (const sh of shapesOf(b.pose, os))
-        if (
-          inside(
-            b.x + sh.ox * f.size * b.facing,
-            f.ground + sh.oy * f.size,
-            sh.rx * f.size,
-            sh.ry * f.size,
-          )
-        )
+        if (inside(b.x + sh.ox * k * b.facing, f.ground + sh.oy * k, sh.rx * k, sh.ry * k))
           return true;
+    }
     const n = nestShape(f, os);
     return n !== null && inside(n.x, n.y, n.rx, n.ry);
   }
@@ -208,14 +207,15 @@ export const createOstrichSystem: OstrichSystemFactory = (biome, content, rng, h
       if (loud) from = tapToPlane(cx, f.scrollFactor, 0, f.ground).x;
       else {
         const r = os.scare.radiusPx * f.scale;
-        const xs = [...f.birds.map((b) => b.x), ...(f.nest === null ? [] : [f.nest.x])];
+        // Each bird at its own height (D-082: the hen smaller); the nest at the pair's.
+        const spots = scareBands(f, os);
         for (const imp of impacts) {
           const p = tapToPlane(cx, f.scrollFactor, imp.dx, imp.sy);
-          const dy = Math.max(
-            0,
-            Math.abs(p.y - (f.ground - (os.heightPx * f.size) / 2)) - (os.heightPx * f.size) / 2,
-          );
-          if (xs.some((x) => (x - p.x) * (x - p.x) + dy * dy <= r * r)) {
+          const near = spots.some((s) => {
+            const dy = Math.max(0, Math.abs(p.y - (f.ground - s.h / 2)) - s.h / 2);
+            return (s.x - p.x) * (s.x - p.x) + dy * dy <= r * r;
+          });
+          if (near) {
             from = p.x;
             break;
           }

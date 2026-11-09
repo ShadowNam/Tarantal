@@ -46,12 +46,12 @@
       "group": "brakkie",
       "origin": "interim",
       "file": {
-        "path": "assets/brakkie/img/brakkie_sheet.6b88813684c9.png",
-        "bytes": 86894,
-        "hash": "6b88813684c9"
+        "path": "assets/brakkie/img/brakkie_sheet.526df8c99a54.png",
+        "bytes": 90844,
+        "hash": "526df8c99a54"
       },
       "width": 672,
-      "height": 573,
+      "height": 529,
       "originX": 0,
       "originY": 0
     },
@@ -94,12 +94,12 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_baobab_life.0af95f4fc8ea.png",
-        "bytes": 9661,
-        "hash": "0af95f4fc8ea"
+        "path": "assets/bushveld-winter/img/bushveld_baobab_life.9761d67ae061.png",
+        "bytes": 16357,
+        "hash": "9761d67ae061"
       },
-      "width": 256,
-      "height": 258,
+      "width": 336,
+      "height": 447,
       "originX": 0,
       "originY": 0
     },
@@ -795,11 +795,11 @@
       "group": "fauna-kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/fauna-kalahari-summer/img/fauna_kalahari_ostrich.fabbecc60578.png",
-        "bytes": 5635,
-        "hash": "fabbecc60578"
+        "path": "assets/fauna-kalahari-summer/img/fauna_kalahari_ostrich.65c54a777c40.png",
+        "bytes": 5407,
+        "hash": "65c54a777c40"
       },
-      "width": 333,
+      "width": 319,
       "height": 146,
       "originX": 0,
       "originY": 0,
@@ -815,7 +815,7 @@
           0
         ],
         "ostrich.alert.m.head": [
-          291,
+          277,
           0,
           42,
           95,
@@ -827,22 +827,22 @@
         "ostrich.graze.f.body": [
           129,
           0,
-          109,
-          124,
-          65,
-          119,
+          99,
+          111,
+          59,
+          107,
           0,
           0
         ],
         "ostrich.graze.f.head": [
-          238,
+          228,
           0,
-          53,
-          117,
-          13.2,
-          7.3,
-          28.2,
-          -102.7
+          49,
+          107,
+          12.5,
+          7.1,
+          25.5,
+          -92.9
         ]
       }
     },
@@ -1180,12 +1180,12 @@
       "group": "fauna-karoo-autumn",
       "origin": "interim",
       "file": {
-        "path": "assets/fauna-karoo-autumn/img/fauna_karoo_ostrich.9cddca740efb.png",
-        "bytes": 7895,
-        "hash": "9cddca740efb"
+        "path": "assets/fauna-karoo-autumn/img/fauna_karoo_ostrich.85bb250bc733.png",
+        "bytes": 7231,
+        "hash": "85bb250bc733"
       },
-      "width": 256,
-      "height": 269,
+      "width": 238,
+      "height": 257,
       "originX": 0,
       "originY": 0,
       "frames": {
@@ -1200,7 +1200,7 @@
           0
         ],
         "ostrich.alert.m.head": [
-          162,
+          148,
           146,
           42,
           95,
@@ -1212,42 +1212,42 @@
         "ostrich.graze.f.body": [
           129,
           0,
-          109,
-          124,
-          65,
-          119,
+          99,
+          111,
+          59,
+          107,
           0,
           0
         ],
         "ostrich.graze.f.head": [
-          109,
+          99,
           146,
-          53,
-          117,
-          13.2,
-          7.3,
-          28.2,
-          -102.7
+          49,
+          107,
+          12.5,
+          7.1,
+          25.5,
+          -92.9
         ],
         "ostrich.walk.f.body": [
           0,
           146,
-          109,
-          123,
-          65,
-          118,
+          99,
+          111,
+          59,
+          107,
           0,
           0
         ],
         "ostrich.walk.f.head": [
-          204,
+          190,
           146,
-          52,
-          66,
-          13.2,
-          53.3,
-          28.2,
-          -102.7
+          48,
+          61,
+          12.5,
+          49.1,
+          25.5,
+          -92.9
         ]
       }
     },
@@ -1720,11 +1720,11 @@
       "group": "fauna-namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/fauna-namibie/img/fauna_namibie_ostrich.62a5b319dafd.png",
-        "bytes": 5671,
-        "hash": "62a5b319dafd"
+        "path": "assets/fauna-namibie/img/fauna_namibie_ostrich.f91e671ec704.png",
+        "bytes": 5420,
+        "hash": "f91e671ec704"
       },
-      "width": 333,
+      "width": 319,
       "height": 146,
       "originX": 0,
       "originY": 0,
@@ -1740,7 +1740,7 @@
           0
         ],
         "ostrich.alert.m.head": [
-          291,
+          277,
           0,
           42,
           95,
@@ -1752,22 +1752,22 @@
         "ostrich.graze.f.body": [
           129,
           0,
-          109,
-          124,
-          65,
-          119,
+          99,
+          111,
+          59,
+          107,
           0,
           0
         ],
         "ostrich.graze.f.head": [
-          238,
+          228,
           0,
-          53,
-          117,
-          13.2,
-          7.3,
-          28.2,
-          -102.7
+          49,
+          107,
+          12.5,
+          7.1,
+          25.5,
+          -92.9
         ]
       }
     },
@@ -1775,18 +1775,18 @@
       "group": "ver",
       "origin": "interim",
       "file": {
-        "path": "assets/ver/img/fauna_namibie_waterhole.8e8eb60e4b35.png",
-        "bytes": 19473,
-        "hash": "8e8eb60e4b35"
+        "path": "assets/ver/img/fauna_namibie_waterhole.ad074a4a37c3.png",
+        "bytes": 19565,
+        "hash": "ad074a4a37c3"
       },
-      "width": 107,
-      "height": 893,
+      "width": 210,
+      "height": 455,
       "originX": 0,
       "originY": 0,
       "frames": {
         "gemsbok.alert.m.body": [
-          50,
-          692,
+          0,
+          357,
           56,
           51,
           28,
@@ -1795,8 +1795,8 @@
           0
         ],
         "gemsbok.alert.m.head": [
-          0,
-          692,
+          152,
+          301,
           50,
           53,
           14.8,
@@ -1805,8 +1805,8 @@
           -35.3
         ],
         "gemsbok.alert.m.tail": [
-          81,
-          795,
+          27,
+          408,
           10,
           36,
           7.8,
@@ -1815,8 +1815,8 @@
           -40.6
         ],
         "gemsbok.graze.m.body": [
-          0,
-          745,
+          56,
+          357,
           56,
           50,
           28,
@@ -1825,8 +1825,8 @@
           0
         ],
         "gemsbok.graze.m.head": [
-          0,
-          519,
+          82,
+          232,
           34,
           61,
           9.8,
@@ -1835,8 +1835,8 @@
           -35.3
         ],
         "gemsbok.graze.m.tail": [
-          71,
-          795,
+          17,
+          408,
           10,
           36,
           7.8,
@@ -1845,8 +1845,8 @@
           -40.6
         ],
         "giraffe.alert.m.body": [
+          98,
           0,
-          126,
           95,
           121,
           48,
@@ -1866,7 +1866,7 @@
         ],
         "giraffe.alert.m.tail": [
           62,
-          450,
+          232,
           20,
           64,
           15.8,
@@ -1876,7 +1876,7 @@
         ],
         "giraffe.drink.f.body": [
           0,
-          247,
+          126,
           102,
           106,
           42,
@@ -1885,8 +1885,8 @@
           0
         ],
         "giraffe.drink.f.head": [
-          0,
-          353,
+          102,
+          126,
           107,
           97,
           13.3,
@@ -1895,8 +1895,8 @@
           -70.6
         ],
         "giraffe.drink.f.tail": [
-          86,
-          519,
+          116,
+          232,
           17,
           57,
           13.8,
@@ -1905,28 +1905,28 @@
           -70
         ],
         "ostrich.alert.f.body": [
-          34,
-          519,
-          52,
-          60,
-          31,
-          57,
+          104,
+          301,
+          48,
+          54,
+          28,
+          51,
           0,
           0
         ],
         "ostrich.alert.f.head": [
-          30,
-          795,
-          19,
-          39,
-          7.1,
-          32.1,
-          13.1,
-          -47.9
+          0,
+          408,
+          17,
+          36,
+          6.9,
+          29.6,
+          11.9,
+          -43.4
         ],
         "ostrich.walk.m.body": [
           0,
-          450,
+          232,
           62,
           69,
           37,
@@ -1935,8 +1935,8 @@
           0
         ],
         "ostrich.walk.m.head": [
-          0,
-          795,
+          158,
+          357,
           30,
           39,
           7.6,
@@ -1945,8 +1945,8 @@
           -57.1
         ],
         "springbok.alert.m.body": [
-          0,
-          834,
+          37,
+          408,
           35,
           35,
           18,
@@ -1955,8 +1955,8 @@
           0
         ],
         "springbok.alert.m.head": [
-          73,
-          834,
+          110,
+          408,
           26,
           31,
           6.9,
@@ -1965,8 +1965,8 @@
           -23.6
         ],
         "springbok.alert.m.tail": [
-          66,
-          869,
+          202,
+          408,
           6,
           12,
           3.8,
@@ -1975,8 +1975,8 @@
           -28.3
         ],
         "springbok.graze.y.body": [
-          0,
-          869,
+          136,
+          408,
           22,
           24,
           11,
@@ -1985,8 +1985,8 @@
           0
         ],
         "springbok.graze.y.head": [
-          51,
-          869,
+          187,
+          408,
           15,
           22,
           4.5,
@@ -1995,8 +1995,8 @@
           -14.6
         ],
         "springbok.graze.y.tail": [
-          78,
-          869,
+          6,
+          444,
           6,
           7,
           3.5,
@@ -2005,8 +2005,8 @@
           -17.5
         ],
         "springbok.walk.f.body": [
-          35,
-          834,
+          72,
+          408,
           38,
           34,
           19,
@@ -2015,8 +2015,8 @@
           0
         ],
         "springbok.walk.f.head": [
-          22,
-          869,
+          158,
+          408,
           29,
           22,
           6.5,
@@ -2025,8 +2025,8 @@
           -22.6
         ],
         "springbok.walk.f.tail": [
-          72,
-          869,
+          0,
+          444,
           6,
           11,
           3.5,
@@ -2036,7 +2036,7 @@
         ],
         "zebra.alert.f.body": [
           0,
-          636,
+          301,
           61,
           56,
           31,
@@ -2045,8 +2045,8 @@
           0
         ],
         "zebra.alert.f.head": [
-          56,
-          745,
+          112,
+          357,
           46,
           41,
           10.8,
@@ -2055,8 +2055,8 @@
           -39.8
         ],
         "zebra.alert.f.tail": [
-          60,
-          795,
+          199,
+          357,
           11,
           38,
           8.7,
@@ -2065,8 +2065,8 @@
           -46.2
         ],
         "zebra.graze.m.body": [
-          0,
-          580,
+          133,
+          232,
           62,
           56,
           31,
@@ -2076,7 +2076,7 @@
         ],
         "zebra.graze.m.head": [
           61,
-          636,
+          301,
           43,
           56,
           10.8,
@@ -2085,8 +2085,8 @@
           -39.8
         ],
         "zebra.graze.m.tail": [
-          49,
-          795,
+          188,
+          357,
           11,
           38,
           8.7,
@@ -3447,12 +3447,12 @@
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/namibie_ostriches.5ee030a9e758.png",
-        "bytes": 138979,
-        "hash": "5ee030a9e758"
+        "path": "assets/namibie/img/namibie_ostriches.9f0a4769eb3a.png",
+        "bytes": 114863,
+        "hash": "9f0a4769eb3a"
       },
       "width": 1440,
-      "height": 1478,
+      "height": 1146,
       "originX": 0,
       "originY": 0
     },

@@ -107,7 +107,12 @@ areas grow with them (never smaller than the drawn body); Die Oes's farm workers
 on the same true scale as its warthogs. Left off true size: the dung beetle (bigger on purpose so
 it reads), the bakkie (a stage-set prop) and the Harvest's mielies (true, they would hide the
 flocks in the rows): the owner decides. Props keep
-their stage-set scale. Table: art bible §4.1 "Every animal at true size".
+their stage-set scale. Table: art bible §4.1 "Every animal at true size". **v1.17c (D-082, an
+audit):** the ostrich hen is a hen (~1.9 m, 0.73 of the cock: her drawing and her hit area), the
+bird Brakkie carries is a full-size guineafowl, and the baobab's flying owl, hornbill and
+bushbaby are at true size; the table now measures the delivered art. Also left: the boss birds
+(legendary, no real size) and the baobab residents its stage-set holes and nests cannot hold
+(the owl in its cavity, the buffalo weaver, the squirrel).
 The Ver plane (D-036) sits behind the far plane (scroll factor 0.22, between the far ridge and the
 far veld); a rifle's zoom is how you see and hit it (§10.6).
 

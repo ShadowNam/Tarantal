@@ -55,6 +55,23 @@ const BOX: Readonly<Record<OstrichFramePose, Box>> = {
   hiss: { w: 201, h: 186, ox: 73, oy: 178 },
 };
 
+/**
+ * v1.20.2 (D-082): the hen is drawn this share of the cock's size. The D-059 sheet drew her as tall
+ * as him (~210 layout px to the head, 2.66 m at the true-size 2.8×); a real hen stands 1.7–2.0 m
+ * and a cock 2.1–2.8 m. At 0.73 she is ~153 layout px, 1.94 m beside the guineafowl. Her hit shapes
+ * shrink with her (content birds.json ostriches.henScale, tested equal).
+ */
+export const OSTRICH_HEN_SCALE = 0.73;
+
+/** A hen's frame box: the cock's scaled by OSTRICH_HEN_SCALE (her drawing is, from the same
+ *  vector shapes), so the frames stay tight and the sheet smaller. */
+const henBox = (b: Box): Box => ({
+  w: Math.ceil(b.w * OSTRICH_HEN_SCALE),
+  h: Math.ceil(b.h * OSTRICH_HEN_SCALE),
+  ox: Math.round(b.ox * OSTRICH_HEN_SCALE),
+  oy: Math.round(b.oy * OSTRICH_HEN_SCALE),
+});
+
 export interface OstrichFrameDef extends Box {
   readonly name: string;
 }
@@ -63,12 +80,13 @@ export interface OstrichFrameDef extends Box {
 export const ostrichFrame = (male: boolean, pose: OstrichFramePose): string =>
   `${male ? 'm' : 'f'}_${pose}`;
 
-/** Every frame: the male's poses, the female's (no display), the scrape and an egg. */
+/** Every frame: the male's poses, the female's (no display; smaller, OSTRICH_HEN_SCALE), the
+ *  scrape and an egg. */
 export const OSTRICH_FRAMES: readonly OstrichFrameDef[] = [
   ...OSTRICH_POSES.map((p) => ({ name: ostrichFrame(true, p), ...BOX[p] })),
   ...OSTRICH_POSES.filter((p) => p !== 'display').map((p) => ({
     name: ostrichFrame(false, p),
-    ...BOX[p],
+    ...henBox(BOX[p]),
   })),
   { name: 'scrape', w: 170, h: 34, ox: 85, oy: 20 },
   { name: 'egg', w: 16, h: 14, ox: 8, oy: 13 },

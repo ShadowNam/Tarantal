@@ -7,11 +7,12 @@ export const BRAKKIE_GROUP = 'brakkie';
 
 /** Every Brakkie frame on one sheet (texture key). */
 export const BRAKKIE_SHEET = 'brakkie/sheet';
-/** Sheet size at 1× (sheet px). The HD twin is 2× (1344 × 1146). v1.17 (D-079): 512 × 448 for the
+/** Sheet size at 1× (sheet px). The HD twin is 2× (1344 × 1058). v1.17 (D-079): 512 × 448 for the
  *  companion's frames. v1.17b (D-080): 672 × 573 — his frames drawn for his true size (0.5 sheet
- *  px per drawn px; brakkieSheet.ts BRAKKIE_DRAWN_MUL). */
+ *  px per drawn px; brakkieSheet.ts BRAKKIE_DRAWN_MUL). v1.20.2 (D-082): 672 × 529 with the
+ *  true-size bird he carries, packed in a searched order (brakkieSheet.ts PACK_ORDER). */
 export const BRAKKIE_SHEET_W = 672;
-export const BRAKKIE_SHEET_H = 573;
+export const BRAKKIE_SHEET_H = 529;
 
 /** Sounds through the AudioDirector (recordings from the lazy group; silent until they arrive). */
 export const BRAKKIE_SOUNDS = {

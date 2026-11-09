@@ -94,7 +94,9 @@ export const YOUNG_SHARE: Readonly<Record<FaunaSpecies, number>> = {
   lechwe: 0.6,
 };
 
-/** A hen is this share of the cock's height (ostrich), a cow of the bull's (elephant, giraffe). */
+/** A hen is this share of the cock's height (ostrich), a cow of the bull's (elephant, giraffe).
+ *  D-082: the ostrich hen 0.84 → 0.76 (a hen 1.7–2.0 m beside a 2.5 m cock: 1.9 m), as on the
+ *  mid plane (ostrichSheet.ts OSTRICH_HEN_SCALE). */
 export const FEMALE_SHARE: Readonly<Record<FaunaSpecies, number>> = {
   elephant: 0.86,
   giraffe: 0.88,
@@ -102,7 +104,7 @@ export const FEMALE_SHARE: Readonly<Record<FaunaSpecies, number>> = {
   wildebeest: 0.96,
   gemsbok: 1,
   springbok: 0.96,
-  ostrich: 0.84,
+  ostrich: 0.76,
   lechwe: 0.94,
 };
 

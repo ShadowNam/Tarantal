@@ -7,6 +7,26 @@ Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (
 
 Decision record D-081.
 
+## [1.20.2] — v1.17c: animal sizes, the audit's fixes (9 Nov 2026)
+
+Decision record D-082. The owner asked again for the animals at their real-world size; an audit of
+v1.17b found the ones it had missed.
+
+- **The ostrich hen is a hen:** Namibië's grey-brown hen was drawn as tall as the cock (~2.6 m);
+  she is now ~1.9 m, three-quarters of him, and her hit area shrinks with her. The far herds'
+  hens too.
+- **Brakkie carries a real guineafowl:** the bird in his mouth was a quarter of a guineafowl's
+  size; it is now a full-size bird, as long as he is, hanging limp across his jaws, its head
+  drooping in front of his legs.
+- **The baobab's residents:** the barn owl flying off (a 0.9 m wingspan), the yellow-billed
+  hornbill and the bushbaby (a smaller head) at their true size. The owl in its hole, the buffalo
+  weaver at its nest and the squirrel stay as they were: the stage-set tree's holes and nests are
+  too small for them.
+- **Kept on purpose:** the boss birds are legendary birds with no real size.
+- **Behind the scenes:** the size table now measures the delivered art itself, so a drawing that
+  drifts from its true size fails a test; Namibië's ostrich textures and Brakkie's sheet are
+  smaller.
+
 ## [1.20.1] — v1.17b: every animal at true size (9 Nov 2026)
 
 Decision record D-080. The owner's answer of 9 Nov: "yes make all animals true size".

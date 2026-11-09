@@ -386,7 +386,9 @@ size". Every animal is drawn at its real size beside the guineafowl on its plane
 | far springbok | shoulder | 0.8 | far | 36 → 63 |
 | far lechwe | shoulder | 1.0 | far | 45 → 79 |
 | far ostrich | head top | 2.5 | far | 89 → 197 |
-| mid ostrich (Namibië's pair) | head top, standing | 2.5 | mid | 197 → 552 |
+| far ostrich hen (D-082) | head top | 1.9 | far | 0.84 → 0.76 of the cock (166 → 150) |
+| mid ostrich cock (Namibië's pair) | head top, standing | 2.5 | mid | 197 → 552 (measured: 587, 2.66 m) |
+| mid ostrich hen (D-082) | head top, standing | 1.9 | mid | 587 (as tall as the cock) → 431 |
 | baboon, sitting male (raider · ridge) | crown | 0.8 | mid · far | 151 · 54 → 176 · 63 |
 | baboon, sitting mother | crown | 0.65 | far | 44 → 52 |
 | Harvest warthog | back | 0.7 | mid · near | 74 · 175 → 155 · 368 |
@@ -394,13 +396,24 @@ size". Every animal is drawn at its real size beside the guineafowl on its plane
 | Harvest farm worker (a person) | hat top | 1.7 | mid | 113 → 375 |
 | Harvest fence post (a prop) | post top | 1.2 | mid | 70 → 265 |
 | Brakkie (Jack Russell) | shoulder | 0.3 | near · mid | 110 · 46 → 149 · 62 |
+| the guineafowl Brakkie carries (D-082) | bill to tail | 0.55 | near | 82 → ~300 (271 across as it hangs) |
 | cameo warthog sow | back | 0.7 | mid | 57 → 154 |
 | cameo springbok | shoulder | 0.8 | mid | 60 → 177 |
 | cameo gemsbok | shoulder | 1.2 | mid | 78 → 265 |
 | cameo ostrich | head top | 2.5 | mid | 200 → 552 |
 | cameo leopard tortoise | shell top | 0.25 | near | 50 → 130 |
 | colony weaver | wingspan | 0.22 | near · mid · far · Ver | 32 · 22 · 12 · 8 → 116 · 49 · 17 · 8 |
+| baobab barn owl, flying off (D-082) | wingspan | 0.87 | mid | 69 → 193 |
+| baobab yellow-billed hornbill (D-082) | bill to tail | 0.54 | mid | 56.5 → 130 flying, 49 → 113 clinging |
+| baobab bushbaby (D-082) | head width | 0.06 | mid | 20 → 13 |
 | tells, meerkats, angry weavers | — | — | — | true since D-078 |
+
+**v1.20.2 (D-082), an audit of D-080:** the rows above were mostly computed from the metres the
+art was drawn to; `tools/sizes.ts MEASURED_ART` now reads 32 of them from the art sources'
+opaque bounds (`art-source/sprites`) (the far herds, the Ver waterhole, the cameos, both mid ostriches, Brakkie and his
+bird, the Harvest's workers and post, the baobab's owl and hornbill), and
+`tools/sizesArt.test.ts` re-measures the PNGs (±3 %), so the ±15 % table fails if the art
+drifts. All measured rows are within −10.3 … +9.2 % of real (each far herd animal at its herd scale).
 
 Kept off true size, each for a reason: the **dung beetle** (drawn about twice its true size on
 purpose, so it reads at all), the **bakkie** (a stage-set prop: true, it would be 398 px tall and
@@ -409,7 +422,11 @@ purpose, so it reads at all), the **bakkie** (a stage-set prop: true, it would b
 the mid plane: the front rows would hide the flocks feeding in the field; the owner decides).
 Props stay on their stage-set scale (trees, windpompe, the reservoir, the hippo), so a true-size
 animal can look big against them; the Harvest's workers and fence are at true scale with its
-warthogs.
+warthogs. D-082 adds: the baobab's **perched barn owl** (its head and shoulders show through the
+stage-set tree's 38 × 50 px cavity; a whole true owl would not fit it), its **buffalo weaver** (a
+true one would be longer than its 46 px stick nest) and its **tree squirrel** (0.8×); and the
+**boss birds** (the Generaal, Ou Grys, the Kuifkop Koning, the Stormvoël: "legendary", fantasy,
+no real size). The ordinary fly-over birds are a separate owner decision.
 **Texture memory (HD ≤ 256 MB on every hunt):** the far herds redrawn at true size are Standard
 in HD (they stand on the far veld, itself Standard in HD; 1 texture px per design px is a phone's
 screen px); the cameos are redrawn from their vector shapes at the new size at 0.25 sheet px per
@@ -606,7 +623,12 @@ The Bushveld kremetart in winter (*Adansonia digitata*), redrawn at the cameltho
   yellow bill; flying ×2, clinging, feeding) and the female's beak tip in the slit, a red-billed
   buffalo weaver (black, red bill, white wing patch; flying ×2, perched), a bee (amber, a dark
   band; a dozen swirl as a little cloud). The bushbaby is big enough for its huge eyes to read and
-  peeks from a visible hole a little wider than its head. Frames at a hole
+  peeks from a visible hole a little wider than its head. **D-082 (true size where the stage-set
+  tree can hold it):** the owl flying off spans 193 px (0.87 m), the hornbill is 130 px bill to
+  tail in flight and 113 px clinging (0.5–0.6 m; it clings further from the slit so its bill
+  still reaches it), the bushbaby's head 13 px (0.06 m; its hole is now about twice its head).
+  The owl in its cavity, the buffalo weaver at its nest and the squirrel keep their D-057 size
+  (`tools/sizes.ts NOT_FIXED`). Frames at a hole
   are cut off at its lower rim. They show themselves now and then on sim time; a near shot makes
   one duck back or fly off. No sound loop.
 
@@ -633,7 +655,10 @@ per plane, tufts, a dry clump, two bushes, branches), placed at 0.4–1.6× of i
 
 #### 4.5d The ostriches (1.9.7, D-059)
 Same proportions and coat as the far-fauna ostrich, drawn at 197 px to the head on the mid plane
-and shown ×2.8 since D-080 (`birds.json ostriches.sizeMul`): its true 2.5 m, 552 px. Cock: black plumes with white wing tips and tail, pinkish-grey bare neck
+and shown ×2.8 since D-080 (`birds.json ostriches.sizeMul`): its true 2.5 m, 552 px (the crown's
+bristles reach 210 layout px: 587, 2.66 m). D-082: the hen is drawn from the same shapes at 0.73
+of the cock (`ostrichSheet.ts OSTRICH_HEN_SCALE` = `ostriches.henScale`, her hit shapes too): 431
+px, 1.94 m (a hen 1.7–2.0 m, a cock 2.1–2.8). Cock: black plumes with white wing tips and tail, pinkish-grey bare neck
 and thighs, red shins. Hen: grey-brown, greyish-white plumes, grey skin. Layered shading (a lit
 back, a shaded belly, plume texture strokes), long legs with scaled shanks and two toes, a small
 head with a flat bill, a big dark eye with lashes and a bristly crown. Thin edges a shade darker
@@ -853,7 +878,10 @@ Jack Russell terrier: mostly white, a tan head with a white blaze down the muzzl
 folded forward, a tan saddle at the base of his short, high-carried tail and a small patch on his
 back, a black nose, bright dark eyes. Brave, busy, cheeky — never shown hurt. **D-080:** shown
 ×1.35 (`brakkie.json sizeMul`): a true Jack Russell, ~0.28 m at the shoulder (149 px near); the bird in
-his mouth keeps its size. **One sheet**
+his mouth keeps its size. **D-082:** that bird is a true-size guineafowl (~300 px bill to tail on
+the near plane, as long as the dog; it was 82 px, 0.27×), held across his jaws by the middle of its
+back: the pearled body across his muzzle, the blue neck and head drooping in front of his
+forelegs, the legs folded back, clear of the ground in every running frame. **One sheet**
 (`brakkie/sheet`, 512 × 256 at 1×, its own lazy group `brakkie`, the HD twin `brakkie-hd` its 2×
 master; 0.5 MiB on the GPU, a unit test caps it): every frame authored at half size and drawn ×2,
 facing right with the origin at his feet (boxes fitted to the drawing with a 6 px margin; an art

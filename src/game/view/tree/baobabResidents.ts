@@ -7,6 +7,7 @@ import type { Feel } from '../../../content/schemas';
 import { TICKS_PER_SECOND } from '../../../sim/clock';
 import { HOLLOWS, STICK_NESTS, squirrelPath, type BPt } from './baobabShape';
 import type { ResidentFrame } from './residentSheet';
+import { RESIDENT_TRUE_MUL } from './residentTrueSize';
 
 export type TreeLifeTuning = Feel['treeLife'];
 export type ResidentId = Exclude<keyof TreeLifeTuning['residents'], '$comment'>;
@@ -206,21 +207,31 @@ function owl(u: number, d: number, duck: number | null, tick: number): ResidentP
   return { sprites: [sprite(frame, at, flip, alpha)], at };
 }
 
-/** Where the hornbill clings: on the bark right of the slit, its beak reaching across. */
-export const HORNBILL_CLING: BPt = [HOLLOWS.slit.x + 14, HOLLOWS.slit.y + 22];
+/** Where the hornbill clings: on the bark right of the slit, its beak reaching across (D-082:
+ *  the offset grows with the true-size bird, so its bill still reaches the slit). */
+export const HORNBILL_CLING: BPt = [
+  HOLLOWS.slit.x + 14 * RESIDENT_TRUE_MUL.hornbill,
+  HOLLOWS.slit.y + 22 * RESIDENT_TRUE_MUL.hornbill,
+];
+/** Where its body is when it clings (a flight lands and leaves there, not at its feet). */
+export const HORNBILL_BODY: BPt = [
+  HORNBILL_CLING[0],
+  HORNBILL_CLING[1] - 13 * RESIDENT_TRUE_MUL.hornbill,
+];
 const HB = { fly: 1.6, feed: 0.7, wait: 0.9 } as const;
 
 function hornbill(u: number, d: number, duck: number | null, tick: number): ResidentPose {
   const from: BPt = [HORNBILL_CLING[0] + 200, HORNBILL_CLING[1] - 160];
   const to: BPt = [HORNBILL_CLING[0] + 230, HORNBILL_CLING[1] - 70];
+  // D-082: the true-size bird flies to and from its body's place on the bark.
   const slit: BPt = [HOLLOWS.slit.x, HOLLOWS.slit.y];
   const pose = (v: number): { s: ResidentSprite[]; at: BPt } => {
     if (v < HB.fly) {
-      const sp = flight('hornbill_fly', from, HORNBILL_CLING, v / HB.fly, tick);
+      const sp = flight('hornbill_fly', from, HORNBILL_BODY, v / HB.fly, tick);
       return { s: [sp], at: [sp.x, sp.y] };
     }
     if (v > d - HB.fly) {
-      const sp = flight('hornbill_fly', HORNBILL_CLING, to, (v - (d - HB.fly)) / HB.fly, tick);
+      const sp = flight('hornbill_fly', HORNBILL_BODY, to, (v - (d - HB.fly)) / HB.fly, tick);
       return { s: [sp], at: [sp.x, sp.y] };
     }
     const c = (v - HB.fly) % (HB.wait + HB.feed);
@@ -228,7 +239,8 @@ function hornbill(u: number, d: number, duck: number | null, tick: number): Resi
     const s = [sprite(feeding ? 'hornbill_feed' : 'hornbill_cling', HORNBILL_CLING, true)];
     // The female's beak tip shows in the slit while he feeds her.
     if (feeding) s.unshift(sprite('beak_tip', slit));
-    return { s, at: HORNBILL_CLING };
+    // D-082: a near shot is measured from its body (the true-size bird reaches ~90 px above its feet).
+    return { s, at: HORNBILL_BODY };
   };
   if (duck !== null && u >= duck) {
     const k = (u - duck) / 1.4;
