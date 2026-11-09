@@ -90,10 +90,10 @@ export const CAMEO_SIZE_MUL = {
   gemsbok: 3.4,
 } as const;
 
-/** Sheet px per drawn px: v1.13's frames at half size (0.5); a grown frame at 0.25 (HD twice
- *  that), so the true-size sheets keep within the HD texture budget (D-080). */
-const RES_V113 = 0.5;
-const RES_GROWN = 0.25;
+/** Sheet px per drawn px: every frame at half size (0.5; the HD twin 1.0), as v1.13's — D-080's
+ *  first pass drew the grown ones at 0.25 and they were blurry at their true size (review 4).
+ *  cameoSheet.test.ts holds every frame to it. */
+export const CAMEO_RES = 0.5;
 
 const KIND_OF_PREFIX: Readonly<Record<string, keyof typeof CAMEO_SIZE_MUL>> = {
   hog: 'warthogs',
@@ -123,7 +123,7 @@ const f = (name: CameoFrame, w: number, h: number, ox: number, oy: number): Came
     h: h * size,
     ox: ox * size,
     oy: oy * size,
-    res: size === 1 ? RES_V113 : RES_GROWN,
+    res: CAMEO_RES,
     size,
   };
 };
@@ -178,6 +178,11 @@ const SPECS: Readonly<Record<CameoSheetArea, readonly CameoFrameSpec[]>> = {
   ],
 };
 
+/** The packed height of an area's frames on a sheet `w` wide (tools: choosing CAMEO_SHEET_SIZE). */
+export function cameoPackHeight(area: CameoSheetArea, w: number): number {
+  return Math.max(...pack(area, w).map((r) => r.y + cellSize(r).h)) + GAP;
+}
+
 /** Sheet px a frame takes (rounded up). */
 export function cellSize(s: Pick<CameoFrameSpec, 'w' | 'h' | 'res'>): { w: number; h: number } {
   return { w: Math.ceil(s.w * s.res), h: Math.ceil(s.h * s.res) };
@@ -185,10 +190,44 @@ export function cellSize(s: Pick<CameoFrameSpec, 'w' | 'h' | 'res'>): { w: numbe
 
 const GAP = 2;
 
+/** The shorter of two packings (D-080: the true-size frames are big; the skyline left a whole
+ *  shelf of Namibië's sheet empty): skyline, or shelves filled tallest first. */
+function pack(area: CameoSheetArea, W = CAMEO_SHEET_SIZE[area].w): CameoFrameRect[] {
+  const bottom = (rs: readonly CameoFrameRect[]): number =>
+    Math.max(...rs.map((r) => r.y + cellSize(r).h));
+  const a = packSkyline(area, W);
+  const b = packShelves(area, W);
+  return b !== null && bottom(b) < bottom(a) ? b : a;
+}
+
+/** Shelves, tallest first (ties keep the table's order), GAP px apart; null when a frame is
+ *  wider than the sheet. */
+function packShelves(area: CameoSheetArea, W: number): CameoFrameRect[] | null {
+  const order = SPECS[area]
+    .map((s, i) => ({ s, i }))
+    .sort((a, b) => cellSize(b.s).h - cellSize(a.s).h || a.i - b.i);
+  const out: CameoFrameRect[] = [];
+  let x = GAP;
+  let y = GAP;
+  let row = 0;
+  for (const { s } of order) {
+    const c = cellSize(s);
+    if (c.w + 2 * GAP > W) return null;
+    if (x + c.w + GAP > W) {
+      x = GAP;
+      y += row + GAP;
+      row = 0;
+    }
+    out.push({ ...s, x, y });
+    x += c.w + GAP;
+    row = Math.max(row, c.h);
+  }
+  return out;
+}
+
 /** Skyline packing, tallest first (ties keep the table's order): each frame goes where it sits
  *  highest (then leftmost), GAP px from its neighbours and the sheet's edges. */
-function pack(area: CameoSheetArea): CameoFrameRect[] {
-  const W = CAMEO_SHEET_SIZE[area].w;
+function packSkyline(area: CameoSheetArea, W: number): CameoFrameRect[] {
   const order = SPECS[area]
     .map((s, i) => ({ s, i }))
     .sort((a, b) => cellSize(b.s).h - cellSize(a.s).h || a.i - b.i);
@@ -237,9 +276,10 @@ export function cameoSheetHeight(area: CameoSheetArea): number {
   return Math.max(...FRAMES[area].map((r) => r.y + cellSize(r).h));
 }
 
-/** Each area sheet's GPU cost cap at 1× (bytes, RGBA): 1 MiB (the brief's aim; every sheet here
- *  is well under it, the Okavango has none). */
-export const GPU_BYTES_CAP = 1024 * 1024;
+/** Each area sheet's GPU cost cap at 1× (bytes, RGBA; the HD twin is 4×): 1 MiB in v1.13 (the
+ *  brief's aim); D-080: 2.5 MiB for the true-size animals at 0.5 sheet px per drawn px (Namibië's
+ *  gemsbok 2.1 MiB; its HD twin 8.6 MiB counts in Namibië's HD budget). */
+export const GPU_BYTES_CAP = 2.5 * 1024 * 1024;
 
 /** Texture px per sheet px of a file `width` px wide (1 for the Standard sheet, 2 for HD). */
 export function cameoTexelsPerPx(area: CameoSheetArea, width: number): number {
