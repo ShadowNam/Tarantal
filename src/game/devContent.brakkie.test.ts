@@ -5,7 +5,7 @@ import { base } from '../../tools/simHarness';
 import { loadContentHash } from '../../tools/testContent';
 import { contentHash } from '../content/hash';
 import { createSim } from '../sim/Sim';
-import { withBrakkieParams } from './devContent';
+import { withBrakkieParams, withWindParams } from './devContent';
 
 const mode = { id: 'classic' as const, biome: 'karoo-autumn' };
 
@@ -80,5 +80,44 @@ describe('Brakkie test flags (D-069)', () => {
     expect(carrying).toBeLessThan(60 * 8);
     // Never in shipped content.
     expect(base.brakkie.demoFetchSeconds).toBeUndefined();
+  });
+});
+
+describe('v1.17 (D-079) test flags', () => {
+  const run = (q: string, seconds: number, stop: (s: ReturnType<typeof createSim>) => boolean) => {
+    const c = withBrakkieParams(base, new URLSearchParams(q));
+    const s = createSim({ seed: 3, content: c, mode, inputKind: 'pointer' });
+    while (!s.isOver() && s.tick < 60 * seconds && !stop(s)) s.step([]);
+    return s;
+  };
+
+  it('?brakkiePreview=point: on point within seconds, held 8 s with the marker', () => {
+    const s = run('brakkiePreview=point', 30, (x) => x.snapshot().brakkie?.phase === 'point');
+    const d = s.snapshot().brakkie;
+    expect(d?.phase).toBe('point');
+    expect(d?.point).not.toBeNull();
+    expect(d?.dur).toBe(8 * 60);
+  });
+
+  it('?brakkiePreview=react: a proud hop a few seconds in that lasts 6 s', () => {
+    const s = run('brakkiePreview=react', 30, (x) => x.snapshot().brakkie?.react === 'proud');
+    const d = s.snapshot().brakkie;
+    expect(d?.react).toBe('proud');
+    expect(d?.dur).toBe(6 * 60);
+  });
+
+  it('?wind=strong: full wind and a gust up on the wind maps; nothing without the flag', () => {
+    expect(withWindParams(base, new URLSearchParams('e2e=1'))).toBe(base);
+    const c = withWindParams(base, new URLSearchParams('wind=strong'));
+    const s = createSim({
+      seed: 3,
+      content: c,
+      mode: { id: 'classic', biome: 'karoo-autumn', omen: true },
+      inputKind: 'pointer',
+    });
+    for (let i = 0; i < 120; i++) s.step([]);
+    const w = s.snapshot().wind;
+    expect(w?.strength).toBeGreaterThanOrEqual(0.95);
+    expect(w?.gust).toBeGreaterThan(0);
   });
 });

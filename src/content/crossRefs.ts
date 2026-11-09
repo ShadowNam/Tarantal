@@ -552,6 +552,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   if (brakkie.seasonKinds.includes('boss')) err('brakkie.json', 'no Brakkie in a boss hunt (GDD §11.3f)');
   if (brakkie.demoFetchSeconds !== undefined)
     err('brakkie.json', 'demoFetchSeconds is for test builds only (?brakkiePreview=fetch)');
+  if (brakkie.demoProudSeconds !== undefined)
+    err('brakkie.json', 'demoProudSeconds is for test builds only (?brakkiePreview=react)');
   {
     // He stands below the pop-ups (lesson 21: shots at a pop-up pass over him) and on the screen.
     const nearScale = scoring.planes.near.scale;

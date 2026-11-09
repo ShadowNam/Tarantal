@@ -2268,6 +2268,9 @@ export const BrakkieSchema = obj({
   /** Test builds only (?brakkiePreview=fetch, the screenshot spec): this many seconds in he
    *  fetches a bird placed beside him (visual only). Never in shipped content (cross-refs). */
   demoFetchSeconds: pos.optional(),
+  /** v1.17 (D-079) test builds only (?brakkiePreview=react): a proud hop this many seconds in
+   *  (when he is idle). Never in shipped content (cross-refs). */
+  demoProudSeconds: pos.optional(),
   hit: obj({
     /** Points off for a shot aimed at him. */
     penalty: posInt,

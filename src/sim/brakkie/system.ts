@@ -257,6 +257,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   dog.nextFlush = rangeTicks(B.flush.firstSeconds);
   /** Test builds only (?brakkiePreview=fetch): when he fetches a bird placed beside him. */
   let demoTick = B.demoFetchSeconds === undefined ? null : ticks(B.demoFetchSeconds);
+  /** Test builds only (?brakkiePreview=react): when he does a proud hop. */
+  let demoProud = B.demoProudSeconds === undefined ? null : ticks(B.demoProudSeconds);
 
   const present = (): boolean => dog.phase !== 'away';
   const hittable = (): boolean => present() && dog.phase !== 'cross';
@@ -656,6 +658,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     if (dog.cooldown > 0) dog.cooldown--;
     dog.t++;
     // Test builds only: the screenshot spec's fetch, a bird placed beside him (no bag needed).
+    if (demoProud !== null && tick >= demoProud && tryReact('proud')) demoProud = null;
     if (demoTick !== null && tick >= demoTick && idle() && dog.plane === 'near' && !dog.carrying) {
       demoTick = null;
       const x = dog.x + 260 * k('near') * dog.facing;

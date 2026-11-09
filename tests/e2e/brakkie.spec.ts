@@ -9,6 +9,10 @@
 // pointerId each; a miss is decided after ~25 ticks.
 import { expect, test, type Page } from '@playwright/test';
 import brakkie from '../../content/brakkie.json' with { type: 'json' };
+import afT from '../../src/i18n/af.json' with { type: 'json' };
+import deT from '../../src/i18n/de.json' with { type: 'json' };
+import enT from '../../src/i18n/en.json' with { type: 'json' };
+import nlT from '../../src/i18n/nl.json' with { type: 'json' };
 import { decodePng } from '../../tools/assets/image';
 import { fireAt, reloadIfEmpty } from './feesdaeHelpers';
 import { boot, hook, isLandscape, isTouchProject, startHunt, tapAt, waitTicks } from './helpers';
@@ -393,4 +397,157 @@ test('livelier: he trots and runs about between short rests', async ({ page }, i
   expect(seen.moves, 'new spots in 40 s').toBeGreaterThanOrEqual(4);
   expect(seen.runs, 'some of them at a run').toBeGreaterThanOrEqual(1);
   expect(brakkie.roam.runChance).toBeGreaterThan(0);
+});
+
+// --- v1.17 (D-079): Brakkie the companion -------------------------------------------------------
+
+/** Every language's words (the spec doesn't pin the page's language). */
+const WORDS = (key: 'bring' | 'streak' | 'good_point' | 'spring' | 'heel' | 'seek'): string[] =>
+  [enT, afT, deT, nlT].map((t) => (t as Record<string, string>)[`hud.brakkie_${key}`] ?? '?');
+
+const COMPANION =
+  'biome=karoo-autumn&layout=none&seed=42&huntSeconds=120&graphics=standard&baboons=0&reenbui=0&omen=0&faunaIdle=0&brakkie=1';
+
+test('Staan!: he points, the marker shows where the flock sits, and it bursts up', async ({
+  page,
+}, info) => {
+  test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
+  test.setTimeout(600_000);
+  const touch = isTouchProject(info);
+  // ?brakkiePreview=point: a point 4 s in, held 8 s (lesson 10).
+  await boot(page, `${COMPANION}&brakkiePreview=point`);
+  await startHunt(page, touch);
+  await dogOnScreen(page);
+  const seen = (await (
+    await page.waitForFunction(
+      () => {
+        const d = window.__TM__?.brakkie;
+        return d?.phase === 'point' && d.visible && d.marker !== null ? d : false;
+      },
+      null,
+      { timeout: 300_000, polling: 'raf' },
+    )
+  ).jsonValue()) as NonNullable<Awaited<ReturnType<typeof dogOf>>> & {
+    marker: { x: number; y: number };
+    frame: string;
+  };
+  expect(['point_a', 'point_b']).toContain(seen.frame);
+  const h = await hook(page);
+  // The marker is on screen, above his feet (on the mid ground, in front of his nose).
+  expect(seen.marker.x).toBeGreaterThan(0);
+  expect(seen.marker.x).toBeLessThan(h.designWidth);
+  expect(seen.marker.y).toBeLessThan(seen.y);
+  // After the point the flock bursts up (a flush with the flock he pointed).
+  await page.waitForFunction(
+    () => {
+      const d = window.__TM__?.brakkie;
+      return d !== null && d !== undefined && d.flushes > 0 && d.marker === null;
+    },
+    null,
+    { timeout: 300_000 },
+  );
+});
+
+test('Fluit!: on desktop F springs the point and the middle button calls him to heel', async ({
+  page,
+}, info) => {
+  test.skip(!isLandscape(info) || isTouchProject(info), 'desktop (mouse and keyboard) only');
+  test.setTimeout(600_000);
+  await boot(page, `${COMPANION}&brakkiePreview=point`);
+  await startHunt(page, false);
+  await dogOnScreen(page);
+  await page.waitForFunction(() => window.__TM__?.brakkie?.whistle === 'spring', null, {
+    timeout: 300_000,
+  });
+  await page.keyboard.press('KeyF');
+  const sprung = (await (
+    await page.waitForFunction(
+      () => {
+        const d = window.__TM__?.brakkie;
+        return d !== null && d !== undefined && d.whistles > 0 ? d : false;
+      },
+      null,
+      { timeout: 60_000 },
+    )
+  ).jsonValue()) as { flushes: number; word: string | null };
+  expect(sprung.flushes).toBeGreaterThan(0);
+  // Roaming again, the middle button calls him to heel (after the whistle's cooldown).
+  await page.waitForFunction(() => window.__TM__?.brakkie?.whistle === 'heel', null, {
+    timeout: 300_000,
+  });
+  const c = await page.locator('#game canvas').boundingBox();
+  if (c === null) throw new Error('no canvas');
+  await page.mouse.click(c.x + c.width / 2, c.y + c.height * 0.3, { button: 'middle' });
+  const heel = (await (
+    await page.waitForFunction(
+      () => {
+        const d = window.__TM__?.brakkie;
+        return d?.phase === 'heel' || d?.phase === 'toHeel' ? d : false;
+      },
+      null,
+      { timeout: 60_000 },
+    )
+  ).jsonValue()) as { word: string | null; whistles: number };
+  expect(heel.whistles).toBe(2);
+});
+
+test('Fluit!: on phones the round whistle button calls him to heel', async ({ page }, info) => {
+  test.skip(!isLandscape(info) || !isTouchProject(info), 'phones (touch) only');
+  test.setTimeout(600_000);
+  await boot(page, COMPANION);
+  await startHunt(page, true);
+  await dogOnScreen(page);
+  const btn = (await (
+    await page.waitForFunction(
+      () => {
+        const b = window.__TM__?.whistleButton;
+        return b !== null && b !== undefined && b.on && window.__TM__?.brakkie?.whistle === 'heel'
+          ? b
+          : false;
+      },
+      null,
+      { timeout: 300_000 },
+    )
+  ).jsonValue()) as { x: number; y: number; w: number; h: number };
+  // A 72-px round button in the bottom corner opposite the shells.
+  expect(btn.w).toBe(72);
+  const h = await hook(page);
+  const belt = h.rects['belt'];
+  if (belt === undefined) throw new Error('no belt');
+  expect(btn.x + btn.w / 2 < h.designWidth / 2).toBe(belt.x + belt.w / 2 > h.designWidth / 2);
+  expect(btn.y + btn.h).toBeGreaterThan(h.designHeight * 0.6);
+  await tapAt(page, true, btn.x + btn.w / 2, btn.y + btn.h / 2);
+  await page.waitForFunction(
+    () => {
+      const d = window.__TM__?.brakkie;
+      return d !== null && d !== undefined && d.whistles > 0;
+    },
+    null,
+    { timeout: 60_000 },
+  );
+  // The tap fired no shot.
+  expect((await hook(page)).shots).toBe(0);
+});
+
+test('Bring!: his delivery pops "Bring! +15" at the screen edge', async ({ page }, info) => {
+  test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
+  test.setTimeout(600_000);
+  const touch = isTouchProject(info);
+  // ?brakkiePreview=fetch: 3 s in he fetches a bird placed beside him and carries it home.
+  await boot(page, `${COMPANION}&brakkiePreview=fetch`);
+  await startHunt(page, touch);
+  await dogOnScreen(page);
+  const pops = (await (
+    await page.waitForFunction(
+      () => {
+        const p = window.__TM__?.brakkiePops ?? [];
+        return p.length > 0 ? [...p] : false;
+      },
+      null,
+      { timeout: 300_000 },
+    )
+  ).jsonValue()) as string[];
+  const first = pops[0] ?? '';
+  expect(WORDS('bring').some((w) => first.startsWith(w))).toBe(true);
+  expect(first).toContain(String(brakkie.bring.points));
 });

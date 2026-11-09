@@ -26,6 +26,7 @@ import {
   withReenbuiParams,
   withBrakkieParams,
   withCameoParams,
+  withWindParams,
   withAgamaBefore,
   withHarvestPreview,
   withNoPalms,
@@ -630,7 +631,9 @@ const withRainOnly = testHooks ? withReenbuiParams(noTroops, params) : noTroops;
 const withBrakkie = testHooks ? withBrakkieParams(withRainOnly, params) : withRainOnly;
 // e2e/dev only (v1.13, D-075): ?cameos=0 no cameos (specs that pin a seed, lesson 17), ?cameos=1
 // sooner and more often, ?cameoPreview=all|<kinds>[&cameoReact=<s>] out in view at once.
-const withDog = testHooks ? withCameoParams(withBrakkie, params) : withBrakkie;
+const withCameo = testHooks ? withCameoParams(withBrakkie, params) : withBrakkie;
+// e2e/dev only (v1.17, D-079): ?wind=strong — full wind with long gusts on the wind maps.
+const withDog = testHooks ? withWindParams(withCameo, params) : withCameo;
 // art previews only (v1.12 polish b): ?agamaBefore=1 — the agama on its old seat.
 const withRain =
   testHooks && params.get('agamaBefore') === '1' ? withAgamaBefore(withDog) : withDog;
