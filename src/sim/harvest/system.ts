@@ -726,7 +726,10 @@ export const createHarvestSystem: HarvestSystemFactory = (
           host.gapFlock(map.gap.plane, gapFlockX(map, gapW, side), size, side === 1 ? -1 : 1);
         }
       }
-      const digging = warthogs.filter((w) => !w.gone && w.phase === 'dig').length;
+      // v1.18 (D-081): a yearling eats as much as its size (youngScale of an adult).
+      let digging = 0;
+      for (const w of warthogs)
+        if (!w.gone && w.phase === 'dig') digging += w.young ? Hh.youngScale : 1;
       crop = Math.max(
         0,
         crop -

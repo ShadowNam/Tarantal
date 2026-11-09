@@ -538,5 +538,5 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
   { name: 'harvest-64-random-touch', seed: 64, bot: 'random', mode: 'harvest', inputKind: 'touch' },
   // v1.18 (D-081): a Harvest that unlocks Phase 2 (the raid down the koppie, the small hole, the
   // banner, the 24 from every side, all stopped: the clear bonus), on touch.
-  { name: 'harvest-67-strong-touch', seed: 67, bot: 'strong', mode: 'harvest', inputKind: 'touch' },
+  { name: 'harvest-65-strong-touch', seed: 65, bot: 'strong', mode: 'harvest', inputKind: 'touch' },
 ];

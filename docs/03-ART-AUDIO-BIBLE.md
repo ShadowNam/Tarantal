@@ -804,6 +804,23 @@ jingle when the fence is whole. The field's music and ambience (D-070) are deliv
 loops in the lazy `oes` group: guitar and marimba in G with mbira, pennywhistle and light hand
 drums, with calm/build/Stampede stems on the common 16-second, 120-bpm grid; wind through dry
 crops, insects and field birds underneath. No silent music slots. Oupa's Harvest lines (`guide.harvest.*`): en/af/de voiced, nl text.
+**v1.18 (D-081): the raid, the small hole, Phase 2.** The baboon sheet gains two ridge-size frames
+of a raider scrambling down the koppie head first (`r_climb_a/b`, the walk tipped 26° down the
+slope; the sheet grows 35 rows); on the veld the raiders run (the raiders' run frames at the far
+plane's size). The mid layer's fence has **the small hole** in the bay left of the gap
+(`HOLE_U` 0.238 = `oes.json harvest.hole.u`): the bottom wire torn and curled up off both posts
+over a dark dug burrow with thrown-out soil; the rows in front of it stay low (as before the
+workers) so it reads. **A second, small sheet** `oes/harvest2` (1024 × 492, drawn at 1 texture px
+per drawn px, no HD twin: ≥ 0.86 texture px per px shown at the animals' true size, and the
+Harvest's HD hunt is the tightest): a warthog's jump (rising with the forelegs tucked, landing
+with them reaching), a warthog and a piglet pushing head-down under the wire (`*_squeeze`), a
+baboon climbing the fence (two steps, upright, the hands on the wire, no shadow) and dropping off
+it, and the hole's patch (a square of new galvanised mesh wired to the bay's posts and a flat
+stone on the burrow, drawn 1:1). Phase 2's baboons borrow the baboon sheet's run, mielie and
+tumble frames. Sounds: no new files — the grunt, squeal and the baboons' "wa-hoo" as each comes
+at the fence, the hammer when the hole is patched, the jingle at Phase 2's end; Phase 2 plays the
+field's Stampede stem. Oupa's Phase 2 lines (`guide.harvest2.*`) are text (en/af/de/nl), not yet
+voiced.
 
 ### 5.5 Reënbui: the storm, the rain and the alate columns (1.13.0, D-067)
 Interim at the D-035 bar, soft weather in gradients and layered tones (no ink on vapour). **One
