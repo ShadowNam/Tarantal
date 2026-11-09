@@ -557,6 +557,8 @@ export type SimEvent =
       readonly x: number;
       readonly y: number;
       readonly points: number;
+      /** v1.17b (D-080): the shot was aimed at it (hit.aimedOnly: only then a penalty). */
+      readonly aimed: boolean;
     }
   /** v1.7d (D-059): the pair ran from a shot nearby, a loud gun or a hit. */
   | {

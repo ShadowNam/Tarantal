@@ -40,9 +40,20 @@ export interface OstrichSystem {
     cx: number,
     heard: boolean,
     loud: boolean,
+    aim?: OstrichAim,
   ): void;
   step(): void;
   view(): OstrichFamilyView[];
+}
+
+/** v1.17b (D-080): what the aimed-at rule needs of a shot (absent: every hit was aimed). */
+export interface OstrichAim {
+  /** The shot hit a target elsewhere. */
+  readonly hitTarget: boolean;
+  /** A target was within hit.guardPx of the aim point (the benefit of the doubt). */
+  readonly targetNearAim: boolean;
+  /** The aim point on a layer (layer px). */
+  aimOn(layerId: string): { readonly x: number; readonly y: number };
 }
 
 export type OstrichSystemFactory = (
@@ -95,9 +106,9 @@ export const createOstrichSystem: OstrichSystemFactory = (biome, content, rng, h
           add(f.layerId, {
             kind: 'ostrich',
             ostrichId: b.id,
-            x: b.x + sh.ox * f.scale * b.facing,
-            y: f.ground + sh.oy * f.scale,
-            shape: { type: 'ellipse', rx: sh.rx * f.scale, ry: sh.ry * f.scale },
+            x: b.x + sh.ox * f.size * b.facing,
+            y: f.ground + sh.oy * f.size,
+            shape: { type: 'ellipse', rx: sh.rx * f.size, ry: sh.ry * f.size },
           });
       const n = nestShape(f, os);
       if (n !== null && f.nest !== null)
@@ -114,6 +125,31 @@ export const createOstrichSystem: OstrichSystemFactory = (biome, content, rng, h
   /** A shot's ostrich and nest hits (points off, cooldown), then which pairs run: the hit one,
    *  every one for a loud gun, any with an impact within scare.radiusPx of a bird or the nest
    *  on its plane. A silenced shot only scares the pair it hit. */
+  /** v1.17b (D-080): was the shot aimed at this family (a bird's or the nest's hit shape)? */
+  function aimedAt(f: OstrichFamilyState, aim: OstrichAim | undefined): boolean {
+    if (!os.hit.aimedOnly || aim === undefined) return true;
+    if (aim.hitTarget || aim.targetNearAim) return false;
+    const p = aim.aimOn(f.layerId);
+    const inside = (x: number, y: number, rx: number, ry: number): boolean => {
+      const ux = (p.x - x) / rx;
+      const uy = (p.y - y) / ry;
+      return ux * ux + uy * uy <= 1;
+    };
+    for (const b of f.birds)
+      for (const sh of shapesOf(b.pose, os))
+        if (
+          inside(
+            b.x + sh.ox * f.size * b.facing,
+            f.ground + sh.oy * f.size,
+            sh.rx * f.size,
+            sh.ry * f.size,
+          )
+        )
+          return true;
+    const n = nestShape(f, os);
+    return n !== null && inside(n.x, n.y, n.rx, n.ry);
+  }
+
   function shot(
     shotId: number,
     hits: readonly number[],
@@ -121,6 +157,7 @@ export const createOstrichSystem: OstrichSystemFactory = (biome, content, rng, h
     cx: number,
     heard: boolean,
     loud: boolean,
+    aim?: OstrichAim,
   ): void {
     if (families.length === 0) return;
     const ran = new Set<OstrichFamilyState>();
@@ -133,7 +170,8 @@ export const createOstrichSystem: OstrichSystemFactory = (biome, content, rng, h
         ? (f.birds.find((b) => b.sitter) ?? f.birds[0])
         : f.birds.find((b) => b.id === id);
       if (bird === undefined) continue;
-      const points = f.cooldown > 0 ? 0 : -os.hit.penalty;
+      const aimed = aimedAt(f, aim);
+      const points = f.cooldown > 0 || !aimed ? 0 : -os.hit.penalty;
       if (points < 0) {
         host.penalty(points);
         f.cooldown = cooldownTicks;
@@ -149,6 +187,7 @@ export const createOstrichSystem: OstrichSystemFactory = (biome, content, rng, h
         x: nestX ?? bird.x,
         y: f.ground,
         points,
+        aimed,
       });
       scareFamily(f, nestX ?? bird.x, ctx, bird);
       ran.add(f);
@@ -174,7 +213,7 @@ export const createOstrichSystem: OstrichSystemFactory = (biome, content, rng, h
           const p = tapToPlane(cx, f.scrollFactor, imp.dx, imp.sy);
           const dy = Math.max(
             0,
-            Math.abs(p.y - (f.ground - (os.heightPx * f.scale) / 2)) - (os.heightPx * f.scale) / 2,
+            Math.abs(p.y - (f.ground - (os.heightPx * f.size) / 2)) - (os.heightPx * f.size) / 2,
           );
           if (xs.some((x) => (x - p.x) * (x - p.x) + dy * dy <= r * r)) {
             from = p.x;
@@ -219,6 +258,7 @@ export const createOstrichSystem: OstrichSystemFactory = (biome, content, rng, h
       layerId: f.layerId,
       plane: f.plane,
       scale: f.scale,
+      size: f.size,
       ground: f.ground,
       nest: f.nest === null ? null : { id: f.nest.id, x: f.nest.x, eggs: f.nest.eggs },
       birds: f.birds.map((b) => ({

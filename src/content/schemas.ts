@@ -524,8 +524,12 @@ export type TellTuning = z.infer<typeof TellsSchema>;
  * times in seconds. Where the families stand is in the biome file (ostriches, per layout).
  */
 export const OstrichesSchema = obj({
-  /** Standing height to the top of the head (plane scale 1): the view draws to it. */
+  /** Standing height to the top of the head (plane scale 1, before sizeMul). */
   heightPx: pos,
+  /** v1.17b (D-080): grows the birds and their nest (the drawing, the hit shapes, heightPx) so a
+   *  standing one is its true 2.5 m beside the guineafowl (tools/sizes.ts); the walks, the wander
+   *  and the scare radius keep plane-scale px. */
+  sizeMul: z.number().gt(0).max(4).default(1),
   hitboxes: obj({
     stand: obj({ body: ellipseBox, neck: ellipseBox }),
     sit: obj({ body: ellipseBox, neck: ellipseBox }),
@@ -559,6 +563,12 @@ export const OstrichesSchema = obj({
     cooldownSeconds: pos,
     hissSeconds: pos,
     barkKey: i18nKey,
+    /** v1.17b (D-080): the aimed-at rule — only a shot aimed at a bird or the nest (the aim
+     *  point on its hit shape, no target hit, none within guardPx of the aim point) costs the
+     *  penalty; a stray pellet is free (they still hiss and run). False: every hit costs it. */
+    aimedOnly: z.boolean().default(false),
+    /** A target this close to the aim point (screen px) gives the benefit of the doubt. */
+    guardPx: pos.default(120),
   }),
 });
 export type OstrichTuning = z.infer<typeof OstrichesSchema>;
@@ -1843,7 +1853,8 @@ const harvestSchema = modeSetupSchema.extend({
     nearShare: fraction,
   }),
   warthogs: obj({
-    /** An adult's height (feet to the top of the back/head, plane scale 1). */
+    /** An adult's height (feet to the top of the back/head, plane scale 1). v1.17b (D-080): 368,
+     *  its true 0.7 m beside the guineafowl (175 before); the hit boxes grew with it. */
     heightPx: pos,
     hitboxes: obj({ trot: harvestBox, dig: harvestBox }),
     trotPxPerSec: pos,

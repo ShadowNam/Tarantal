@@ -60,7 +60,7 @@ function shootBird(s: Sim, c: Content, b: OstrichView, f: OstrichFamilyView): Si
   return run(
     s,
     1,
-    aimAt(sfOf(c, f), now.x + box.ox * f.scale * now.facing, f.ground + box.oy * f.scale),
+    aimAt(sfOf(c, f), now.x + box.ox * f.size * now.facing, f.ground + box.oy * f.size),
   );
 }
 
@@ -141,8 +141,11 @@ describe('ostriches (v1.7d, D-059)', () => {
     const right = Math.max(...f.birds.map((b) => b.x), f.nest?.x ?? 0);
     reloaded(s);
     settle(s);
-    // Into the sand just right of the pair: close enough to scare them, hitting nothing.
-    const ev = run(s, 1, aimAt(sfOf(c, f), right + 160 * f.scale, f.ground - 10));
+    // Into the sand just right of the pair: close enough to scare them, hitting nothing (D-080:
+    // halfway between the true-size body's edge and the scare radius).
+    const T = c.birds.ostriches;
+    const off = (T.hitboxes.stand.body.rx * f.size + T.scare.radiusPx * f.scale) / 2;
+    const ev = run(s, 1, aimAt(sfOf(c, f), right + off, f.ground - 10));
     expect(ofType(ev, 'ostrichHit')).toHaveLength(0);
     const ran = ofType(ev, 'ostrichesRan');
     expect(ran).toHaveLength(1);
@@ -190,8 +193,8 @@ describe('ostriches (v1.7d, D-059)', () => {
       1,
       aimAt(
         sfOf(c, f),
-        (n?.x ?? 0) + T.hitboxes.nest.ox * f.scale,
-        f.ground + T.hitboxes.nest.oy * f.scale,
+        (n?.x ?? 0) + T.hitboxes.nest.ox * f.size,
+        f.ground + T.hitboxes.nest.oy * f.size,
       ),
     );
     for (const h of ofType(again, 'ostrichHit')) expect(h.points).toBe(0);

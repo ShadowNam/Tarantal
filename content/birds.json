@@ -856,8 +856,9 @@
     }
   },
   "ostriches": {
-    "$comment": "v1.7d (D-059): Namibië's ostriches — a black-and-white male and a grey-brown female, most maps with their nest. Non-targets: never hurt; a hit (bird or nest) costs the penalty with the meerkats' 2 s cooldown, the bird hisses and runs; a nearby shot or a loud gun sends the pair running, and they come back. Sizes and speeds are design px at plane scale 1 (× the family's plane scale: 470 → 197 px tall on the mid plane, about the D-054 far-ostrich proportion); times in seconds. Where the pairs stand is in the biome file.",
+    "$comment": "v1.7d (D-059): Namibië's ostriches — a black-and-white male and a grey-brown female, most maps with their nest. Non-targets: never hurt; a hit (bird or nest) costs the penalty with the meerkats' 2 s cooldown, the bird hisses and runs; a nearby shot or a loud gun sends the pair running, and they come back. Sizes and speeds are design px at plane scale 1 (× the family's plane scale); times in seconds. sizeMul (v1.17b, D-080, the owner: 'yes make all animals true size') grows the birds and their nest on top of that — the drawing, the hit shapes and heightPx, not the walks, the wander or the scare radius — so a standing one is its true 2.5 m beside the guineafowl (470 × 0.42 × 2.8 = 553 px on the mid plane; tools/sizes.ts). With it, hit.aimedOnly (the aimed-at rule of D-062/D-063/D-069/D-075): only a shot aimed at a bird or the nest (the aim point on it, no target hit, no target within guardPx of the aim point) costs the penalty; a stray pellet makes the pair hiss and run, free. Where the pairs stand is in the biome file.",
     "heightPx": 470,
+    "sizeMul": 2.8,
     "hitboxes": {
       "stand": {
         "body": { "rx": 120, "ry": 80, "ox": 0, "oy": -280 },
@@ -888,7 +889,7 @@
       "runSeconds": [1.2, 2],
       "watchSeconds": [2, 3.5]
     },
-    "hit": { "penalty": 10, "cooldownSeconds": 2, "hissSeconds": 0.6, "barkKey": "bark.ostrich" }
+    "hit": { "penalty": 10, "cooldownSeconds": 2, "hissSeconds": 0.6, "barkKey": "bark.ostrich", "aimedOnly": true, "guardPx": 120 }
   },
   "tells": {
     "$comment": "v1.7e (D-061, GDD §11.1c): the secrets' tell animals, one per secret (each secret names its own under `tell` in the biome file). Sizes are the secret prop's layer px; since v1.16 (D-078) each species' scale makes it its real size next to the guineafowl on its plane (±10 %, tools/sizes.ts); times in seconds. Non-targets: a hit costs nothing (no points, no Frenzy change); the animal is gone for goneSeconds, then comes back, and stays away once its secret is spent.",
@@ -912,15 +913,15 @@
     ]
   },
   "baboons": {
-    "$comment": "v1.8b (D-062): chacma baboon troops (GDD §11.3d). A troop keeps to the far ridge; since v1.16 (D-078) mostly hidden behind the skyline: a hidden member comes up after hideSeconds for a peek (head and shoulders over the edge, peekSeconds) or, a male, to sit on top as the sentinel (sentinelSeconds; the lookout ×3), at most maxVisible at once, rising and ducking over riseSeconds; while hidden it may creep to another free seat (moveChance). Up there it is never a target: a hit on a mother carrying her baby (2 pellets of one shot, or a one-pellet gun's hit) costs the penalty with a 2 s cooldown; any hit, or the Langloop, sends the troop over the ridge for awaySeconds). Raids: the lookout barks, one or two males climb down and come in from the side of a raid spot on the mid plane, do their mischief for actSeconds, then go back. A raider is a target: 2 hits bag it (each shot that hits it is one hit), for 3 × a guineafowl's base on its plane (× Frenzy × Stampede) and stopBonus when its raid wasn't done. Sizes and speeds are design px at plane scale 1 (a sitting male is 360 px: 54 px on the far ridge, 151 px on the mid plane); times in seconds. Where troops sit and raid is in the biome files (baboons). Oupa's lines are the guide tables' guide.baboon.* (lazy).",
-    "heightPx": 360,
+    "$comment": "v1.8b (D-062): chacma baboon troops (GDD §11.3d). A troop keeps to the far ridge; since v1.16 (D-078) mostly hidden behind the skyline: a hidden member comes up after hideSeconds for a peek (head and shoulders over the edge, peekSeconds) or, a male, to sit on top as the sentinel (sentinelSeconds; the lookout ×3), at most maxVisible at once, rising and ducking over riseSeconds; while hidden it may creep to another free seat (moveChance). Up there it is never a target: a hit on a mother carrying her baby (2 pellets of one shot, or a one-pellet gun's hit) costs the penalty with a 2 s cooldown; any hit, or the Langloop, sends the troop over the ridge for awaySeconds). Raids: the lookout barks, one or two males climb down and come in from the side of a raid spot on the mid plane, do their mischief for actSeconds, then go back. A raider is a target: 2 hits bag it (each shot that hits it is one hit), for 3 × a guineafowl's base on its plane (× Frenzy × Stampede) and stopBonus when its raid wasn't done. Sizes and speeds are design px at plane scale 1 (a sitting male is 420 px, his true 0.8 m beside the guineafowl (v1.17b, D-080; 360 before): 63 px on the far ridge, 176 px on the mid plane; the hit boxes grew with him); times in seconds. Where troops sit and raid is in the biome files (baboons). Oupa's lines are the guide tables' guide.baboon.* (lazy).",
+    "heightPx": 420,
     "motherScale": 0.82,
     "juvenileScale": 0.56,
     "hitboxes": {
-      "sit": { "body": { "rx": 95, "ry": 120, "ox": -10, "oy": -125 }, "head": { "rx": 52, "ry": 50, "ox": 34, "oy": -295 } },
-      "walk": { "body": { "rx": 160, "ry": 72, "ox": -20, "oy": -140 }, "head": { "rx": 50, "ry": 46, "ox": 172, "oy": -165 } },
-      "stand": { "body": { "rx": 82, "ry": 135, "ox": 0, "oy": -175 }, "head": { "rx": 50, "ry": 50, "ox": 22, "oy": -360 } },
-      "peek": { "body": { "rx": 95, "ry": 48, "ox": -5, "oy": -45 }, "head": { "rx": 50, "ry": 48, "ox": 28, "oy": -130 } }
+      "sit": { "body": { "rx": 111, "ry": 140, "ox": -12, "oy": -146 }, "head": { "rx": 61, "ry": 58, "ox": 40, "oy": -344 } },
+      "walk": { "body": { "rx": 187, "ry": 84, "ox": -23, "oy": -163 }, "head": { "rx": 58, "ry": 54, "ox": 201, "oy": -192 } },
+      "stand": { "body": { "rx": 96, "ry": 158, "ox": 0, "oy": -204 }, "head": { "rx": 58, "ry": 58, "ox": 26, "oy": -420 } },
+      "peek": { "body": { "rx": 111, "ry": 56, "ox": -6, "oy": -52 }, "head": { "rx": 58, "ry": 56, "ox": 33, "oy": -152 } }
     },
     "troop": {
       "size": [5, 10],

@@ -572,6 +572,8 @@ export interface OstrichFamilyView {
   readonly layerId: string;
   readonly plane: PlaneId;
   readonly scale: number;
+  /** v1.17b (D-080): the drawn size (scale × ostriches.sizeMul). */
+  readonly size: number;
   readonly ground: number;
   readonly nest: { readonly id: number; readonly x: number; readonly eggs: number } | null;
   /** Sorted by id (the male first). */

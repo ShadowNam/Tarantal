@@ -2002,11 +2002,11 @@ export function createSim(config: SimConfig): Sim {
     }
   }
 
-  /** v1.13 (D-075): a live bird, or anything else a player aims at, within the cameos'
-   *  hit.guardPx of the screen point (dx, sy) for camera centre cx: a shot there is never charged
-   *  to a cameo (the benefit of the doubt). */
-  function cameoTargetNearAim(cx: number, dx: number, sy: number): boolean {
-    const guard2 = content.cameos.hit.guardPx * content.cameos.hit.guardPx;
+  /** v1.13 (D-075): a live bird, or anything else a player aims at, within `guardPx` (the cameos'
+   *  or, v1.17b D-080, the ostriches' hit.guardPx) of the screen point (dx, sy) for camera centre
+   *  cx: a shot there is never charged to a non-target (the benefit of the doubt). */
+  function targetNearAim(cx: number, dx: number, sy: number, guardPx: number): boolean {
+    const guard2 = guardPx * guardPx;
     const near = (sdx: number, ssy: number): boolean =>
       (sdx - dx) * (sdx - dx) + (ssy - sy) * (ssy - sy) <= guard2;
     for (const b of birds) {
@@ -2725,7 +2725,37 @@ export function createSim(config: SimConfig): Sim {
     const radius =
       shot.alertRadiusPx * pass.alertRadiusMul * (miss ? pass.missAlertMul : 1) * rainMul;
     shotAtColonies(shotId, meerkatHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
-    ostriches?.shot(shotId, ostrichHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
+    // v1.17b (D-080): the aimed-at rule for the true-size ostriches (hit.aimedOnly).
+    if (ostriches !== null) {
+      const osHit = content.birds.ostriches.hit;
+      ostriches.shot(
+        shotId,
+        ostrichHits,
+        impacts,
+        shotCx,
+        radius > 0,
+        shot.alertsAllFlocks,
+        ostrichHits.length === 0
+          ? undefined
+          : {
+              hitTarget:
+                damage.outcomes.length > 0 ||
+                partHits.length > 0 ||
+                crateHits.length > 0 ||
+                spookHits.length > 0 ||
+                canHits.size > 0 ||
+                baboonHits.some((id) => baboons?.isRaider(id) === true),
+              targetNearAim: targetNearAim(shotCx, ctx.aim.dx, ctx.aim.sy, osHit.guardPx),
+              aimOn: (layerId) =>
+                tapToPlane(
+                  shotCx,
+                  layerById.get(layerId)?.scrollFactor ?? 1,
+                  ctx.aim.dx,
+                  ctx.aim.sy,
+                ),
+            },
+      );
+    }
     tells?.shot(shotId, tellHits);
     if (baboonHits.length > 0 || (shot.alertsAllFlocks && radius > 0))
       baboons?.shot(shotId, baboonHits, shot.alertsAllFlocks && radius > 0, (layerId) =>
@@ -2773,7 +2803,9 @@ export function createSim(config: SimConfig): Sim {
           spookHits.length > 0 ||
           canHits.size > 0 ||
           baboonHits.some((id) => baboons?.isRaider(id) === true),
-        targetNearAim: cameoHits.length > 0 && cameoTargetNearAim(shotCx, ctx.aim.dx, ctx.aim.sy),
+        targetNearAim:
+          cameoHits.length > 0 &&
+          targetNearAim(shotCx, ctx.aim.dx, ctx.aim.sy, content.cameos.hit.guardPx),
         aimOn: (layerId) => tapToPlane(shotCx, sfOf(layerId), ctx.aim.dx, ctx.aim.sy),
         impactsOn: (layerId) => impacts.map((p) => tapToPlane(shotCx, sfOf(layerId), p.dx, p.sy)),
       });
