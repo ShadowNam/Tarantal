@@ -66,18 +66,28 @@ test('low tier: a troop map keeps its far ridge (6 layers), the troop on its sea
     null,
     { timeout: 120_000 },
   );
-  // Each listed member's feet are on one of the troop's seats (layer y: the ridge doesn't scroll
-  // vertically; a walker is between two seats, a climber below them).
+  // Each member that is all the way up over the ridge has its feet on one of the troop's seats
+  // (layer y: the ridge doesn't scroll vertically). v1.16 (D-078): the troop hides behind its
+  // ridge and only one or two look over the edge at a time, so wait (bounded by sim ticks) for one.
   const ys = karoo.baboons.troops[0]?.seats.map((x) => x.y) ?? [];
-  const members = await page.evaluate(() =>
-    (
-      (
-        window as unknown as {
-          __TM__?: { baboons?: readonly { role: string; y: number; alpha: number }[] | null };
-        }
-      ).__TM__?.baboons ?? []
-    ).filter((b) => b.role !== 'raider' && b.alpha === 1),
+  type Member = { role: string; y: number; alpha: number; rise?: number };
+  const from = (await hook(page)).tick;
+  const handle = await page.waitForFunction(
+    (until) => {
+      const tm = (
+        window as unknown as { __TM__?: { tick: number; baboons?: readonly Member[] | null } }
+      ).__TM__;
+      if ((tm?.tick ?? 0) > until)
+        throw new Error(`no troop member up over the ridge by tick ${until}`);
+      const up = (tm?.baboons ?? []).filter(
+        (b) => b.role !== 'raider' && b.alpha === 1 && (b.rise ?? 1) >= 1,
+      );
+      return up.length > 0 ? up : false;
+    },
+    from + 60 * 40,
+    { timeout: 240_000, polling: 'raf' },
   );
+  const members = (await handle.jsonValue()) as Member[];
   expect(members.length).toBeGreaterThan(0);
   for (const m of members) {
     expect(m.y).toBeGreaterThanOrEqual(Math.min(...ys) - 2);
