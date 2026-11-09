@@ -1201,8 +1201,9 @@ repaired." Numbers: `content/modes.json → harvest`; the map: `content/biomes/o
   into the rows (1.6× their run); not targets until they reach the mid plane, then the raider rules
   (`biomes/oes.json → baboons.descent`). **A second, small hole** low in the fence (a bay left of
   the gap, away from the workers): yearlings (young warthogs, 0.7× an adult, one hit, 2× a
-  guineafowl's base) squeeze through it, the first 3 s in, then every 20 s, each with a piglet
-  45 % of the time; the workers patch it at 80 % of the rush (`harvest.hole`). Rates ramp up over the 30 s (`rush.keyframes`, the biome's pacing); the dig, feeding
+  guineafowl's base, eating 0.7× a warthog's share) squeeze through it, two a rush (6 s and 21 s
+  in), each with a piglet 45 % of the time; the workers patch it at 80 % of the rush
+  (`harvest.hole`). Rates ramp up over the 30 s (`rush.keyframes`, the biome's pacing); the dig, feeding
   and raid spots sit in the gap's half of the field, where the camera starts, so the peak is busy
   on screen (the screenshot spec asserts ≥ 2 flocks, 3 warthogs and a raider).
 - **Warthogs:** 2 hits bag one (each shot that hits is one hit; the first sends it running back
@@ -1230,8 +1231,8 @@ repaired." Numbers: `content/modes.json → harvest`; the map: `content/biomes/o
   piglets, and the local best ("New Harvest best!"). [Again] plays the Harvest again.
 - **Not in it:** supply crates and charms (a 30-s rush keeps the field clear; the fence area stays
   free of falling crates); the Stampede (the rush is its own climax); the omen.
-- **Balance (docs/balance/v1.8c-harvest.md, v1.18-harvest-phase2.md):** a competent player saves
-  ~63 % of the crop in the rush.
+- **Balance (docs/balance/v1.8c-harvest.md, v1.18-harvest-defence.md):** a competent player saves
+  ~61 % of the crop in the rush (66 % before the small hole).
 
 #### 12.2.1 Phase 2 — "Defend the field" (v1.18, D-081)
 The owner (8 Nov): "when a certain amount of points get done in the HARVEST map, the map gets into
@@ -1265,8 +1266,8 @@ rushes, ~24 animals in 30 s, piglets scare-only, the three bonuses. Numbers:
   "Bonus round: stopped N / 24", the crop at the end and the bonuses; the local best is the
   hunt's score, Phase 2 in. The music plays its Stampede stem in Phase 2 (the build stem in the
   banner); grunts, squeals and the baboons' calls as they come.
-- **Balance (docs/balance/v1.18-harvest-phase2.md):** the competent bot unlocks it about half the
-  time and keeps ~61 % of the crop it had; the plinker ~25 %.
+- **Balance (docs/balance/v1.18-harvest-defence.md):** the competent bot unlocks it about half the
+  time and keeps ~62 % of the crop it had in Phase 2; the plinker ~22 %.
 
 ## 13. Season Run (roguelite) in detail
 
