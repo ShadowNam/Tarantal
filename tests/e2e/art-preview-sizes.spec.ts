@@ -67,6 +67,8 @@ type Hooked = {
  *  the planes' scales (content/scoring.json): the crop's room for the yardstick. */
 const BIRD_PX = 263;
 const PLANE_SCALE: Readonly<Record<Plane, number>> = { near: 1, mid: 0.42, far: 0.15 };
+/** The mid layer's scroll factor (content/scoring.json planes.mid.scrollFactor). */
+const MID_SCROLL = 0.6;
 
 test.use({ serviceWorkers: 'block' });
 test.describe.configure({ mode: 'serial' });
@@ -493,23 +495,19 @@ test('1. the Karoo (far herd, Brakkie, a cameo, a raider, the bakkie), then the 
   // The bakkie stands at the Karoo's right end: hold D until the camera reaches its right limit
   // (as art-preview-gfx3 does; short A/D presses never got it on screen on software GL).
   await page.keyboard.down('KeyD');
-  await page.waitForFunction(
-    () => {
-      const t = window.__TM__;
-      const b = (window as unknown as Hooked).__TM__?.graphics.bounds.find(
-        (x) => x.key === 'karoo/bakkie',
-      );
-      return (
-        (t?.cameraX ?? 0) >= 4100 || (b !== undefined && b.x + b.w < (t?.designWidth ?? 1920) - 100)
-      );
-    },
-    null,
-    { timeout: 300_000 },
-  );
+  await page.waitForFunction(() => (window.__TM__?.cameraX ?? 0) >= 4100, null, {
+    timeout: 300_000,
+  });
   await page.keyboard.up('KeyD');
   await hold(page, touch);
-  const bk = await bakkie();
-  if (bk === null) throw new Error('no bakkie on screen');
+  const bp = await bakkie();
+  if (bp === null) throw new Error('no bakkie');
+  // The props' bounds are in their plane's x (the mid layer scrolls at 0.6): to screen x
+  // (Tech §3.3: planeX = (cx − 960) × scrollFactor + 960 + dx).
+  const dw = (await tm(page)).designWidth;
+  const cx = await page.evaluate(() => window.__TM__?.cameraX ?? 0);
+  const bk = { ...bp, x: dw / 2 + bp.x - 960 - (cx - 960) * MID_SCROLL };
+  if (bk.x + bk.w < 0 || bk.x > dw) throw new Error(`bakkie off screen (${bk.x})`);
   await shot(page, info, touch, 'bakkie', [{ plane: 'mid', sx: bk.x - 60, sy: bk.y + bk.h }], bk);
   await release(page);
 
