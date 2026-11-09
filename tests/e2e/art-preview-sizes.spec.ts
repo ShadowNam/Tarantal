@@ -1,19 +1,20 @@
 // v1.17b (D-080) "every animal at true size" previews, on demand (not part of the regular suite:
 // playwright.config.ts ignores art-preview specs unless ART_PREVIEW=1):
 //   ART_PREVIEW=1 npx playwright test tests/e2e/art-preview-sizes.spec.ts --project=desktop-chromium
-// One profile at a time (desktop, Pixel 7, iPhone 14 landscape). Three boots per device, Standard:
+// One profile at a time (desktop, Pixel 7, iPhone 14 landscape). Three boots per device (1 and 3 Standard, 2 HD):
 //   1. areas    the Karoo, then the Bushveld, the Kalahari and the Okavango from the title's area
-//               picker (one boot): each area's far herd; in the Karoo also Brakkie, a cameo (the
+//               picker, then Namibië (one boot): each area's far herd; in the Karoo also Brakkie, a cameo (the
 //               ostrich or the tortoise), a baboon raider and the bakkie;
-//   2. namibie  the far herd, the ostrich pair (mid plane) and the gemsbok cameo;
-//   3. harvest  the warthogs (and piglets) in Die Oes.
+//   2. namibie  in HD: the far herd (with boot 1's Standard crop: a Standard | HD pair; the herds
+//               are Standard in HD), the ostrich pair (mid plane) and the gemsbok cameo;
+//   3. harvest  the warthogs (and piglets), the workers at the true-size fence, in Die Oes.
 // Every subject gets a yardstick: a standing guineafowl drawn on its plane at that plane's size
 // (the test-build hook __TM_RULERS__, view only), its feet beside the subject's. Crops are cut
 // round each subject's SCREEN position (from the hooks) and its yardstick. Each grab holds the sim
 // (__TM_HOLD_AT__) on a fresh frame; the far herds are still (?faunaIdle=0); pans are bounded and
 // overshoot-tolerant (lesson 15). Every wait is bounded and a missing shot fails the test.
 // Writes docs/art-preview/compare/v117b-sizes-<shot>-<device>.png (2× crops) and -full frames.
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test, type Page, type TestInfo } from '@playwright/test';
 import { blank, crop, decodePng, encodePng8, resize, type Rgba } from '../../tools/assets/image';
@@ -150,7 +151,7 @@ async function release(page: Page): Promise<void> {
   });
 }
 
-type Pick = 'raider' | 'cameo' | 'dog' | 'gemsbok' | 'warthog' | 'piglet';
+type Pick = 'raider' | 'cameo' | 'dog' | 'gemsbok' | 'warthog' | 'piglet' | 'worker';
 
 /**
  * Holds the first tick (within `ticks`) on which the subject `what` is in view, clear of the
@@ -203,7 +204,7 @@ async function holdWhen<T>(
       } else
         found =
           (t.harvestActors ?? []).find(
-            (a) => a.role === kind && a.visible && inView(a.x, kind === 'warthog' ? 360 : 300),
+            (a) => a.role === kind && a.visible && inView(a.x, kind === 'piglet' ? 300 : 360),
           ) ?? null;
       if (found === null) return null;
       w.__TM_HOLD_AT__?.(tick + 1);
@@ -233,7 +234,7 @@ async function shot(
   name: string,
   rulers: readonly Ruler[],
   subject: Rect,
-): Promise<void> {
+): Promise<Rgba> {
   await page.evaluate((r) => {
     (window as unknown as Hooked).__TM_RULERS__?.(r);
   }, rulers);
@@ -265,6 +266,27 @@ async function shot(
   await page.evaluate(() => {
     (window as unknown as Hooked).__TM_RULERS__?.([]);
   });
+  return c;
+}
+
+const fileOf = (name: string, info: TestInfo): string =>
+  join(OUT, `v117b-sizes-${name}-${device(info.project.name)}.png`);
+
+/** Two crops side by side (Standard | HD), white between. */
+function sideBySide(a: Rgba, b: Rgba): Rgba {
+  const out = blank(a.width + b.width + 12, Math.max(a.height, b.height));
+  out.data.fill(255);
+  for (const [src, left] of [
+    [a, 0],
+    [b, a.width + 12],
+  ] as const)
+    for (let y = 0; y < src.height; y++)
+      for (let x = 0; x < src.width; x++) {
+        const si = (y * src.width + x) * 4;
+        const di = (y * out.width + left + x) * 4;
+        for (let c = 0; c < 4; c++) out.data[di + c] = src.data[si + c] ?? 0;
+      }
+  return out;
 }
 
 /** Pans (A/D, short presses; bounded, overshoot-tolerant) until `where()` is near the middle. */
@@ -325,7 +347,7 @@ const herdBox = (page: Page): Promise<Rect | null> =>
   });
 
 /** The far herd nearest the view's middle, with a far guineafowl beside it. */
-async function herdShot(page: Page, info: TestInfo, touch: boolean, name: string): Promise<void> {
+async function herdShot(page: Page, info: TestInfo, touch: boolean, name: string): Promise<Rgba> {
   for (let k = 0; k < 16 && (await herdBox(page)) === null; k++) {
     await page.keyboard.down('KeyD');
     await page.waitForTimeout(400);
@@ -340,7 +362,7 @@ async function herdShot(page: Page, info: TestInfo, touch: boolean, name: string
   if (b === null) throw new Error(`${name}: no far herd on screen`);
   // Two far guineafowl at the herd's feet line, one each side.
   const feet = b.y + b.h;
-  await shot(
+  const c = await shot(
     page,
     info,
     touch,
@@ -352,6 +374,7 @@ async function herdShot(page: Page, info: TestInfo, touch: boolean, name: string
     b,
   );
   await release(page);
+  return c;
 }
 
 /** Into the hunt (from the title) and its views up. */
@@ -483,13 +506,25 @@ test('1. the Karoo (far herd, Brakkie, a cameo, a raider, the bakkie), then the 
     await herdShot(page, info, touch, `herd-${area.split('-')[0] ?? area}`);
     await toTitle(page, touch);
   }
+  // Namibië's herd in Standard: the left half of its Standard | HD pair (boot 2 is HD).
+  await pickArea(page, touch, 'namibie');
+  await intoHunt(page, touch, 'namibie');
+  save('herd-namibie-std-crop', info, await herdShot(page, info, touch, 'herd-namibie-std'));
 });
 
-test('2. Namibië: the far herd, the ostrich pair and the gemsbok cameo', async ({ page }, info) => {
+test('2. Namibië in HD: the far herd (Standard | HD), the ostrich pair and the gemsbok cameo', async ({
+  page,
+}, info) => {
   const touch = isTouchProject(info);
-  await page.goto(`/?${FLAGS}&biome=namibie&layout=tue&huntSeconds=60`);
+  // HD: the far herds are Standard in HD (D-080); the pair shows how they read at true size.
+  await page.goto(
+    `/?${FLAGS.replace('graphics=standard', 'graphics=hd')}&biome=namibie&layout=tue&huntSeconds=60`,
+  );
   await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 600_000 });
   await intoHunt(page, touch, 'namibie');
+  await page.waitForFunction(() => (window.__TM__?.graphics.hdTextures ?? 0) > 0, null, {
+    timeout: 600_000,
+  });
 
   // The gemsbok cameo (in view within seconds), a mid guineafowl beside the leader.
   const gb = await mustHold<Spot & { groundY: number }>(page, touch, 'gemsbok', 60 * 30);
@@ -532,7 +567,10 @@ test('2. Namibië: the far herd, the ostrich pair and the gemsbok cameo', async 
   });
   await release(page);
 
-  await herdShot(page, info, touch, 'herd-namibie');
+  const hd = await herdShot(page, info, touch, 'herd-namibie-hd');
+  const stdFile = fileOf('herd-namibie-std-crop', info);
+  if (!existsSync(stdFile)) throw new Error('the Standard herd crop is missing (run test 1 first)');
+  save('herd-namibie-std-hd', info, scaled(sideBySide(decodePng(readFileSync(stdFile)), hd), 2));
 });
 
 test('3. Die Oes: the warthogs and piglets beside mid and near guineafowl', async ({
@@ -565,6 +603,25 @@ test('3. Die Oes: the warthogs and piglets beside mid and near guineafowl', asyn
     `harvest-warthog-${plane}`,
     [{ plane, sx: hog.x - hh * 1.3, sy: hog.groundY }],
     memberBox(hog, hh * 2.2, hh),
+  );
+  await release(page);
+  // The workers at the true-size fence (a mid guineafowl left of them), with the gap.
+  const wk = await mustHold<Spot & { groundY: number }>(page, touch, 'worker', 60 * 40);
+  const crew = await page.evaluate(() =>
+    ((window as unknown as Hooked).__TM__?.harvestActors ?? []).filter(
+      (a) => (a.role === 'worker' || a.role === 'gap') && a.visible,
+    ),
+  );
+  const xs = crew.map((a) => a.x);
+  const left = Math.min(...xs, wk.x) - 220;
+  const right = Math.max(...xs, wk.x) + 220;
+  await shot(
+    page,
+    info,
+    touch,
+    'harvest-workers-fence',
+    [{ plane: 'mid', sx: left - 40, sy: wk.groundY }],
+    { x: left, y: wk.groundY - 400, w: right - left, h: 410 },
   );
   await release(page);
   // Piglets with their sow, if any are in view within a few seconds (the warthog shot is the
