@@ -1,10 +1,11 @@
 // v1.12 (D-069, art bible §5.6) Brakkie's frame table: a Jack Russell (white with tan patches)
 // facing right with the origin at his feet — trotting (2), running (2), sitting, the title's wag
 // (2), lying, sniffing, barking, digging, the startled yelp — and the guineafowl he carries (its
-// own small frame, held at the running frames' mouth). Every frame is authored at half size and
-// drawn ×2 (`res` 0.5; his own frames 0.675 since D-080, for his true size), so the 1× sheet stays
-// inside GPU_BYTES_CAP (lessons 29, 38). Packed in a
-// skyline, tallest first, 2 px apart. Pure: the game, the art generator and the tests read it.
+// own frame, held at the running frames' mouth; at its true size since D-082). Every frame is
+// authored at half size and drawn ×2 (`res` 0.5; his own frames 0.675 since D-080, for his true
+// size), so the 1× sheet stays inside GPU_BYTES_CAP (lessons 29, 38). Packed in a skyline
+// (PACK_ORDER, then tallest first), 2 px apart. Pure: the game, the art generator and the tests
+// read it.
 import { BRAKKIE_SHEET_H, BRAKKIE_SHEET_W } from './brakkieKeys';
 
 export { BRAKKIE_SHEET, BRAKKIE_SHEET_H, BRAKKIE_SHEET_W } from './brakkieKeys';
@@ -58,7 +59,8 @@ export interface BrakkieFrameRect extends FrameSpec {
  * v1.17b (D-080): his frames are shown at brakkie.json sizeMul (1.35, a true Jack Russell), so they
  * are drawn at 0.5 × that sheet px per design px of the box — 0.5 per drawn px in Standard, 1.0 in
  * the HD twin (animalDensity.test.ts). Redrawn from the vector shapes, never scaled up. The bird he
- * carries and the point's marker keep their size (0.5).
+ * carries and the point's marker do not grow with him (0.5): the bird is drawn at a guineafowl's
+ * own true size on the near plane (D-082: ~300 px bill to tail, 271 across as it hangs).
  */
 export const BRAKKIE_DRAWN_MUL = 1.35;
 const DOG_RES = 0.5 * BRAKKIE_DRAWN_MUL;
@@ -81,7 +83,7 @@ const SPECS: readonly FrameSpec[] = [
   { name: 'bark', w: 220, h: 182, ox: 87, oy: 171, res: DOG_RES },
   { name: 'dig', w: 201, h: 153, ox: 89, oy: 141, res: DOG_RES },
   { name: 'yelp', w: 206, h: 157, ox: 87, oy: 145, res: DOG_RES },
-  { name: 'bird', w: 94, h: 68, ox: 14, oy: 6, res: 0.5 },
+  { name: 'bird', w: 283, h: 117, ox: 143, oy: 14, res: 0.5 },
   { name: 'point_a', w: 226, h: 131, ox: 88, oy: 119, res: DOG_RES },
   { name: 'point_b', w: 226, h: 132, ox: 88, oy: 120, res: DOG_RES },
   { name: 'proud_a', w: 235, h: 157, ox: 100, oy: 145, res: DOG_RES },
@@ -108,11 +110,45 @@ export function cellSize(f: Pick<FrameSpec, 'w' | 'h' | 'res'>): { w: number; h:
 
 const GAP = 2;
 
-/** Skyline packing, tallest first (ties keep the table's order): each frame goes where it sits
- *  highest (then leftmost), GAP px from its neighbours and the sheet's edges. */
+/**
+ * v1.20.2 (D-082): the order the frames are packed in, found by a search over orders (the
+ * true-size bird's 142 × 59 cell did not fit tallest-first: 594 px tall at 672 wide; in this order
+ * all 22 frames take 527). Frames not listed follow, tallest first.
+ */
+const PACK_ORDER: readonly BrakkieFrame[] = [
+  'sit',
+  'wag_a',
+  'run_c',
+  'proud_b',
+  'proud_a',
+  'run_b',
+  'trot_a',
+  'tilt',
+  'run_a',
+  'trot_d',
+  'marker',
+  'sniff',
+  'bird',
+  'dig',
+  'trot_c',
+  'trot_b',
+  'lie',
+  'point_b',
+  'bark',
+  'yelp',
+  'run_d',
+  'point_a',
+];
+
+/** Skyline packing in PACK_ORDER (then tallest first; ties keep the table's order): each frame
+ *  goes where it sits highest (then leftmost), GAP px from its neighbours and the sheet's edges. */
 function pack(W = BRAKKIE_SHEET_W): BrakkieFrameRect[] {
+  const rank = (s: FrameSpec): number => {
+    const i = PACK_ORDER.indexOf(s.name);
+    return i < 0 ? PACK_ORDER.length : i;
+  };
   const order = SPECS.map((s, i) => ({ s, i })).sort(
-    (a, b) => cellSize(b.s).h - cellSize(a.s).h || a.i - b.i,
+    (a, b) => rank(a.s) - rank(b.s) || cellSize(b.s).h - cellSize(a.s).h || a.i - b.i,
   );
   const sky = new Array<number>(W).fill(GAP);
   const out: BrakkieFrameRect[] = [];
@@ -161,7 +197,8 @@ export function brakkieSheetHeight(): number {
 
 /** The sheet's GPU cost cap at 1× (bytes, RGBA; the HD twin is 4×): v1.17 0.875 MiB; v1.17b
  *  (D-080) 1.5 MiB for his true-size frames (1.47 MiB; HD 5.88, with room made in Namibië's HD
- *  hunt; his HD twin also loads only under feel.brakkie.hd's budget). */
+ *  hunt; his HD twin also loads only under feel.brakkie.hd's budget). v1.20.2 (D-082), with the
+ *  true-size bird: 1.36 MiB (HD 5.42). */
 export const GPU_BYTES_CAP = 1.5 * 1024 * 1024;
 
 /** Texture px per sheet px of a file `width` px wide (1 for the Standard sheet, 2 for HD). */
