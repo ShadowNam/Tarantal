@@ -5,7 +5,7 @@
 // Standard first, then one HD; each the same short Karoo hunt that ends at the braai tally:
 //   brakkie   Brakkie running to the bird beside him and carrying it (?brakkiePreview=fetch),
 //   peek      the troop's ridge with one baboon looking over the edge and the rest hidden
-//             (?baboonPeek=sentinel: no raids; the others' looks last 1 s, a male sits up 30 s),
+//             (?baboonPeek=sentinel: no raids; the others' looks last 6 s, a male sits up 30 s),
 //   sentinel  the sentinel sitting up on top, close,
 //   sizes     the far plane: a far herd with the troop's ridge (and any far guineafowl) at their
 //             on-screen sizes,
