@@ -197,7 +197,10 @@ for (const biome of AREAS)
           tm?.biome === want &&
           tm.graphics.hdTextures > 0 &&
           fauna.length > 0 &&
-          fauna.every((b) => b.hd) &&
+          // D-080: the far herds are Standard in HD (STANDARD_IN_HD_KEYS): the area's HD art is
+          // in once its props draw HD, the herds from their Standard files.
+          tm.graphics.bounds.some((b) => b.hd) &&
+          fauna.every((b) => !b.hd) &&
           (want === 'okavango-spring' || tm.cameos?.sheet != null)
         );
       },
@@ -207,7 +210,7 @@ for (const biome of AREAS)
     // v1.7d (D-059, CI run 40842297447): the HD layers go in, and the Karoo title's HD layers
     // are purged, in refreshHd, which runs every 30 RENDERED frames, not on a clock. On CI's
     // software GL a heavy area's 30 frames took longer than a fixed 4 s, so the sample caught
-    // both areas' layers on the GPU. Wait (bounded) for two refreshes after the fauna went HD
+    // both areas' layers on the GPU. Wait (bounded) for two refreshes after the HD pack was in (D-080: the fauna stays Standard)
     // and for no other area's HD layers in the sample; the assertions below still judge it.
     const area = biome.split('-')[0] ?? biome;
     const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
@@ -339,7 +342,9 @@ test('HD texture memory, a Christmas hunt on its heaviest map (okavango)', async
         tm.spook?.final === true &&
         tm.graphics.hdTextures > 0 &&
         fauna.length > 0 &&
-        fauna.every((b) => b.hd)
+        // D-080: the herds are Standard in HD; the area's props draw HD.
+        tm.graphics.bounds.some((b) => b.hd) &&
+        fauna.every((b) => !b.hd)
       );
     },
     null,
@@ -498,7 +503,9 @@ test('HD texture memory, a New Year hunt on its heaviest map (okavango)', async 
         tm.spook?.final === true &&
         tm.graphics.hdTextures > 0 &&
         fauna.length > 0 &&
-        fauna.every((b) => b.hd)
+        // D-080: the herds are Standard in HD; the area's props draw HD.
+        tm.graphics.bounds.some((b) => b.hd) &&
+        fauna.every((b) => !b.hd)
       );
     },
     null,
@@ -653,7 +660,9 @@ test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async 
         tm.brakkie?.sheet != null &&
         tm.graphics.hdTextures > 0 &&
         fauna.length > 0 &&
-        fauna.every((b) => b.hd)
+        // D-080: the herds are Standard in HD; the area's props draw HD.
+        tm.graphics.bounds.some((b) => b.hd) &&
+        fauna.every((b) => !b.hd)
       );
     },
     null,

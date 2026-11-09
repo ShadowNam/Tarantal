@@ -53,7 +53,12 @@ import { HuntRunner } from '../HuntRunner';
 import { InputMapper, inputKindOf } from '../input/InputMapper';
 import { BirdView } from '../view/BirdView';
 import { FONT, Fx } from '../view/Fx';
-import { interpolateAim, interpolateBirds, interpolateCamera } from '../view/interpolate';
+import {
+  interpolateAim,
+  interpolateBirds,
+  interpolateCamera,
+  type DrawBird,
+} from '../view/interpolate';
 import { SightView, type SightPicture } from '../view/SightView';
 import { NO_ZOOM, zoomFor, type ZoomState } from '../view/zoomView';
 import { ParallaxView } from '../view/ParallaxView';
@@ -241,6 +246,10 @@ export class HuntScene extends Phaser.Scene {
   private sight!: SightView;
   /** The rifle zoom view of the last frame (NO_ZOOM when no sight is up). */
   private zoomView: ZoomState = NO_ZOOM(1920, 1080);
+  /** e2e/dev only (v1.17b, D-080, the sizes screenshots): standing guineafowl drawn as yardsticks
+   *  with their feet at screen points (design px), each on a plane at that plane's size. View
+   *  only: never in the sim. */
+  private rulers: { plane: PlaneId; sx: number; sy: number; facing: 1 | -1 }[] = [];
   /** v1.4 (#56): e2e only (__TM_TOOLS__.scopeCull): the zoomed view's culling, on by default. */
   static cullZoomed = true;
   private runner: HuntRunner | null = null;
@@ -702,6 +711,18 @@ export class HuntScene extends Phaser.Scene {
       (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__ = (tick) => {
         if (this.runner !== null) this.runner.holdAt = tick;
       };
+    // e2e/dev only (v1.17b, D-080): a standing guineafowl as a yardstick beside a subject (the
+    // sizes screenshots): its feet at screen point (sx, sy), drawn on `plane`; [] clears them.
+    if (this.ctx.hook)
+      (
+        window as {
+          __TM_RULERS__?: (
+            r: readonly { plane: PlaneId; sx: number; sy: number; facing?: 1 | -1 }[],
+          ) => void;
+        }
+      ).__TM_RULERS__ = (r) => {
+        this.rulers = r.map((x) => ({ ...x, facing: x.facing ?? 1 }));
+      };
     // e2e/dev only (D-029 art previews): freeze the gun on a clip frame for screenshots.
     if (this.ctx.hook)
       (window as { __TM_GUN__?: WeaponView['pose'] }).__TM_GUN__ = (id, clip, frame) => {
@@ -840,6 +861,36 @@ export class HuntScene extends Phaser.Scene {
   }
 
   private redDotSet: ReadonlySet<string> | null = null;
+
+  /** e2e/dev only (D-080): the yardstick guineafowl as birds the BirdView draws (screen point →
+   *  the plane's layer coords; standing alert, never hittable, ids below every sim id). */
+  private rulerBirds(): DrawBird[] {
+    return this.rulers.map((r, i) => {
+      const root = this.parallax.plane(r.plane).root;
+      const x = (r.sx - root.x) / root.scaleX;
+      const y = (r.sy - root.y) / root.scaleY;
+      return {
+        x,
+        y,
+        view: {
+          id: -1000 - i,
+          creature: 'tarentaal',
+          kind: 'target',
+          plane: r.plane,
+          x,
+          y,
+          facing: r.facing,
+          motion: 'flock',
+          phase: 'alert',
+          behaviour: 'alert',
+          hittable: false,
+          flockId: null,
+          ground: null,
+          armored: false,
+        },
+      };
+    });
+  }
 
   private sightPicture(id: string | null): SightPicture | null {
     if (id === null) return null;
@@ -2201,7 +2252,11 @@ export class HuntScene extends Phaser.Scene {
     this.feedingFlocks.clear();
     if (state.reenbui !== null)
       for (const f of state.flocks) if (f.feeding === true) this.feedingFlocks.add(f.id);
-    this.birds.update(drawBirds, state.tick, this.feedingFlocks);
+    this.birds.update(
+      this.rulers.length === 0 ? drawBirds : [...drawBirds, ...this.rulerBirds()],
+      state.tick,
+      this.feedingFlocks,
+    );
     this.world.update(state, width, designSize().height);
     // D-051: the potjie's simmer, rattles and clang (on sim ticks; none on a held frame).
     for (const c of this.world.potjie.cues)
