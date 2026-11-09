@@ -2873,6 +2873,10 @@ export class HuntScene extends Phaser.Scene {
           this.manifest,
           this.ctx.content.modes.modes.harvest,
           this.ctx.hook !== null,
+          {
+            heightPx: this.ctx.content.birds.baboons.heightPx,
+            ...this.ctx.content.birds.baboons.hitboxes,
+          },
         );
       })
       .catch(() => {

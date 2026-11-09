@@ -56,7 +56,7 @@ interface Coat {
 }
 
 /** Chacma colours (the far frames get the same; the far haze is the layer's tint). */
-const MALE: Coat = {
+export const MALE: Coat = {
   // v1.15 review: more contrast — a lighter olive-grey lit back, a darker belly and muzzle.
   coat: '#776650',
   lit: '#B2A47E',
@@ -121,7 +121,7 @@ interface Pose {
 }
 
 /** Quadruped stance: the four feet's phase (−1 back … +1 forward) for a gait frame. */
-function walkPose(phase: number, run = false, open = false): Pose {
+export function walkPose(phase: number, run = false, open = false): Pose {
   const s = Math.sin(phase);
   const c = Math.cos(phase);
   const stride = run ? 0.2 : 0.13;
@@ -1170,7 +1170,14 @@ function baby(p: Pose, k = 1): string[] {
 }
 
 /** One baboon in `pose` (units: a sitting male's height = 1), facing right, feet at 0. */
-export function drawBaboon(p: Pose, coat: Coat, small: boolean, seed: number): string {
+export function drawBaboon(
+  p: Pose,
+  coat: Coat,
+  small: boolean,
+  seed: number,
+  /** v1.18 (D-081): false off the ground (on a fence, in a drop). */
+  shadowed = true,
+): string {
   const defs: string[] = [];
   const parts: string[] = [];
   const far = shade(coat.coat, -0.32);
@@ -1182,7 +1189,7 @@ export function drawBaboon(p: Pose, coat: Coat, small: boolean, seed: number): s
   const ARM_FAR = [0.09, 0.06, 0.046];
   const ARM_NEAR = [0.1, 0.066, 0.05];
   // Contact shadow (not while tumbling, nor for a bust behind the ridge's edge).
-  if (!bust && (p.spin === undefined || Math.abs(p.spin) < 30)) {
+  if (shadowed && !bust && (p.spin === undefined || Math.abs(p.spin) < 30)) {
     const xs = [
       ...p.arms.flatMap((a) => a.map((q) => q[0])),
       ...p.legs.flatMap((l) => l.map((q) => q[0])),

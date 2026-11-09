@@ -10,6 +10,7 @@ import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
 import { BABOON_SHEET } from '../../src/game/view/baboon/baboonKeys';
 import { BABOON_CALLS } from '../../src/game/view/baboon/baboonSounds';
 import { HARVEST_SHEET } from '../../src/game/view/harvest/harvestKeys';
+import { HARVEST2_SHEET } from '../../src/game/view/harvest/harvest2Keys';
 import { REENBUI_SHEET } from '../../src/game/view/reenbui/reenbuiKeys';
 import { BRAAI_SHEET, BRAAI_SOUNDS } from '../../src/game/braai/braaiKeys';
 import { BRAKKIE_SHEET, BRAKKIE_SOUNDS } from '../../src/game/brakkie/brakkieKeys';
@@ -116,6 +117,8 @@ function usages(
   if (key === BABOON_SHEET) needles.push(/\bBABOON_SHEET\b/);
   // v1.8c (D-063): the Harvest sheet by its constant (HarvestView).
   if (key === HARVEST_SHEET) needles.push(/\bHARVEST_SHEET\b/);
+  // v1.18 (D-081): the Phase 2 sheet by its constant (HarvestView).
+  if (key === HARVEST2_SHEET) needles.push(/\bHARVEST2_SHEET\b/);
   // v1.10 (D-067): Reënbui's sheet by its constant (ReenbuiView).
   if (key === REENBUI_SHEET) needles.push(/\bREENBUI_SHEET\b/);
   // v1.11 (D-068): the braai's sheet and sounds by their constants (BraaiView, braaiLoad).

@@ -9,12 +9,12 @@
       "group": "baboons",
       "origin": "interim",
       "file": {
-        "path": "assets/baboons/img/baboons_sheet.4b9a7a4dc6ff.png",
-        "bytes": 115128,
-        "hash": "4b9a7a4dc6ff"
+        "path": "assets/baboons/img/baboons_sheet.19d24e351feb.png",
+        "bytes": 118730,
+        "hash": "19d24e351feb"
       },
       "width": 756,
-      "height": 868,
+      "height": 903,
       "originX": 0,
       "originY": 0
     },
@@ -3547,6 +3547,19 @@
       "originX": 0,
       "originY": 0
     },
+    "oes/harvest2": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/oes_harvest2.496f878f5de6.png",
+        "bytes": 70553,
+        "hash": "496f878f5de6"
+      },
+      "width": 1024,
+      "height": 492,
+      "originX": 0,
+      "originY": 0
+    },
     "oes/sunflowers_a": {
       "group": "oes",
       "origin": "interim",
@@ -6786,19 +6799,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/oes/layers/mid-0.3e8cfa2a5b2b.png",
-          "bytes": 206534,
-          "hash": "3e8cfa2a5b2b"
+          "path": "assets/oes/layers/mid-0.b739456d65e4.png",
+          "bytes": 199445,
+          "hash": "b739456d65e4"
         },
         {
-          "path": "assets/oes/layers/mid-1.4a3ab67e3994.png",
-          "bytes": 157415,
-          "hash": "4a3ab67e3994"
+          "path": "assets/oes/layers/mid-1.0921641f0568.png",
+          "bytes": 159877,
+          "hash": "0921641f0568"
         },
         {
-          "path": "assets/oes/layers/mid-2.d62e29a8398b.png",
-          "bytes": 33965,
-          "hash": "d62e29a8398b"
+          "path": "assets/oes/layers/mid-2.a7dc5d197155.png",
+          "bytes": 34893,
+          "hash": "a7dc5d197155"
         }
       ],
       "tileWidth": 2048,
@@ -6809,15 +6822,51 @@
         "bucket": 256,
         "rows": [
           [
-            481,
+            475,
             520
           ],
           [
-            482,
+            476,
             520
           ],
           [
-            444,
+            479,
+            520
+          ],
+          [
+            462,
+            520
+          ],
+          [
+            465,
+            520
+          ],
+          [
+            478,
+            520
+          ],
+          [
+            472,
+            520
+          ],
+          [
+            447,
+            520
+          ],
+          [
+            439,
+            520
+          ],
+          [
+            452,
+            520
+          ],
+          [
+            472,
+            520
+          ],
+          [
+            457,
             520
           ],
           [
@@ -6829,55 +6878,19 @@
             520
           ],
           [
-            470,
-            520
-          ],
-          [
-            484,
-            520
-          ],
-          [
-            439,
-            520
-          ],
-          [
-            406,
-            520
-          ],
-          [
-            483,
-            520
-          ],
-          [
-            483,
-            520
-          ],
-          [
-            464,
-            520
-          ],
-          [
-            483,
-            520
-          ],
-          [
             481,
             520
           ],
           [
-            481,
+            458,
             520
           ],
           [
-            445,
+            473,
             520
           ],
           [
-            467,
-            520
-          ],
-          [
-            443,
+            478,
             520
           ]
         ]

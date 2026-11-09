@@ -32,6 +32,7 @@ import { TELL_SHEET, TELL_SHEET_H, TELL_SHEET_W } from '../view/tell/tellKeys';
 import { REENBUI_SHEET, REENBUI_SHEET_H, REENBUI_SHEET_W } from '../view/reenbui/reenbuiKeys';
 import { BABOON_SHEET, BABOON_SHEET_H, BABOON_SHEET_W } from '../view/baboon/baboonKeys';
 import { HARVEST_SHEET, HARVEST_SHEET_H, HARVEST_SHEET_W } from '../view/harvest/harvestKeys';
+import { HARVEST2_SHEET, HARVEST2_SHEET_H, HARVEST2_SHEET_W } from '../view/harvest/harvest2Keys';
 import { hasColonies } from '../../sim/meerkats/colony';
 import { MEERKAT_SOUNDS } from '../assets/desertAssets';
 import { HD_PARTS, hdKeyOf, POTJIE_LID, POTJIE_LID_SIZE } from '../assets/hdProps';
@@ -1602,7 +1603,7 @@ export function createPlaceholderManifest(
   // v1.8c (D-063): the Harvest's sheet (warthogs, piglets, workers, the fence gap), only on the
   // Harvest's map, so it lands in that map's own lazy group (drawn art only: HarvestView waits for
   // the delivered file).
-  if (biome.harvest !== undefined)
+  if (biome.harvest !== undefined) {
     m.addTexture({
       key: HARVEST_SHEET,
       width: HARVEST_SHEET_W,
@@ -1615,6 +1616,19 @@ export function createPlaceholderManifest(
         // Nothing: drawn art only.
       },
     });
+    // v1.18 (D-081): the Phase 2 sheet (jumps, squeezes, climbs, the hole's patch).
+    m.addTexture({
+      key: HARVEST2_SHEET,
+      width: HARVEST2_SHEET_W,
+      height: HARVEST2_SHEET_H,
+      originX: 0,
+      originY: 0,
+      viewScaled: true,
+      draw() {
+        // Nothing: drawn art only.
+      },
+    });
+  }
   // v1.10 (D-067): Reënbui's sheet, on the maps that can have one (late group; drawn art only:
   // until the delivered file is in, ReenbuiView draws nothing while the hunt plays the same).
   if (content.reenbui.areas.some((a) => a.biome === biome.id))
