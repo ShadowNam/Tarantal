@@ -1511,7 +1511,9 @@ test('perf: Brakkie fetching and barking at 4× CPU throttle (Pixel 7)', async (
 // v1.17 (D-079): Brakkie the companion on the Pixel 7 profile at 4× CPU throttle: ?brakkiePreview=
 // point,react,fetch has him point 4 s in (held 8 s, the marker up), hop proudly (a 6-s reaction)
 // and fetch a bird placed beside him (the delivery's pop); the whistle button is tapped whenever
-// it would do something. His view (brakkieMs per scenery frame) ≤ 0.3 ms, ≤ 40 Phaser calls a
+// it would do something, except while he runs out to point or holds it (a tap then calls him to
+// heel, and a 30-s hunt left no time for the point after that). A 45-s hunt: the point comes by
+// ~29 s whatever the tap rhythm (the sim, seed 3), well before the flush's last chance at 41 s. His view (brakkieMs per scenery frame) ≤ 0.3 ms, ≤ 40 Phaser calls a
 // frame, the frame within the budget.
 test('perf: Brakkie the companion — point, marker, whistle, reaction at 4× CPU throttle', async ({
   page,
@@ -1527,7 +1529,7 @@ test('perf: Brakkie the companion — point, marker, whistle, reaction at 4× CP
   await emulateCores(page);
   await boot(
     page,
-    'biome=karoo-autumn&layout=none&seed=3&huntSeconds=30&graphics=standard&baboons=0&brakkie=1&brakkiePreview=point,react,fetch',
+    'biome=karoo-autumn&layout=none&seed=3&huntSeconds=45&graphics=standard&baboons=0&brakkie=1&brakkiePreview=point,react,fetch',
   );
   await startHunt(page, touch);
   await page.waitForFunction(() => window.__TM__?.brakkie?.sheet != null, null, {
@@ -1545,7 +1547,8 @@ test('perf: Brakkie the companion — point, marker, whistle, reaction at 4× CP
     if (h.brakkie !== null) phases.add(h.brakkie.phase);
     if (h.brakkie?.marker != null) markers++;
     const b = h.whistleButton;
-    if (b !== null && b.on && h.brakkie?.phase !== 'point')
+    const phase = h.brakkie?.phase;
+    if (b !== null && b.on && phase !== 'point' && phase !== 'toDig')
       await tapAt(page, touch, b.x + b.w / 2, b.y + b.h / 2);
     await waitTicks(page, 30);
   }
