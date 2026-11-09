@@ -1,10 +1,12 @@
 // v1.17b (D-080) "every animal at true size" previews, on demand (not part of the regular suite:
 // playwright.config.ts ignores art-preview specs unless ART_PREVIEW=1):
 //   ART_PREVIEW=1 npx playwright test tests/e2e/art-preview-sizes.spec.ts --project=desktop-chromium
-// One profile at a time (desktop, Pixel 7, iPhone 14 landscape). Three boots per device (1 and 3 Standard, 2 HD):
-//   1. areas    the Karoo, then the Bushveld, the Kalahari and the Okavango from the title's area
-//               picker, then Namibië (one boot): each area's far herd; in the Karoo also Brakkie, a cameo (the
-//               ostrich or the tortoise), a baboon raider and the bakkie;
+// One profile at a time (desktop, Pixel 7, iPhone 14 landscape). Test 1 boots each area (Standard),
+// test 2 is HD, test 3 the Harvest:
+//   1. areas    the Karoo, then the Bushveld, the Kalahari, the Okavango and Namibië, each booted with
+//               ?biome= (the title's area picker offers only the home area and the area packs): each
+//               area's far herd; in the Karoo also Brakkie, a cameo (the ostrich or the tortoise), a
+//               baboon raider and the bakkie;
 //   2. namibie  in HD: the far herd (with boot 1's Standard crop: a Standard | HD pair; the herds
 //               are Standard in HD), the ostrich pair (mid plane) and the gemsbok cameo;
 //   3. harvest  the warthogs (and piglets), the workers at the true-size fence, in Die Oes.
@@ -402,36 +404,11 @@ async function intoHunt(page: Page, touch: boolean, biome: string): Promise<void
   await park(page, touch);
 }
 
-/** Lets the hunt run out, then back to the title. */
-async function toTitle(page: Page, touch: boolean): Promise<void> {
-  await release(page);
-  await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 900_000 });
-  await page.waitForFunction(() => window.__TM__?.rects['menu'] !== undefined, null, {
-    timeout: 300_000,
-  });
-  await tapRect(page, touch, 'menu');
-  await page.waitForFunction(() => window.__TM__?.scene === 'start', null, { timeout: 300_000 });
-}
-
-async function pickArea(page: Page, touch: boolean, id: string): Promise<void> {
-  await page.waitForFunction(() => window.__TM__?.rects['area'] !== undefined, null, {
-    timeout: 120_000,
-  });
-  await tapRect(page, touch, 'area');
-  await page.waitForFunction(() => window.__TM__?.menu === 'area', null, { timeout: 60_000 });
-  // The picker's cards publish their rects a frame or more later on software GL.
-  await page.waitForFunction(
-    (a) => {
-      const r = window.__TM__?.rects ?? {};
-      return r[`area_${a}`] !== undefined || r[`area_${a}_locked`] !== undefined;
-    },
-    id,
-    { timeout: 120_000 },
-  );
-  if ((await hook(page)).rects[`area_${id}_locked`] !== undefined)
-    throw new Error(`area ${id} is locked: the seeded save did not take`);
-  await tapRect(page, touch, `area_${id}`);
-  await page.waitForFunction((a) => window.__TM__?.classicArea === a, id, { timeout: 60_000 });
+/** A fresh boot straight into a Classic hunt on `biome` (?biome=, test builds). */
+async function bootArea(page: Page, touch: boolean, biome: string): Promise<void> {
+  await page.goto(`/?${FLAGS}&biome=${biome}&huntSeconds=600`);
+  await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 600_000 });
+  await intoHunt(page, touch, biome);
 }
 
 const memberBox = (m: Spot, w: number, h: number): Rect => ({ x: m.x - w / 2, y: m.y - h, w, h });
@@ -440,9 +417,8 @@ test('1. the Karoo (far herd, Brakkie, a cameo, a raider, the bakkie), then the 
   page,
 }, info) => {
   const touch = isTouchProject(info);
-  // 120 s: the Karoo's five shots (raider, herd, cameo, Brakkie, bakkie) take ~50-80 game seconds on
-  // software GL; each later area's hunt runs out before the next pick (toTitle waits for the tally).
-  await page.goto(`/?${FLAGS}&huntSeconds=120`);
+  test.setTimeout(3_600_000);
+  await page.goto(`/?${FLAGS}&huntSeconds=600`);
   await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 600_000 });
   await intoHunt(page, touch, 'karoo-autumn');
 
@@ -523,16 +499,16 @@ test('1. the Karoo (far herd, Brakkie, a cameo, a raider, the bakkie), then the 
   await release(page);
 
   await herdShot(page, info, touch, 'herd-karoo');
-  await toTitle(page, touch);
+  await release(page);
+  // The other areas are not in the title's area picker (only the home area and the area packs
+  // are; Classic plays Bushveld, Kalahari and Okavango on their weekdays): boot each with ?biome=.
   for (const area of AREAS.slice(1)) {
-    await pickArea(page, touch, area);
-    await intoHunt(page, touch, area);
+    await bootArea(page, touch, area);
     await herdShot(page, info, touch, `herd-${area.split('-')[0] ?? area}`);
-    await toTitle(page, touch);
+    await release(page);
   }
   // Namibië's herd in Standard: the left half of its Standard | HD pair (boot 2 is HD).
-  await pickArea(page, touch, 'namibie');
-  await intoHunt(page, touch, 'namibie');
+  await bootArea(page, touch, 'namibie');
   save('herd-namibie-std-crop', info, await herdShot(page, info, touch, 'herd-namibie-std'));
 });
 
