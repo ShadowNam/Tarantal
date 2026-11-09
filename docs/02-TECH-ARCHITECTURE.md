@@ -676,7 +676,15 @@ Test flags (test builds only): `?harvestDuck=<s>` (a struck worker stays down), 
   `ostrichesRan` (shot · loud · hit), `ostrichCall` (display · swap). Snapshot: `ostriches`.
   Content checks (`ostrichChecks.ts`, sharing `behindIssues` with the colonies): on a near or mid
   layer, inside it, clear of colonies and own-layer secrets, never in front of the bird bands or
-  secrets behind.
+  secrets behind. **v1.17b (D-080):** `ostriches.sizeMul` (2.8) grows the birds and the nest to a
+  true 2.5 m (drawing, hit shapes, `heightPx`; not the walks, the wander or the scare radius;
+  `OstrichFamilyView.size`). At that size the pair stands in front of the far and Ver bands on
+  every map, so an ostrich `HitExtra` is pass-through like a cameo (`resolvePellet`: anything
+  behind takes the pellet; never blocks a touch snap) and the checks no longer test what is behind
+  (`ostrichBehind` records it); width and band are scaled by `sizeMul`. The aimed-at rule
+  (`OstrichSystem.shot`'s `OstrichAim`): −penalty only when the aim point is on a bird's or the
+  nest's shape, the shot hit no target (`hitTarget()` in Sim) and no target is within
+  `hit.guardPx` (260 px, `targetNearAim`); otherwise `ostrichHit.aimed` false, points 0.
 - **Balloons (sim):** a `nonTarget` creature with `drift` (`lugballon`) and the world event
   `balloons` (handler `flyover`; an event may name `lights` it plays under). The director's
   `driftGroup` spawns 1–3 from the **`events`** stream, beside the view on the upwind side
@@ -805,7 +813,7 @@ no target ends on the cameo. A shot's cameo hit (`CameoShot`): the reaction alwa
 only when the aim point (a rifle's before the sway) is on one, no target was hit, and no live bird
 or other thing a player shoots at (`cameoGuardKind`: a secret's part, a crate, a tin can or nut, a
 Spookjag thing, a raiding baboon) is within `hit.guardPx` of the aim point on screen
-(`cameoTargetNearAim`);
+(`targetNearAim`, with the cameos' or the ostriches' `hit.guardPx`);
 at most once per `hit.cooldownSeconds` (one cooldown for all). A cameo-only shot is a "thing" hit
 (the streak is untouched). The springbok's `alarm`: a pellet on them or an impact within `radiusPx`
 → `cameoAlarm`, they pronk away, and the nearest mid flock within `maxDxPx` gets one threat

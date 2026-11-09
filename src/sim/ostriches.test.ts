@@ -232,3 +232,65 @@ describe('ostriches (v1.7d, D-059)', () => {
     expect(ofType(ev, 'ostrichesRan').map((e) => e.cause)).toEqual(['loud']);
   });
 });
+
+describe('the true-size ostriches’ aimed-at rule in a real hunt (D-080)', () => {
+  /** The quiet map with the two guards set apart, so passing the wrong one shows. */
+  function guarded(ostrichGuard: number, cameoGuard: number): Content {
+    const c = quiet(NAM);
+    const w = c as unknown as {
+      birds: { ostriches: { hit: { guardPx: number } } };
+      cameos: { hit: { guardPx: number } };
+    };
+    w.birds.ostriches.hit.guardPx = ostrichGuard;
+    w.cameos.hit.guardPx = cameoGuard;
+    return c;
+  }
+
+  it('aimed at a bird with no target within the ostriches’ guard: −10 (aimed)', () => {
+    const c = guarded(1, 100_000);
+    const s = sim(c, day('tue'), 9);
+    lookAt(s, c, 30);
+    const f = family(s);
+    const guard = f.birds.find((b) => !b.sitter);
+    if (guard === undefined) throw new Error('no guard');
+    const hit = ofType(shootBird(s, c, guard, f), 'ostrichHit')[0];
+    expect(hit?.aimed).toBe(true);
+    expect(hit?.points).toBe(-c.birds.ostriches.hit.penalty);
+  });
+
+  it('the same shot with a target within the ostriches’ guard: free (the benefit of the doubt)', () => {
+    const c = guarded(100_000, 1);
+    const s = sim(c, day('tue'), 9);
+    lookAt(s, c, 30);
+    const f = family(s);
+    const guard = f.birds.find((b) => !b.sitter);
+    if (guard === undefined) throw new Error('no guard');
+    const ev = shootBird(s, c, guard, f);
+    const hit = ofType(ev, 'ostrichHit')[0];
+    expect(hit?.aimed).toBe(false);
+    expect(hit?.points).toBe(0);
+    // They still hiss and run.
+    expect(ofType(ev, 'ostrichesRan')).toHaveLength(1);
+  });
+
+  it('aimed at the nest: −10', () => {
+    const c = guarded(1, 100_000);
+    const T = c.birds.ostriches;
+    const s = sim(c, day('tue'), 9);
+    lookAt(s, c, 30);
+    reloaded(s);
+    settle(s);
+    const f = family(s);
+    const n = f.nest;
+    if (n === null) throw new Error('no nest');
+    const ev = run(
+      s,
+      1,
+      // The nest's front rim, below the sitting bird's body (its shapes come first).
+      aimAt(sfOf(c, f), n.x + T.hitboxes.nest.ox * f.size, f.ground + 10 * f.size),
+    );
+    const hit = ofType(ev, 'ostrichHit')[0];
+    expect(hit?.nest).toBe(true);
+    expect(hit?.points).toBe(-T.hit.penalty);
+  });
+});

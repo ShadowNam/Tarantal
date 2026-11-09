@@ -769,9 +769,12 @@ Namibian carvers turn into key rings and ornaments (sources: D-056).
 - **Don't shoot them:** an ostrich or the nest costs **10** (once per 2 s, like the meerkats); never
   hurt — feathers or sand puff, the bird hisses and runs: "Leave my eggs alone!" (`bark.ostrich`).
   A shot that hits one is not a miss. **Since v1.17b (D-080), at their true 2.5 m, only a shot
-  aimed at one costs it** (the aimed-at rule of the baboons, the Harvest, Brakkie and the cameos:
-  the aim point on a bird or the nest, no target hit, none within `hit.guardPx` 260 of the aim
-  point); a stray pellet makes them hiss and run, free.
+  aimed at one costs it** — the cameos' form of the aimed-at rule: the aim point on a bird or the
+  nest, the shot hit no target, and no target within `ostriches.hit.guardPx` (260 px) of the aim
+  point; a stray pellet makes them hiss and run, free. And a pellet passes through them (and the
+  nest) like a cameo: a bird behind takes it. (The other aimed-at rules differ: a baboon mother
+  costs the penalty only with the aim point on her; Brakkie, with the aim point on him and no
+  target hit; the Harvest's workers and piglets, with no target and no warthog hit.)
 - **One pair per map:** a second pair stood in the mid flocks' ground band and drew about one
   accidental −10 per hunt from the competent bot; one pair draws 0.1–0.2
   (`docs/balance/v1.7d-namibie-life.md`). A pair on the near plane would stand ~470 px tall and
