@@ -53,7 +53,9 @@ type Hooked = {
     sceneryFrames: number;
     fauna: { herd: string; part: string; box: Rect }[];
     brakkie?: (Spot & { phase: string; carrying: boolean }) | null;
-    baboons?: (Spot & { role: string; groundY: number | null })[] | null;
+    baboons?:
+      | (Spot & { role: string; groundY: number | null; alpha: number; frame: string | null })[]
+      | null;
     cameos?: {
       visits: { kind: string; plane: string; members: (Spot & { groundY: number })[] }[];
     } | null;
@@ -184,9 +186,20 @@ async function holdWhen<T>(
       const inView = (x: number, m: number): boolean => x > m && x < W - m;
       let found: unknown = null;
       if (kind === 'raider')
+        // Fully in view on its ground (review 4: a fading or tree-bound raider read faint):
+        // opaque, feet on its spot's ground line, not at the fruit (in the tree) or tumbling.
         found =
-          (t.baboons ?? []).find((b) => b.role === 'raider' && b.visible && inView(b.x, 200)) ??
-          null;
+          (t.baboons ?? []).find(
+            (b) =>
+              b.role === 'raider' &&
+              b.visible &&
+              b.alpha >= 0.99 &&
+              b.groundY !== null &&
+              Math.abs(b.y - b.groundY) <= 2 &&
+              b.frame !== null &&
+              !/^(fruit|tumble|down)/.test(b.frame) &&
+              inView(b.x, 200),
+          ) ?? null;
       else if (kind === 'cameo') {
         for (const v of t.cameos?.visits ?? []) {
           const m = v.members.find((x) => x.visible && inView(x.x, 200));
