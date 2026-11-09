@@ -4,9 +4,15 @@
 // plane: real metres × (that bird's standing px / GUINEAFOWL_M) is the size real proportions give.
 // Pure: the drawn sizes come from content values and frame-box constants measured once from the
 // delivered (interim) art, so the tests need no PNG decoding. tools/sizes.test.ts holds the fixed
-// species to ±15 % and lists the ones left for the owner, each with its reason.
+// species to ±15 % and lists the ones left for the owner, each with its reason. v1.20.2 (D-082,
+// an audit of D-080): MEASURED_ART adds rows read from the delivered art's opaque bounds (not
+// computed from the metres the art was drawn to), and tools/sizesArt.test.ts re-measures the PNGs
+// against them, so the table fails when the art drifts.
 import type { ContentBundle, Feel } from '../src/content/schemas';
+import type { CameoSheetArea } from '../src/game/cameos/cameoKeys';
 import { CAMEO_SIZE_MUL } from '../src/game/cameos/cameoSheet';
+import { WORKER_H } from '../src/game/view/harvest/harvestSheet';
+import { RESIDENT_TRUE_MUL } from '../src/game/view/tree/residentSheet';
 import { FAUNA_HERDS, lookHeight, type FaunaSpecies } from '../src/game/view/faunaHerds';
 import type { PlaneId } from '../src/sim/types';
 import { ANIMAL_M, GUINEAFOWL_M, targetPx } from './perspective';
@@ -80,10 +86,15 @@ export const MEERKAT_STAND_PX = 122.5;
 export const MEERKAT_REAL_M = 0.3;
 
 /** v1.17b (D-080): a standing mid-plane ostrich (head top above its feet) in the Namibië sheet,
- *  drawn at the mid plane's scale (tools/art/ostrich.ts OSTRICH_H; OSTRICH_ART_SCALE 0.42). */
-export const OSTRICH_STAND_MID_PX = 197;
+ *  drawn at the mid plane's scale (OSTRICH_ART_SCALE 0.42). D-082: measured from the art (the
+ *  cock's m_stand frame, the crown's bristles included), 209.7 layout px — D-080 took
+ *  tools/art/ostrich.ts OSTRICH_H, 197, the drawing's nominal head height. */
+export const OSTRICH_STAND_MID_PX = 209.7;
 /** The mid plane's scale the ostrich sheet is drawn at (src/game/view/namib/ostrichSheet.ts). */
 export const OSTRICH_ART_SCALE = 0.42;
+
+/** v1.20.2 (D-082): an ostrich hen standing, head top (m): a hen 1.7–2.0 m, a cock 2.1–2.8 m. */
+export const OSTRICH_HEN_M = 1.9;
 
 /** v1.17b (D-080): Brakkie's shoulder (the top of his standing body) above his feet, near-plane px
  *  at sizeMul 1 (tools/art/brakkie.ts STAND_BODY: y −78, ry 32). */
@@ -134,6 +145,362 @@ export const CAMEO_V113: Readonly<
   ostrich: { px: 200, realM: 2.5, measure: 'head top (standing)', plane: 'mid' },
   tortoise: { px: 50, realM: 0.25, measure: 'shell top', plane: 'near' },
 };
+
+/**
+ * v1.20.2 (D-082): where a measured size is read in the delivered art (art-source/), and how.
+ * `top`: the highest opaque pixel above the feet (alpha ≥ 64), over the whole frame or, with a
+ * band, over the columns dx ∈ band (px from the feet origin, facing right: the back at the
+ * shoulder, where a head or horns rise above it elsewhere); `width`, `height`: the opaque width
+ * and height.
+ */
+export type ArtSource =
+  | {
+      /** A far herd's sheet (sprites/fauna/<sheet>.png and its frame table): the look's `body`
+       *  part (its back: the shoulder) or all its parts (`top`: the head top). */
+      readonly kind: 'fauna';
+      readonly sheet: string;
+      readonly look: string;
+      readonly part: 'body' | 'all';
+    }
+  | {
+      readonly kind: 'ostrich' | 'brakkie' | 'harvest' | 'resident' | `cameo:${CameoSheetArea}`;
+      readonly frame: string;
+      readonly extent: 'top' | 'width' | 'height';
+      readonly band?: readonly [number, number];
+    };
+
+/** A size measured in the art: px in the art's own frame units (layout px at scale 1). */
+export interface MeasuredArt {
+  readonly id: string;
+  readonly realM: number;
+  readonly measure: string;
+  readonly plane: PlaneId;
+  readonly artPx: number;
+  readonly source: ArtSource;
+}
+
+const fauna = (
+  id: string,
+  plane: 'far' | 'ver',
+  sheet: string,
+  look: string,
+  part: 'body' | 'all',
+  realM: number,
+  artPx: number,
+  measure: string,
+): MeasuredArt => ({
+  id,
+  realM,
+  measure,
+  plane,
+  artPx,
+  source: { kind: 'fauna', sheet, look, part },
+});
+
+/**
+ * v1.20.2 (D-082): sizes measured from the delivered art (opaque bounds, alpha ≥ 64), each against
+ * the animal's real size beside the guineafowl on its plane (sizeTable: drawn = artPx × the view's
+ * scale for that art). tools/sizesArt.test.ts re-reads every one from the PNGs (±3 %).
+ */
+export const MEASURED_ART: readonly MeasuredArt[] = [
+  // The far herds (drawn 1:1 on the far veld) and the Ver plane's waterhole.
+  fauna(
+    'far_elephant',
+    'far',
+    'okavango_elephants',
+    'elephant.alert.m',
+    'body',
+    3.2,
+    254,
+    'shoulder (bull, alert)',
+  ),
+  fauna(
+    'far_giraffe',
+    'far',
+    'bushveld_giraffes_a',
+    'giraffe.alert.m',
+    'all',
+    5.0,
+    430,
+    'head top (bull, alert)',
+  ),
+  fauna(
+    'far_zebra',
+    'far',
+    'namibie_zebra',
+    'zebra.alert.f',
+    'body',
+    1.35,
+    109,
+    'shoulder (alert)',
+  ),
+  fauna(
+    'far_wildebeest',
+    'far',
+    'okavango_wildebeest',
+    'wildebeest.alert.m',
+    'body',
+    1.4,
+    113,
+    'shoulder (bull, alert)',
+  ),
+  fauna(
+    'far_gemsbok',
+    'far',
+    'namibie_gemsbok',
+    'gemsbok.alert.m',
+    'body',
+    1.2,
+    97,
+    'shoulder (alert)',
+  ),
+  fauna(
+    'far_springbok',
+    'far',
+    'kalahari_springbok',
+    'springbok.alert.m',
+    'body',
+    0.8,
+    65,
+    'shoulder (ram, alert)',
+  ),
+  fauna(
+    'far_lechwe',
+    'far',
+    'okavango_lechwe',
+    'lechwe.alert.m',
+    'body',
+    1.0,
+    85,
+    'shoulder (ram, alert)',
+  ),
+  fauna(
+    'far_ostrich_cock',
+    'far',
+    'namibie_ostrich',
+    'ostrich.alert.m',
+    'all',
+    2.5,
+    200,
+    'head top (cock, alert)',
+  ),
+  fauna(
+    'far_ostrich_hen',
+    'far',
+    'karoo_ostrich',
+    'ostrich.walk.f',
+    'all',
+    1.9,
+    140,
+    'head top (hen, walking)',
+  ),
+  fauna(
+    'ver_giraffe',
+    'ver',
+    'namibie_waterhole',
+    'giraffe.alert.m',
+    'all',
+    5.0,
+    201,
+    'head top (bull, alert)',
+  ),
+  fauna('ver_zebra', 'ver', 'namibie_waterhole', 'zebra.graze.m', 'body', 1.35, 51, 'shoulder'),
+  fauna(
+    'ver_gemsbok',
+    'ver',
+    'namibie_waterhole',
+    'gemsbok.alert.m',
+    'body',
+    1.2,
+    45,
+    'shoulder (alert)',
+  ),
+  fauna(
+    'ver_springbok',
+    'ver',
+    'namibie_waterhole',
+    'springbok.alert.m',
+    'body',
+    0.8,
+    31,
+    'shoulder (alert)',
+  ),
+  fauna(
+    'ver_ostrich_cock',
+    'ver',
+    'namibie_waterhole',
+    'ostrich.walk.m',
+    'all',
+    2.5,
+    86,
+    'head top (cock, walking)',
+  ),
+  fauna(
+    'ver_ostrich_hen',
+    'ver',
+    'namibie_waterhole',
+    'ostrich.alert.f',
+    'all',
+    1.9,
+    71,
+    'head top (hen, alert)',
+  ),
+  // The cameos (frames in drawn px on their plane, at their sizeMul).
+  {
+    id: 'cameo_warthog',
+    realM: 0.7,
+    measure: 'back (the sow trotting)',
+    plane: 'mid',
+    artPx: 161,
+    source: { kind: 'cameo:bushveld', frame: 'hog_trot_a', extent: 'top', band: [-60, 60] },
+  },
+  {
+    id: 'cameo_springbok',
+    realM: 0.8,
+    measure: 'shoulder (walking)',
+    plane: 'mid',
+    artPx: 188,
+    source: { kind: 'cameo:kalahari', frame: 'sb_walk_a', extent: 'top', band: [-40, 20] },
+  },
+  {
+    id: 'cameo_gemsbok',
+    realM: 1.2,
+    measure: 'back (walking)',
+    plane: 'mid',
+    artPx: 272,
+    source: { kind: 'cameo:namibie', frame: 'gb_walk_a', extent: 'top', band: [-150, -30] },
+  },
+  {
+    id: 'cameo_ostrich',
+    realM: 2.5,
+    measure: 'head top (sprinting, its highest stride)',
+    plane: 'mid',
+    artPx: 556.6,
+    source: { kind: 'cameo:karoo', frame: 'ost_run_b', extent: 'top' },
+  },
+  {
+    id: 'cameo_tortoise',
+    realM: 0.25,
+    measure: 'shell top (walking)',
+    plane: 'near',
+    artPx: 130,
+    source: { kind: 'cameo:karoo', frame: 'tort_walk_a', extent: 'top', band: [-50, 50] },
+  },
+  // Namibië's mid-plane pair (layout px × sizeMul; the hen's frames are drawn smaller, D-082).
+  {
+    id: 'mid_ostrich_cock',
+    realM: 2.5,
+    measure: 'head top (cock, standing)',
+    plane: 'mid',
+    artPx: 209.7,
+    source: { kind: 'ostrich', frame: 'm_stand', extent: 'top' },
+  },
+  {
+    id: 'mid_ostrich_hen',
+    realM: 1.9,
+    measure: 'head top (hen, standing)',
+    plane: 'mid',
+    artPx: 153.9,
+    source: { kind: 'ostrich', frame: 'f_stand', extent: 'top' },
+  },
+  // Brakkie (near-plane px × sizeMul) and the bird he carries (its own true size, D-082).
+  {
+    id: 'brakkie_withers',
+    realM: BRAKKIE_REAL_M,
+    measure: 'back at the withers (trotting)',
+    plane: 'near',
+    artPx: 114,
+    source: { kind: 'brakkie', frame: 'trot_a', extent: 'top', band: [-20, 30] },
+  },
+  {
+    id: 'brakkie_bird',
+    realM: 0.55,
+    measure: 'tail tip to bill, across as it hangs (its drooping neck shortens it a little)',
+    plane: 'near',
+    artPx: 271,
+    source: { kind: 'brakkie', frame: 'bird', extent: 'width' },
+  },
+  // The Harvest's farm workers (WORKER_H layout px × heightPx × the mid scale ÷ WORKER_H) and its
+  // fence post (the gap panel's posts, 1:1 on the mid layer).
+  {
+    id: 'harvest_worker_0',
+    realM: 1.7,
+    measure: 'hat top (a person, working)',
+    plane: 'mid',
+    artPx: 171,
+    source: { kind: 'harvest', frame: 'wk0_work_b', extent: 'top', band: [0, 20] },
+  },
+  {
+    id: 'harvest_worker_1',
+    realM: 1.7,
+    measure: 'hat top (a person, working)',
+    plane: 'mid',
+    artPx: 169.5,
+    source: { kind: 'harvest', frame: 'wk1_work_a', extent: 'top' },
+  },
+  {
+    id: 'harvest_worker_2',
+    realM: 1.7,
+    measure: 'hat top (a person, working)',
+    plane: 'mid',
+    artPx: 177,
+    source: { kind: 'harvest', frame: 'wk2_work_b', extent: 'top', band: [0, 20] },
+  },
+  {
+    id: 'harvest_fence_post',
+    realM: 1.2,
+    measure: 'post top (a prop)',
+    plane: 'mid',
+    artPx: 265,
+    source: { kind: 'harvest', frame: 'gap_4', extent: 'top', band: [-70, -50] },
+  },
+  // The baobab's residents brought to true size (prop px, 1:1 on the mid layer; D-082).
+  {
+    id: 'baobab_owl_flying',
+    realM: 0.87,
+    measure: 'wingspan (a barn owl: 0.8–0.95 m)',
+    plane: 'mid',
+    artPx: 193,
+    source: { kind: 'resident', frame: 'owl_fly_a', extent: 'width' },
+  },
+  {
+    id: 'baobab_hornbill_flying',
+    realM: 0.54,
+    measure: 'bill to tail (0.48–0.6 m)',
+    plane: 'mid',
+    artPx: 130,
+    source: { kind: 'resident', frame: 'hornbill_fly_a', extent: 'width' },
+  },
+  {
+    id: 'baobab_hornbill_clinging',
+    realM: 0.54,
+    measure: 'crown to tail tip, upright on the bark',
+    plane: 'mid',
+    artPx: 112.5,
+    source: { kind: 'resident', frame: 'hornbill_cling', extent: 'height' },
+  },
+];
+
+/** The view's drawn design px per art px of a measured source (see MEASURED_ART). */
+export function drawnPerArtPx(content: ContentBundle, s: ArtSource): number {
+  switch (s.kind) {
+    case 'ostrich':
+      // The sheet is at the mid plane's scale; the view × the family's scale ÷ it × sizeMul.
+      return (
+        (content.scoring.planes.mid.scale / OSTRICH_ART_SCALE) * content.birds.ostriches.sizeMul
+      );
+    case 'brakkie':
+      // His own frames grow with brakkie.sizeMul; the bird he carries keeps its own size.
+      return s.frame === 'bird' ? 1 : content.brakkie.sizeMul;
+    case 'harvest': {
+      if (s.frame.startsWith('gap_')) return 1;
+      const w = content.modes.modes.harvest.workers;
+      return (w.heightPx * content.scoring.planes.mid.scale) / WORKER_H;
+    }
+    default:
+      return 1;
+  }
+}
 
 export interface SizeRow {
   readonly id: string;
@@ -215,8 +582,33 @@ export function sizeTable(content: ContentBundle, feel: Feel): SizeRow[] {
       ),
     );
   rows.push(...trueSizeRows(content, feel, row));
+  // v1.20.2 (D-082): the sizes measured in the art.
+  for (const m of MEASURED_ART)
+    rows.push(
+      row(
+        `measured_${m.id}`,
+        m.realM,
+        m.measure,
+        m.plane,
+        m.artPx * drawnPerArtPx(content, m.source),
+      ),
+    );
+  // The bushbaby at its hole: its head (the drawing's head ellipse, 12.4 px across at k 1, × its
+  // scale) beside a lesser bushbaby's ~0.06 m.
+  rows.push(
+    row(
+      'baobab_bushbaby_head',
+      0.06,
+      'head width (ears apart), at its hole',
+      'mid',
+      GALAGO_HEAD_PX * 1.6 * RESIDENT_TRUE_MUL.galago,
+    ),
+  );
   return rows;
 }
+
+/** The bushbaby's head ellipse across at scale 1 (tools/art/baobabLife.ts galagoHead: rx 6.2). */
+export const GALAGO_HEAD_PX = 12.4;
 
 type RowFn = (
   id: string,
@@ -258,6 +650,16 @@ function trueSizeRows(content: ContentBundle, feel: Feel, row: RowFn): SizeRow[]
       'head top (standing)',
       'mid',
       (OSTRICH_STAND_MID_PX / OSTRICH_ART_SCALE) * scale('mid') * os.sizeMul,
+    ),
+  );
+  // D-082: the hen at henScale of the cock (a hen 1.7–2.0 m).
+  rows.push(
+    row(
+      'mid_ostrich_hen',
+      OSTRICH_HEN_M,
+      'head top (hen, standing)',
+      'mid',
+      (OSTRICH_STAND_MID_PX / OSTRICH_ART_SCALE) * scale('mid') * os.sizeMul * os.henScale,
     ),
   );
   // The baboons: a sitting male drawn to heightPx (the raiders on the mid plane, the troop on the
@@ -361,4 +763,19 @@ export const NOT_FIXED: Readonly<Record<string, string>> = {
     "a prop (the lily-pad frog secret): drawn bigger than life so a player can find it, its hit part the secret's",
   bushveld_dassie:
     'drawn inside its prop (the dassie koppie secret) at 2× its old art, within its unchanged hit part; the koppie is a stage-set prop',
+  // v1.20.2 (D-082): the audit of D-080.
+  baobab_owl_perched:
+    "the barn owl in its cavity shows its head and shoulders through the stage-set baobab's 38 × 50 px hole (0.17 × 0.23 m on the mid plane; the 15 m tree is drawn ~0.17× true): its head is drawn ~25 px across (0.11 m, about a real one's), but a whole true owl (0.3–0.39 m: 66–86 px) would not fit the hole — measured whole it is 48.5 px, 0.64×; flying off it is at its true size (wingspan 193 px, 0.87 m)",
+  baobab_buffalo_weaver:
+    'the red-billed buffalo weaver lands at its stick nest, a stage-set prop 46 × 30 px (0.21 × 0.14 m; a real nest is a 1–2 m mass of sticks): a true weaver (0.24 m, 53 px) would be longer than its whole nest; it stays 18–22.5 px (0.35–0.42×)',
+  baobab_squirrel:
+    'the tree squirrel runs along a stage-set limb: 63 px nose to tail tip running (its tail arched), 0.29 m beside a real one of ~0.35 m (0.8×, just outside ±15 %), its head sized to its 14 × 17 px hole; the audit called it close enough; the owner decides',
+  generaal:
+    'a boss bird (Generaal Tarentaal, the Autumn boss with his pot helmet): a "legendary" guineafowl, fantasy, with no real size to hold him to',
+  ou_grys:
+    'a boss bird (Ou Grys, the Winter boss, a grizzled veteran with an eye patch): a "legendary" guineafowl, fantasy, no real size',
+  kuifkop_koning:
+    'a boss bird (the Kuifkop Koning, the Spring boss, a crested king): a "legendary" crested guineafowl, fantasy, no real size',
+  stormvoel:
+    'a boss bird (Die Stormvoël, the Summer finale, a giant shadow seen only in lightning): a "legendary" bird, fantasy, no real size',
 };
