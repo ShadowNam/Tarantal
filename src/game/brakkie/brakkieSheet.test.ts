@@ -44,9 +44,9 @@ describe('Brakkie sheet (D-069)', () => {
     expect(new Set(frames.map((f) => f.name)).size).toBe(frames.length);
   });
 
-  it('costs at most 0.875 MiB on the GPU (Standard, v1.17: was 0.5); the HD twin is 2×', () => {
+  it('costs at most 1.5 MiB on the GPU (Standard; v1.17 0.875, D-080 his true size); the HD twin is 2×', () => {
     expect(BRAKKIE_SHEET_W * BRAKKIE_SHEET_H * 4).toBeLessThanOrEqual(GPU_BYTES_CAP);
-    expect(GPU_BYTES_CAP).toBe(512 * 448 * 4);
+    expect(GPU_BYTES_CAP).toBe(1.5 * 1024 * 1024);
     expect(brakkieTexelsPerPx(BRAKKIE_SHEET_W)).toBe(1);
     expect(brakkieTexelsPerPx(BRAKKIE_SHEET_W * 2)).toBe(2);
   });

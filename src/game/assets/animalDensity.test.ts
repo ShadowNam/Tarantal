@@ -6,6 +6,8 @@ import { describe, expect, it } from 'vitest';
 import std from '../../../public/assets/asset-index.json' with { type: 'json' };
 import hd from '../../../public/assets/asset-index-hd.json' with { type: 'json' };
 import { loadContent } from '../../../tools/testContent';
+import { BRAKKIE_SHEET, BRAKKIE_SHEET_W } from '../brakkie/brakkieKeys';
+import { BRAKKIE_DRAWN_MUL, brakkieFrames } from '../brakkie/brakkieSheet';
 import { CAMEO_SHEETS, CAMEO_SHEET_AREAS, CAMEO_SHEET_SIZE } from '../cameos/cameoKeys';
 import { cameoFrames } from '../cameos/cameoSheet';
 import {
@@ -45,5 +47,21 @@ describe('the true-size animals’ texture density (D-080)', () => {
     expect(twin, 'the ostriches’ HD twin').toBeDefined();
     if (twin !== undefined)
       expect(twin.width / OSTRICH_SHEET_W / OSTRICH_DRAWN_MUL).toBeGreaterThanOrEqual(1);
+  });
+
+  it('Brakkie: his frames drawn for his true size, ≥ 0.5 (Standard) and ≥ 1.0 (HD twin) per drawn px', () => {
+    const content = loadContent();
+    expect(BRAKKIE_DRAWN_MUL).toBe(content.brakkie.sizeMul);
+    const file = images[BRAKKIE_SHEET];
+    const twin = hdImages[BRAKKIE_SHEET];
+    if (file === undefined || twin === undefined) throw new Error('no Brakkie sheet or HD twin');
+    const k = file.width / BRAKKIE_SHEET_W;
+    const kh = twin.width / BRAKKIE_SHEET_W;
+    for (const f of brakkieFrames()) {
+      // The bird he carries and the point's marker keep their size; his own frames grow.
+      const grown = f.name !== 'bird' && f.name !== 'marker' ? BRAKKIE_DRAWN_MUL : 1;
+      expect((f.res * k) / grown, f.name).toBeGreaterThanOrEqual(0.5);
+      expect((f.res * kh) / grown, f.name).toBeGreaterThanOrEqual(1);
+    }
   });
 });
