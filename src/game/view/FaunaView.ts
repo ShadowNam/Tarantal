@@ -11,6 +11,7 @@ import {
   animalSeed,
   drawOrder,
   FAUNA_BEFORE,
+  FAUNA_HERDS,
   FAUNA_PARTS,
   faunaIdle,
   frameName,
@@ -103,6 +104,10 @@ export function drawnBox(img: Phaser.GameObjects.Image): {
   const top = Math.min(...ys);
   return { x: left, y: top, w: Math.max(...xs) - left, h: Math.max(...ys) - top };
 }
+
+/** D-080: a biome's herds on one layer (ParallaxView loads this module lazily). */
+export const herdsOn = (biome: string, layerId: string): readonly FaunaHerd[] =>
+  (FAUNA_HERDS[biome] ?? []).filter((h) => h.layer === layerId);
 
 export class FaunaView {
   private readonly parts: Part[] = [];

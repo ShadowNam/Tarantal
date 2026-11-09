@@ -12,9 +12,8 @@ import type { PlaneId } from '../../sim/types';
 import { coreWidth, DESIGN_HEIGHT, LAYER_BLEED_PX } from '../../sim/world';
 import { isHdTexture, TEX, type AssetManifest } from '../assets/AssetManifest';
 import { HD_PARTS, hdKeyOf } from '../assets/hdProps';
-import { FAUNA_HERDS } from './faunaHerds';
 import { hazeBelowProps } from './hazeOrder';
-import { FaunaView, type FaunaOptions } from './FaunaView';
+import type { FaunaOptions, FaunaView } from './FaunaView';
 import type { FaunaProbe } from '../GameContext';
 import { lightTint } from './lightTint';
 import { LayerDimmer } from './layerDimmer';
@@ -271,20 +270,20 @@ export class ParallaxView {
         );
       }
       // D-054: the far animals (FaunaView: one sheet per herd, parts that move on sim time).
-      const herds = (FAUNA_HERDS[biome.id] ?? []).filter((h) => h.layer === layer.id);
-      if (fauna !== null && herds.length > 0) {
+      // D-080: the view and the herd tables load lazily (the first download keeps its size); the
+      // holder keeps their place in the layer, and they show once their sheets are in anyway
+      // (the fauna-<area> background group).
+      if (fauna !== null && (layer.id === 'far_veld' || layer.id === 'ver_veld')) {
         const holder = scene.add.container(0, 0);
         root.add(holder);
-        const fv = new FaunaView(
-          scene,
-          manifest,
-          herds,
-          coreWidth(layer.scrollFactor),
-          holder,
-          fauna,
-        );
-        this.fauna.push(fv);
-        this.faunaLayer.set(fv, layer.id);
+        void import('./FaunaView').then(({ FaunaView: View, herdsOn }) => {
+          if (!holder.active) return;
+          const herds = herdsOn(biome.id, layer.id);
+          if (herds.length === 0) return;
+          const fv = new View(scene, manifest, herds, coreWidth(layer.scrollFactor), holder, fauna);
+          this.fauna.push(fv);
+          this.faunaLayer.set(fv, layer.id);
+        });
       }
       const fruit = scene.add.container(0, 0);
       root.add(fruit);
@@ -797,7 +796,7 @@ export class ParallaxView {
         id: l.id,
         base: this.tints.get(l.id) ?? 0xffffff,
         images: () => (this.statics[i] ?? []).map((a) => a.img),
-        fauna: this.fauna.filter((f) => this.faunaLayer.get(f) === l.id),
+        fauna: () => this.fauna.filter((f) => this.faunaLayer.get(f) === l.id),
       })),
     );
     this.dimmer.set(extra);
