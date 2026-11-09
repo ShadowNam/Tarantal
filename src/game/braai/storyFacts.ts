@@ -18,6 +18,8 @@ export interface StoryFacts {
   readonly nestScolds: number;
   /** Birds bagged while the Reënbui's flying ants were out (the event's own count). */
   readonly swarmBagged: number;
+  /** v1.17 (D-079): Brakkie's best Bring streak (birds delivered in a row). */
+  readonly bringStreak: number;
 }
 
 export const NO_FACTS: StoryFacts = {
@@ -27,6 +29,7 @@ export const NO_FACTS: StoryFacts = {
   meerkatScolds: 0,
   nestScolds: 0,
   swarmBagged: 0,
+  bringStreak: 0,
 };
 
 const DEPTH: Readonly<Record<PlaneId, number>> = { near: 0, mid: 1, far: 2, ver: 3 };
@@ -39,6 +42,7 @@ export class StoryFactsLog {
   private meerkat = 0;
   private nest = 0;
   private swarm = 0;
+  private bring = 0;
 
   add(events: readonly SimEvent[]): void {
     for (const e of events)
@@ -58,6 +62,9 @@ export class StoryFactsLog {
         case 'rainEased':
           this.swarm += e.bagged;
           break;
+        case 'brakkieFetched':
+          this.bring = Math.max(this.bring, e.streak ?? 0);
+          break;
         default:
           break;
       }
@@ -71,6 +78,7 @@ export class StoryFactsLog {
       meerkatScolds: this.meerkat,
       nestScolds: this.nest,
       swarmBagged: this.swarm,
+      bringStreak: this.bring,
     };
   }
 }

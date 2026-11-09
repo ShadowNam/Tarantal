@@ -3049,6 +3049,8 @@ export const FeelSchema = obj({
       manyBirds: pos,
       /** Within this fraction of the area's best (and not a new best): a near miss. */
       nearRecordFrac: fraction,
+      /** v1.17 (D-079): Brakkie's Bring streak this long or more earns his line. */
+      bringStreak: posInt,
     }),
     danceMs: pos,
     danceFrameMs: pos,
@@ -3429,6 +3431,8 @@ export const NotaboekMetricSchema = z.enum([
   'brakkieMates',
   /** v1.13 (D-075): every veld cameo of the hunt's area seen in it (1 or 0; scope hunt). */
   'veldkenner',
+  /** v1.17 (D-079): Brakkie's best Bring streak of the hunt (birds delivered in a row). */
+  'bringStreak',
 ]);
 export type NotaboekMetric = z.infer<typeof NotaboekMetricSchema>;
 

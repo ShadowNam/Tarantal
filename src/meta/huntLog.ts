@@ -43,6 +43,8 @@ export interface HuntLog {
   /** v1.13 (D-075): every veld cameo of the hunt's area was seen (drawn on screen) in it (1),
    *  else 0 (Notaboek "Veldkenner"). */
   readonly veldkenner?: number;
+  /** v1.17 (D-079): Brakkie's best Bring streak this hunt (0 without him). */
+  readonly bringStreak?: number;
 }
 
 export interface HuntLogger {
@@ -68,6 +70,7 @@ export function createHuntLogger(
   let reenbuiBags = 0;
   let dogOut = false;
   let dogHit = false;
+  let bringStreak = 0;
   const veldkenner = (biome: string): number => {
     const want = cameoSpecies(biome);
     return want.length > 0 && want.every((id) => creatures.has(sightingKey(id))) ? 1 : 0;
@@ -94,6 +97,7 @@ export function createHuntLogger(
         // v1.12 (D-069): Brakkie came out, and whether any shot hit him (aimed or stray).
         else if (e.type === 'brakkieArrived') dogOut = true;
         else if (e.type === 'brakkieHit') dogHit = true;
+        else if (e.type === 'brakkieFetched') bringStreak = Math.max(bringStreak, e.streak ?? 0);
       }
     },
     finish(r, bonusUnlocked = null) {
@@ -125,6 +129,7 @@ export function createHuntLogger(
         reenbuiBags,
         brakkieMates: dogOut && !dogHit ? 1 : 0,
         veldkenner: veldkenner(r.biome),
+        bringStreak,
       };
     },
   };

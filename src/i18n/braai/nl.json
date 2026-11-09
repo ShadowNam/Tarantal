@@ -32,9 +32,11 @@
   "braai.say.open_some": "Vogels in de pick-up. Helemaal niet slecht!",
   "braai.say.rank_up": "Een nieuwe rang! Dat wil Ouma horen.",
   "braai.say.swarm": "Toen de vliegende mieren kwamen, was je er klaar voor. Die regen bracht geluk!",
+  "braai.say.brakkie": "Brakkie bracht ze de een na de ander binnen. Wat een brave hond!",
   "braai.say.ver": "En die ene helemaal bij de horizon. Lekker geschoten!",
   "braai.say.whole_flock": "De hele zwerm! Niet één ontkwam.",
   "braai.swarm": "{n} vogels op het vliegende-mierenfeest. Die regen bracht geluk!",
+  "braai.brakkie": "Brakkie bracht er {n} achter elkaar binnen. Wat een brave hond!",
   "braai.ver": "{n} helemaal bij de horizon. Lekker geschoten!",
   "braai.whole_flock": "De hele zwerm, {n} ×! Niet één ontkwam."
 }
