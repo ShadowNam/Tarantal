@@ -160,7 +160,12 @@ export interface Sim {
 - Hitboxes: per animation state, body ellipse + head circle, defined in `birds.json` in sprite-local
   units; scaled by plane. **Plane scale vs hit size (D-049):** the body ellipse's radii are at least
   `minHitRadiusPx[plane]` (far 18, Ver 10; every input), so a hit area may shrink less than the
-  picture; the head circle scales as drawn (`src/sim/planes.ts` `hitRadius`). When
+  picture; the head circle scales as drawn (`src/sim/planes.ts` `hitRadius`). **Per-species size
+  (D-083):** a creature's `sizeMul` (birds.json; absent = 1) scales its body ellipse and head
+  circle, radii and offsets, before the plane's scale and the floor (`src/sim/birds/size.ts`
+  `birdHitbox`: the pellet test, the assist's snap point, the aimed-at guard, exit margins), and
+  BirdView scales its drawing the same; a percher with `perchFeetOy` sits lower by feet × plane
+  scale × (1 − sizeMul) so its feet stay on the perch. When
   `inputKind = 'touch'`, radii grow by `aimAssistPx[plane]` on top. Px tunings written at the mid
   plane (spacing, speeds, alert radii) are × plane scale ÷ `scoring.tuningRefScale` (`tuningRatio`).
   Bird atlases are packed at the content plane scale and the index records it (`planeScale`);

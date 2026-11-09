@@ -4592,6 +4592,131 @@ the boxes as numbers); `npm run size -- --strict` OK, lazy chunks ≤ 1,490 KB (
 replay (`classic-76-namibie-thu-competent-touch` 3,192 → 3,126, 1,383 → 1,387 events); the other
 47 keep their events.
 
+### D-083 — v1.17d Fly-over birds at true size (9 Nov 2026)
+
+**Status: PROPOSED, awaiting the owner's decision.** Branch `v117d-flyover-true-size` (1.20.3),
+on top of D-082 (#126). It implements option (a) below; the owner picks (a), (b) or (c).
+
+**Why.** D-082 left "the ordinary fly-over birds" for a separate decision. Tonight's audit found
+they have no size of their own: each is drawn in the shared bird box in the guineafowl's units
+(263 = its 0.5 m standing height) and drawn and hit at the guineafowl's scale on its plane, so a
+Cape turtle dove is as long as a guineafowl. Measured from the delivered art (opaque bounds, alpha
+≥ 64, as `tools/sizesArt.test.ts` does) against the real sizes:
+
+| bird | measure | real | plane | drawn before | error | audit said |
+|---|---|---|---|---|---|---|
+| tortelduif (Cape turtle dove, *Streptopelia capicola*) | bill to tail, gliding | 0.25–0.28 m | mid · far | 0.60 m (313 · 320 units) | +125 % · +130 % | +110 %, 0.48× |
+| fisant (Swainson's spurfowl, *Pternistis swainsonii*) | bill to tail, gliding | 0.33 (hen) – 0.38 (cock) m | mid · far | 0.60 m (312 · 317) | +67 % · +70 % | +58 %, 0.63× |
+| kwêvoël (grey go-away-bird, *Crinifer concolor*) | bill to tail tip, flying | 0.47–0.51 m | mid | 0.57 m (301) | +16 % | +40 %, 0.7× |
+| kwêvoël | its raised crest | 6–7 cm | mid | 0.13 m (70 units above the crown) | ~+100 % | — |
+| visarend (African fish eagle, *Haliaeetus vocifer*) | bill to tail, soaring | 0.63–0.75 m | far | 0.79 m (417) | +15 % | — |
+| visarend | half its wingspan (the raised wing's tip above the body's line) | span 2.0–2.4 m (1.75–2.1 in other guides) | far | 0.40 m (210): a ~0.9 m span | −62 % | "too short" |
+
+The audit was right on the dove and the spurfowl within its rounding (it used the upper ends of
+the real ranges), and right that the eagle's wings are far too short. It was **off on the
+kwêvoël**: its +40 % measured the whole perched outline, which includes a crest drawn twice its
+real length; by its field-guide length the bird is only +16 % too big. Fixing the crest and
+scaling the bird by 0.85 brings both to true size; 0.7× would have made its body −15 % too small.
+Two of the four are targets (the dove and the spurfowl, which fly only over Die Oes); the
+kwêvoël (−35) and the fish eagle (−50) are penalty birds, so smaller only makes them harder to hit
+by accident.
+
+**What changes (option a).**
+- *A per-species size:* `birds.json` creature `sizeMul` (Zod, optional, 0–2, default 1; targets
+  and non-targets, never the guineafowl or the bosses): the dove 0.44, the spurfowl 0.59, the
+  kwêvoël 0.85, the fish eagle 0.87. It scales the drawing (`BirdView`: the sprite, its hit puff,
+  a special day's hat) and, in the sim, the hit shapes the same way: the body ellipse and the head
+  circle, radii and offsets (`src/sim/birds/size.ts birdHitbox`), used by the pellet test, the
+  touch assist's snap point, the aimed-at guard and the exit margins. The planes' minimum body hit
+  radius (D-049, far 18 px) and the touch aim assist's px pad apply after it, unchanged. The debug
+  overlay, the e2e hooks and the balance bots read the same scaled shapes.
+- *A percher keeps its feet on the perch:* `perchFeetOy` (the kwêvoël: 122 units, its toes below
+  its sim position) moves its home point down by feet × the plane's scale × (1 − sizeMul): 7.7 px
+  at the Karoo windpomp, so it stands on the vane rather than hovering above it.
+- *The fish eagle's wings:* redrawn from its true 2.1 m span (`tools/art/flyers.ts
+  EAGLE_WINGSPAN_M`, the wing length computed from it and the content sizeMul), 1.3× the old
+  chord. A true eagle's raised wing reaches 635 units above its body, the bird box only 230, so the
+  eagle is drawn at a third of its size in the box (`FLYER_BOX_SHRINK`, rig.json `boxShrink` 3):
+  its masters are rendered 3× larger, `tools/assets/pack.ts` packs it 3× larger (the index's scale
+  is unchanged) and the game shows it 3× larger, so it keeps its texture density.
+- *The kwêvoël's crest:* redrawn at its true 6–7 cm (raised ~42 units above the crown, × 0.85).
+- *Sizes guarded:* `tools/sizes.ts MEASURED_ART` reads seven new rows from the bird frames
+  (a new `flyer` source: `art-source/birds/<creature>/planes/<plane>/<frame>.png`, boxShrink
+  undone) — the dove and the spurfowl on both planes, the perched kwêvoël, the eagle's body and its
+  wings — and `tools/sizesArt.test.ts` re-reads them (±3 %); `tools/sizes.test.ts` holds each to
+  ±15 % of real. After: the dove −1.2 % (mid) · +1.0 % (far), the spurfowl −1.4 % · +0.2 %, the
+  kwêvoël +4.3 % (crest tip to tail tip, perched, crest raised: ~0.525 m real), the eagle's body
+  −0.0 %, its half-span +0.8 %.
+- *Texture density* (`animalDensity.test.ts`): every bird with a sizeMul keeps ≥ 0.5 texture px
+  per drawn px in Standard and ≥ 1.0 in HD. The smaller birds were not redrawn, so they get
+  crisper: the dove 2.27 (HD 4.5), the spurfowl 1.69 (3.4), the kwêvoël 1.18 (2.4), the eagle
+  1.15 (2.3; it was 1.0 / 2.0).
+
+**Before → after (design px at 1080).**
+
+| bird | measure | real | plane | before → after | error after |
+|---|---|---|---|---|---|
+| turtle dove | bill to tail | 0.265 m | mid · far | 131.5 · 48.0 → 57.8 · 21.1 | −1.2 % · +1.0 % |
+| spurfowl | bill to tail | 0.355 m | mid · far | 131.0 · 47.6 → 77.3 · 28.1 | −1.4 % · +0.2 % |
+| kwêvoël | crest tip to tail tip, perched | ~0.525 m | mid | 154.6 → 121.0 | +4.3 % |
+| fish eagle | bill to tail | 0.69 m | far | 62.6 → 54.4 | −0.0 % |
+| fish eagle | half its wingspan | 1.05 m | far | 31.5 → 83.5 | +0.8 % |
+
+**Balance** (`docs/balance/v1.17d-flyover-sizes.md`; 200 seeds, random, plinker and competent;
+Karoo, Bushveld, Kalahari, Okavango Classic and the Harvest; pointer, and touch for the Harvest
+and the Okavango). The competent bot moves −0.2 … +0.3 % in every Classic area and −0.2 %
+(pointer) / −2.7 % (touch) in the Harvest; the plinker −3.4 % / −4.4 % in the Harvest; all
+inside two standard errors of the paired difference; every Classic gate passes. The bots bag
+~0.1 fewer turtle doves a hunt (1.99 of 2.8 crossing, was 2.11). No area comes near the ~8 %
+line, so a compromise is not needed for balance. **The three options:**
+- **(a) true size** (this branch): above.
+- **(b) compromise:** the art at true size, the hit shapes halfway (a second multiplier per bird,
+  not built; measured with `--set` sizeMul): competent −0.3 … +0.1 % (Classic), −1.9 % / −2.2 %
+  (the Harvest, pointer / touch). Its hit shapes would be wider than the drawn bird (a mid dove's
+  hit 1.6× its length).
+- **(c) leave as is:** the dove 2.2× and the spurfowl 1.7× life, the kwêvoël's crest 2×, the eagle's
+  wings 0.4×.
+
+**Not changed.** The hadeda (its wings are short too; not in tonight's audit) and the crop
+sprayer; the bosses (fantasy, D-082); Die Oes's own files (another branch is changing them: the
+dove and the spurfowl change through `birds.json` and their frames are not redrawn).
+
+**Texture memory and downloads.** Only two atlases change. The fish eagle's (the Okavango's lazy
+group): Standard 512 × 64 → 512 × 256 (0.13 → 0.50 MiB), HD 1,024 × 128 → 1,024 × 512 (0.50 → 2.00
+MiB), files 4.0 → 7.4 KB, HD 8.9 → 19.8 KB. The kwêvoël's (common): pages unchanged (1,024 × 256,
+HD 2,048 × 512), file 22.0 → 21.0 KB. HD hunts: the Okavango's (with an eagle) +1.5 MiB, from
+D-080's estimates ~242.7 / 241.6 / 242.8 MB (the Okavango with the Reënbui, Christmas, New Year)
+to ~244.3 / 243.2 / 244.4 MB, under 256; every other hunt unchanged. **First download** (web,
+gzip) 3,024.1 → 3,023.4 KB (≤ 3,072; the kwêvoël's shorter crest, −1.0 KB); `npm run size --
+--strict` OK; the Okavango's lazy chunk 1,477 → 1,480.3 KB (the eagle's frames), every lazy chunk
+≤ 1,499.9 KB (voice-de, unchanged); the Okavango's HD pack 2,402.0 KB.
+
+**Golden replays** re-recorded: the kwêvoël's lower perch point and the smaller hit shapes and
+margins change the event stream of 46 of the 48 replays (every map with a kwêvoël or an eagle;
+the two Namibië replays are unchanged), all with the same scores and event counts but one: the
+Okavango's New Year daily (`daily-2026-12-31-newyear-competent-pointer`) 6,442 → 3,815, 1,781 →
+1,811 events — the kwêvoël perches 7.7 px lower and is hit smaller, and the bot's hunt diverges from there
+(fewer whole flocks: 1,620 → 540 in bonuses; no penalty either way). With every sizeMul at 1,
+or the kwêvoël's alone, the branch replays it to 6,442 exactly; the 200-seed Okavango runs move
+0.0 % (competent). The two v3 fixtures change their event hashes only (score and count kept).
+
+**Sources (real sizes).**
+- Cape turtle dove (ring-necked dove): 25–26.5 cm (Wikipedia), ~27 cm in South African field
+  guides. [Wikipedia — Ring-necked dove](https://en.wikipedia.org/wiki/Ring-necked_dove) ·
+  [Oiseaux.net — Ring-necked Dove](https://oiseaux.net/birds/ring-necked.dove.html) ·
+  [De Wet's Wild — Cape Turtle Dove](https://dewetswild.com/2019/05/03/cape-turtle-dove)
+- Swainson's spurfowl: a cock 38 cm, a hen 33 cm.
+  [BirdForum Opus — Swainson's Spurfowl](https://birdforum.net/opus/Swainson%27s_Spurfowl) ·
+  [The Wildebeest — Swainson's Spurfowl](https://thewildebeest.co.za/01045-swainsons-spurfowl.php) ·
+  [Wikipedia — Swainson's spurfowl](https://en.wikipedia.org/wiki/Swainson%27s_spurfowl)
+- Grey go-away-bird: 47–51 cm bill to tail tip; a wispy crest 6–7 cm that it raises almost
+  upright. [Wikipedia — Grey go-away-bird](https://en.wikipedia.org/wiki/Grey_go-away-bird) ·
+  [SeaWorld — grey turaco](https://seaworld.org/animals/facts/birds/grey-turaco/)
+- African fish eagle: 63–75 cm long; wingspan ~2.0 m (male) to 2.4 m (female), 1.75–2.1 m in
+  other guides. [Wikipedia — African fish eagle](https://en.wikipedia.org/wiki/African_fish_eagle) ·
+  [Oiseaux-birds — African fish eagle](https://www.oiseaux-birds.com/card-african-fish-eagle.html) ·
+  [African Raptor Centre — fish eagle](https://africanraptor.co.za/gallery/fish-eagle/)
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

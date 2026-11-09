@@ -112,7 +112,13 @@ audit):** the ostrich hen is a hen (~1.9 m, 0.73 of the cock: her drawing and he
 bird Brakkie carries is a full-size guineafowl, and the baobab's flying owl, hornbill and
 bushbaby are at true size; the table now measures the delivered art. Also left: the boss birds
 (legendary, no real size) and the baobab residents its stage-set holes and nests cannot hold
-(the owl in its cavity, the buffalo weaver, the squirrel).
+(the owl in its cavity, the buffalo weaver, the squirrel). **v1.17d (D-083, PROPOSED, the owner
+decides):** the fly-over birds at true size too, drawing and hit area alike (`birds.json`
+`sizeMul`): the turtle dove 0.44× (0.27 m), the spurfowl 0.59× (0.36 m), the kwêvoël 0.85×
+(0.49 m; its crest redrawn at its real 6–7 cm) and the fish eagle 0.87× (0.69 m) with its wings
+redrawn to a true ~2.1 m span. Balance moves less than the bots' noise (competent −0.2 … +0.3 %;
+the Harvest, where the dove and the spurfowl fly, −0.2 % pointer, −2.7 % touch):
+`docs/balance/v1.17d-flyover-sizes.md`.
 The Ver plane (D-036) sits behind the far plane (scroll factor 0.22, between the far ridge and the
 far veld); a rifle's zoom is how you see and hit it (§10.6).
 
