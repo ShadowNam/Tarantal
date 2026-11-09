@@ -173,182 +173,182 @@
     },
     "fauna/bushveld_elephants": {
       "file": {
-        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_elephants.b827abdf1754.png",
-        "bytes": 42736,
-        "hash": "b827abdf1754"
+        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_elephants.a0e31553c644.png",
+        "bytes": 86191,
+        "hash": "a0e31553c644"
       },
-      "width": 452,
-      "height": 962,
+      "width": 782,
+      "height": 1668,
       "scale": 0.5
     },
     "fauna/bushveld_giraffes_a": {
       "file": {
-        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_giraffes_a.7646146f4435.png",
-        "bytes": 43170,
-        "hash": "7646146f4435"
+        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_giraffes_a.90c7d4f3a1d0.png",
+        "bytes": 85384,
+        "hash": "90c7d4f3a1d0"
       },
-      "width": 468,
-      "height": 738,
+      "width": 812,
+      "height": 1284,
       "scale": 0.5
     },
     "fauna/bushveld_wildebeest": {
       "file": {
-        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_wildebeest.00ab55e8030a.png",
-        "bytes": 22212,
-        "hash": "00ab55e8030a"
+        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_wildebeest.668f02da70a6.png",
+        "bytes": 47566,
+        "hash": "668f02da70a6"
       },
-      "width": 554,
-      "height": 250,
+      "width": 284,
+      "height": 1416,
       "scale": 0.5
     },
     "fauna/bushveld_zebra": {
       "file": {
-        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_zebra.a6c7aebf0516.png",
-        "bytes": 33929,
-        "hash": "a6c7aebf0516"
+        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_zebra.7875f23ea7cd.png",
+        "bytes": 67957,
+        "hash": "7875f23ea7cd"
       },
-      "width": 470,
-      "height": 360,
+      "width": 800,
+      "height": 622,
       "scale": 0.5
     },
     "fauna/kalahari_ostrich": {
       "file": {
-        "path": "assets/kalahari-summer-hd/img/fauna_kalahari_ostrich.029e900f95ed.png",
-        "bytes": 6548,
-        "hash": "029e900f95ed"
+        "path": "assets/kalahari-summer-hd/img/fauna_kalahari_ostrich.f2a412b901d5.png",
+        "bytes": 15367,
+        "hash": "f2a412b901d5"
       },
-      "width": 312,
-      "height": 136,
+      "width": 666,
+      "height": 292,
       "scale": 0.5
     },
     "fauna/kalahari_springbok": {
       "file": {
-        "path": "assets/kalahari-summer-hd/img/fauna_kalahari_springbok.e1c9b91c8fe6.png",
-        "bytes": 12949,
-        "hash": "e1c9b91c8fe6"
+        "path": "assets/kalahari-summer-hd/img/fauna_kalahari_springbok.028c6dfbb32d.png",
+        "bytes": 24850,
+        "hash": "028c6dfbb32d"
       },
-      "width": 188,
-      "height": 378,
+      "width": 734,
+      "height": 274,
       "scale": 0.5
     },
     "fauna/kalahari_wildebeest": {
       "file": {
-        "path": "assets/kalahari-summer-hd/img/fauna_kalahari_wildebeest.d87692814124.png",
-        "bytes": 22158,
-        "hash": "d87692814124"
+        "path": "assets/kalahari-summer-hd/img/fauna_kalahari_wildebeest.59b345c43091.png",
+        "bytes": 48333,
+        "hash": "59b345c43091"
       },
-      "width": 554,
-      "height": 250,
+      "width": 284,
+      "height": 1416,
       "scale": 0.5
     },
     "fauna/karoo_ostrich": {
       "file": {
-        "path": "assets/late-hd/img/fauna_karoo_ostrich.97a282185e22.png",
-        "bytes": 8889,
-        "hash": "97a282185e22"
+        "path": "assets/late-hd/img/fauna_karoo_ostrich.cc47fbe8562b.png",
+        "bytes": 21725,
+        "hash": "cc47fbe8562b"
       },
-      "width": 244,
-      "height": 250,
+      "width": 512,
+      "height": 538,
       "scale": 0.5
     },
     "fauna/karoo_springbok_a": {
       "file": {
-        "path": "assets/late-hd/img/fauna_karoo_springbok_a.86558b434434.png",
-        "bytes": 12231,
-        "hash": "86558b434434"
+        "path": "assets/late-hd/img/fauna_karoo_springbok_a.c18cbfb765a6.png",
+        "bytes": 25141,
+        "hash": "c18cbfb765a6"
       },
-      "width": 180,
-      "height": 360,
+      "width": 306,
+      "height": 606,
       "scale": 0.5
     },
     "fauna/karoo_springbok_b": {
       "file": {
-        "path": "assets/late-hd/img/fauna_karoo_springbok_b.1bca70398eff.png",
-        "bytes": 9269,
-        "hash": "1bca70398eff"
+        "path": "assets/late-hd/img/fauna_karoo_springbok_b.75577a332c9e.png",
+        "bytes": 17705,
+        "hash": "75577a332c9e"
       },
-      "width": 94,
-      "height": 472,
+      "width": 160,
+      "height": 794,
       "scale": 0.5
     },
     "fauna/namibie_gemsbok": {
       "file": {
-        "path": "assets/namibie-hd/img/fauna_namibie_gemsbok.dd9f21687ce5.png",
-        "bytes": 17781,
-        "hash": "dd9f21687ce5"
+        "path": "assets/namibie-hd/img/fauna_namibie_gemsbok.1f17f6834484.png",
+        "bytes": 35534,
+        "hash": "1f17f6834484"
       },
-      "width": 476,
-      "height": 268,
+      "width": 818,
+      "height": 460,
       "scale": 0.5
     },
     "fauna/namibie_ostrich": {
       "file": {
-        "path": "assets/namibie-hd/img/fauna_namibie_ostrich.ef9ef4f13afb.png",
-        "bytes": 6550,
-        "hash": "ef9ef4f13afb"
+        "path": "assets/namibie-hd/img/fauna_namibie_ostrich.8d7c3f028226.png",
+        "bytes": 15408,
+        "hash": "8d7c3f028226"
       },
-      "width": 312,
-      "height": 136,
+      "width": 666,
+      "height": 292,
       "scale": 0.5
     },
     "fauna/namibie_waterhole": {
       "file": {
-        "path": "assets/ver-hd/img/fauna_namibie_waterhole.786dfe4f5698.png",
-        "bytes": 26900,
-        "hash": "786dfe4f5698"
+        "path": "assets/ver-hd/img/fauna_namibie_waterhole.9507088153b3.png",
+        "bytes": 53580,
+        "hash": "9507088153b3"
       },
-      "width": 246,
-      "height": 552,
+      "width": 214,
+      "height": 1786,
       "scale": 0.5
     },
     "fauna/namibie_zebra": {
       "file": {
-        "path": "assets/namibie-hd/img/fauna_namibie_zebra.7690f6dd8021.png",
-        "bytes": 29799,
-        "hash": "7690f6dd8021"
+        "path": "assets/namibie-hd/img/fauna_namibie_zebra.b1460bfe23b3.png",
+        "bytes": 59491,
+        "hash": "b1460bfe23b3"
       },
-      "width": 564,
-      "height": 232,
+      "width": 966,
+      "height": 402,
       "scale": 0.5
     },
     "fauna/okavango_elephants": {
       "file": {
-        "path": "assets/okavango-spring-hd/img/fauna_okavango_elephants.2ba93c9429e6.png",
-        "bytes": 44702,
-        "hash": "2ba93c9429e6"
+        "path": "assets/okavango-spring-hd/img/fauna_okavango_elephants.39347a920093.png",
+        "bytes": 92881,
+        "hash": "39347a920093"
       },
-      "width": 452,
-      "height": 962,
+      "width": 782,
+      "height": 1668,
       "scale": 0.5
     },
     "fauna/okavango_lechwe": {
       "file": {
-        "path": "assets/okavango-spring-hd/img/fauna_okavango_lechwe.019b6abde520.png",
-        "bytes": 19407,
-        "hash": "019b6abde520"
+        "path": "assets/okavango-spring-hd/img/fauna_okavango_lechwe.660bfac1af77.png",
+        "bytes": 39648,
+        "hash": "660bfac1af77"
       },
-      "width": 298,
-      "height": 478,
+      "width": 502,
+      "height": 820,
       "scale": 0.5
     },
     "fauna/okavango_wildebeest": {
       "file": {
-        "path": "assets/okavango-spring-hd/img/fauna_okavango_wildebeest.247df1fbe10b.png",
-        "bytes": 17389,
-        "hash": "247df1fbe10b"
+        "path": "assets/okavango-spring-hd/img/fauna_okavango_wildebeest.52e2d43f0790.png",
+        "bytes": 34930,
+        "hash": "52e2d43f0790"
       },
-      "width": 398,
-      "height": 250,
+      "width": 284,
+      "height": 1000,
       "scale": 0.5
     },
     "fauna/okavango_zebra": {
       "file": {
-        "path": "assets/okavango-spring-hd/img/fauna_okavango_zebra.7c371d320519.png",
-        "bytes": 29915,
-        "hash": "7c371d320519"
+        "path": "assets/okavango-spring-hd/img/fauna_okavango_zebra.9ebadad1900e.png",
+        "bytes": 59539,
+        "hash": "9ebadad1900e"
       },
-      "width": 564,
-      "height": 232,
+      "width": 966,
+      "height": 402,
       "scale": 0.5
     },
     "fx/bolt": {
