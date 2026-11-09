@@ -11,6 +11,7 @@ import {
   type Bird,
   type BirdCreature,
 } from '../birds/Bird';
+import { birdHitbox } from '../birds/size';
 import { planeCentreX } from '../camera';
 import { tuningRatio } from '../planes';
 import { msToTicks, TICKS_PER_SECOND } from '../clock';
@@ -147,7 +148,8 @@ export function createDirector(deps: DirectorDeps): Director {
     const ratio = tuningRatio(scale, content.scoring.tuningRefScale);
     const f = scrollFactorOf(plane);
     const fly = creature.speeds?.fly ?? 0;
-    const margin = (creature.hitbox.body.rx + Math.abs(creature.hitbox.body.ox)) * 2 * scale;
+    const body = birdHitbox(creature).body;
+    const margin = (body.rx + Math.abs(body.ox)) * 2 * scale;
     const x =
       dir > 0
         ? -LAYER_BLEED_PX - margin - offsetPx

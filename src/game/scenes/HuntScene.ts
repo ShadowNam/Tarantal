@@ -64,6 +64,7 @@ import { NO_ZOOM, zoomFor, type ZoomState } from '../view/zoomView';
 import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
 import { planeToDx } from '../../sim/camera';
+import { birdHitbox } from '../../sim/birds/size';
 import { crosshairExtent, reloadBoostsOf, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
 import { MeerkatView } from '../view/MeerkatView';
@@ -2483,7 +2484,7 @@ export class HuntScene extends Phaser.Scene {
         .map((b) => {
           const pl = planesNow[b.plane];
           const c = this.ctx.content.birds.creatures.find((x) => x.id === b.creature);
-          const hb = c !== undefined && 'hitbox' in c ? c.hitbox.body : body;
+          const hb = c !== undefined && 'hitbox' in c ? birdHitbox(c).body : body;
           return {
             id: b.id,
             plane: b.plane,

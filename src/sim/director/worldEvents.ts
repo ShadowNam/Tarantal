@@ -12,6 +12,7 @@ import {
   type HopSpec,
   type PeekStop,
 } from '../birds/scripted';
+import { birdHitbox, perchFeetShift } from '../birds/size';
 import { planeCentreX } from '../camera';
 import { tuningRatio } from '../planes';
 import { msToTicks, TICKS_PER_SECOND } from '../clock';
@@ -243,7 +244,8 @@ export function buildPerchBird(
     planeScale: scale,
     coreWidth: coreWidth(at.scrollFactor),
     homeX: at.x,
-    homeY: at.y,
+    // v1.20.3 (D-083): a bird drawn smaller than the guineafowl's units keeps its feet on the perch.
+    homeY: at.y + perchFeetShift(c, scale),
     stayTicks: Math.max(1, msToTicks(rng.range(stay[0], stay[1]))),
     ...speedsPerTick(c, ratio),
     leaveAngle: deps.leaveAngle,
@@ -275,7 +277,8 @@ export function buildSkyPass(
   const scale = deps.planes[plane].scale;
   const ratio = tuningRatio(scale, deps.tuningRefScale);
   const width = coreWidth(layer.scrollFactor);
-  const margin = (c.hitbox.body.rx + Math.abs(c.hitbox.body.ox)) * scale + LAYER_BLEED_PX;
+  const body = birdHitbox(c).body;
+  const margin = (body.rx + Math.abs(body.ox)) * scale + LAYER_BLEED_PX;
   return createSkyPassBird({
     id,
     creature: c,

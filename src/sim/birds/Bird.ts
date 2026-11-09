@@ -5,6 +5,7 @@ import type { Creature } from '../../content/schemas';
 import { cos, sin } from '../detmath';
 import type { FlockMember } from '../flocks/Flock';
 import type { ScriptState } from './scripted';
+import { birdHitbox } from './size';
 import type { BagBehaviour, BirdMotion, BirdPhase, BirdView, PlaneId } from '../types';
 import { coreWidth, LAYER_BLEED_PX } from '../world';
 
@@ -101,7 +102,7 @@ export interface FlyoverSpec {
 }
 
 export function createFlyover(s: FlyoverSpec): Bird {
-  const body = s.creature.hitbox.body;
+  const body = birdHitbox(s.creature).body;
   return {
     id: s.id,
     creature: s.creature,
@@ -145,7 +146,7 @@ export interface FlockBirdSpec {
 }
 
 export function createFlockBird(s: FlockBirdSpec): Bird {
-  const body = s.creature.hitbox.body;
+  const body = birdHitbox(s.creature).body;
   return {
     id: s.id,
     creature: s.creature,
@@ -189,7 +190,7 @@ export interface PopupSpec {
 }
 
 export function createPopup(s: PopupSpec): Bird {
-  const body = s.creature.hitbox.body;
+  const body = birdHitbox(s.creature).body;
   const hideDepth = (body.ry * 2 + Math.abs(body.oy)) * s.planeScale;
   return {
     id: s.id,
