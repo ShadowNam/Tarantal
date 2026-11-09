@@ -4494,6 +4494,104 @@ Screenshots: `tests/e2e/art-preview-sizes.spec.ts` (prefix `v117b-sizes`; a test
 `__TM_RULERS__` draws standing guineafowl as yardsticks beside each subject, view only). Golden
 replays re-recorded (hit areas moved; the v3 fixture classic-11 1,243 → 1,198).
 
+### D-082 — v1.17c Animal sizes, the audit's fixes (9 Nov 2026)
+
+(D-081 is the v1.18 Harvest build, on its own branch.)
+
+**Why.** The owner asked again tonight that the animals be their correct real-world size. An
+independent audit of v1.17b (D-080, "every animal at true size") found sizes the table did not
+catch, because `tools/sizes.ts` computed most of its rows from the same metres the art had been
+drawn to (a row could not fail when the drawing was wrong):
+- Namibië's mid-plane **ostrich hen** was drawn as tall as the cock (every `f_*` frame ~210
+  layout px above the feet, like `m_*`): ~2.6 m beside the guineafowl; a real hen stands
+  1.7–2.0 m, a cock 2.1–2.8 m. The far herds drew her at 0.84 of the cock (2.1 m).
+- **The bird Brakkie carries** was ~82 px long on the near plane: 0.16 m, 0.27× a real helmeted
+  guineafowl (0.55–0.58 m; the standing yardstick is 263 px there).
+- **The baobab's residents** (D-057's stage-set tree): the barn owl perched ~0.6× and flying
+  ~0.36×, the yellow-billed hornbill ~0.5×, the red-billed buffalo weaver ~0.35×, the bushbaby's
+  head ~2× (the squirrel ~0.8×).
+- `OSTRICH_STAND_MID_PX` was 197, the drawing's nominal `OSTRICH_H`; the art's crown reaches
+  209.7 layout px.
+- The four boss birds and the baobab residents were not in the table or in `NOT_FIXED`.
+
+**Fixes (before → after; design px at 1080, real size beside the guineafowl on the plane).**
+
+| animal | measure | real | plane | before → after | error after |
+|---|---|---|---|---|---|
+| Namibië ostrich hen | head top, standing | 1.7–2.0 (1.9) | mid | 587 (2.66 m) → 431 (1.94 m) | +2.7 % |
+| Namibië ostrich cock | head top, standing | 2.1–2.8 (2.5) | mid | 587 (2.66 m), unchanged | +6.3 % |
+| far / Ver ostrich hen | head top | 1.9 | far · Ver | 0.84 → 0.76 of the cock (alert 79 → 71 on the Ver plane) | −6.6 % (far, walking) · +1.5 % (Ver) |
+| the guineafowl Brakkie carries | tail tip to bill, as it hangs | 0.55 | near | 82 → 271 across (~300 along its body) | −6.3 % |
+| baobab barn owl, flying off | wingspan | 0.8–0.95 (0.87) | mid | 69 → 193 | +0.4 % |
+| baobab yellow-billed hornbill | bill to tail | 0.48–0.6 (0.54) | mid | 56.5 → 130 flying; 49 → 112.5 clinging | +9.0 % · −5.7 % |
+| baobab bushbaby | head width | 0.06 | mid | 20 → 13.3 | +0.1 % |
+
+- *The hen:* her frames are drawn from the same vector shapes at `OSTRICH_HEN_SCALE` 0.73
+  (`tools/art/ostrich.ts`), in boxes 0.73× the cock's; her hit shapes and her height in the scare
+  band are the cock's × content `birds.json ostriches.henScale` 0.73 (Zod-typed, tested equal to
+  the sheet; `src/sim/ostriches` `birdSize()`); the nest keeps the pair's size; her hit puff
+  starts from her body. `hen.test.ts`: her shapes, the nest's, and a shot aimed where a cock's
+  neck would be (above her) is not aimed at her. The pair passes `ostrichChecks.ts` (sized by the
+  cock) and the aimed-at and guard tests unchanged. The far herds' `FEMALE_SHARE.ostrich` 0.84 →
+  0.76 (the Karoo's, the Kalahari's and Namibië's herds and the Ver waterhole redrawn).
+- *Brakkie's bird:* redrawn from vector shapes at its true size (`tools/art/brakkie.ts bird()`),
+  held across his jaws by the middle of its back: the slate, white-pearled body across his muzzle,
+  the bare blue neck and the head (casque, wattles, the eye closed) drooping in front of his
+  forelegs, the tail over his neck, the legs folded back. It hangs at most ~97 px below his mouth
+  (his mouth is 100–111 px up in the running frames), so it never reaches the ground. View only.
+- *The baobab:* true size where the stage-set tree can hold the animal. The owl flying off and the
+  hornbill are drawn at 2.8× and 2.3× (`residentTrueSize.ts RESIDENT_TRUE_MUL`); the hornbill
+  clings further from the slit (`HORNBILL_CLING` × its growth) so its bill still feeds the slit,
+  and its flights land and leave at its body's place on the bark; the bushbaby's head is drawn at
+  1.07 (was 1.6) of D-057's head — its hole, a prop, is now about twice its head.
+
+**Measured rows.** `tools/sizes.ts MEASURED_ART`: 32 sizes read from the delivered art's opaque
+bounds (alpha ≥ 64) — the far herds and the Ver waterhole (the `body` part's top for a shoulder,
+all parts for a head top), the cameos (the back over a band of columns where a head or horns rise
+higher), the Namibië cock and hen, Brakkie's withers and his bird, the Harvest's three workers and
+its fence post, the baobab's flying owl and hornbill. `tools/sizesArt.test.ts` re-reads every one
+from the PNGs (±3 %) and `tools/sizes.test.ts` holds each to ±15 % of real: all within
+−6.6 … +9.2 % (the far giraffe +9.0 %, the Ver giraffe +9.2 %, the flying hornbill +9.0 %, the
+far lechwe +7.7 %; the Harvest workers −5.9 … −1.7 %, the post −0.0 %). `OSTRICH_STAND_MID_PX` 197
+→ 209.7 (measured); the computed mid ostrich row reads +6.3 % (2.66 m, inside a cock's 2.1–2.8).
+
+**Left off true size (`NOT_FIXED`, each with its reason and ratio).**
+- The **barn owl in its cavity**: its head and shoulders show through the stage-set baobab's
+  38 × 50 px hole (0.17 × 0.23 m on the mid plane; the 15 m tree is drawn ~0.17× true). Its head
+  is ~25 px across (0.11 m, about a real one's), but a whole true owl (0.3–0.39 m: 66–86 px)
+  would not fit the hole; measured whole it is 48.5 px (0.64×).
+- The **red-billed buffalo weaver**: it lands at a stage-set stick nest 46 × 30 px; a true weaver
+  (0.24 m, 53 px) would be longer than its whole nest. It stays 18–22.5 px (0.35–0.42×).
+- The **tree squirrel**: 63 px nose to tail tip running (its tail arched), 0.29 m beside ~0.35 m
+  (0.8×), its head sized to its 14 × 17 px hole. The owner decides.
+- The **boss birds** — the Generaal, Ou Grys, the Kuifkop Koning, Die Stormvoël: "legendary"
+  birds, fantasy, with no real size to hold them to.
+- Not changed in this build: the ordinary fly-over birds (tortelduif, fisant, kwêvoël, visarend,
+  hadeda) — a separate owner decision.
+
+**Texture memory and downloads.** The hen's tighter frames shrink the ostrich sheet 1,440 × 1,478
+→ 1,440 × 1,146 (Standard 8.12 → 6.30 MiB; HD twin 2,880 × 2,292, 32.48 → 25.18 MiB; files
+136 → 112 KB, HD 375 → 307 KB). Brakkie's true-size bird (a 142 × 59 cell) did not fit his sheet
+tallest-first (594 px tall at 672 wide, over the 1.5 MiB cap); a searched packing order
+(`brakkieSheet.ts PACK_ORDER`) fits all 22 frames in 527: 672 × 573 → 672 × 529 (1.47 → 1.36
+MiB, HD 5.88 → 5.42; files 85 → 89 KB, HD 197 → 211 KB). The baobab residents' sheet 256 × 258 →
+336 × 447 (Standard 0.25 → 0.57 MiB, HD 1.01 → 2.29 MiB; files 9 → 16 KB, HD 17 → 28 KB). HD
+hunts, estimated from CI's v1.17b numbers and the textures that changed: **Namibië 237.0 →
+~229.2 MB** (the ostriches −7.3, Brakkie −0.5); the Bushveld +0.8 (the residents +1.3, Brakkie
+−0.5); every other hunt with Brakkie −0.5. First download 3,024.1 KB gzip, unchanged (the
+residents' growth is in its own module; the frame table, in the entry for the journal, carries
+the boxes as numbers); `npm run size -- --strict` OK, lazy chunks ≤ 1,490 KB (Namibië + desert
+1,488).
+
+**Balance** (Namibië, 200 seeds a bot, main b92fcabf → branch; mean · penalties a hunt): random
+311 · 7.84 → 313 · 7.79, plinker 2,920 · 1.17 → 2,927 · 1.20, competent 4,483 · 2.65 → 4,440 ·
+2.67 (−1.0 %); every gate passes. The hen's smaller shapes change little: the aimed-at rule
+(D-080) already made stray pellets on the pair free.
+
+**Golden replays** re-recorded once: the hen's hit shapes and scare band change one Namibië
+replay (`classic-76-namibie-thu-competent-touch` 3,192 → 3,126, 1,383 → 1,387 events); the other
+47 keep their events.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
