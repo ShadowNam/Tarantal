@@ -379,7 +379,8 @@ export function withHarvestPreview(
     readonly phase2?: boolean;
     readonly phase2Seconds?: number;
     /** v1.18 (D-081): ?harvestShots=1 — the screenshot spec's moments last: the first raid comes
-     *  at once and its raiders take 30 s down the koppie; yearlings with a piglet come through
+     *  at once and its raiders take 30 s down the koppie and dash in slowly (a pan can follow);
+     *  yearlings with a piglet come through
      *  the small hole every few seconds and squeeze through slowly; the hole stays open. */
     readonly shots?: boolean;
   },
@@ -396,7 +397,7 @@ export function withHarvestPreview(
             baboons: {
               ...bb,
               firstAfterSeconds: [0.5, 0.5] as [number, number],
-              descent: { ...bb.descent, climbSeconds: 30 },
+              descent: { ...bb.descent, climbSeconds: 30, dashMul: 0.35 },
             },
           };
         })
