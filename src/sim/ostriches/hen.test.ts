@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import type { HitExtra } from '../weapons/hitTest';
 import { createStream } from '../rng';
-import { birdSize } from './ostriches';
+import { birdSize, scareBands } from './ostriches';
 import { createOstrichSystem } from './system';
 
 const content = loadContent();
@@ -59,29 +59,76 @@ describe('ostriches: the hen at her own size (D-082)', () => {
     }
   });
 
-  it("a shot aimed where a cock's neck would be, above her head, is not aimed at her", () => {
-    const { sys, penalties } = setup();
-    const f = sys.view()[0];
-    const hen = f?.birds.find((b) => !b.male);
-    if (f === undefined || hen === undefined) throw new Error('no hen');
-    // The top of a cock's neck ellipse over her feet: above the hen's whole body.
-    const neck = T.hitboxes.stand.neck;
-    const y = f.ground + (neck.oy - neck.ry * 0.9) * f.size;
-    const x = hen.x + neck.ox * f.size * hen.facing;
-    const henTop =
-      f.ground +
-      Math.min(
-        T.hitboxes.stand.neck.oy - T.hitboxes.stand.neck.ry,
-        T.hitboxes.sit.neck.oy - T.hitboxes.sit.neck.ry,
-      ) *
-        f.size *
-        T.henScale;
-    expect(y).toBeLessThan(henTop);
+  // The hen standing (not on the nest): step until she stands, so her stand shapes are the ones hit.
+  function standingHen(henScale: number): {
+    sys: ReturnType<typeof createOstrichSystem>;
+    penalties: number[];
+    f: ReturnType<ReturnType<typeof createOstrichSystem>['view']>[number];
+    hen: ReturnType<ReturnType<typeof createOstrichSystem>['view']>[number]['birds'][number];
+  } {
+    const c = { ...content, birds: { ...content.birds, ostriches: { ...T, henScale } } };
+    const penalties: number[] = [];
+    const sys = createOstrichSystem(biome as NonNullable<typeof biome>, c, createStream(3), {
+      tick: () => 100,
+      emit: () => undefined,
+      penalty: (p) => penalties.push(p),
+    });
+    for (let i = 0; i < 60 * 600; i++) {
+      const f = sys.view()[0];
+      const hen = f?.birds.find((b) => !b.male);
+      if (f !== undefined && hen !== undefined && hen.pose !== 'sit')
+        return { sys, penalties, f, hen };
+      sys.step();
+    }
+    throw new Error('the hen never stood up in 10 minutes');
+  }
+
+  // Just above her standing body, inside where a cock-sized body would be, over her feet.
+  function aboveHer(
+    f: { ground: number; size: number },
+    hen: { x: number },
+  ): { x: number; y: number } {
+    const body = T.hitboxes.stand.body;
+    return { x: hen.x, y: f.ground + (body.oy - body.ry * 0.9) * f.size };
+  }
+
+  it("a shot aimed where a cock's body would be, above her, is not aimed at her", () => {
+    const { sys, penalties, f, hen } = standingHen(T.henScale);
+    const p = aboveHer(f, hen);
     sys.shot(1, [hen.id], [], 960, true, false, {
       hitTarget: false,
       targetNearAim: false,
-      aimOn: () => ({ x, y }),
+      aimOn: () => p,
     });
     expect(penalties).toEqual([]);
+  });
+
+  it('the same shot at a cock-sized hen (henScale 1) is aimed at her: the penalty', () => {
+    const { sys, penalties, f, hen } = standingHen(1);
+    const p = aboveHer(f, hen);
+    sys.shot(1, [hen.id], [], 960, true, false, {
+      hitTarget: false,
+      targetNearAim: false,
+      aimOn: () => p,
+    });
+    expect(penalties).toEqual([-T.hit.penalty]);
+  });
+
+  it("her scare band is her own height; the cock's and the nest's the pair's", () => {
+    const f = {
+      size: 1.2,
+      birds: [
+        { male: true, x: 100 },
+        { male: false, x: 300 },
+      ],
+      nest: { x: 200 },
+    };
+    const bands = scareBands(f, T);
+    expect(bands).toHaveLength(3);
+    expect(bands[0]?.h).toBeCloseTo(T.heightPx * 1.2, 9);
+    expect(bands[1]?.h).toBeCloseTo(T.heightPx * 1.2 * T.henScale, 9);
+    expect(bands[1]?.h).toBeLessThan(bands[0]?.h ?? 0);
+    expect(bands[2]).toEqual({ x: 200, h: T.heightPx * 1.2 });
+    expect(scareBands({ ...f, nest: null }, T)).toHaveLength(2);
   });
 });

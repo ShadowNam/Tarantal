@@ -13,6 +13,7 @@ import {
   birdSize,
   createFamily,
   nestShape,
+  scareBands,
   scareFamily,
   shapesOf,
   stepFamily,
@@ -207,10 +208,7 @@ export const createOstrichSystem: OstrichSystemFactory = (biome, content, rng, h
       else {
         const r = os.scare.radiusPx * f.scale;
         // Each bird at its own height (D-082: the hen smaller); the nest at the pair's.
-        const spots = [
-          ...f.birds.map((b) => ({ x: b.x, h: os.heightPx * birdSize(f, b, os) })),
-          ...(f.nest === null ? [] : [{ x: f.nest.x, h: os.heightPx * f.size }]),
-        ];
+        const spots = scareBands(f, os);
         for (const imp of impacts) {
           const p = tapToPlane(cx, f.scrollFactor, imp.dx, imp.sy);
           const near = spots.some((s) => {

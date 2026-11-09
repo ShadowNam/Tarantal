@@ -85,6 +85,21 @@ export const birdSize = (
   T: Pick<OstrichTuning, 'henScale'>,
 ): number => f.size * (b.male ? 1 : T.henScale);
 
+/** v1.20.2 (D-082): where a stray impact scares a pair: each bird a band its own height (the hen
+ *  smaller), the nest one at the pair's height. Plane px (x, height). */
+export function scareBands(
+  f: Pick<OstrichFamilyState, 'size'> & {
+    readonly birds: readonly (Pick<Ostrich, 'male'> & { readonly x: number })[];
+    readonly nest: { readonly x: number } | null;
+  },
+  T: Pick<OstrichTuning, 'henScale' | 'heightPx'>,
+): { x: number; h: number }[] {
+  return [
+    ...f.birds.map((b) => ({ x: b.x, h: T.heightPx * birdSize(f, b, T) })),
+    ...(f.nest === null ? [] : [{ x: f.nest.x, h: T.heightPx * f.size }]),
+  ];
+}
+
 /** The two hit shapes of a pose (null: none, e.g. never — every pose can be hit). */
 export function shapesOf(
   pose: OstrichPose,
