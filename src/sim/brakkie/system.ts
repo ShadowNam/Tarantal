@@ -199,8 +199,10 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   /** v1.17: set while the whistle sends him (tryFetch skips the lull). */
   let sent = false;
   const cooldownTicks = ticks(B.hit.cooldownSeconds);
-  /** His size on a plane (hitbox px are at the near plane's scale). */
+  /** A plane's px against the near plane's (his speeds, rooms and roaming px are near-plane px). */
   const k = (plane: DogPlane): number => geo.planeScale[plane] / geo.planeScale.near;
+  /** v1.17b (D-080): his body's size on a plane (hit box px are near-plane px at sizeMul 1). */
+  const size = (plane: DogPlane): number => k(plane) * B.sizeMul;
   /** px a tick on a plane for a near-plane px/s speed. */
   const perTick = (pxPerSecond: number, plane: DogPlane): number => (pxPerSecond * k(plane)) / 60;
   /** The end of the panorama he goes home by this time (the bakkie's side when its way is clear,
@@ -276,7 +278,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
         : LOW_POSES.has(dog.pose)
           ? B.hitboxes.low
           : B.hitboxes.stand;
-    const s = k(dog.plane);
+    const s = size(dog.plane);
     const y = geo.groundY[dog.plane];
     return [
       {
@@ -893,7 +895,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       x: dog.x,
       y: geo.groundY[dog.plane],
       facing: dog.facing,
-      scale: k(dog.plane),
+      scale: size(dog.plane),
+      sizeMul: B.sizeMul,
       t: dog.t,
       dur: dog.dur,
       carrying: dog.carrying,
@@ -906,12 +909,12 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
               fromLayerId: geo.layers[c.from].id,
               fromX: c.fromX,
               fromY: geo.groundY[c.from],
-              fromScale: k(c.from),
+              fromScale: size(c.from),
               to: c.to,
               toLayerId: geo.layers[c.to].id,
               toX: c.toX,
               toY: geo.groundY[c.to],
-              toScale: k(c.to),
+              toScale: size(c.to),
               p: dog.dur > 0 ? Math.min(1, dog.t / dog.dur) : 1,
             },
       hits: dog.hits,
@@ -949,11 +952,11 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     } else dog.misses = 0;
     if (!dog.carrying || !present()) return;
     const a = aimOn(geo.layers[dog.plane].id);
-    const s = k(dog.plane);
+    const s = size(dog.plane);
     const box = B.hitboxes.stand.body;
     const dx = a.x - (dog.x + box.ox * s * dog.facing);
     const dy = a.y - (geo.groundY[dog.plane] + box.oy * s);
-    const r = B.clear.aimPx * s;
+    const r = B.clear.aimPx * k(dog.plane);
     if (dx * dx + dy * dy <= r * r) breakStreak('aim');
   }
 

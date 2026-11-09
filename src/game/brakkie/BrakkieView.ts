@@ -492,7 +492,8 @@ export class BrakkieView {
     const sc = scale / (res * this.k);
     if (sc !== this.scale) {
       this.img.setScale(sc);
-      this.bird.setScale(sc);
+      // v1.17b (D-080): the bird keeps its own size when he grows (brakkie.sizeMul).
+      this.bird.setScale(sc / d.sizeMul);
       this.scale = sc;
       this.calls += 2;
     }

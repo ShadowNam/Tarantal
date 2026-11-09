@@ -2167,6 +2167,10 @@ export const BrakkieSchema = obj({
   groundY: pos,
   /** Home: this far past the panorama's end (off every screen, LAYER_BLEED_PX + the widest view). */
   homeOffPx: pos,
+  /** v1.17b (D-080): his size on top of the plane's (the drawing and the hit shapes; not his
+   *  speeds or roaming px), so he is a true Jack Russell (~0.3 m at the shoulder) beside the
+   *  guineafowl (tools/sizes.ts). The clear.* rooms are kept from his body's edge. */
+  sizeMul: z.number().gt(0).max(3).default(1),
   /** Standing (trot, run, sniff, sit, bark, carry, yelp) and lying (lie, dig). */
   hitboxes: obj({
     stand: dogHitbox,
