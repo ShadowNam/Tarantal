@@ -23,12 +23,12 @@
     },
     "brakkie/sheet": {
       "file": {
-        "path": "assets/brakkie-hd/img/brakkie_sheet.92a22731f174.png",
-        "bytes": 117755,
-        "hash": "92a22731f174"
+        "path": "assets/brakkie-hd/img/brakkie_sheet.b840a8c77a30.png",
+        "bytes": 201964,
+        "hash": "b840a8c77a30"
       },
-      "width": 1024,
-      "height": 896,
+      "width": 1344,
+      "height": 1146,
       "scale": 0.5
     },
     "bushveld/aloe_a": {
@@ -1184,42 +1184,6 @@
           "path": "assets/namibie-hd/layers/mid-4.363b574d6568.png",
           "bytes": 18130,
           "hash": "363b574d6568"
-        }
-      ],
-      "tileWidth": 1024,
-      "scale": 0.5
-    },
-    "namibie/near": {
-      "tiles": [
-        {
-          "path": "assets/namibie-hd/layers/near-0.4852f58c0243.png",
-          "bytes": 76539,
-          "hash": "4852f58c0243"
-        },
-        {
-          "path": "assets/namibie-hd/layers/near-1.eb9371ffa668.png",
-          "bytes": 79424,
-          "hash": "eb9371ffa668"
-        },
-        {
-          "path": "assets/namibie-hd/layers/near-2.72bc4fe7813f.png",
-          "bytes": 78036,
-          "hash": "72bc4fe7813f"
-        },
-        {
-          "path": "assets/namibie-hd/layers/near-3.b218538062f1.png",
-          "bytes": 97973,
-          "hash": "b218538062f1"
-        },
-        {
-          "path": "assets/namibie-hd/layers/near-4.80f404683000.png",
-          "bytes": 81043,
-          "hash": "80f404683000"
-        },
-        {
-          "path": "assets/namibie-hd/layers/near-5.2f48a2ef9061.png",
-          "bytes": 62017,
-          "hash": "2f48a2ef9061"
         }
       ],
       "tileWidth": 1024,

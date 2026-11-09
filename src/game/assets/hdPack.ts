@@ -31,7 +31,15 @@ export const STANDARD_IN_HD_LAYERS: readonly string[] = [
   'far_ridge',
   'far_veld',
   'ver_veld',
+  // D-080 (review 5): one area's layer by `<biome>/<layer>`. Namibië's near layer differs from its
+  // 1× file upscaled by 1.02/255 on average (D-053's no-gain bar is 1.5) and was 22.7 MiB in HD:
+  // its 1× tiles (5.7 MiB) make room for the true-size Brakkie's and gemsbok's HD sheets.
+  'namibie/near',
 ];
+
+/** True when a biome's layer is Standard in HD (by its id, or `<biome>/<layer>`). */
+export const standardInHdLayer = (biome: string, layerId: string): boolean =>
+  STANDARD_IN_HD_LAYERS.includes(layerId) || STANDARD_IN_HD_LAYERS.includes(`${biome}/${layerId}`);
 
 /**
  * Texture keys (prefixes) without an HD version: images that are cropped and drawn without a view
