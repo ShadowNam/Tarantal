@@ -391,6 +391,8 @@ size". Every animal is drawn at its real size beside the guineafowl on its plane
 | baboon, sitting mother | crown | 0.65 | far | 44 → 52 |
 | Harvest warthog | back | 0.7 | mid · near | 74 · 175 → 155 · 368 |
 | Harvest piglet | back | 0.3 | mid · near | 33 · 79 → 70 · 166 |
+| Harvest farm worker (a person) | hat top | 1.7 | mid | 113 → 375 |
+| Harvest fence post (a prop) | post top | 1.2 | mid | 70 → 265 |
 | Brakkie (Jack Russell) | shoulder | 0.3 | near · mid | 110 · 46 → 149 · 62 |
 | cameo warthog sow | back | 0.7 | mid | 57 → 154 |
 | cameo springbok | shoulder | 0.8 | mid | 60 → 177 |
@@ -403,8 +405,11 @@ size". Every animal is drawn at its real size beside the guineafowl on its plane
 Kept off true size, each for a reason: the **dung beetle** (drawn about twice its true size on
 purpose, so it reads at all), the **bakkie** (a stage-set prop: true, it would be 398 px tall and
 ~1 050 long on the mid plane, as tall as the 9 m windpomp drawn at 395 px and three times the
-1.5 m reservoir drawn at 133; the owner decides). Props stay on their stage-set scale (trees,
-windpompe, the reservoir, the hippo), so a true-size animal can look big against them.
+1.5 m reservoir drawn at 133; the owner decides), the **Harvest's mielies** (true, 490–550 px on
+the mid plane: the front rows would hide the flocks feeding in the field; the owner decides).
+Props stay on their stage-set scale (trees, windpompe, the reservoir, the hippo), so a true-size
+animal can look big against them; the Harvest's workers and fence are at true scale with its
+warthogs.
 **Texture memory (HD ≤ 256 MB on every hunt):** the far herds redrawn at true size are Standard
 in HD (they stand on the far veld, itself Standard in HD; 1 texture px per design px is a phone's
 screen px); the cameos are redrawn from their vector shapes at the new size at 0.25 sheet px per
@@ -779,8 +784,11 @@ again); the pumpkin patch on the near plane; sunflower clumps in the foreground.
 (`oes/harvest`, the map's lazy group, a 2× master; frames face right, origin at the feet, boxes
 fitted by `tools/art/harvestBoxes.ts`): the warthog (grey-brown, a sparse dark mane, tusks and
 warts and two curved upper tusks, a bristle mane (D-080: shown at its true 0.7 m at the back,
-`modes.json warthogs.heightPx` 175 → 368, the piglets 0.45 of that; the farm workers are left as
-they are — people, not in the owner's "all animals" — so a warthog stands taller than a worker);
+`modes.json warthogs.heightPx` 175 → 368, the piglets 0.45 of that; the farm workers (1.7 m, 113 →
+375 px on the mid plane, `workers.heightPx` 894) and the fence (1.2 m posts, 70 → 265 px,
+`harvest.fence.postPx`, the wires and the gap's panel with them, the mid layer drawn from y 400)
+on the same true scale, so a warthog is 0.41× a worker and 0.58× a post; the mielies stay
+stage-scale — true they would hide the flocks in the rows, the owner decides);
 trot ×4 with the tail straight up like an
 aerial, dig ×2 kneeling on the front knees with the snout in the soil, run ×2, the tumble and lying
 still — no blood), piglets (lighter, faint stripes; trot ×2, run), three farm

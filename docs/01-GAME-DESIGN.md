@@ -103,8 +103,10 @@ or touch. Per-species target heights: `docs/balance/perspective.md`.
 animal beside the guineafowl on its plane is its real size (±15 %, `tools/sizes.ts`): the far
 herds and far ostriches (no longer D-054's 0.57× / 0.45×), the ostrich pair, the baboons, the
 Harvest's warthogs and piglets, Brakkie, the cameos and the weaver colony; their hit and penalty
-areas grow with them (never smaller than the drawn body). Left off true size: the dung beetle
-(bigger on purpose so it reads) and the bakkie (a stage-set prop; the owner decides). Props keep
+areas grow with them (never smaller than the drawn body); Die Oes's farm workers and fence stand
+on the same true scale as its warthogs. Left off true size: the dung beetle (bigger on purpose so
+it reads), the bakkie (a stage-set prop) and the Harvest's mielies (true, they would hide the
+flocks in the rows): the owner decides. Props keep
 their stage-set scale. Table: art bible §4.1 "Every animal at true size".
 The Ver plane (D-036) sits behind the far plane (scroll factor 0.22, between the far ridge and the
 far veld); a rifle's zoom is how you see and hit it (§10.6).
