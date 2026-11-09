@@ -268,6 +268,12 @@ describe('the veld cameos through the real hit test (D-075, review)', () => {
   function birdless(biome: string, kinds: ContentBundle['cameos']['areas'][number]['cameos']) {
     const c = quiet(biome) as unknown as { -readonly [K in keyof ContentBundle]: ContentBundle[K] };
     c.cameos = { ...C, preview: { atSeconds: 0.5, kinds, ...CAMEO_PREVIEW_SPOT } };
+    // D-080: the ostriches' guard set far apart from the cameos', so a cameo shot judged by the
+    // wrong one (any target on the map is within 100 000 px) would come out free.
+    c.birds = {
+      ...c.birds,
+      ostriches: { ...c.birds.ostriches, hit: { ...c.birds.ostriches.hit, guardPx: 100_000 } },
+    };
     return c as ContentBundle;
   }
 
