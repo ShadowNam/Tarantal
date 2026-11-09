@@ -1,6 +1,7 @@
 // What every scene shares: validated content, feel tuning, the asset manifest, audio, the save
 // (settings and progress), live prefs, the platform adapter, the safe area and the test hook.
 // Built once in main.ts.
+import type { Phase2HudHook } from './ui/Phase2Hud';
 import type { BraaiHook } from './braai/BraaiView';
 import type { GraphicsControl } from './assets/graphicsChoice';
 import type * as Phaser from 'phaser';
@@ -602,7 +603,19 @@ export interface TestHook {
     warthogsBagged: number;
     cropBonus: number;
     bystanderPenalty: number;
+    /** v1.18 (D-081): the small hole and Phase 2 (null: not unlocked). */
+    hole: HarvestView['hole'];
+    phase2: {
+      total: number;
+      left: number;
+      ticksLeft: number;
+      cropAtStart: number;
+      result: NonNullable<HarvestView['phase2']>['result'];
+      animals: { id: number; kind: string; phase: string; x: number; y: number; from: string }[];
+    } | null;
   } | null;
+  /** v1.18 (D-081): Phase 2's HUD (null: not the Harvest, or its chunk not in yet). */
+  phase2Hud: Phase2HudHook | null;
   harvestMs: number;
   /** v1.10 (D-067): this hunt's Reënbui from the snapshot (null: none), what its view drew this
    *  frame (null: no view, or the chunk not in yet), the ms its view took summed over the frames

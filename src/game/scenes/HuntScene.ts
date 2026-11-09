@@ -2657,6 +2657,25 @@ export class HuntScene extends Phaser.Scene {
               warthogsBagged: hv.warthogsBagged,
               cropBonus: hv.cropBonus,
               bystanderPenalty: hv.bystanderPenalty,
+              hole: hv.hole,
+              phase2:
+                hv.phase2 === null
+                  ? null
+                  : {
+                      total: hv.phase2.total,
+                      left: hv.phase2.left,
+                      ticksLeft: hv.phase2.ticksLeft,
+                      cropAtStart: hv.phase2.cropAtStart,
+                      result: hv.phase2.result,
+                      animals: hv.phase2.animals.map((a) => ({
+                        id: a.id,
+                        kind: a.kind,
+                        phase: a.phase,
+                        x: a.x,
+                        y: a.y,
+                        from: a.from,
+                      })),
+                    },
             };
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
@@ -3296,13 +3315,14 @@ export class HuntScene extends Phaser.Scene {
       }));
     return {
       birds: result.bagged,
-      warthogs: h?.warthogsBagged ?? 0,
+      warthogs: this.harvest?.warthogsBagged ?? h?.warthogsBagged ?? 0,
       baboons: this.harvest?.baboonsBagged ?? 0,
       crop: Math.max(0, Math.floor(h?.crop ?? 0)),
       cropBonus: h?.cropBonus ?? 0,
       bystanderPenalty: h?.bystanderPenalty ?? 0,
       best: newBest ? result.score : before,
       newBest,
+      phase2: this.harvest?.phase2Rows(h, (k) => guideString(getLanguage(), k) ?? k) ?? [],
     };
   }
 

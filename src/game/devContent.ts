@@ -367,10 +367,18 @@ export function withNoBaboons(b: ContentBundle): ContentBundle {
  * v1.8c (D-063) e2e/dev only: the Harvest's previews. `duckSeconds`: a worker struck by a pellet
  * stays down this long (?harvestDuck=600: a screenshot of the duck under a held frame); `rush`:
  * the rush's peak rate from the start (?harvestRush=1: a full field within seconds).
+ * v1.18 (D-081): `phase2`, `phase2Seconds` (below).
  */
 export function withHarvestPreview(
   b: ContentBundle,
-  opts: { readonly duckSeconds?: number; readonly rush?: boolean },
+  opts: {
+    readonly duckSeconds?: number;
+    readonly rush?: boolean;
+    /** v1.18 (D-081): ?harvestPhase2=1 — the hunt starts with Phase 2's banner; with
+     *  ?harvestPhase2Seconds=<s> its clock is that long (e2e: the clock ends it quickly). */
+    readonly phase2?: boolean;
+    readonly phase2Seconds?: number;
+  },
 ): ContentBundle {
   const h = b.modes.modes.harvest;
   const peak = h.rush.keyframes.at(-1)?.warthogsPerMin ?? 20;
@@ -386,6 +394,11 @@ export function withHarvestPreview(
             opts.duckSeconds === undefined
               ? h.workers
               : { ...h.workers, duckSeconds: opts.duckSeconds },
+          phase2: {
+            ...h.phase2,
+            ...(opts.phase2 === true ? { direct: true } : {}),
+            ...(opts.phase2Seconds === undefined ? {} : { seconds: opts.phase2Seconds }),
+          },
           rush:
             opts.rush === true
               ? {

@@ -527,6 +527,7 @@ const hook: TestHook = {
   harvestActors: null,
   harvestFlyovers: [],
   harvest: null,
+  phase2Hud: null,
   harvestMs: 0,
   reenbui: null,
   reenbuiDraw: null,
@@ -651,12 +652,18 @@ if (testHooks) {
 // ?harvestRush=1 (the rush's peak from the start), for the Harvest's screenshots.
 const duckParam = testHooks ? Number(params.get('harvestDuck') ?? NaN) : NaN;
 const rushParam = testHooks && params.get('harvestRush') === '1';
+// v1.18 (D-081): ?harvestPhase2=1 (Phase 2 from the start), ?harvestPhase2Seconds=<s>.
+const phase2Param = testHooks && params.get('harvestPhase2') === '1';
+const phase2Secs = testHooks ? Number(params.get('harvestPhase2Seconds') ?? NaN) : NaN;
 const devBundle =
-  Number.isFinite(duckParam) && duckParam > 0
-    ? withHarvestPreview(withRain, { duckSeconds: duckParam, rush: rushParam })
-    : rushParam
-      ? withHarvestPreview(withRain, { rush: true })
-      : withRain;
+  (Number.isFinite(duckParam) && duckParam > 0) || rushParam || phase2Param
+    ? withHarvestPreview(withRain, {
+        ...(Number.isFinite(duckParam) && duckParam > 0 ? { duckSeconds: duckParam } : {}),
+        rush: rushParam,
+        phase2: phase2Param,
+        ...(Number.isFinite(phase2Secs) && phase2Secs > 0 ? { phase2Seconds: phase2Secs } : {}),
+      })
+    : withRain;
 // D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
 let adminSave: AdminSave | null = adminOn ? loadAdminSave() : null;
 const adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];

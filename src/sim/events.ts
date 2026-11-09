@@ -889,6 +889,8 @@ export type SimEvent =
       readonly kind: 'warthog' | 'piglet' | 'baboon';
       readonly from: 'left' | 'right' | 'back';
       readonly plane: PlaneId;
+      /** Where it starts (layer px). */
+      readonly x: number;
     }
   /** v1.18 (D-081): a shot landed near a piglet: it runs back out (no points). */
   | {

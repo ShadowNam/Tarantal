@@ -237,6 +237,7 @@ export function createPhase2(
       kind: a.kind,
       from: w.from,
       plane: p.plane,
+      x: a.x,
     });
   }
 

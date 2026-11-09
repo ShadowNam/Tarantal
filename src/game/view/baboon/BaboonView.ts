@@ -572,6 +572,10 @@ export class BaboonView {
           1,
           this.levelDb(e.plane),
         );
+      } else if (e.type === 'phase2Entered' && e.kind === 'baboon') {
+        // v1.18 (D-081): a Phase 2 baboon comes at the Harvest's fence calling.
+        this.calls.warn(tick);
+        this.call('wahoo', e.plane, e.x, audio, width);
       } else if (e.type === 'troopFled' && e.cause === 'loud') {
         this.calls.warn(tick);
         this.call('wahoo', e.plane, e.x, audio, width);

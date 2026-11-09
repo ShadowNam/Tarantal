@@ -760,6 +760,24 @@ export class HarvestView {
 
   /** Baboon raiders bagged this hunt (for the tally; the sim counts the warthogs). */
   baboonsBagged = 0;
+  /** v1.18 (D-081): warthogs bagged this hunt, the rush's and Phase 2's. */
+  warthogsBagged = 0;
+
+  /** v1.18 (D-081): the tally's Phase 2 lines (label, value), none without Phase 2. */
+  phase2Rows(h: SimHarvest | null, text: (key: string) => string): [string, string][] {
+    const r = h?.phase2?.result ?? null;
+    if (r === null) return [];
+    const rows: [string, string][] = [
+      [text('guide.harvest2.tally_stopped'), `${String(r.stopped)} / ${String(r.total)}`],
+      [text('guide.harvest2.tally_crop'), `${String(Math.floor(r.crop))} %`],
+      [text('guide.harvest2.tally_bonus'), `+${String(r.cropBonus)}`],
+    ];
+    if (r.perfectBonus > 0)
+      rows.push([text('guide.harvest2.perfect'), `+${String(r.perfectBonus)}`]);
+    if (r.clearBonus > 0) rows.push([text('guide.harvest2.clear'), `+${String(r.clearBonus)}`]);
+    if (r.reason === 'eaten') rows.push([text('guide.harvest2.eaten'), '0 %']);
+    return rows;
+  }
   /** The last sim tick the workers' hammering played. */
   private hammerTick = -1;
 
@@ -776,15 +794,24 @@ export class HarvestView {
     };
     for (const e of events) {
       if (e.type === 'baboonBagged') this.baboonsBagged++;
+      else if (e.type === 'warthogBagged') {
+        this.warthogsBagged++;
+        play('thump', e.plane, e.x);
+      } else if (e.type === 'phase2Entered') {
+        // v1.18 (D-081): each comes at the field with its call (the baboons' from BaboonView).
+        const a = h?.phase2?.animals.find((x) => x.id === e.animalId);
+        if (a !== undefined && e.kind !== 'baboon')
+          play(e.kind === 'piglet' ? 'squeal' : 'grunt', a.plane, a.x);
+      } else if (e.type === 'harvestHolePatched' && h !== null && h.hole !== null)
+        play('hammer', 'mid', h.hole.x);
       else if (e.type === 'harvestFenceBroken' && h !== null) play('snap', 'mid', h.gap.x);
       else if (e.type === 'warthogEntered') {
         const w = h?.warthogs.find((x) => x.id === e.warthogId);
         if (w !== undefined) play('grunt', w.plane, w.x);
       } else if (e.type === 'warthogHit' && e.hitsLeft > 0) play('grunt', e.plane, e.x);
-      else if (e.type === 'warthogBagged') play('thump', e.plane, e.x);
       else if (e.type === 'harvestBystanderHit' && e.who === 'piglet') play('squeal', e.plane, e.x);
       else if (e.type === 'cropWarning') play('warn', null, 0);
-      else if (e.type === 'harvestFenceClosed') play('jingle', null, 0);
+      else if (e.type === 'harvestFenceClosed' || e.type === 'phase2Ended') play('jingle', null, 0);
     }
     if (h !== null && h.phase === 'rush' && state.tick - this.hammerTick >= HAMMER_TICKS) {
       const k = h.workers.find((w) => w.phase === 'work');

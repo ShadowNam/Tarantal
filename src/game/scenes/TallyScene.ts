@@ -51,6 +51,8 @@ export interface HarvestTally {
   /** The local best after this hunt (null: unranked and never played). */
   readonly best: number | null;
   readonly newBest: boolean;
+  /** v1.18 (D-081): Phase 2's lines (label text, value), before the best. */
+  readonly phase2?: readonly (readonly [string, string])[];
 }
 
 /** v1.11 (D-068): what the braai's story needs beyond the result (absent: no braai). */
@@ -364,6 +366,7 @@ export class TallyScene extends Phaser.Scene {
               'tally.harvest_bystanders',
               hv.bystanderPenalty > 0 ? `-${formatScore(hv.bystanderPenalty)}` : '0',
             ],
+            ...(hv.phase2 ?? []).map(([a, b]): [I18nKey, string] => [a as I18nKey, b]),
             ['tally.harvest_best_row', hv.best === null ? '—' : formatScore(hv.best)],
           ]
         : [
@@ -394,7 +397,10 @@ export class TallyScene extends Phaser.Scene {
         key === 'tally.harvest_bystanders' && (hv?.bystanderPenalty ?? 0) > 0
           ? '#FF6B5A'
           : '#F3EAD3';
-      const label = this.add.text(px + 80, y, t(key), chalk(rowFont, '#F3EAD3', false)).setAlpha(0);
+      // v1.18 (D-081): Phase 2's lines come as text (lazy strings), the rest as keys.
+      const label = this.add
+        .text(px + 80, y, isI18nKey(key) ? t(key) : key, chalk(rowFont, '#F3EAD3', false))
+        .setAlpha(0);
       const val = this.add
         .text(px + panelW - 80, y, value, chalk(rowFont, color, false))
         .setOrigin(1, 0)
