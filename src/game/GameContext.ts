@@ -794,6 +794,8 @@ export interface TestHook {
   };
   /** v1.7b: the tally's "Power-ups used" row (ids, in order of first use). */
   tallyPowerups?: string[];
+  /** v1.18 (D-081): the tally's rows as shown ("label|value"). */
+  tallyRows?: string[];
   /** D-060: the title's line over "Continue run" (season, hunt, caps), when a run is in play. */
   runStatus?: string | null;
   /** v1.7b (D-046): the Gun Shed's Power-ups tab: each card as drawn, and the list's scroll. */

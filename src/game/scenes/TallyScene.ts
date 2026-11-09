@@ -387,7 +387,10 @@ export class TallyScene extends Phaser.Scene {
     // v1.7b (D-046): the power-ups used, as icons and names (a row of their own).
     const used = data.powerups ?? [];
     if (used.length > 0) rows.splice(rows.length - 1, 0, ['tally.powerups', '']);
-    if (this.ctx.hook) this.ctx.hook.tallyPowerups = [...used];
+    if (this.ctx.hook) {
+      this.ctx.hook.tallyPowerups = [...used];
+      this.ctx.hook.tallyRows = rows.map(([k, v]) => `${isI18nKey(k) ? t(k) : k}|${v}`);
+    }
     const rowH = Math.min(52, (panelH - 480) / rows.length);
     const rowFont = Math.min(36, Math.floor(rowH * 0.78));
     rows.forEach(([key, value], i) => {
