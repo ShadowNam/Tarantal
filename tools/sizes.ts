@@ -103,7 +103,18 @@ export const REAL_M = {
   piglet: 0.3,
   /** A sociable weaver's wingspan. */
   weaverWingspan: 0.22,
+  /** An African pygmy falcon's wingspan (34–40 cm). */
+  falconWingspan: 0.37,
+  /** A rosy-faced lovebird's wingspan (est.: wings ~10 cm each and the body). */
+  lovebirdWingspan: 0.24,
 } as const;
+
+/**
+ * v1.17b (D-080): the colony sheet's flying frames' drawn widths (opaque px of weaver_fly_a,
+ * falcon_fly_a and lovebird_fly_a in art-source/sprites/desert/colony.png): the falcon and the
+ * lovebird against the weaver the wingspanPx is set for.
+ */
+export const COLONY_FLY_W = { weaver: 113, falcon: 141, lovebird: 109 } as const;
 
 /**
  * v1.17b (D-080): each cameo's height as drawn in v1.13 (at sizeMul 1; design px on its plane),
@@ -308,8 +319,28 @@ function trueSizeRows(content: ContentBundle, feel: Feel, row: RowFn): SizeRow[]
     );
   // The weaver colony's birds: their drawn wingspan on each plane.
   const ws = feel.treeLife.colony.wingspanPx;
-  for (const p of ['near', 'mid', 'far', 'ver'] as const)
+  const fw = COLONY_FLY_W;
+  for (const p of ['near', 'mid', 'far', 'ver'] as const) {
     rows.push(row(`colony_weaver_${p}`, REAL_M.weaverWingspan, 'wingspan', p, ws[p]));
+    rows.push(
+      row(
+        `colony_falcon_${p}`,
+        REAL_M.falconWingspan,
+        'wingspan',
+        p,
+        ws[p] * feel.treeLife.colony.falconMul * (fw.falcon / fw.weaver),
+      ),
+    );
+    rows.push(
+      row(
+        `colony_lovebird_${p}`,
+        REAL_M.lovebirdWingspan,
+        'wingspan',
+        p,
+        ws[p] * (fw.lovebird / fw.weaver),
+      ),
+    );
+  }
   return rows;
 }
 
@@ -322,4 +353,12 @@ export const NOT_FIXED: Readonly<Record<string, string>> = {
   bakkie:
     "a stage-set prop: at its true 1.8 m beside the mid guineafowl (208 → 398 px tall, ~1 050 px long) it would stand as tall as the 9 m windpomp (drawn 395 px) and 3× the reservoir (133 px) — the scene's props are all on a stage-set scale (docs/balance/perspective.md); the owner decides",
   guineafowl: `the yardstick (${GUINEAFOWL_M} m): its size and hit boxes never change`,
+  harvest_mielies:
+    "Die Oes's crop (not an animal; listed beside the Harvest's true-size workers and fence): true mielies (2.2–2.5 m) would be 490–550 px on the mid plane and the front rows would hide the flocks feeding in the field; they stay stage-scale (120–215 px); the owner decides",
+  okavango_hippo:
+    'an animal drawn as a stage-set prop (the Okavango secret "hippo": 96 px for ~1 m of head above the water, 0.43× true on the mid plane), sized with the reeds and the mokoro pole around it; its hit part is the secret\'s; the owner decides',
+  okavango_lily_frog:
+    "a prop (the lily-pad frog secret): drawn bigger than life so a player can find it, its hit part the secret's",
+  bushveld_dassie:
+    'drawn inside its prop (the dassie koppie secret) at 2× its old art, within its unchanged hit part; the koppie is a stage-set prop',
 };

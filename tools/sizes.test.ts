@@ -49,12 +49,22 @@ describe('real animal sizes next to the guineafowl (D-078, D-080)', () => {
       'colony_weaver_mid',
       'colony_weaver_far',
       'colony_weaver_ver',
+      'colony_falcon_near',
+      'colony_lovebird_near',
     ])
       expect(ids.has(id), id).toBe(true);
   });
 
-  it('D-080: only the guineafowl, the dung beetle and the bakkie are left, each with its reason', () => {
-    expect(Object.keys(NOT_FIXED).sort()).toEqual(['bakkie', 'cameo_dung_beetle', 'guineafowl']);
+  it('D-080: only the yardstick, the dung beetle, the stage-set props and the mielies are left, each with its reason', () => {
+    expect(Object.keys(NOT_FIXED).sort()).toEqual([
+      'bakkie',
+      'bushveld_dassie',
+      'cameo_dung_beetle',
+      'guineafowl',
+      'harvest_mielies',
+      'okavango_hippo',
+      'okavango_lily_frog',
+    ]);
   });
 
   for (const r of rows)

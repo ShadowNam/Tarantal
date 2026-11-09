@@ -1603,7 +1603,7 @@
     "colony": {
       "birds": { "near": 13, "mid": 13, "far": 5, "ver": 3 },
       "wingspanPx": { "near": 116, "mid": 49, "far": 17, "ver": 8 },
-      "falconMul": 1.2,
+      "falconMul": 1.35,
       "perchShare": 0.3,
       "groundShare": 0.14,
       "reducedCountMul": 0.5,
