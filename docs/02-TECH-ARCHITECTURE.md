@@ -173,7 +173,7 @@ export interface Sim {
 
 ### 3.4 Shot resolution
 - Shotgun: on `fire`, draw `pelletCount` offsets from `rng.stream('pellets')` inside a disc of
-  `spreadPx` (uniform by area), apply wind drift (far plane, wind-sensitive weapons), test each pellet
+  `spreadPx` (uniform by area), apply wind drift (every plane since v1.17, below), test each pellet
   front-to-back. A shot counts as a **hit** on a target when its pellets on that target ≥
   `min(pelletsToBag, weapon.pellets)` (single-projectile weapons always qualify). Pellets never
   accumulate across shots. Targets track `armorHits` remaining, then `hitsToBag` (default 1).
@@ -188,6 +188,20 @@ export interface Sim {
   The radius is design px at the mid plane and scales with `plane.scale / mid.scale`; each impact
   is projected onto the flock's plane with `tapToPlane`. A shot resolves damage first (bags score
   at the behaviour the bird had), then Whole Flock, then its threats (`src/sim/flocks/threats.ts`).
+- **Wind drift (v1.17, D-079; `src/sim/omen/wind.ts`).** `windDriftAt(wind, sens, f)` = `driftPxAtFar`
+  × strength^`strengthExponent` × `dir` × `sens` × `planeDriftMul(f)`, where `sens` is the weapon's
+  `windSensitivity` × the charms' `windDriftMul`, strength is the period's plus the gust's
+  (`strengthNow`, ≤ 1, `pow` from `detmath`), and `planeDriftMul` interpolates the biome's
+  `driftPlaneMul` (near/mid/far/Ver) linearly by scroll factor, clamped at the ends (the sky = Ver).
+  `resolvePellet(…, driftDx, stop)` shifts each slice by `driftDx(slice.scrollFactor)` and reports
+  the scroll factor the pellet stopped on (`stop.f`, −1 for the sky); `PatternPellet.f` carries it,
+  and `pelletImpact` lands at `dx + drift(f)` and, on wind hunts only, carries `driftPx` and
+  `driftFarPx` (so every other hunt's event stream is byte-identical). Gusts come from a stream
+  seeded with the first wind roll's numbers (`createStream`), never extra draws on `omen` (the
+  showers, the storm and the dust devils keep their sequences); a gust start emits `windGust`.
+  `WindView` adds `gust` (0..1), `farDriftPx` and the plane `curve`; the fruit view re-places drifted
+  pellets per layer from them (`fruitHits.ts`). Without the new fields a biome keeps the old rule
+  (far and behind only, linear).
 - Projectile weapons (Kettie): **delayed hitscan** — travel time per plane (near 80 ms, mid 180 ms,
   far 350 ms), gravity drop and wind drift applied at arrival; the target may have moved (leading
   is the skill). M8 (`src/sim/weapons/projectile.ts`): the front-to-back slices split into three
@@ -429,7 +443,9 @@ and bonus map ids, empty = none — follows the mode block, and a v1–v3 log de
 replays on the plain biome it was played on; v5 since v1.3: the fitted sight follows the map, '' =
 the gun's default, and the rifle commands `aimStart`/`aimMove` (positions), `aimRelease`,
 `aimCancel` and `zoom` (step) are appended to the op table — a v1–v4 log holding one is corrupt;
-v6 since v1.7.3 (D-048): the special day's id follows the sight, '' = an ordinary hunt),
+v6 since v1.7.3 (D-048): the special day's id follows the sight, '' = an ordinary hunt; v1.17,
+D-079: the op `whistle` — Brakkie's whistle, no payload — is appended to the op table without a
+version change: no older log holds it),
 delta + varint encoded,
 then base64url'd (`src/sim/replay/inputLog.ts`). Deflate is applied outside the sim, at the
 share/challenge-link boundary (M7), because it needs async platform APIs (D-018). Used for: golden tests, bug reports (attach log), ghost replays, and
@@ -740,6 +756,30 @@ tally). One image for him and one for the bird he carries; properties set on cha
 Phaser calls in the worst frame at 20 ticks a frame, unit-tested), his own `brakkieMs`. The
 soundscape's calls make room while he barks, yelps or digs (the snapshot's phase, read only).
 
+**The companion (1.20.0, D-079).** New phases `point`, `spring`, `toHeel`, `heel`, `react`; poses
+`point`, `proud`, `tilt` (the point has its own hit box, `hitboxes.point`). The host adds
+`canFlush()` (the map's flock cap has room) and `bonus(id, base)` (the hunt's `awardBonus`: an
+event bonus × Frenzy × Stampede); the system adds `aimed(aimOn, miss)` (every shot: the Bring
+streak breaks for an aim within `clear.aimPx` of his body while he carries; clean misses count for
+the head tilt), `cheer()` (a Whole Flock or Twee Vlieë from `awardBonus`, reaching the top Frenzy
+tier, a Ver bag) and `whistle()` (the `whistle` command). Fetches: no chance draw (the ready rule);
+a queued bird is fetched only once `gunUp(fetch.quietSeconds)` is false, or at once when the whistle
+sends him ("Soek!" with a bird down). The flush timer starts a point (`toDig` → `point` at
+`point.seconds`, `startPoint` puts the flock's spot `point.aheadPx` ahead of his nose on the mid
+ground) → `spring` (`point.springSeconds`) → `host.flush(spot, point.size)`; the whistle springs it
+at once. Bags of the pointed flock within `point.goodPoint.withinSeconds` count to "Mooi punt!".
+Bonus ids `bring`, `bringStreak`, `goodPoint`; events `brakkieFetched {streak, points}`,
+`brakkieStreakBroken`, `brakkiePointed`, `brakkieWhistled`, `brakkieReacted`, `brakkieFlushed`
+`{pointed, whistled}`. `BrakkieView` (sim) adds `point` (the marker's layer, x, y, scale),
+`streak`/`bestStreak`, `whistle` (what it would do now, null on the cooldown or when it would do
+nothing), `react` and counts. Test flags: `?brakkiePreview=point` (a point 4 s in, held 8 s) and
+`react` (`demoProudSeconds`: a proud hop 4 s in; reactions 6 s, one a second); `?wind=strong`
+(full wind with long gusts). The view draws the marker (the sheet's `marker` frame on the mid
+layer's fixtures, rustling every 6 ticks, still with reduce motion), the command words over him
+(84 ticks, sim time) and plays the whistle and a yap; the HUD shows the Bring pop-ups and the
+whistle button (`HudLayout.whistle`); the wind grass is its own lazy chunk
+(`src/game/view/wind/`).
+
 ### 3.12g Veld cameos (1.17.0, D-075)
 `src/sim/cameos/system.ts` lives in the lazy systems chunk (`LazySystems.cameos`) and talks to the
 hunt through `CameoHost` (tick, emit, penalty, the camera, `busyNear` — any hit extra on the layer
@@ -899,6 +939,9 @@ v1.11 (D-068), **Die Braai** (`src/game/braai/`), presentation only (no sim chan
 - Converts device input → sim `Command`s; owns gesture recognition (tap vs drag vs flick-down) and
   pan inertia (exponential decay, max 2 400 design px/s).
 - Desktop edge-pan (outer 12 %), keyboard pan, right-click reload (suppress context menu).
+- v1.17 (D-079): **F** and the **middle mouse button** send `whistle` (Brakkie); on touch a tap on
+  the whistle button (`InputHost.isOnWhistle`, shown only on touch while he is out) does, and never
+  fires or pans.
 - Rifles (v1.3, D-036): while the snapshot's weapon has a sight, a press sends `aimStart` at the
   pointer (pointer captured), moves become `aimMove` at `press + (pointer − press) / zoom`
   (at most one per tick, so replay logs stay small), the release sends `aimRelease`. Right-click

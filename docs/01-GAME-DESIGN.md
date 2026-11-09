@@ -451,9 +451,23 @@ Omens are on in Season Run omen hunts and in the **Daily Hunt**; **Classic is of
 a weekday layout can override both: `calm` days have none, `omen` days have it in Classic too, §11.5;
 `modes.json → omen`, D-021). Karoo wind: direction and strength (0.4–1.0) re-rolled every 12–20 s;
 flying birds (fly-overs and flushed flocks) go ×(1 + (1.4 − 1)·strength) with the wind and
-×(1 + (0.7 − 1)·strength) against it; pellets on the far plane (and behind it) drift downwind by
-45 px × strength × the weapon's `windSensitivity`. Dust devils cross the view downwind for 8–12 s
-and flush each flock they touch once.
+×(1 + (0.7 − 1)·strength) against it. Dust devils cross the view downwind for 8–12 s and flush
+each flock they touch once.
+
+**Wind that matters (1.20.0, D-079; the owner: "when the wind is showing some stronger wind, I
+think the bullets should also drift off a bit more").** A shot drifts downwind on **every** plane,
+more the farther it flies: drift = 45 px × strength^1.5 × the plane's share (near 0.15, mid 0.5,
+far 1, Ver 1.4; linear between planes for a prop layer; a shot into the sky as Ver) × the weapon's
+`windSensitivity` (× the Windleser charm's `windDriftMul`). Strength^1.5: a light breeze (0.4)
+barely pushes a shot (≈ 11 px at the far plane), a full gale clearly does (45 px; the Ver plane
+63 px). **Gusts:** every 5–10 s a 1.2–2.2 s gust adds up to 0.3 to the strength (a quick rise, a
+slower fall; never above 1), on the drift and on everything that shows the wind — birds keep the
+period's strength. **What you see matches the drift:** the windsock's angle and length, the dust
+and leaves, and grass tufts on the near ground lean with the same number (strength^1.5, gust
+included), and a **wind meter** under the sock (an arrow downwind and five strength bars, warmer
+while a gust blows) shows on every map with wind, phones too (Karoo, Namibië, the Harvest's
+Oes). Balance: the Karoo and Namibië (omen on) within −2 … −4 % of the competent mean
+(docs/balance/v1.17-companion.md).
 | 2 | **Winter** | **Bushveld** (Limpopo/Waterberg) | Pale blue sky, frost smoke at dawn, baobabs, mopane, granite koppies, **red aloes flowering (they bloom in winter)**, giraffe silhouettes | **Low sun glare** + morning dust | Glare zone on one side of the pan; 60 % of flocks run rather than fly; boulders occlude | Ou Grys |
 | 3 | **Lente** (Spring) | **Okavango** floodplain | Papyrus, reeds, ilala palms, jackalberry and sausage trees, water lilies, hippos, lechwe; sun-showers + rainbow | **Sun-showers** | Kuifkop hop out of reeds; shots near water splash-alert; a hippo yawn flushes nearby flocks | Kuifkop Koning |
 | 4 | **Somer** (Summer) — finale | **Kalahari** red dunes | Red dunes, camelthorn trees, **sociable-weaver mega-nests (huge haystack nests in the canopy)**, gemsbok, heat shimmer → thunderstorm | **Heat haze → Donderstorm** | Haze wobbles far targets; rain makes flocks run not fly; lightning reveals silhouettes | Die Stormvoël |
@@ -902,6 +916,51 @@ has two dogs. Bles never shows on screen; Brakkie does.)
   < 0.1 a hunt for every gun.
 - **Accessibility:** "reduce motion" keeps him calm (no blurred wag); "reduce flashes" changes
   nothing here.
+
+#### §11.3f, continued: Brakkie the companion (1.20.0, D-079)
+The owner (8 Nov, evening): "I see great potential in the dog, could be a great companion and help
+more and more with the hunts and help get extra points in collecting and hunting down close ones."
+Real gundogs **point** (freeze at hidden birds), **flush** them on command and **retrieve** what
+falls; good game dogs help and never block or mock the player. On top of 1.19.0's roaming and
+fetching Brakkie (`content/brakkie.json`):
+- **"Bring!" (retrieve):** each bird he delivers to the bakkie pays **+15** — an event bonus (×
+  Frenzy × Stampede at delivery) — with a small pop-up at the screen edge ("Bring! +15") and a happy
+  yap. **Every 3 deliveries in a row: "Goeie hond!" +30.** The streak breaks if he is hit, or if a
+  shot is aimed within `clear.aimPx` (340 px) of him while he carries a bird (hold fire round him).
+  The **ready rule** (no chance roll; the same for every Daily player): once he is back, he fetches
+  the next bird down in reach (near or mid, within 640 screen px of the centre, its spot clear of
+  live birds), one at a time from a queue of up to 3. **Sent when the shooting stops:** he runs out
+  only after the gun has been quiet `fetch.quietSeconds` (4 s), or at once when **sent with the
+  whistle ("Soek!")**.
+- **"Staan!" (the point):** instead of the plain dig, he freezes in a classic point (body low and
+  level, the near front paw lifted, tail straight up, quivering) at a hidden flock; a small marker
+  (a rustling grass tuft and a tiny white chevron) shows where it sits on the mid ground, ahead of his
+  nose. After 2.5 s he springs in and the flock bursts up flushing — or the player springs it sooner
+  with the whistle. The pointed flock is **5 birds** (the Whole Flock is possible); bagging **3 of
+  its birds** within 8 s of the burst pays **"Mooi punt!" +20**. It comes from the flush timer
+  (first 24–36 s in, then every 60–80 s, chance 0.7) and only when the map has room for a flock.
+  Stray pellets only make him yelp (never points: the aimed-at rule stands); his top stays below
+  the mid ground.
+- **"Fluit!" (the whistle):** a recorded command (`whistle`, so replays and the Daily stay exact).
+  Phones: a **72-px round whistle button** in the bottom corner opposite the shells (above the
+  gadget; mirrored with the left-handed layout); desktop: **F** (and the middle mouse button). By
+  context: on point → **"Spring!"** (flush now); roaming with a bird down → **"Soek!"** (he goes for
+  it now); roaming → **"Hier!"** (he trots to heel at the view's bakkie side and sits 10 s — the
+  player can always clear him out of the way); at heel → **"Soek!"** (back to work). Cooldown 3 s;
+  nothing while he carries, bolts or is away; the button is hidden in modes without him and while
+  he is away, dimmed while it would do nothing.
+- **Reactions (no points):** after a Whole Flock, Twee Vlieë, Frenzy ×3 or a Ver bag he does a
+  proud hop and a double bark (if idle); after 3 clean misses in a row he sits and tilts his head,
+  one ear flopping — sympathetic, **never laughing at the player**. 0.8 s, only from idle, at most
+  one per 8 s.
+- **Words:** "Bring!", "Goeie hond!", "Mooi punt!", "Staan!", "Spring!", "Hier!", "Soek!" in
+  Afrikaans; English "Fetch!", "Good dog!", "Nice point!", "Point!", "Flush!", "Heel!", "Seek!",
+  with German and Dutch the same way (i18n `hud.brakkie_*`, editable in the Texts & voices page).
+- **Notaboek:** "Goeie hond: Brakkie's best Bring streak — 5 in a row in one hunt". **Oupa at the
+  braai:** "Brakkie brought in {n} in a row. What a good dog!" for a streak of 3 or more.
+- **Balance gate** (Classic, 200 seeds an area vs 1.19.0): a player who works with him (sends him,
+  springs his point when loaded, holds fire round him) gains +3 … +7 %; one who ignores him ≤ +2 %;
+  accidental hits on him < 0.1 a hunt (docs/balance/v1.17-companion.md).
 
 ### 11.3g Veld cameos: more wildlife in every area (1.17.0, D-075)
 From the product owner's list of 24 Oct ("the veld must feel alive and African"). A few of the
