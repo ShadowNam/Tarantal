@@ -4434,9 +4434,10 @@ the far herds' view and tables, the test-only ruler hook and the herds' frame ta
 Bushveld 1,457 KB, Okavango 1,477, Namibië + desert 1,519, the Harvest 1,229, late 1,490.
 
 **Balance** (`docs/balance/v1.17b-sizes.md`; 200 seeds per area, main 2d23df11 → branch). Every
-mean within −7.7 … +0.7 % (Namibië's random bot −7.7 %, its competent −5.5 %); all gates pass.
+mean within −5.6 … +5.7 % (Namibië's competent +5.7 %, 4,483, after the ostrich pair became
+pass-through; −5.5 % while it still stopped pellets to the birds behind it); all gates pass.
 Penalties a hunt, bird-only bots (plinker · competent) before → after: Karoo 0.06 · 0.06 → 0.11 ·
-0.11, Kalahari 0.47 · 1.02 → 0.48 · 0.94, Namibië 1.94 · 2.69 → 1.17 · 2.56, Bushveld 0.06 · 0.06 →
+0.11, Kalahari 0.47 · 1.02 → 0.48 · 0.94, Namibië 1.94 · 2.69 → 1.17 · 2.65, Bushveld 0.06 · 0.06 →
 0.14 · 0.06, Okavango 0.07 · 0.07 → 0.09 · 0.06. The random bot, which fires at random points,
 hits the bigger bodies more often (+0.2 … +0.8 a hunt): shots aimed at them. **The Harvest**
 (main → branch, workers and fence at true scale): plinker 1,560 → 1,551 (−0.6 %), competent 1,842
