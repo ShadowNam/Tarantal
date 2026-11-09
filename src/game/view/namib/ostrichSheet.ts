@@ -2,10 +2,9 @@
 // female in every pose the sim uses (standing, looking round, a four-step walk, pecking, sitting
 // on the nest, the male's wing display, a three-step run, hissing), the nest scrape and one egg.
 // Frames face right with the feet (or the scrape's middle) at their origin, in design px at the
-// mid plane (OSTRICH_ART_SCALE: the view scales by the family's plane scale ÷ it). One sheet at
-// 1.5× (OSTRICH_MASTER) serves Standard and HD: a 2× sheet would take Namibië's HD texture memory
-// past its target (D-059). Pure constants: the game, the placeholder and the interim art
-// generator (tools/art/ostrich.ts) read them.
+// mid plane (OSTRICH_ART_SCALE: the view scales by the family's plane scale ÷ it). D-080: drawn
+// for the true-size birds (OSTRICH_MASTER, with an HD twin). Pure constants: the game, the
+// placeholder and the interim art generator (tools/art/ostrich.ts) read them.
 
 import type { OstrichView } from '../../../sim/types';
 
@@ -113,14 +112,24 @@ export const OSTRICH_SHEET_H = ((): number => {
   return Math.max(...fr.map((f) => f.y + f.h)) + GAP;
 })();
 
-/** Texture px per design px of a sheet whose file is `width` px wide (1 Standard, 2 HD). */
+/** Texture px per layout px of a sheet whose file is `width` px wide (OSTRICH_MASTER Standard,
+ *  twice that HD). */
 export function ostrichTexelsPerPx(width: number): number {
-  // Not rounded: the sheet ships at 1.5× (Standard and HD, D-059).
+  // Not rounded: the sheet ships at ≈ 1.41× (Standard) and ≈ 2.81× (HD).
   return Math.max(1, width / OSTRICH_SHEET_W);
 }
 
-/** Texture px per design px the interim sheet is drawn at (one sheet for Standard and HD). */
-export const OSTRICH_MASTER = 1.5;
+/**
+ * The sheet's layout is in design px at the mid plane at sizeMul 1 (a standing bird 197 px). D-080:
+ * the birds are shown at their true size, sizeMul 2.8 (553 px), so the Standard file is drawn at
+ * 1440 / 1024 ≈ 1.41 texture px per layout px — 0.5 per drawn px — and its HD twin at twice that (1.0
+ * per drawn px; 2880 px wide).
+ * Redrawn from the vector shapes at that size, never scaled up (D-080 review 4). D-059 shipped
+ * one 1.5× sheet for both (0.54 per drawn px at the true size: blurry).
+ */
+export const OSTRICH_MASTER = 1440 / OSTRICH_SHEET_W;
+/** The birds' growth the sheet is drawn for (content birds.json ostriches.sizeMul, tested equal). */
+export const OSTRICH_DRAWN_MUL = 2.8;
 
 /** Where each egg lies in the scrape (design px at the art scale, from its middle), in the
  *  order they are laid: the first `eggs` of these show. Packed in two loose rings. */
