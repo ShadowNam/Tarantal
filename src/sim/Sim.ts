@@ -33,7 +33,6 @@ import {
 } from './cans/cans';
 import {
   MAKALANI_SECRET,
-  NUT_ID_BASE,
   hitNut,
   nutHitR,
   nutLive,
@@ -90,7 +89,7 @@ import {
   type ReactionScope,
 } from './flocks/threats';
 import { devilContacts, dustDevilView, tickDustDevil, type DustDevil } from './omen/dustDevil';
-import { createWind, tickWind, windDriftPx, windSpeedMul, windView } from './omen/wind';
+import { createWind, tickWind, windDriftAt, windSpeedMul, windView } from './omen/wind';
 import {
   activate,
   effectsOf,
@@ -637,10 +636,6 @@ export function createSim(config: SimConfig): Sim {
   const planeLayer = new Map<PlaneId, string>();
   for (const l of biome.layers) if (l.plane !== undefined) planeLayer.set(l.plane, l.id);
   const chainTicks = secondsToTicks(scoring.secretChain.withinSeconds);
-  /** Each prop's layer scroll factor (where a pellet that stopped on it landed). */
-  const propLayerFactor = new Map(
-    biome.props.map((p) => [p.id, layerById.get(p.layer)?.scrollFactor ?? 1]),
-  );
 
   const geometry: ShotGeometry = {
     slices: buildSlices(biome),
@@ -1277,7 +1272,14 @@ export function createSim(config: SimConfig): Sim {
   /** Held fire position (fireHoldStart … fireHoldEnd). */
   let hold: { dx: number; sy: number } | null = null;
   const wind =
-    setup.omen && biome.omen.wind !== undefined ? createWind(biome.omen.wind, omenRng) : null;
+    setup.omen && biome.omen.wind !== undefined
+      ? createWind(biome.omen.wind, omenRng, {
+          near: scoring.planes.near.scrollFactor,
+          mid: scoring.planes.mid.scrollFactor,
+          far: scoring.planes.far.scrollFactor,
+          ver: scoring.planes.ver.scrollFactor,
+        })
+      : null;
   let dustDevils: DustDevil[] = [];
   /** Bushveld low sun (omen): which side of the view the glare is on, drawn once (D-025). */
   /** Okavango water zones as occluder shapes on their layers (twist, every mode). */
@@ -2093,9 +2095,11 @@ export function createSim(config: SimConfig): Sim {
     return dx === 0 && hittable === v.hittable ? v : { ...v, x: v.x + dx, hittable };
   }
 
-  /** Wind drift of a shot, in screen px on the far plane and behind (Tech §3.4). */
-  function shotDrift(shot: ShotStats): number {
-    return windDriftPx(wind, shot.windSensitivity) * pass.windDriftMul;
+  /** v1.17 (D-079): a shot's wind drift (screen px) at scroll factor f — every plane, more the
+   *  farther (Tech §3.4). */
+  function shotDrift(shot: ShotStats): (f: number) => number {
+    const sens = shot.windSensitivity * pass.windDriftMul;
+    return (f: number): number => windDriftAt(wind, sens, f < 0 ? 0 : f);
   }
 
   /**
@@ -2110,28 +2114,10 @@ export function createSim(config: SimConfig): Sim {
     r: PelletResult,
     drift: number,
     cx: number | null,
+    farDrift = 0,
   ): Landed {
-    const farFactor = planeGeo.far.scrollFactor;
-    const plane = r.birdId === null ? null : (birds.find((b) => b.id === r.birdId)?.plane ?? null);
-    const landedFar =
-      r.birdId !== null
-        ? plane === 'far' || plane === 'ver'
-        : r.meerkatId !== undefined || r.ostrichId !== undefined || r.tellId !== undefined
-          ? false
-          : r.harvestId !== undefined || r.dogId !== undefined || r.cameoId !== undefined
-            ? false
-            : r.baboonId !== undefined
-              ? baboons?.plane(r.baboonId) === 'far' || baboons?.plane(r.baboonId) === 'ver'
-              : r.canId !== undefined
-                ? thingPlane(r.canId) === 'far' || thingPlane(r.canId) === 'ver'
-                : r.spookId !== undefined
-                  ? spook?.things.find((t) => t.id === r.spookId)?.plane === 'far'
-                  : r.crateId !== null
-                    ? crateCfg.plane === 'far'
-                    : r.propId !== null
-                      ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
-                      : true;
-    const ldx = landedFar ? pdx + drift : pdx;
+    // v1.17 (D-079): `drift` is the wind's push at the layer it stopped on (every plane).
+    const ldx = drift === 0 ? pdx : pdx + drift;
     emit({
       type: 'pelletImpact',
       tick,
@@ -2152,6 +2138,7 @@ export function createSim(config: SimConfig): Sim {
       ...(r.harvestId === undefined ? {} : { harvestId: r.harvestId }),
       ...(r.dogId === undefined ? {} : { dogId: r.dogId }),
       ...(cx === null ? {} : { cx }),
+      ...(wind === null ? {} : { driftPx: drift, driftFarPx: farDrift }),
     });
     return { dx: ldx, sy: psy, r };
   }
@@ -2180,16 +2167,8 @@ export function createSim(config: SimConfig): Sim {
     };
   }
 
-  /** The plane of a can or a nut (by id; null when it is gone from play). */
-  function thingPlane(id: number): PlaneId | null {
-    if (id >= NUT_ID_BASE) return palms?.nuts.find((n) => n.id === id)?.plane ?? null;
-    for (const f of fences()) if (f.cans.some((c) => c.id === id)) return f.fence.plane;
-    return null;
-  }
-
-  function driftOn(drift: number): (f: number) => number {
-    const farFactor = planeGeo.far.scrollFactor;
-    return (f: number): number => (f <= farFactor ? drift : 0);
+  function driftOn(drift: (f: number) => number): (f: number) => number {
+    return drift;
   }
 
   /** `how`: v1.3 rifles fire through the sight (swayed aim, no spread) or from the hip (the
@@ -2287,7 +2266,10 @@ export function createSim(config: SimConfig): Sim {
         ? hitExtras(assisted.assistPx)
         : extras,
     );
-    const landed = pellets.map((p) => landPellet(shotId, p.pdx, p.psy, p.r, drift, null));
+    const farDrift = drift(planeGeo.far.scrollFactor);
+    const landed = pellets.map((p) =>
+      landPellet(shotId, p.pdx, p.psy, p.r, drift(p.f), null, farDrift),
+    );
     resolveShot(ctx, landed);
     return true;
   }
@@ -2308,7 +2290,19 @@ export function createSim(config: SimConfig): Sim {
         const psy = f.sy + band.dropPx;
         // Bands are built without the Ver layer: a stone falls short of it.
         const geo = bandGeometry(stats.bagged === 0 ? firstHitGeometry : geometry, band);
-        const r = resolvePellet(f.dx, psy, f.cx, geo, hitBirds(), hitExtras(), driftOn(drift));
+        const stop = { f: -1 };
+        const r = resolvePellet(
+          f.dx,
+          psy,
+          f.cx,
+          geo,
+          hitBirds(),
+          hitExtras(),
+          driftOn(drift),
+          stop,
+        );
+        const landDrift = drift(stop.f);
+        const farDrift = drift(planeGeo.far.scrollFactor);
         // 1.9.3 (D-056): a nut alone doesn't stop the stone (bands see one plane at a time, so
         // resolvePellet can't look past it): the first one is kept and the stone flies on; a bird
         // in a later band takes the stone, anything else (or nothing) gives it to the nut.
@@ -2316,7 +2310,7 @@ export function createSim(config: SimConfig): Sim {
         // v1.13 (D-075): a veld cameo (near or mid) is passed through the same way: the first
         // one is kept, and the stone ends on it only when nothing behind takes it.
         const cameoOnly = r.cameoId !== undefined && !isTarget(r);
-        if (nutOnly || cameoOnly) f.nut ??= { r, psy, drift };
+        if (nutOnly || cameoOnly) f.nut ??= { r, psy, drift: landDrift };
         const last = f.nut !== undefined && !isTarget(r) ? f.nut : null;
         if ((nutOnly || cameoOnly) && f.next < bands.length) continue;
         // A paper target or steel plate (the range only) stops a stone too.
@@ -2336,8 +2330,8 @@ export function createSim(config: SimConfig): Sim {
         if (!stopped) continue;
         resolveShot(ctx, [
           last === null
-            ? landPellet(f.shotId, f.dx, psy, r, drift, f.cx)
-            : landPellet(f.shotId, f.dx, last.psy, last.r, last.drift, f.cx),
+            ? landPellet(f.shotId, f.dx, psy, r, landDrift, f.cx, farDrift)
+            : landPellet(f.shotId, f.dx, last.psy, last.r, last.drift, f.cx, farDrift),
         ]);
         done = true;
       }
@@ -3865,8 +3859,11 @@ export function createSim(config: SimConfig): Sim {
       wasRaining = !wasRaining;
       emit({ type: 'weatherChanged', tick, rain: wasRaining });
     }
-    if (wind !== null && tickWind(wind, omenRng)) {
-      emit({ type: 'windChanged', tick, dir: wind.dir, strength: wind.strength });
+    if (wind !== null) {
+      const w = tickWind(wind, omenRng);
+      if (w === 'changed')
+        emit({ type: 'windChanged', tick, dir: wind.dir, strength: wind.strength });
+      else if (w === 'gust') emit({ type: 'windGust', tick, dir: wind.dir });
     }
     for (const s of secrets) {
       const t = tickSecret(s);

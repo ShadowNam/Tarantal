@@ -111,6 +111,10 @@ export type SimEvent =
       readonly crateId: number | null;
       /** Kettie stones only: the camera centre the shot was fired at (dx is relative to it). */
       readonly cx?: number;
+      /** v1.17 (D-079), wind hunts only: the wind's push in dx (screen px, signed) at the layer
+       *  it stopped on, and the shot's push at the far plane (the view scales it by plane). */
+      readonly driftPx?: number;
+      readonly driftFarPx?: number;
       /** v1.3x (D-037): the Skietbaan paper target it hit (absent everywhere else). */
       readonly paperId?: number;
       /** v1.7 (D-044): the meerkat it hit (absent everywhere else). */
@@ -415,6 +419,12 @@ export type SimEvent =
       readonly tick: number;
       readonly dir: 1 | -1;
       readonly strength: number;
+    }
+  | {
+      /** v1.17 (D-079): a gust began (its sound and the grass's bow). */
+      readonly type: 'windGust';
+      readonly tick: number;
+      readonly dir: 1 | -1;
     }
   | {
       readonly type: 'dustDevilSpawned';

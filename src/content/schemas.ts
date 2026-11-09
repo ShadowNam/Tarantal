@@ -1580,6 +1580,14 @@ export const BiomeSchema = obj({
         tailwindSpeedMul: pos,
         headwindSpeedMul: pos,
         driftPxAtFar: nonNeg,
+        /** v1.17 (D-079): drift grows as strength ^ strengthExponent (1 = linear, the old rule). */
+        strengthExponent: pos.optional(),
+        /** v1.17 (D-079): drift × this on each plane (far = 1 by definition of driftPxAtFar;
+         *  linear between planes by scroll factor). Absent: far and Ver 1, near and mid 0. */
+        driftPlaneMul: allPlanes(nonNeg).optional(),
+        /** v1.17 (D-079): gusts — every everySeconds (gap) one lasting `seconds`, adding up to
+         *  `add` to the strength at its peak (never above 1). Drift and visuals only. */
+        gusts: obj({ everySeconds: range(pos), seconds: range(pos), add: nonNeg }).optional(),
       })
       .optional(),
     /** M8 Okavango sun-showers: a shower every `everySeconds` (gap) for `lastSeconds`, drawn from

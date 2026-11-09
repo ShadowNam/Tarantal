@@ -559,8 +559,14 @@ export interface PowerupView {
 export interface WindView {
   /** +1 blows left → right. */
   readonly dir: 1 | -1;
-  /** 0..1 of the biome's wind effects. */
+  /** 0..1 of the biome's wind effects, the gust included (v1.17: what drift and visuals use). */
   readonly strength: number;
+  /** v1.17 (D-079): 0..1, how far into a gust's peak (0: none). */
+  readonly gust: number;
+  /** v1.17: the far-plane drift now for a gun of wind sensitivity 1 (px, unsigned). */
+  readonly farDriftPx: number;
+  /** v1.17: [scroll factor, drift mul] by plane, highest factor first (planeDriftMul). */
+  readonly curve: readonly (readonly [number, number])[];
 }
 
 export interface DustDevilView {

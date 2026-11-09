@@ -94,7 +94,12 @@ describe('a shot on a fruit, composed (v1.7c review)', () => {
   });
 
   it('takes the wind drift off pellets that drifted, on layers in front of the far plane', () => {
-    const drift = shotDriftPx({ dir: 1, strength: 0.5 }, 45, 1.5, 1);
+    const drift = shotDriftPx(
+      { dir: 1, strength: 0.5, gust: 0, farDriftPx: 0, curve: [] },
+      45,
+      1.5,
+      1,
+    );
     expect(drift).toBeCloseTo(33.75, 6);
     const f = { camX: 960, drift, farFactor: far };
     // Flew on (or stopped at or behind the far plane): the event's dx carries the drift.
