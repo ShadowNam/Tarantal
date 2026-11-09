@@ -59,6 +59,7 @@ import type { HarvestSystem } from './harvest/system';
 import { sanitiseCommand } from './commands';
 import { msToTicks, secondsToTicks } from './clock';
 import { createDirector, type DirectorContext } from './director/SpawnDirector';
+import { flushRoom } from './director/flushRoom';
 import {
   FLYOVER_EVENTS,
   mergeSchedules,
@@ -1093,6 +1094,18 @@ export function createSim(config: SimConfig): Sim {
         if (e.kind !== 'dog' && e.kind !== 'cameo') consider(e.x);
       return best;
     };
+    // v1.17b (D-080): a point's flock needs room under both caps (the map's flocks and its birds:
+    // `size` more) — canFlush() and flush() ask the same, so a shown marker always gets its flock.
+    const dogCanFlush = (size: number): boolean =>
+      flushRoom(
+        {
+          liveFlocks: flocks.filter((f) => f.members.length > 0).length,
+          maxFlocks: biome.pacing.maxFlocks,
+          aliveBirds: birds.length,
+          maxBirds: biome.pacing.maxBirdsOnScreen,
+        },
+        size,
+      );
     brakkie = needLazy('Brakkie').brakkie(
       content,
       {
@@ -1137,11 +1150,10 @@ export function createSim(config: SimConfig): Sim {
           emit({ type: 'flockThreatened', tick, flockId: f.id, source: 'dog' });
           emitTransition(f, applyThreat(f, fromX, fParams, dogRng));
         },
-        canFlush: () => flocks.filter((f) => f.members.length > 0).length < biome.pacing.maxFlocks,
+        canFlush: (size) => dogCanFlush(size),
         bonus: (id, base) => awardBonus(id, base),
         flush: (x, size) => {
-          if (flocks.filter((f) => f.members.length > 0).length >= biome.pacing.maxFlocks)
-            return null;
+          if (!dogCanFlush(size)) return null;
           const f = director.spawnFlockAt(
             { ...directorContext(), flocks, nextFlockId: () => nextFlockId++ },
             'mid',

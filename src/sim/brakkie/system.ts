@@ -44,8 +44,8 @@ export interface BrakkieHost {
   /** A hidden flock of `size` bursts up flushing at layer x of the mid plane (every draw from
    *  the dog's stream); its id, or null: no room (the map's flock or bird caps). */
   flush(x: number, size: number): number | null;
-  /** v1.17 (D-079): a flock could burst up now (the map's flock cap has room). */
-  canFlush(): boolean;
+  /** v1.17 (D-079): a flock of `size` could burst up now — the same caps flush() checks (D-080). */
+  canFlush(size: number): boolean;
   /** v1.17 (D-079): an event bonus (× Frenzy × Stampede); the points paid. */
   bonus(id: 'bring' | 'bringStreak' | 'goodPoint', base: number): number;
 }
@@ -500,8 +500,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     }
     dog.nextFlush = tick + rangeTicks(B.flush.everySeconds);
     if (!rng.chance(B.flush.chance)) return;
-    // v1.17 (D-079): only at a flock that can be there (the map's flock cap has room).
-    if (!host.canFlush()) return;
+    // v1.17 (D-079): only at a flock that can be there (room under the flock and bird caps, D-080).
+    if (!host.canFlush(B.point.size)) return;
     // He points from where he is if that's near the view's centre, else from a clear spot that is.
     const near = Math.abs(dxOf(dog.plane, dog.x)) <= B.flush.maxDxPx;
     const x = near ? dog.x : pickSpot();
