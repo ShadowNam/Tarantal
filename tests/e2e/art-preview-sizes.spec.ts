@@ -427,7 +427,9 @@ test('1. the Karoo (far herd, Brakkie, a cameo, a raider, the bakkie), then the 
   page,
 }, info) => {
   const touch = isTouchProject(info);
-  await page.goto(`/?${FLAGS}&huntSeconds=50`);
+  // 120 s: the Karoo's five shots (raider, herd, cameo, Brakkie, bakkie) take ~50-80 game seconds on
+  // software GL; each later area's hunt runs out before the next pick (toTitle waits for the tally).
+  await page.goto(`/?${FLAGS}&huntSeconds=120`);
   await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 600_000 });
   await intoHunt(page, touch, 'karoo-autumn');
 
@@ -518,7 +520,7 @@ test('2. Namibië in HD: the far herd (Standard | HD), the ostrich pair and the 
   const touch = isTouchProject(info);
   // HD: the far herds are Standard in HD (D-080); the pair shows how they read at true size.
   await page.goto(
-    `/?${FLAGS.replace('graphics=standard', 'graphics=hd')}&biome=namibie&layout=tue&huntSeconds=60`,
+    `/?${FLAGS.replace('graphics=standard', 'graphics=hd')}&biome=namibie&layout=tue&huntSeconds=600`,
   );
   await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 600_000 });
   await intoHunt(page, touch, 'namibie');
@@ -577,7 +579,7 @@ test('3. Die Oes: the warthogs and piglets beside mid and near guineafowl', asyn
   page,
 }, info) => {
   const touch = isTouchProject(info);
-  await page.goto(`/?${FLAGS}&huntSeconds=60&baboons=0&harvestRush=1`);
+  await page.goto(`/?${FLAGS}&huntSeconds=600&baboons=0&harvestRush=1`);
   await page.waitForFunction(() => window.__TM__?.rects['harvest'] !== undefined, null, {
     timeout: 600_000,
   });
