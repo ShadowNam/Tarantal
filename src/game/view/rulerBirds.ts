@@ -52,3 +52,20 @@ export function rulerBirds(
     };
   });
 }
+
+/** Installs window.__TM_RULERS__ (test builds): `set` takes the draw list maker (null: none). */
+export function registerRulers(
+  set: (draw: (() => DrawBird[]) | null) => void,
+  rootOf: (plane: PlaneId) => RootXf,
+): void {
+  (
+    window as {
+      __TM_RULERS__?: (
+        r: readonly { plane: PlaneId; sx: number; sy: number; facing?: 1 | -1 }[],
+      ) => void;
+    }
+  ).__TM_RULERS__ = (r) => {
+    const list = r.map((x) => ({ ...x, facing: x.facing ?? 1 }));
+    set(list.length === 0 ? null : () => rulerBirds(list, rootOf));
+  };
+}

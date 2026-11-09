@@ -713,20 +713,14 @@ export class HuntScene extends Phaser.Scene {
       };
     // e2e/dev only (v1.17b, D-080): a standing guineafowl as a yardstick beside a subject (the
     // sizes screenshots): its feet at screen point (sx, sy), drawn on `plane`; [] clears them.
+    // The hook itself lives in the lazy module (the first download carries none of it).
     if (this.ctx.hook)
-      (
-        window as {
-          __TM_RULERS__?: (
-            r: readonly { plane: PlaneId; sx: number; sy: number; facing?: 1 | -1 }[],
-          ) => void;
-        }
-      ).__TM_RULERS__ = (r) => {
-        const list = r.map((x) => ({ ...x, facing: x.facing ?? 1 }));
-        void import('../view/rulerBirds').then((m) => {
-          this.rulers =
-            list.length === 0 ? null : () => m.rulerBirds(list, (p) => this.parallax.plane(p).root);
-        });
-      };
+      void import('../view/rulerBirds').then((m) => {
+        m.registerRulers(
+          (draw) => (this.rulers = draw),
+          (p) => this.parallax.plane(p).root,
+        );
+      });
     // e2e/dev only (D-029 art previews): freeze the gun on a clip frame for screenshots.
     if (this.ctx.hook)
       (window as { __TM_GUN__?: WeaponView['pose'] }).__TM_GUN__ = (id, clip, frame) => {

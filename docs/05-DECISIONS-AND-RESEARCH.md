@@ -4412,21 +4412,34 @@ aim point on its body, no bird within 260 px) still costs −10.
 **Texture memory (HD ≤ 256 MB on every hunt).** The far herds at true size would add ~6 MB to the
 Okavango's HD hunt (3.1 → 9.1 MB) and ~3.5 MB to Namibië's: they are **Standard in HD**
 (`hdPack.ts STANDARD_IN_HD_KEYS`; they stand on the far veld, itself Standard in HD since D-054,
-and 1 texture px per design px is a phone's screen px). The room goes to the cameos, redrawn from
-their vector shapes at the new size at 0.25 sheet px per drawn px (HD 0.5; v1.13: 0.5 / 1.0): HD
-sheets Namibië 2.0 → 3.3 MB, Karoo 2.0 → 2.4, Kalahari 0.5 → 1.2, Bushveld 0.5 → 0.7. The weaver
-colony's sheet is drawn at 3× (768 × 362, 1.1 MB) with no HD twin (0.5 MB before). The mid
-ostriches, the baboons, the warthogs and Brakkie draw their existing sheets larger (the ostrich at
-0.54 texture px per drawn px in both modes: soft, but its 9.2 MB sheet at the old density would
-be 73 MB). Estimated from the textures that changed, CI's v1.17 numbers → v1.17b: Namibië 246.7 →
-~248.2 MB, Okavango + Reënbui 244.4 → ~243.6, Christmas (Okavango) 243.3 → ~242.5, New Year
-(Okavango) 244.5 → ~243.7, the Harvest 232.7 → ~248.2 (its sheet 21.5 → 27.5 MB for the taller
-gap panel, its mid layer +9.5 MB for the true-size fence), Karoo 221.1 → ~221.4, Bushveld 227.8 →
-~226.9, Kalahari 227.0 → ~228.1; CI's `perf.spec.ts` measures them (its HD waits now look for the
-area's HD layers, not HD herds). The far herds in HD draw their 1× Standard sheets (1 texture px
-per design px at their new size, the same density as the far veld under them): on a Pixel 7 that
-is the screen's own px; on a 1440p+ desktop they are a little softer than the HD props
-(the screenshot spec's `herd-namibie-std-hd` pair shows it).
+and 1 texture px per design px is a phone's screen px). The weaver colony's sheet is drawn at 3×
+(768 × 362, 1.1 MB) with no HD twin (0.5 MB before). The baboons, the warthogs and Brakkie draw
+their existing sheets larger (each ≥ 0.85 texture px per drawn px in Standard).
+
+**Crisp true-size cameos and ostriches (review 4).** The first pass drew the cameos at 0.25 sheet
+px per drawn px (HD 0.5) and showed the ostriches' 1.5× sheet 2.8× larger (0.54): in the
+screenshots the ostrich pair was smeared, the Karoo's sprinting ostrich a blur, the gemsbok soft.
+Every cameo and the ostrich pair (and its nest) are now **drawn from their vector shapes at the
+true size at ≥ 0.5 texture px per drawn px in Standard and 1.0 in the HD twin**
+(`animalDensity.test.ts` holds it). Sheets (Standard → HD, MiB on the GPU; first pass in
+brackets): cameos Bushveld 528 × 257, 0.52 → 2.07 (0.69 HD); Karoo 608 × 751, 1.74 → 6.97 (2.38);
+Kalahari 560 × 332, 0.71 → 2.84 (1.19); Namibië 928 × 605, 2.14 → 8.57 (3.31); the ostriches
+1,440 × 1,478, 8.12 → 2,880 × 2,956, 32.48 (one 9.24 MiB sheet for both). Downloads: the cameo
+groups 24 / 49 / 28 / 57 KB (HD 57 / 118 / 66 / 133 KB); the ostrich sheet 136 KB in Namibië's
+chunk (HD 375 KB). **Room in Namibië's HD hunt** for its +34.5 MiB: its plant props (the
+weaver-nest camelthorn — 16.6 MiB alone — the camelthorns, the quiver trees, the pan grass) are
+Standard in HD (−19.5 MiB; their 1× files, 1 texture px per design px: a phone's own px, softer
+only on a 1440p+ desktop), and the rainbow and the dust devil join `HD_NO_GAIN_KEYS` (1.53 and
+2.20/255 from their 1× files upscaled, at D-053's bar; −3.3 MiB in every hunt). Estimated from the
+textures that changed, CI's v1.17 numbers → v1.17b: **Namibië 246.7 → ~253.9 MB**, Okavango +
+Reënbui 244.4 → ~240.3, Christmas (Okavango) 243.3 → ~239.2, New Year (Okavango) 244.5 → ~240.4,
+**the Harvest 232.7 → ~244.9** (its sheet 21.5 → 27.5 MB for the taller gap panel, its mid layer
++9.5 MB for the true-size fence), Karoo 221.1 → ~222.7, Bushveld 227.8 → ~225.0, Kalahari 227.0 →
+~226.4; CI's `perf.spec.ts` measures them (its HD waits look for the area's HD layers, not HD
+herds). Namibië is the tightest (~2 MiB under 256): if CI measures it over, the next room is the
+baboon sheet's HD (10.0 MiB at 1.7 texture px per drawn px). The far herds in HD draw their 1×
+Standard sheets: on a Pixel 7 that is the screen's own px; on a 1440p+ desktop they are a little
+softer than the HD props (the screenshot spec's `herd-namibie-std-hd` pair shows it).
 
 **First download** (web, gzip): 3,027.8 → 3,026.2 KB (≤ 3,072): the bigger art is all lazy;
 the far herds' view and tables, the test-only ruler hook and the herds' frame tables (pivots to
