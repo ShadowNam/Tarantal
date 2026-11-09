@@ -569,6 +569,10 @@ export interface TestHook {
     readonly scream: number;
   } | null;
   baboonMs: number;
+  /** v1.17 (D-079): the HUD's wind meter as drawn (null: no wind on this hunt). */
+  windMeter: { dir: 1 | -1; bars: number; gust: boolean; strength: number } | null;
+  /** v1.17 (D-079): the near grass tufts' lean now (radians; null: no wind grass drawn). */
+  windGrassLean: number | null;
   /** v1.12 (D-069): Brakkie as drawn (null: not on this hunt, or his chunk isn't in). */
   brakkie: BrakkieHook | null;
   /** v1.12 (D-069): ms his view took this frame (perf: ≤ 0.3 at 4× throttle). */

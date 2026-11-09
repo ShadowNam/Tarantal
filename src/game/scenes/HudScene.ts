@@ -60,6 +60,7 @@ import { FAMILIEFOTO_SECRET } from '../../sim/meerkats/colony';
 import { BLIKKIESDANS_SECRET } from '../../sim/cans/cans';
 import { MAKALANI_SECRET } from '../../sim/nuts/makalani';
 import { HarvestBars, harvestBarsRects } from '../ui/HarvestBars';
+import { windBars } from '../ui/windMeter';
 
 export interface HudControls {
   readonly pause: () => void;
@@ -187,6 +188,9 @@ export class HudScene extends Phaser.Scene {
   private readonly captionCrate: { id: string | null } = { id: null };
   private sockPole!: Phaser.GameObjects.Rectangle;
   private sock!: Phaser.GameObjects.Image;
+  /** v1.17 (D-079): the wind meter (arrow + 5 strength bars), redrawn only when it changes. */
+  private windMeter!: Phaser.GameObjects.Graphics;
+  private windMeterKey = '';
   private callout!: Phaser.GameObjects.Text;
   /** Don't-shoot creatures already called out (first sighting ever: Bird Book + this hunt). */
   private readonly sighted = new Set<string>();
@@ -356,6 +360,8 @@ export class HudScene extends Phaser.Scene {
     this.captionCrate.id = null;
     this.sockPole = this.add.rectangle(0, 0, 8, 1, C.ink, 1).setOrigin(0, 0).setVisible(false);
     this.sock = this.add.image(0, 0, TEX.windsock).setVisible(false);
+    this.windMeter = this.add.graphics().setVisible(false);
+    this.windMeterKey = '';
     const so = { x: 6 / 150, y: 0.5 };
     this.sock.setOrigin(so.x, so.y);
     this.callout = text(48, '#FF6B5A').setOrigin(0.5).setVisible(false);
@@ -669,6 +675,7 @@ export class HudScene extends Phaser.Scene {
         gadget: l.gadget,
         chips: l.chips,
         windsock: l.windsock,
+        windMeter: l.windMeter,
         pause: l.pause,
         quota: l.quota,
         charms: l.charms,
@@ -730,6 +737,7 @@ export class HudScene extends Phaser.Scene {
       .setPosition(l.windsock.x + 20 - 4, l.windsock.y + 8)
       .setSize(8, Math.max(1, l.windsock.h - 8));
     this.sock.setPosition(l.windsock.x + 20, l.windsock.y + 14);
+    this.windMeterKey = '';
     this.gadgetDrawn = '';
     if (this.lastState) this.render(this.lastState, []);
     this.hideScoring();
@@ -1630,12 +1638,54 @@ export class HudScene extends Phaser.Scene {
     const show = l !== null && wind !== null && this.ctx.huntBiome.omen.visual?.windSock === true;
     this.sock.setVisible(show);
     this.sockPole.setVisible(show);
+    this.drawWindMeter(wind);
     if (!show) return;
     const droop = (1 - wind.strength) * 0.9;
     const wobble = Math.sin(this.time.now / 140) * 0.06 * wind.strength;
     this.sock
       .setScale(wind.dir * (0.55 + 0.45 * wind.strength), 1)
       .setRotation(wind.dir * (droop + wobble));
+  }
+
+  /**
+   * v1.17 (D-079): the wind meter under the sock on every map with wind (phones too): an arrow
+   * downwind and five bars, lit by the strength now (a gust included, the same number the drift
+   * uses); the bars of a gust glow warmer. Redrawn only when what it shows changes.
+   */
+  private drawWindMeter(wind: SimState['wind']): void {
+    const l = this.layoutNow;
+    const show = l !== null && wind !== null;
+    this.windMeter.setVisible(show);
+    const hook = this.ctx.hook;
+    if (!show) {
+      if (hook) hook.windMeter = null;
+      return;
+    }
+    const bars = windBars(wind.strength);
+    const gust = wind.gust > 0.15;
+    if (hook) hook.windMeter = { dir: wind.dir, bars, gust, strength: wind.strength };
+    const key = `${l.windMeter.x},${l.windMeter.y},${wind.dir},${bars},${gust ? 1 : 0}`;
+    if (key === this.windMeterKey) return;
+    this.windMeterKey = key;
+    const r = l.windMeter;
+    const g = this.windMeter.clear();
+    // A dark plate keeps it readable on any sky.
+    g.fillStyle(C.ink, 0.45).fillRoundedRect(r.x, r.y, r.w, r.h, 8);
+    // The arrow (left part), pointing downwind.
+    const ax = r.x + 26;
+    const ay = r.y + r.h / 2;
+    const d = wind.dir;
+    g.fillStyle(0xf3ead3, 1);
+    g.fillRect(ax - 14, ay - 2.5, 28, 5);
+    g.fillTriangle(ax + d * 20, ay, ax + d * 8, ay - 8, ax + d * 8, ay + 8);
+    // Five bars rising left to right.
+    for (let i = 0; i < 5; i++) {
+      const h = 6 + i * 3;
+      const x = r.x + 56 + i * 17;
+      const lit = i < bars;
+      g.fillStyle(lit ? (gust ? 0xff8a3d : 0xffd25a) : 0xf3ead3, lit ? 1 : 0.25);
+      g.fillRect(x, r.y + r.h - 3 - h, 12, h);
+    }
   }
 
   private showCallout(text: string, color: string): void {

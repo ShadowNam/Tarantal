@@ -500,6 +500,8 @@ const hook: TestHook = {
   baboonRaid: null,
   baboonCalls: null,
   baboonMs: 0,
+  windMeter: null,
+  windGrassLean: null,
   brakkie: null,
   brakkieMs: 0,
   brakkieTexture: false,
