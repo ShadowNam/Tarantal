@@ -38,37 +38,41 @@ const grown = (
 const OWL_K = RESIDENT_TRUE_MUL.owlFly;
 const HB_K = RESIDENT_TRUE_MUL.hornbill;
 
+/** The frames, in the order they are packed in rows (D-082: the true-size flying owl beside a
+ *  clinging hornbill, twice, then the flying hornbill, then the small animals: 336 × 447, a 2×
+ *  sheet of 2.29 MiB; in D-057's order it would be 256 × 697, 2.72 MiB). */
 export const RESIDENT_FRAMES = [
+  // Barn owl flying off (origin: its body); yellow-billed hornbill clinging beside the slit
+  // (origin: its feet on the bark) and feeding (beak at the slit).
+  { name: 'owl_fly_a', ...grown(74, 40, 37, 20, OWL_K) },
+  { name: 'hornbill_cling', ...grown(50, 54, 16, 40, HB_K) },
+  { name: 'owl_fly_b', ...grown(74, 40, 37, 20, OWL_K) },
+  { name: 'hornbill_feed', ...grown(50, 54, 16, 40, HB_K) },
+  // The hornbill flying (origin: its body); the female's beak tip in the slit (origin: the
+  // slit's centre).
+  { name: 'hornbill_fly_a', ...grown(64, 34, 30, 17, HB_K) },
+  { name: 'hornbill_fly_b', ...grown(64, 34, 30, 17, HB_K) },
+  { name: 'beak_tip', w: 10, h: 14, ox: 5, oy: 7 },
+  // A bee (an amber dot with a dark band and a glint of wing).
+  { name: 'bee', w: 6, h: 6, ox: 3, oy: 3 },
   // Bushbaby at its hole (origin: the hole's centre): ears, eyes over the rim, head out, looking.
   { name: 'galago_ears', w: 44, h: 46, ox: 22, oy: 30 },
   { name: 'galago_eyes', w: 44, h: 46, ox: 22, oy: 30 },
   { name: 'galago_out', w: 44, h: 46, ox: 22, oy: 30 },
   { name: 'galago_look', w: 44, h: 46, ox: 22, oy: 30 },
+  // Barn owl in its cavity (origin: the cavity's centre).
+  { name: 'owl_front', w: 44, h: 54, ox: 22, oy: 27 },
+  { name: 'owl_left', w: 44, h: 54, ox: 22, oy: 27 },
+  { name: 'owl_blink', w: 44, h: 54, ox: 22, oy: 27 },
   // Tree squirrel: at its hole (origin: the hole's centre), then on the limb (origin: its feet).
   { name: 'squirrel_peek', w: 28, h: 26, ox: 14, oy: 16 },
   { name: 'squirrel_run_a', w: 76, h: 38, ox: 38, oy: 33 },
   { name: 'squirrel_run_b', w: 76, h: 38, ox: 38, oy: 33 },
   { name: 'squirrel_sit', w: 60, h: 52, ox: 30, oy: 47 },
-  // Barn owl in its cavity (origin: the cavity's centre), and flying off (origin: its body).
-  { name: 'owl_front', w: 44, h: 54, ox: 22, oy: 27 },
-  { name: 'owl_left', w: 44, h: 54, ox: 22, oy: 27 },
-  { name: 'owl_blink', w: 44, h: 54, ox: 22, oy: 27 },
-  { name: 'owl_fly_a', ...grown(74, 40, 37, 20, OWL_K) },
-  { name: 'owl_fly_b', ...grown(74, 40, 37, 20, OWL_K) },
-  // Yellow-billed hornbill: flying (origin: its body), clinging beside the slit (origin: its
-  // feet on the bark), feeding (beak at the slit); the female's beak tip in the slit (origin:
-  // the slit's centre).
-  { name: 'hornbill_fly_a', ...grown(64, 34, 30, 17, HB_K) },
-  { name: 'hornbill_fly_b', ...grown(64, 34, 30, 17, HB_K) },
-  { name: 'hornbill_cling', ...grown(50, 54, 16, 40, HB_K) },
-  { name: 'hornbill_feed', ...grown(50, 54, 16, 40, HB_K) },
-  { name: 'beak_tip', w: 10, h: 14, ox: 5, oy: 7 },
   // Red-billed buffalo weaver: flying and perched (origin: its body / its feet).
   { name: 'buffalo_fly_a', w: 24, h: 16, ox: 12, oy: 8 },
   { name: 'buffalo_fly_b', w: 24, h: 16, ox: 12, oy: 8 },
   { name: 'buffalo_perch', w: 18, h: 18, ox: 9, oy: 16 },
-  // A bee (an amber dot with a dark band and a glint of wing).
-  { name: 'bee', w: 6, h: 6, ox: 3, oy: 3 },
 ] as const;
 
 export type ResidentFrame = (typeof RESIDENT_FRAMES)[number]['name'];
@@ -88,56 +92,23 @@ export interface ResidentRect {
 export const RESIDENT_SHEET_W = 336;
 const GAP = 2;
 
-/** v1.20.2 (D-082): the rows' order — the true-size flying owl beside a clinging hornbill (twice),
- *  the flying hornbill, then the small animals — 336 × 447 (2× sheet 2.29 MiB; in table order it
- *  would be 256 × 697, 2.72 MiB). */
-const PACK_ORDER: readonly ResidentFrame[] = [
-  'owl_fly_a',
-  'hornbill_cling',
-  'owl_fly_b',
-  'hornbill_feed',
-  'hornbill_fly_a',
-  'hornbill_fly_b',
-  'beak_tip',
-  'bee',
-  'galago_ears',
-  'galago_eyes',
-  'galago_out',
-  'galago_look',
-  'owl_front',
-  'owl_left',
-  'owl_blink',
-  'squirrel_peek',
-  'squirrel_run_a',
-  'squirrel_run_b',
-  'squirrel_sit',
-  'buffalo_fly_a',
-  'buffalo_fly_b',
-  'buffalo_perch',
-];
-
-/** Every frame's rect at 1× (prop px), in RESIDENT_FRAMES order: packed in rows PACK_ORDER first
- *  (frames not in it after, in table order). */
+/** Every frame's rect at 1× (prop px). */
 export function residentFrames(): ResidentRect[] {
-  const at = new Map<ResidentFrame, { x: number; y: number }>();
-  const rank = (n: ResidentFrame): number => {
-    const i = PACK_ORDER.indexOf(n);
-    return i < 0 ? PACK_ORDER.length : i;
-  };
+  const out: ResidentRect[] = [];
   let x = GAP;
   let y = GAP;
   let row = 0;
-  for (const f of [...RESIDENT_FRAMES].sort((a, b) => rank(a.name) - rank(b.name))) {
+  for (const f of RESIDENT_FRAMES) {
     if (x + f.w + GAP > RESIDENT_SHEET_W) {
       x = GAP;
       y += row + GAP;
       row = 0;
     }
-    at.set(f.name, { x, y });
+    out.push({ ...f, x, y });
     x += f.w + GAP;
     row = Math.max(row, f.h);
   }
-  return RESIDENT_FRAMES.map((f) => ({ ...f, ...(at.get(f.name) ?? { x: 0, y: 0 }) }));
+  return out;
 }
 
 /** Sheet height (prop px at 1×). */
