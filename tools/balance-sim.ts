@@ -162,6 +162,8 @@ export function playRows(job: Job): HuntRow[] {
     let workerHits = 0;
     let p2: HuntRow['p2'];
     let rushScore: number | undefined;
+    /** v1.18 (D-081): the crop when the rush ends (Phase 2 eats into it after). */
+    let rushCrop: number | undefined;
     let pigletHits = 0;
     let raiders = 0;
     let dogAimed = 0;
@@ -180,7 +182,10 @@ export function playRows(job: Job): HuntRow[] {
           if (e.who === 'worker') workerHits++;
           else pigletHits++;
         } else if (e.type === 'baboonBagged') raiders++;
-        else if (e.type === 'harvestFenceClosed') rushScore = sim.snapshot().score;
+        else if (e.type === 'harvestFenceClosed') {
+          rushScore = sim.snapshot().score;
+          rushCrop = e.crop;
+        }
         else if (e.type === 'phase2Ended')
           p2 = {
             cropAtStart: e.cropAtStart,
@@ -249,7 +254,7 @@ export function playRows(job: Job): HuntRow[] {
       ...(hv === null
         ? {}
         : {
-            crop: hv.crop,
+            crop: rushCrop ?? hv.crop,
             warthogs: hv.warthogsBagged,
             raiders,
             cropBonus: hv.cropBonus,

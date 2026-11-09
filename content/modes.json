@@ -282,7 +282,7 @@
         "leavePx": 5000
       },
       "hole": {
-        "youngPerMin": 5,
+        "youngPerMin": 3,
         "patchAt": 0.8,
         "youngScale": 0.7,
         "youngHitsToBag": 1,
