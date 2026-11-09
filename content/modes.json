@@ -292,7 +292,7 @@
         "squeezePx": 40
       },
       "phase2": {
-        "unlockScore": 2000,
+        "unlockScore": 1850,
         "bannerSeconds": 2,
         "seconds": 30,
         "waves": [
