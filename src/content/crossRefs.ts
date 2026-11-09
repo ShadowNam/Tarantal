@@ -567,7 +567,9 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       const spread = Math.max(
         ...weapons.weapons.flatMap((w) => (w.kind === 'primary' ? [w.spreadPx] : [])),
       );
-      if (mid !== undefined && brakkie.groundY + top(brakkie.hitboxes.stand) - mid[1] <= spread)
+      // v1.17 (D-079): on point too (its own box).
+      const highest = Math.min(top(brakkie.hitboxes.stand), top(brakkie.hitboxes.point));
+      if (mid !== undefined && brakkie.groundY + highest - mid[1] <= spread)
         err('brakkie.json', `on ${b.id} his head is within a pellet spread of the mid ground`);
     }
   }

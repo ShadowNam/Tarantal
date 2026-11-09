@@ -5,9 +5,30 @@ Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (
 
 ## [1.20.0] — v1.17: Brakkie the companion and real wind (9 Nov 2026)
 
-Decision record D-079. From the product owner's requests of 8 Nov (evening).
+Decision record D-079. From the product owner's requests of 8 Nov (evening): "when the wind is
+showing some stronger wind, I think the bullets should also drift off a bit more", "I see great
+potential in the dog … a great companion … help get extra points" and "get the dog more detail".
 
-- Work in progress.
+- **Wind that matters:** a shot now drifts downwind on every plane, more the farther it flies (near
+  a little, mid noticeably, far the most, the Ver plane more), and much more in a strong wind than
+  in a breeze (strength^1.5). Short **gusts** blow now and then.
+- **You can see the wind:** a wind meter under the windsock (an arrow and five strength bars,
+  warmer in a gust) on every map with wind, phones too; grass tufts in front bow with it.
+- **"Bring!":** every bird Brakkie delivers to the bakkie pays +15 (with Frenzy and Stampede), with a
+  pop-up at the screen edge and a happy yap; every 3 in a row "Goeie hond!" +30. Don't shoot round
+  him while he carries one, or the streak breaks. He runs out once the shooting stops — or at once
+  when you whistle.
+- **"Staan!":** he freezes on point at a hidden flock of 5 (a marker shows where it sits) and
+  springs in after a moment; bag 3 of them for "Mooi punt!" +20.
+- **"Fluit!":** whistle for him — F or the middle mouse button on a computer, a round whistle button
+  on phones: spring his point ("Spring!"), send him for a bird ("Soek!"), call him to heel out of
+  the way ("Hier!"), and back to work.
+- **He reacts:** a proud hop and a double bark after a Whole Flock, Twee Vlieë, Frenzy ×3 or a Ver
+  bag; after three misses he sits and tilts his head (sympathetic, never laughing).
+- **More detail on Brakkie:** a brown eye patch, clearer ear flaps, whiskers, a pink tongue when
+  he pants, a short docked tail, a plain collar, toe lines, smoother trot and run, new poses.
+- **Notaboek** "Goeie hond" (5 deliveries in a row) and Oupa's braai line for a streak of 3+.
+- Balance, downloads and memory: BALANCE_LINE
 
 ## [1.19.0] — v1.16: Veld realism (8 Nov 2026)
 
