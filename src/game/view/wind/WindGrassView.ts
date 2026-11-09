@@ -83,7 +83,9 @@ export class WindGrassView {
   }
 }
 
-let meterKey = '';
+// The last drawn look per Graphics: the HUD scene makes a new Graphics each hunt, so a key kept for
+// the module would skip drawing the new one.
+const meterKeys = new WeakMap<Phaser.GameObjects.Graphics, string>();
 
 /**
  * v1.17 (D-079): the HUD's wind meter under the sock on every map with wind (phones too), drawn by
@@ -109,8 +111,8 @@ export function drawWindMeter(
   const dir = wind.dir;
   if (hook) hook.windMeter = { dir, bars, gust, strength: wind.strength };
   const key = `${r.x},${r.y},${dir},${bars},${gust ? 1 : 0}`;
-  if (key === meterKey && g.visible) return;
-  meterKey = key;
+  if (key === meterKeys.get(g)) return;
+  meterKeys.set(g, key);
   g.clear();
   g.fillStyle(ink, 0.45).fillRoundedRect(r.x, r.y, r.w, r.h, 8);
   const ax = r.x + 26;

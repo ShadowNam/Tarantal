@@ -699,7 +699,9 @@ export class BrakkieView {
 
 // --- the whistle button (v1.17, D-079) ------------------------------------------------------------
 
-let whistleKey = '';
+// The last drawn look per Graphics: the HUD scene makes a new Graphics each hunt, so a key kept for
+// the module would skip drawing the new one.
+const whistleKeys = new WeakMap<Phaser.GameObjects.Graphics, string>();
 
 /**
  * The HUD's round 72-px whistle button (touch; `r` null on a mouse or without a layout), drawn by
@@ -722,8 +724,8 @@ export function drawWhistleButton(
   if (show !== g.visible) g.setVisible(show);
   if (!show) return;
   const key = `${r.x},${r.y},${on ? 1 : 0}`;
-  if (key === whistleKey) return;
-  whistleKey = key;
+  if (key === whistleKeys.get(g)) return;
+  whistleKeys.set(g, key);
   const cx = r.x + r.w / 2;
   const cy = r.y + r.h / 2;
   const rad = r.w / 2;
