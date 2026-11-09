@@ -5,6 +5,9 @@
 // - brakkie_yelp: a startled yelp — a quick high squeal that rises and drops away (startled,
 //   never a cry of pain: he isn't hurt).
 // - brakkie_pant: happy panting after a fetch — six breathy "hah"s, in and out.
+// - v1.17 (D-079) brakkie_whistle: Oupa's whistle for him — two short rising notes through the
+//   lips (a pure tone with breath), "fwiet-fwiet".
+// - v1.17 (D-079) brakkie_yap: a happy little yap as he delivers a bird (higher, shorter bark).
 // Mono, 44.1 kHz; the pack tool normalises each to the effects loudness (art bible §10).
 import {
   ad,
@@ -114,11 +117,41 @@ function pant(): Buf {
   return fadeEnds(normalise(lowpass(out, SR, 5000), 0.6), SR, 0.002, 0.05);
 }
 
+function whistle(): Buf {
+  const r = rng(75);
+  const out = buf(0.62, SR);
+  const note = (at: number, from: number, to: number, len: number): void => {
+    const tone = osc('sine', glide(from, to, len), len, SR);
+    const breath = bandpass(noise(len, SR, r), SR, (from + to) / 2, 3);
+    const n = buf(len, SR);
+    mix(n, tone, 0, SR, 0.85);
+    mix(n, breath, 0, SR, 0.12);
+    shape(n, SR, (t) => Math.min(1, t / 0.02) * Math.min(1, (len - t) / 0.05));
+    mix(out, n, at, SR, 1);
+  };
+  note(0.01, 1700, 2350, 0.2);
+  note(0.3, 1750, 2500, 0.26);
+  return fadeEnds(normalise(withReverb(out, SR, 0.15, 0.5, 0.4), 0.8), SR, 0.001, 0.04);
+}
+
+function yap(): Buf {
+  const r = rng(76);
+  const out = woof(r, 820, 0.1);
+  return fadeEnds(
+    normalise(withReverb(highpass(out, SR, 220), SR, 0.1, 0.5, 0.5), 0.85),
+    SR,
+    0.001,
+    0.03,
+  );
+}
+
 const CALLS: Readonly<Record<string, () => Buf>> = {
   brakkie_bark: bark,
   brakkie_bark2: bark2,
   brakkie_yelp: yelp,
   brakkie_pant: pant,
+  brakkie_whistle: whistle,
+  brakkie_yap: yap,
 };
 
 /** Brakkie's sounds (`sfx/<id>`), group `brakkie`. */

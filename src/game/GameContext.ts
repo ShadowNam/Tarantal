@@ -571,6 +571,10 @@ export interface TestHook {
   baboonMs: number;
   /** v1.17 (D-079): the HUD's wind meter as drawn (null: no wind on this hunt). */
   windMeter: { dir: 1 | -1; bars: number; gust: boolean; strength: number } | null;
+  /** v1.17 (D-079): the whistle button as drawn (design px; on: it would do something now), and
+   *  the pop-ups of Brakkie's bonuses this page (append-only, the last 40). */
+  whistleButton: { x: number; y: number; w: number; h: number; on: boolean } | null;
+  brakkiePops: string[];
   /** v1.17 (D-079): the near grass tufts' lean now (radians; null: no wind grass drawn). */
   windGrassLean: number | null;
   /** v1.12 (D-069): Brakkie as drawn (null: not on this hunt, or his chunk isn't in). */

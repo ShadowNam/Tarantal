@@ -21,5 +21,8 @@ export const BRAKKIE_SOUNDS = {
   yelp: 'sfx/brakkie_yelp',
   /** Happy panting when he's back from a fetch. */
   pant: 'sfx/brakkie_pant',
+  /** v1.17 (D-079): Oupa's whistle, and the happy yap as he delivers a bird. */
+  whistle: 'sfx/brakkie_whistle',
+  yap: 'sfx/brakkie_yap',
 } as const;
 export type BrakkieSound = keyof typeof BRAKKIE_SOUNDS;

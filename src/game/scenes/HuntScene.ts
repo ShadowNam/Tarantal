@@ -51,7 +51,7 @@ import type { GameContext, TestHook } from '../GameContext';
 import { HuntRunner } from '../HuntRunner';
 import { InputMapper, inputKindOf } from '../input/InputMapper';
 import { BirdView } from '../view/BirdView';
-import { Fx } from '../view/Fx';
+import { FONT, Fx } from '../view/Fx';
 import { interpolateAim, interpolateBirds, interpolateCamera } from '../view/interpolate';
 import { SightView, type SightPicture } from '../view/SightView';
 import { NO_ZOOM, zoomFor, type ZoomState } from '../view/zoomView';
@@ -1885,6 +1885,7 @@ export class HuntScene extends Phaser.Scene {
         designSize: () => designSize(),
         isOnBelt: (x, y) => hud.isOnBelt(x, y),
         isOnGadget: (x, y) => hud.isOnGadget(x, y),
+        isOnWhistle: (x, y) => hud.isOnWhistle(x, y),
         itemAt: (x, y) => hud.itemAt(x, y),
         holdToFire: () =>
           (this.runner?.state.weapon.holdToFire ?? false) || this.ctx.prefs.holdToFire,
@@ -2270,6 +2271,14 @@ export class HuntScene extends Phaser.Scene {
           tuning: this.ctx.feel.brakkie,
           hd: this.ctx.graphics.hd,
           hooks: this.ctx.hook !== null,
+          words: {
+            point: t('hud.brakkie_point'),
+            spring: t('hud.brakkie_spring'),
+            heel: t('hud.brakkie_heel'),
+            seek: t('hud.brakkie_seek'),
+            font: FONT,
+          },
+          reducedMotion: this.ctx.reducedMotion,
         });
     }
     if (this.brakkie !== null) {

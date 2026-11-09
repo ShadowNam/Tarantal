@@ -191,6 +191,9 @@ export class HudScene extends Phaser.Scene {
   /** v1.17 (D-079): the wind meter (arrow + 5 strength bars), redrawn only when it changes. */
   private windMeter!: Phaser.GameObjects.Graphics;
   private windMeterKey = '';
+  /** v1.17 (D-079): Brakkie's whistle button (touch; hidden without him or while he is away). */
+  private whistleBtn!: Phaser.GameObjects.Graphics;
+  private whistleKey = '';
   private callout!: Phaser.GameObjects.Text;
   /** Don't-shoot creatures already called out (first sighting ever: Bird Book + this hunt). */
   private readonly sighted = new Set<string>();
@@ -362,6 +365,8 @@ export class HudScene extends Phaser.Scene {
     this.sock = this.add.image(0, 0, TEX.windsock).setVisible(false);
     this.windMeter = this.add.graphics().setVisible(false);
     this.windMeterKey = '';
+    this.whistleBtn = this.add.graphics().setVisible(false);
+    this.whistleKey = '';
     const so = { x: 6 / 150, y: 0.5 };
     this.sock.setOrigin(so.x, so.y);
     this.callout = text(48, '#FF6B5A').setOrigin(0.5).setVisible(false);
@@ -504,6 +509,58 @@ export class HudScene extends Phaser.Scene {
     // The language may have changed in the pause menu: redraw the FTUE line too.
     this.promptKey = null;
     this.relayout();
+  }
+
+  /** v1.17 (D-079): the whistle button is shown (touch, Brakkie out on this hunt). */
+  private whistleShown(s: SimState | null): boolean {
+    const d = s?.brakkie ?? null;
+    return this.layoutNow !== null && this.inputKind !== 'pointer' && d !== null && d.present;
+  }
+
+  isOnWhistle(x: number, y: number): boolean {
+    const l = this.layoutNow;
+    return l !== null && this.whistleShown(this.lastState) && rectContains(l.whistle, x, y);
+  }
+
+  /** v1.17 (D-079): a round 72-px button with a whistle on it, dimmed while it would do
+   *  nothing (cooldown, carrying, bolting). Redrawn only when that changes. */
+  private drawWhistle(s: SimState): void {
+    const l = this.layoutNow;
+    const show = this.whistleShown(s);
+    this.whistleBtn.setVisible(show);
+    const d = s.brakkie;
+    if (this.ctx.hook)
+      this.ctx.hook.whistleButton =
+        show && l !== null ? { ...l.whistle, on: d?.whistle != null } : null;
+    if (!show || l === null || d === null) return;
+    const on = d.whistle !== null;
+    const r = l.whistle;
+    const key = `${r.x},${r.y},${on ? 1 : 0}`;
+    if (key === this.whistleKey) return;
+    this.whistleKey = key;
+    const g = this.whistleBtn.clear();
+    const cx = r.x + r.w / 2;
+    const cy = r.y + r.h / 2;
+    const rad = r.w / 2;
+    g.fillStyle(C.ink, 0.9).fillCircle(cx, cy, rad);
+    g.fillStyle(on ? C.enamel : 0x7a7466, 1).fillCircle(cx, cy, rad - 6);
+    // The whistle: a round chamber with its mouthpiece and the lanyard ring.
+    g.fillStyle(C.ink, 1);
+    g.fillCircle(cx + 6, cy + 4, 15);
+    g.fillRect(cx - 24, cy - 8, 24, 12);
+    g.fillStyle(on ? 0xd8dde4 : 0xa0a0a0, 1);
+    g.fillCircle(cx + 6, cy + 4, 11);
+    g.fillRect(cx - 21, cy - 5, 22, 6);
+    g.fillStyle(C.ink, 1).fillRect(cx - 2, cy - 7, 7, 4);
+    g.lineStyle(3, C.ink, 1).strokeCircle(cx + 18, cy - 12, 5);
+  }
+
+  /** v1.17 (D-079): the pop-up words of Brakkie's bonuses (i18n). */
+  private brakkieWord(bonus: string): string | null {
+    if (bonus === 'bring') return t('hud.brakkie_bring');
+    if (bonus === 'bringStreak') return t('hud.brakkie_streak');
+    if (bonus === 'goodPoint') return t('hud.brakkie_good_point');
+    return null;
   }
 
   isOnGadget(x: number, y: number): boolean {
@@ -676,6 +733,7 @@ export class HudScene extends Phaser.Scene {
         chips: l.chips,
         windsock: l.windsock,
         windMeter: l.windMeter,
+        whistle: l.whistle,
         pause: l.pause,
         quota: l.quota,
         charms: l.charms,
@@ -738,6 +796,7 @@ export class HudScene extends Phaser.Scene {
       .setSize(8, Math.max(1, l.windsock.h - 8));
     this.sock.setPosition(l.windsock.x + 20, l.windsock.y + 14);
     this.windMeterKey = '';
+    this.whistleKey = '';
     this.gadgetDrawn = '';
     if (this.lastState) this.render(this.lastState, []);
     this.hideScoring();
@@ -1081,8 +1140,16 @@ export class HudScene extends Phaser.Scene {
       if (this.rangeOn && SCORE_FEEDBACK.has(e.type)) continue;
       if (e.type === 'scoreAwarded')
         this.pushPop(`${popParts(e.points, e.mult)}  ${formatAward(e.award)}`, '#F3EAD3');
-      else if (e.type === 'bonusAwarded') this.pushPop(formatAward(e.award), '#FFD25A');
-      else if (e.type === 'penaltyApplied') this.pushPop(formatAward(e.points), '#FF6B5A');
+      else if (e.type === 'bonusAwarded') {
+        // v1.17 (D-079): Brakkie's bonuses pop with their word at the edge ("Bring! +15").
+        const word = this.brakkieWord(e.bonus);
+        const text = word === null ? formatAward(e.award) : `${word} ${formatAward(e.award)}`;
+        this.pushPop(text, word === null ? '#FFD25A' : '#FFE9A8');
+        if (word !== null && this.ctx.hook) {
+          this.ctx.hook.brakkiePops.push(text);
+          if (this.ctx.hook.brakkiePops.length > 40) this.ctx.hook.brakkiePops.shift();
+        }
+      } else if (e.type === 'penaltyApplied') this.pushPop(formatAward(e.points), '#FF6B5A');
       else if (e.type === 'emptyClick') this.beltFlashUntil = now + 220;
       else if (e.type === 'reloadStarted' && e.auto === true && this.ctx.hook)
         this.ctx.hook.reloadFx.autoReloads++;
@@ -1130,6 +1197,7 @@ export class HudScene extends Phaser.Scene {
     );
     if (this.ctx.hook) this.ctx.hook.pickupCard = this.pickupCard?.shown ?? null;
     this.drawWindsock(s);
+    this.drawWhistle(s);
 
     this.harvestBars?.update(s.harvest);
     // v1.8c (D-063): the Harvest's clock is its 30 s (not the intro or the outro).

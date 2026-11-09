@@ -502,6 +502,8 @@ const hook: TestHook = {
   baboonMs: 0,
   windMeter: null,
   windGrassLean: null,
+  whistleButton: null,
+  brakkiePops: [],
   brakkie: null,
   brakkieMs: 0,
   brakkieTexture: false,

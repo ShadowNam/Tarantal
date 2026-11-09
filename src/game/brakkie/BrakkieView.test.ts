@@ -44,8 +44,14 @@ function stubImage(): Record<string, unknown> {
     'setScale',
     'setDepth',
     'setTexture',
+    'setRotation',
+    'setText',
   ])
     img[n] = chain();
+  img['visible'] = false;
+  img['setVisible'] = chain((v) => {
+    img['visible'] = v;
+  });
   img['setFrame'] = chain();
   img['setOrigin'] = chain((x, y) => {
     img['originX'] = x;
@@ -85,7 +91,7 @@ function makeView(textures = stubTextures()) {
     layerTint: () => 0xffffff,
   } as unknown as ParallaxView;
   const scene = {
-    add: { image: () => stubImage() },
+    add: { image: () => stubImage(), text: () => stubImage() },
     textures,
   } as unknown as Phaser.Scene;
   const view = new BrakkieView({
