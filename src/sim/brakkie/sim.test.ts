@@ -150,7 +150,9 @@ describe('v1.13 polish: Brakkie rests clear of the gun barrel on screen', () => 
           if (d !== null && phase === 'rest' && prev === 'trot' && d.plane === 'near') {
             rests++;
             // Near layer (scroll factor 1): screen dx = x − cameraX.
-            const head = Math.abs(d.x - st.cameraX + B.hitboxes.stand.head.ox * d.facing);
+            const head = Math.abs(
+              d.x - st.cameraX + B.hitboxes.stand.head.ox * B.sizeMul * d.facing,
+            );
             expect(
               head < lo || head > hi,
               `${a.biome} seed ${String(seed)} head ${String(head)}`,
@@ -180,14 +182,14 @@ describe('v1.13 polish: a pan that leaves his head in the gun stripe gets him up
       const d0 = s.snapshot().brakkie;
       if (d0?.phase !== 'rest' || d0.plane !== 'near') continue;
       // Pan (the camera target) so his head sits in the stripe; he stays put while it pans.
-      const cx = d0.x + B.hitboxes.stand.head.ox * d0.facing - want;
+      const cx = d0.x + B.hitboxes.stand.head.ox * B.sizeMul * d0.facing - want;
       let inStripe = false;
       for (let i = 0; i < 120 && !inStripe; i++) {
         s.step([{ t: 'cameraTarget', cx }]);
         const st = s.snapshot();
         const d = st.brakkie;
         if (d?.phase !== 'rest') break;
-        const head = Math.abs(d.x + B.hitboxes.stand.head.ox * d.facing - st.cameraX);
+        const head = Math.abs(d.x + B.hitboxes.stand.head.ox * B.sizeMul * d.facing - st.cameraX);
         inStripe = head >= lo && head <= hi;
       }
       if (!inStripe) continue;

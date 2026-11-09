@@ -1,5 +1,5 @@
 {
-  "$comment": "Brakkie, Oupa's Jack Russell (GDD §11.3f, D-069; v1.16 D-078: livelier — shorter rests, runs about (runChance), fetches every bird that falls in reach one at a time from a queue of up to fetch.queueMax, back from the bakkie after backSeconds when more wait). v1.17 D-079, the companion: bring (Bring! +15 per delivery, Goeie hond! +30 every 3rd in a row), point (Staan!: the flush is a point at a hidden flock of 5; Mooi punt! +20 for 3 of its birds), whistle (Fluit!: spring / heel / seek), react (a proud hop, a head tilt). A sim entity on his own stream `dog`: never a target, never hurt, never removed. Px are design px on the near plane at his scale 1 (the mid plane converts by plane scale, D-049); times in seconds. areas: the maps he comes to and the side the bakkie stands (-1 left, 1 right). hitboxes: sprite-local px from his feet (x forward), facing right. v1.17b (D-080, the owner: 'yes make all animals true size'): sizeMul 1.4 makes him a true Jack Russell beside the guineafowl (shoulder 110 → 154 px on the near plane, ~0.29 m; the bird in his mouth keeps its size); clear.aimPx, pathPx and fencePx grew by the 34 px his body grew (340 → 375, 220 → 255, 420 → 455), so the rooms round him stay the same from his body's edge.",
+  "$comment": "Brakkie, Oupa's Jack Russell (GDD §11.3f, D-069; v1.16 D-078: livelier — shorter rests, runs about (runChance), fetches every bird that falls in reach one at a time from a queue of up to fetch.queueMax, back from the bakkie after backSeconds when more wait). v1.17 D-079, the companion: bring (Bring! +15 per delivery, Goeie hond! +30 every 3rd in a row), point (Staan!: the flush is a point at a hidden flock of 5; Mooi punt! +20 for 3 of its birds), whistle (Fluit!: spring / heel / seek), react (a proud hop, a head tilt). A sim entity on his own stream `dog`: never a target, never hurt, never removed. Px are design px on the near plane at his scale 1 (the mid plane converts by plane scale, D-049); times in seconds. areas: the maps he comes to and the side the bakkie stands (-1 left, 1 right). hitboxes: sprite-local px from his feet (x forward), facing right. v1.17b (D-080, the owner: 'yes make all animals true size'): sizeMul 1.35 makes him a true Jack Russell beside the guineafowl (shoulder 110 → 149 px on the near plane, ~0.28 m; 1.4 put his back where shots at mid-plane birds on their ground line rained pellets on it (accidental hits 0.10 a hunt); the bird in his mouth keeps its size); clear.aimPx, pathPx and fencePx grew by the ~30 px his body grew (340 → 375, 220 → 255, 420 → 455), so the rooms round him stay the same from his body's edge.",
   "version": 1,
   "modes": ["classic", "daily", "seasonHunt"],
   "seasonKinds": ["plain", "omen"],
@@ -12,7 +12,7 @@
   ],
   "groundY": 985,
   "homeOffPx": 480,
-  "sizeMul": 1.4,
+  "sizeMul": 1.35,
   "hitboxes": {
     "stand": { "body": { "ox": -4, "oy": -60, "rx": 84, "ry": 38 }, "head": { "ox": 74, "oy": -112, "r": 30 } },
     "low": { "body": { "ox": -4, "oy": -30, "rx": 96, "ry": 28 }, "head": { "ox": 84, "oy": -52, "r": 28 } },

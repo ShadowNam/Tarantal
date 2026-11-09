@@ -11,7 +11,7 @@ Decision record D-080. The owner's answer of 9 Nov: "yes make all animals true s
   ostriches (no longer 0.57× / 0.45×: a far elephant 144 → 253 px, a giraffe 225 → 395, an
   ostrich 89 → 197), Namibië's ostrich pair (197 → 552 px tall), the baboons (a sitting male
   151 → 176 px on the mid plane), the Harvest's warthogs (0.33 → 0.7 m at the back) and
-  piglets, Brakkie (a true Jack Russell, 110 → 154 px at the shoulder), the veld cameos (the
+  piglets, Brakkie (a true Jack Russell, 110 → 149 px at the shoulder), the veld cameos (the
   warthog family, springbok, gemsbok, the ostrich sprint and the leopard tortoise, 2.6–3.4×
   bigger, redrawn) and the weaver colony's birds. Hit and penalty areas grow with them.
 - **Kept on purpose:** the dung beetle (bigger than life so you can see it) and the bakkie (a

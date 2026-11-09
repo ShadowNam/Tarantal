@@ -391,7 +391,7 @@ size". Every animal is drawn at its real size beside the guineafowl on its plane
 | baboon, sitting mother | crown | 0.65 | far | 44 → 52 |
 | Harvest warthog | back | 0.7 | mid · near | 74 · 175 → 155 · 368 |
 | Harvest piglet | back | 0.3 | mid · near | 33 · 79 → 70 · 166 |
-| Brakkie (Jack Russell) | shoulder | 0.3 | near · mid | 110 · 46 → 154 · 65 |
+| Brakkie (Jack Russell) | shoulder | 0.3 | near · mid | 110 · 46 → 149 · 62 |
 | cameo warthog sow | back | 0.7 | mid | 57 → 154 |
 | cameo springbok | shoulder | 0.8 | mid | 60 → 177 |
 | cameo gemsbok | shoulder | 1.2 | mid | 78 → 265 |
@@ -827,7 +827,7 @@ Interim at the D-035 bar, inked Bosveld Comic in daylight (lit from the upper le
 Jack Russell terrier: mostly white, a tan head with a white blaze down the muzzle, tan button ears
 folded forward, a tan saddle at the base of his short, high-carried tail and a small patch on his
 back, a black nose, bright dark eyes. Brave, busy, cheeky — never shown hurt. **D-080:** shown
-×1.4 (`brakkie.json sizeMul`): a true Jack Russell, ~0.3 m at the shoulder (154 px near); the bird in
+×1.35 (`brakkie.json sizeMul`): a true Jack Russell, ~0.28 m at the shoulder (149 px near); the bird in
 his mouth keeps its size. **One sheet**
 (`brakkie/sheet`, 512 × 256 at 1×, its own lazy group `brakkie`, the HD twin `brakkie-hd` its 2×
 master; 0.5 MiB on the GPU, a unit test caps it): every frame authored at half size and drawn ×2,

@@ -355,7 +355,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
    *  hand's stripe; the near plane only: on the mid plane he is above the gun). */
   function underGun(x: number, facing: 1 | -1): boolean {
     if (dog.plane !== 'near') return false;
-    const hd = Math.abs(dxOf('near', x) + B.hitboxes.stand.head.ox * facing);
+    const hd = Math.abs(dxOf('near', x) + B.hitboxes.stand.head.ox * B.sizeMul * facing);
     return hd >= B.roam.gunStripePx[0] && hd <= B.roam.gunStripePx[1];
   }
 
@@ -406,7 +406,12 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     } else {
       // Nowhere clear in view: in to the view's edge on his side and look round.
       const sf = geo.layers.near.scrollFactor;
-      const edge = planeCentreX(host.cameraX(), sf) + side * B.roam.viewHalfPx;
+      // D-080: far enough out that his true-size head (facing in) stays outside the gun's stripe.
+      const out = Math.max(
+        B.roam.viewHalfPx,
+        B.roam.gunStripePx[1] + B.hitboxes.stand.head.ox * B.sizeMul + 4,
+      );
+      const edge = planeCentreX(host.cameraX(), sf) + side * out;
       moveTo('trot', 'run', edge, B.speeds.runPx);
     }
   }
