@@ -18,7 +18,12 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { format, resolveConfig } from 'prettier';
-import { LATE_GROUP, VER_GROUP, type BirdClip } from '../../src/game/assets/assetIndex';
+import {
+  LATE_GROUP,
+  VER_GROUP,
+  faunaGroupOf,
+  type BirdClip,
+} from '../../src/game/assets/assetIndex';
 import { fruitSheetKey } from '../../src/game/view/fruit/fruitTypes';
 import { collectFruit } from './fruitSink';
 import { fruitSheet, type FruitOwner } from './fruitArt';
@@ -124,8 +129,6 @@ import { FAUNA_MASTER, sheetHerds } from '../../src/game/view/faunaHerds';
 /** D-054: palette size of the far animals' sheets: no visible change, far fewer bytes (the biome
  *  chunks are nearly full). D-080: no HD twin (Standard in HD). */
 const FAUNA_COLOURS = 48;
-/** D-054: biomes whose herds load with the late group (the Karoo is the first download). */
-const FAUNA_LATE: ReadonlySet<string> = new Set(['karoo-autumn']);
 /** D-054: dust on the elephants (the Bushveld's red earth, the delta's grey mud). */
 const FAUNA_DUST: Readonly<Record<string, string>> = {
   'bushveld-winter': '#A07E62',
@@ -524,13 +527,10 @@ if (wants('fauna')) {
           encode: 'png8',
           originX: 0,
           originY: 0,
-          // The Karoo's herds load after the first download (D-054: it may not grow); the
-          // waterhole with the Ver strips.
-          ...(herd.layer === 'ver_veld'
-            ? { group: VER_GROUP }
-            : FAUNA_LATE.has(biome.id)
-              ? { group: LATE_GROUP }
-              : {}),
+          // D-080: every area's herds in their own background group `fauna-<biome>` (at true
+          // size they would push the area's chunk over 1.5 MB; the Karoo's never in the first
+          // download); the waterhole with the Ver strips.
+          ...(herd.layer === 'ver_veld' ? { group: VER_GROUP } : { group: faunaGroupOf(biome.id) }),
           frames: sheet.frames,
         }),
       );

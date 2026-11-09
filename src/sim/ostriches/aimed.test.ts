@@ -34,8 +34,7 @@ const aimAt = (x: number, y: number, extra: Partial<OstrichAim> = {}): OstrichAi
 });
 
 describe('ostriches: the aimed-at rule (D-080)', () => {
-  it('is on in content, with the size grown to true', () => {
-    expect(content.birds.ostriches.hit.aimedOnly).toBe(true);
+  it('comes with the size grown to true', () => {
     expect(content.birds.ostriches.sizeMul).toBeGreaterThan(2);
   });
 

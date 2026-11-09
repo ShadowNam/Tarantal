@@ -3,6 +3,7 @@
   "encode": "png8",
   "originX": 0,
   "originY": 0,
+  "group": "fauna-okavango-spring",
   "frames": {
     "wildebeest.alert.m.body": [0, 0, 128, 121, 63, 114, 0, 0],
     "wildebeest.alert.m.tail": [89, 237, 23, 92, 19.2, 5.8, -56.8, -86.2],

@@ -3,6 +3,7 @@
   "encode": "png8",
   "originX": 0,
   "originY": 0,
+  "group": "fauna-kalahari-summer",
   "frames": {
     "springbok.graze.m.body": [80, 0, 73, 72, 37, 67, 0, 0],
     "springbok.graze.m.tail": [330, 72, 9, 22, 6.5, 2.4, -32.5, -60.6],

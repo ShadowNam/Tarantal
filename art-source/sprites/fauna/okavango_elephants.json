@@ -3,6 +3,7 @@
   "encode": "png8",
   "originX": 0,
   "originY": 0,
+  "group": "fauna-okavango-spring",
   "frames": {
     "elephant.graze.f.body": [0, 269, 278, 231, 141, 220, 0, 0],
     "elephant.graze.f.tail": [239, 698, 23, 117, 17, 6.5, -126, -158.5],

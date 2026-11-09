@@ -2725,9 +2725,19 @@ export function createSim(config: SimConfig): Sim {
     const radius =
       shot.alertRadiusPx * pass.alertRadiusMul * (miss ? pass.missAlertMul : 1) * rainMul;
     shotAtColonies(shotId, meerkatHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
-    // v1.17b (D-080): the aimed-at rule for the true-size ostriches (hit.aimedOnly).
-    if (ostriches !== null) {
-      const osHit = content.birds.ostriches.hit;
+    // The aim point on a layer, and whether the shot hit something a player aims at (then it
+    // wasn't aimed at a non-target: the cameos, D-075; the ostriches, D-080). Evaluated where used.
+    const aimOn = (layerId: string): { x: number; y: number } =>
+      tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy);
+    const hitTarget = (): boolean =>
+      damage.outcomes.length > 0 ||
+      partHits.length > 0 ||
+      crateHits.length > 0 ||
+      spookHits.length > 0 ||
+      canHits.size > 0 ||
+      baboonHits.some((id) => baboons?.isRaider(id) === true);
+    // v1.17b (D-080): the true-size ostriches keep the aimed-at rule.
+    if (ostriches !== null)
       ostriches.shot(
         shotId,
         ostrichHits,
@@ -2738,36 +2748,25 @@ export function createSim(config: SimConfig): Sim {
         ostrichHits.length === 0
           ? undefined
           : {
-              hitTarget:
-                damage.outcomes.length > 0 ||
-                partHits.length > 0 ||
-                crateHits.length > 0 ||
-                spookHits.length > 0 ||
-                canHits.size > 0 ||
-                baboonHits.some((id) => baboons?.isRaider(id) === true),
-              targetNearAim: targetNearAim(shotCx, ctx.aim.dx, ctx.aim.sy, osHit.guardPx),
-              aimOn: (layerId) =>
-                tapToPlane(
-                  shotCx,
-                  layerById.get(layerId)?.scrollFactor ?? 1,
-                  ctx.aim.dx,
-                  ctx.aim.sy,
-                ),
+              hitTarget: hitTarget(),
+              targetNearAim: targetNearAim(
+                shotCx,
+                ctx.aim.dx,
+                ctx.aim.sy,
+                content.birds.ostriches.hit.guardPx,
+              ),
+              aimOn,
             },
       );
-    }
     tells?.shot(shotId, tellHits);
     if (baboonHits.length > 0 || (shot.alertsAllFlocks && radius > 0))
-      baboons?.shot(shotId, baboonHits, shot.alertsAllFlocks && radius > 0, (layerId) =>
-        tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
-      );
+      baboons?.shot(shotId, baboonHits, shot.alertsAllFlocks && radius > 0, aimOn);
     if (harvestHits.length > 0)
       harvest?.shot(
         shotId,
         harvestHits,
         damage.outcomes.length > 0 || baboonHits.some((id) => baboons?.isRaider(id) === true),
-        (layerId) =>
-          tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
+        aimOn,
       );
     // v1.12 (D-069): Brakkie yelps and bolts; −25 only if the shot was aimed at him and hit no
     // target elsewhere (D-062/D-063's rule).
@@ -2780,15 +2779,10 @@ export function createSim(config: SimConfig): Sim {
           spookHits.length > 0 ||
           [...canHits.keys()].length > 0 ||
           baboonHits.some((id) => baboons?.isRaider(id) === true),
-        (layerId) =>
-          tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
+        aimOn,
       );
     // v1.17 (D-079): every shot's aim (the Bring streak, the head tilt after clean misses).
-    brakkie?.aimed(
-      (layerId) =>
-        tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
-      miss,
-    );
+    brakkie?.aimed(aimOn, miss);
     // v1.13 (D-075): the cameos react to a pellet (and the springbok to a shot close by); −10
     // only for a shot aimed at one that hit no target with nothing aimed at near the aim point.
     if (cameos !== null) {
@@ -2796,17 +2790,11 @@ export function createSim(config: SimConfig): Sim {
       cameos.shot({
         shotId,
         hitVisits: cameoHits,
-        hitTarget:
-          damage.outcomes.length > 0 ||
-          partHits.length > 0 ||
-          crateHits.length > 0 ||
-          spookHits.length > 0 ||
-          canHits.size > 0 ||
-          baboonHits.some((id) => baboons?.isRaider(id) === true),
+        hitTarget: hitTarget(),
         targetNearAim:
           cameoHits.length > 0 &&
           targetNearAim(shotCx, ctx.aim.dx, ctx.aim.sy, content.cameos.hit.guardPx),
-        aimOn: (layerId) => tapToPlane(shotCx, sfOf(layerId), ctx.aim.dx, ctx.aim.sy),
+        aimOn,
         impactsOn: (layerId) => impacts.map((p) => tapToPlane(shotCx, sfOf(layerId), p.dx, p.sy)),
       });
     }

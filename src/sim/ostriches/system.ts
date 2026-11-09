@@ -127,7 +127,7 @@ export const createOstrichSystem: OstrichSystemFactory = (biome, content, rng, h
    *  on its plane. A silenced shot only scares the pair it hit. */
   /** v1.17b (D-080): was the shot aimed at this family (a bird's or the nest's hit shape)? */
   function aimedAt(f: OstrichFamilyState, aim: OstrichAim | undefined): boolean {
-    if (!os.hit.aimedOnly || aim === undefined) return true;
+    if (aim === undefined) return true;
     if (aim.hitTarget || aim.targetNearAim) return false;
     const p = aim.aimOn(f.layerId);
     const inside = (x: number, y: number, rx: number, ry: number): boolean => {

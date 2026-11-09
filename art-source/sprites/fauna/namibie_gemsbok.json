@@ -3,6 +3,7 @@
   "encode": "png8",
   "originX": 0,
   "originY": 0,
+  "group": "fauna-namibie",
   "frames": {
     "gemsbok.graze.m.body": [0, 127, 116, 103, 58, 97, 0, 0],
     "gemsbok.graze.m.tail": [214, 127, 20, 74, 16, 4.9, -52, -87.1],

@@ -30,6 +30,14 @@ export const LATE_GROUP = 'late';
  * own (each lazy chunk ≤ 1.5 MB). Until then the Ver strip shows its placeholder.
  */
 export const VER_GROUP = 'ver';
+/**
+ * v1.17b (D-080): an area's far herds, at true size too big for the area's own chunk (each lazy
+ * chunk ≤ 1.5 MB): a group of their own that the area's manifest fetches in the background, like
+ * the late group (FaunaView draws a herd once its sheet is delivered).
+ */
+export const faunaGroupOf = (biome: string): string => `fauna-${biome}`;
+/** True for a far-herd group (`fauna-<biome>`). */
+export const isFaunaGroup = (group: string): boolean => group.startsWith('fauna-');
 
 /** Bird animation clips (art bible §3.4). */
 export const BIRD_CLIPS = [

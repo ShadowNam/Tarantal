@@ -3,6 +3,7 @@
   "encode": "png8",
   "originX": 0,
   "originY": 0,
+  "group": "fauna-bushveld-winter",
   "frames": {
     "zebra.graze.m.body": [265, 0, 130, 116, 65, 109, 0, 0],
     "zebra.graze.m.tail": [0, 233, 21, 78, 17.5, 4.9, -58.5, -99.1],
