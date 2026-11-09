@@ -71,6 +71,8 @@ function metricValue(m: NotaboekMetric, log: HuntLog): number {
       return log.brakkieMates ?? 0;
     case 'veldkenner':
       return log.veldkenner ?? 0;
+    case 'bringStreak':
+      return log.bringStreak ?? 0;
   }
 }
 

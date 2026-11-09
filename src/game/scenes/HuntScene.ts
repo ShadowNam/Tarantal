@@ -15,7 +15,8 @@ import type { NewYearHook } from '../feesdae/NuwejaarView';
 import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
 import { artSummary } from '../assets/artSummary';
-import { fill, t, tOr } from '../../i18n/i18n';
+import { fill, getLanguage, t, tOr } from '../../i18n/i18n';
+import { guideString } from '../ui/guideI18n';
 import { drawButton, Menu, textStyle } from '../ui/menu';
 import { texturesInUse } from '../assets/textureUse';
 import { hdTextureCount } from '../assets/AssetManifest';
@@ -51,7 +52,7 @@ import type { GameContext, TestHook } from '../GameContext';
 import { HuntRunner } from '../HuntRunner';
 import { InputMapper, inputKindOf } from '../input/InputMapper';
 import { BirdView } from '../view/BirdView';
-import { Fx } from '../view/Fx';
+import { FONT, Fx } from '../view/Fx';
 import { interpolateAim, interpolateBirds, interpolateCamera } from '../view/interpolate';
 import { SightView, type SightPicture } from '../view/SightView';
 import { NO_ZOOM, zoomFor, type ZoomState } from '../view/zoomView';
@@ -69,7 +70,8 @@ import type { TellView } from '../view/tell/TellView';
 import type { BaboonView } from '../view/baboon/BaboonView';
 import type { ReenbuiView } from '../view/reenbui/ReenbuiView';
 import { braaiReady, requestBraai } from '../braai/braaiChunk';
-import { brakkieChunk, requestBrakkie } from '../brakkie/brakkieChunk';
+import { brakkieChunk, requestBrakkie, requestBrakkieCode } from '../brakkie/brakkieChunk';
+import type { WindGrassView } from '../view/wind/WindGrassView';
 import { BRAKKIE_SHEET } from '../brakkie/brakkieKeys';
 import { secretOwnsRotor } from '../view/windpompMotion';
 import type { BrakkieView } from '../brakkie/BrakkieView';
@@ -205,6 +207,9 @@ export class HuntScene extends Phaser.Scene {
   private brakkie: BrakkieView | null = null;
   /** This hunt has Brakkie (the sim's snapshot): the view is built once the chunk is in. */
   private brakkieWanted = false;
+  /** v1.17 (D-079): the near grass bowing in the wind (lazy chunk; null: no wind, not in yet). */
+  private windGrass: WindGrassView | null = null;
+  private windWanted = false;
   /** v1.13 (D-075): the veld cameos (lazy chunk; null until it is in, or none on this hunt). */
   private cameos: CameoView | null = null;
   /** This hunt's cameo area (the sim has cameos): the view is built once the chunk is in. */
@@ -1849,6 +1854,8 @@ export class HuntScene extends Phaser.Scene {
     // v1.12 (D-069): Brakkie's chunk and files, asked for at START and never waited for: until
     // they are in he isn't drawn (the sim runs him all the same).
     this.brakkieWanted = sim.snapshot().brakkie !== null;
+    this.windWanted = sim.snapshot().wind !== null;
+    if (this.windWanted) void requestBrakkieCode();
     if (this.brakkieWanted) requestBrakkie(this.ctx.audio, this.ctx.graphics.hd);
     // v1.13 (D-075): the area's cameo chunk and files, likewise asked for at START and never
     // waited for (lessons 14, 19).
@@ -1878,6 +1885,7 @@ export class HuntScene extends Phaser.Scene {
         designSize: () => designSize(),
         isOnBelt: (x, y) => hud.isOnBelt(x, y),
         isOnGadget: (x, y) => hud.isOnGadget(x, y),
+        isOnWhistle: (x, y) => hud.isOnWhistle(x, y),
         itemAt: (x, y) => hud.itemAt(x, y),
         holdToFire: () =>
           (this.runner?.state.weapon.holdToFire ?? false) || this.ctx.prefs.holdToFire,
@@ -2263,12 +2271,31 @@ export class HuntScene extends Phaser.Scene {
           tuning: this.ctx.feel.brakkie,
           hd: this.ctx.graphics.hd,
           hooks: this.ctx.hook !== null,
+          words: {
+            word: (k) => guideString(getLanguage(), `guide.brakkie.${k}`) ?? '',
+            font: FONT,
+          },
+          reducedMotion: this.ctx.reducedMotion,
         });
     }
     if (this.brakkie !== null) {
       this.brakkie.update(state);
       if (this.ctx.hook) this.ctx.hook.brakkieMs += this.brakkie.lastMs;
     }
+    // v1.17 (D-079): the grass bows with the wind (built once the wind chunk is in).
+    if (this.windGrass === null && this.windWanted && !this.ending) {
+      const chunk = brakkieChunk();
+      if (chunk !== null)
+        this.windGrass = new chunk.WindGrassView({
+          scene: this,
+          parallax: this.parallax,
+          exponent: this.biome.omen.wind?.strengthExponent ?? 1,
+          reducedMotion: this.ctx.reducedMotion,
+          groundY: this.ctx.content.brakkie.groundY,
+          now: () => performance.now(),
+        });
+    }
+    this.windGrass?.update(state);
     // v1.13 (D-075): the veld cameos, on their own timer (cameoMs); built once the chunk is in.
     if (this.cameos === null && this.cameoArea !== null && !this.ending) {
       const chunk = cameoChunk();
@@ -2584,6 +2611,7 @@ export class HuntScene extends Phaser.Scene {
       hook.baboons = this.baboons?.baboons ?? null;
       hook.baboonCalls = this.baboons?.callCounts ?? null;
       hook.brakkie = this.brakkie?.hook ?? null;
+      hook.windGrassLean = this.windGrass?.leanNow() ?? null;
       hook.cameos = this.cameos?.hook ?? null;
       hook.baboonRaid = state.baboons?.raid ?? null;
       hook.harvestActors = this.harvest?.actors ?? null;
@@ -3493,6 +3521,9 @@ export class HuntScene extends Phaser.Scene {
     this.baboonsGen++;
     this.releaseBrakkie();
     this.brakkieWanted = false;
+    this.windGrass?.destroy();
+    this.windGrass = null;
+    this.windWanted = false;
     this.releaseCameos();
     this.cameoArea = null;
     this.harvest?.destroy();

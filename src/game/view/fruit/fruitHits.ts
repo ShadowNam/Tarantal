@@ -5,6 +5,7 @@
 // nearer one, or a nearer prop) never reaches it. The sim's own hit test is untouched: fruit only
 // react, they never take a pellet from a bird.
 import { tapToPlane } from '../../../sim/camera';
+import { planeDriftMul } from '../../../sim/omen/windCurve';
 import type { WindView } from '../../../sim/types';
 import type { FruitTuning, ShotOnFruit } from './fruitMotion';
 import type { FruitSpot } from './fruitTypes';
@@ -74,6 +75,31 @@ export interface Impact {
   /** Kettie stones: the camera centre they were fired at. */
   readonly cx?: number;
   readonly stop: PelletStop | null;
+  /** v1.17 (D-079), wind hunts: the event's driftPx (the push at the layer it stopped on) and
+   *  driftFarPx (the shot's push at the far plane). */
+  readonly drift?: number;
+  readonly driftFar?: number;
+}
+
+/** v1.17: an Impact from a pelletImpact event's fields. */
+export function impactOf(
+  e: {
+    readonly dx: number;
+    readonly sy: number;
+    readonly cx?: number;
+    readonly driftPx?: number;
+    readonly driftFarPx?: number;
+  },
+  stop: PelletStop | null,
+): Impact {
+  return {
+    dx: e.dx,
+    sy: e.sy,
+    ...(e.cx === undefined ? {} : { cx: e.cx }),
+    stop,
+    ...(e.driftPx === undefined ? {} : { drift: e.driftPx }),
+    ...(e.driftFarPx === undefined ? {} : { driftFar: e.driftFarPx }),
+  };
 }
 
 /** What maps a shot's impacts onto a layer. */
@@ -84,11 +110,14 @@ export interface ShotFrame {
   readonly drift: number;
   /** The far plane's scroll factor: pellets at or behind it drift (Tech §3.4). */
   readonly farFactor: number;
+  /** v1.17 (D-079): the wind's drift curve (WindView.curve): with it, impacts that carry their
+   *  drift are re-placed on every layer by the plane rule (the drift grows with distance). */
+  readonly curve?: readonly (readonly [number, number])[];
 }
 
 /**
- * The sim's wind drift for a shot: driftPxAtFar × strength × dir × the gun's wind sensitivity ×
- * the charms' windDriftMul (src/sim/omen/wind.ts windDriftPx, Sim.ts shotDrift). 0 without wind.
+ * The sim's far-plane wind drift for a shot (before v1.17's events carried it): driftPxAtFar ×
+ * strength × dir × the gun's wind sensitivity × the charms' windDriftMul. 0 without wind.
  */
 export function shotDriftPx(
   wind: WindView | null,
@@ -114,8 +143,16 @@ export function pelletsOnLayer(
   const out: LayerPellet[] = [];
   for (const e of impacts) {
     if (blocked(e.stop, factor)) continue;
-    const drifted = e.stop === null || e.stop.factor <= f.farFactor;
-    const dx = drifted && factor > f.farFactor ? e.dx - f.drift : e.dx;
+    let dx: number;
+    if (e.drift !== undefined && f.curve !== undefined) {
+      // v1.17: the pellet passed this layer pushed by the wind as far as this layer's distance.
+      const farMul = planeDriftMul(f.curve, f.farFactor);
+      const here = farMul > 0 ? ((e.driftFar ?? 0) * planeDriftMul(f.curve, factor)) / farMul : 0;
+      dx = e.dx - e.drift + here;
+    } else {
+      const drifted = e.stop === null || e.stop.factor <= f.farFactor;
+      dx = drifted && factor > f.farFactor ? e.dx - f.drift : e.dx;
+    }
     out.push(pelletOnLayer(e.cx ?? f.camX, factor, dx, e.sy));
   }
   return out;

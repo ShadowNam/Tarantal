@@ -44,8 +44,14 @@ function stubImage(): Record<string, unknown> {
     'setScale',
     'setDepth',
     'setTexture',
+    'setRotation',
+    'setText',
   ])
     img[n] = chain();
+  img['visible'] = false;
+  img['setVisible'] = chain((v) => {
+    img['visible'] = v;
+  });
   img['setFrame'] = chain();
   img['setOrigin'] = chain((x, y) => {
     img['originX'] = x;
@@ -85,7 +91,7 @@ function makeView(textures = stubTextures()) {
     layerTint: () => 0xffffff,
   } as unknown as ParallaxView;
   const scene = {
-    add: { image: () => stubImage() },
+    add: { image: () => stubImage(), text: () => stubImage() },
     textures,
   } as unknown as Phaser.Scene;
   const view = new BrakkieView({
@@ -131,8 +137,11 @@ describe('BrakkieView (D-069)', () => {
   it('frames from the snapshot: away is null, the trot and run alternate, the bark opens', () => {
     expect(dogFrame({ present: false, pose: 'trot', t: 0 })).toBeNull();
     expect(dogFrame({ present: true, pose: 'trot', t: 0 })).toBe('trot_a');
-    expect(dogFrame({ present: true, pose: 'trot', t: 8 })).toBe('trot_b');
-    expect(dogFrame({ present: true, pose: 'carry', t: 5 })).toBe('run_b');
+    expect(dogFrame({ present: true, pose: 'trot', t: 5 })).toBe('trot_c');
+    expect(dogFrame({ present: true, pose: 'trot', t: 10 })).toBe('trot_b');
+    expect(dogFrame({ present: true, pose: 'trot', t: 15 })).toBe('trot_d');
+    expect(dogFrame({ present: true, pose: 'carry', t: 4 })).toBe('run_c');
+    expect(dogFrame({ present: true, pose: 'carry', t: 8 })).toBe('run_b');
     expect(dogFrame({ present: true, pose: 'bark', t: 0 })).toBe('bark');
     expect(dogFrame({ present: true, pose: 'yelp', t: 3 })).toBe('yelp');
   });

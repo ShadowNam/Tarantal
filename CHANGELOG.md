@@ -3,6 +3,52 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.20.0] — v1.17: Brakkie the companion and real wind (9 Nov 2026)
+
+Decision record D-079. From the product owner's requests of 8 Nov (evening): "when the wind is
+showing some stronger wind, I think the bullets should also drift off a bit more", "I see great
+potential in the dog … a great companion … help get extra points" and "get the dog more detail".
+
+- **Wind that matters:** a shot now drifts downwind on every plane, more the farther it flies (near
+  a little, mid noticeably, far the most, the Ver plane more), and much more in a strong wind than
+  in a breeze (strength^1.5). Short **gusts** blow now and then.
+- **You can see the wind:** a wind meter under the windsock (an arrow and five strength bars,
+  warmer in a gust) on every map with wind, phones too; grass tufts in front bow with it.
+- **"Bring!":** every bird Brakkie delivers to the bakkie pays +15 (with Frenzy and Stampede), with a
+  pop-up at the screen edge and a happy yap; every 3 in a row "Goeie hond!" +30. Don't shoot round
+  him while he carries one, or the streak breaks. He runs out once the shooting stops — or at once
+  when you whistle.
+- **"Staan!":** he freezes on point at a hidden flock of 5 (a marker shows where it sits) and
+  springs in after a moment; bag 3 of them for "Mooi punt!" +20.
+- **"Fluit!":** whistle for him — F or the middle mouse button on a computer, a round whistle button
+  on phones: spring his point ("Spring!"), send him for a bird ("Soek!"), call him to heel out of
+  the way ("Hier!"), and back to work.
+- **He reacts:** a proud hop and a double bark after a Whole Flock, Twee Vlieë, Frenzy ×3 or a Ver
+  bag; after three misses he sits and tilts his head (sympathetic, never laughing).
+- **More detail on Brakkie:** a brown eye patch, clearer ear flaps, whiskers, a pink tongue when
+  he pants, a short docked tail, a plain collar, toe lines, smoother trot and run, new poses.
+- **Notaboek** "Goeie hond" (5 deliveries in a row) and Oupa's braai line for a streak of 3+.
+- Balance, downloads and memory: BALANCE_LINE
+
+## [1.19.0] — v1.16: Veld realism (8 Nov 2026)
+
+Decision record D-078. From the product owner's feedback of 8 Nov on the live build.
+
+- **Baboons hide on the koppies and peek out:** the troop keeps behind the ridge; one or two at a
+  time rise to look over the edge (head and shoulders), or a male climbs up to sit as the sentinel,
+  then they duck back. Spread along the ridges, not a row. Raids work as before.
+- **Realistic chacma baboons:** the long dark muzzle, a heavy brow, the broken tail, long arms,
+  shoulders above the hips; new peek and sentinel frames.
+- **The baboons' calls:** the male's echoing "wa-hoo" alarm bark, grunts, a youngster's squeal and
+  a scared raider's scream, from where the troop is, not too often.
+- **Brakkie fetches more:** he picks up most of the birds that fall near him, one at a time, and
+  runs about more between fetches.
+- **A Hilux-style bakkie:** the hunt's and the braai's bakkie are a boxy single-cab 4×4 with a
+  sports bar (no badge or brand).
+- **Animal sizes:** weavers, tell animals and meerkats at their real size next to the guineafowl.
+- Downloads and memory: first download (web) 3,026.5 KB of 3,072; HD texture memory ≤ 256 MB on
+  every hunt (tightest ≈ 247 MB).
+
 ## [1.18.1] — v1.15: Art polish (8 Nov 2026)
 
 Decision record D-077. From the product owner's request of 8 Nov ("increase the graphic quality").

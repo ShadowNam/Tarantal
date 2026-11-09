@@ -2,7 +2,7 @@
 // download): his files (the sheet, its HD twin, his barks, yelp and panting), the hunt's view and
 // the title's wag.
 //
-// Texture memory (lessons 29, 38, 40): his one sheet (0.5 MiB Standard, 2 MiB HD twin) becomes a
+// Texture memory (lessons 29, 38, 40): his one sheet (v1.17: 0.875 MiB Standard, 3.5 MiB HD twin) becomes a
 // texture when a hunt (or the title) first draws him and is removed when it ends — before the
 // tally opens, so the hunt → braai hand-over carries none of it. The HD twin is used only while the
 // textures in use leave room for it under the budget (feel.brakkie.hd); otherwise the Standard.
@@ -12,6 +12,8 @@
 // hidden off screen; his own timer (lastMs → the hook's brakkieMs). Everything runs on sim time
 // from the snapshot, so a held frame (?holdAt) holds him.
 import type * as Phaser from 'phaser';
+// v1.17 (D-079): the wind's near grass and HUD meter ride in this lazy chunk.
+export { WindGrassView, drawWindMeter } from '../view/wind/WindGrassView';
 import type { Feel } from '../../content/schemas';
 import type { SimEvent } from '../../sim/events';
 import type { BrakkieView as SimDog, SimState } from '../../sim/types';
@@ -202,7 +204,33 @@ export interface BrakkieHook {
   barks: number;
   flushes: number;
   hits: number;
+  /** v1.17 (D-079): the point's marker as drawn (screen design px; null: none shown). */
+  marker: { x: number; y: number } | null;
+  /** v1.17: the word over him now ("Staan!", "Hier!" …; null: none), the Bring streak, the
+   *  reaction playing and the sim's companion counts. */
+  word: string | null;
+  streak: number;
+  bestStreak: number;
+  react: string | null;
+  whistle: string | null;
+  points: number;
+  goodPoints: number;
+  reactions: number;
+  whistles: number;
 }
+
+/** v1.17 (D-079): the command words shown over him (the lazy guide tables, from the scene: ''
+ *  while they are not in yet — then no word). */
+export interface BrakkieWords {
+  readonly word: (key: 'point' | 'spring' | 'heel' | 'seek') => string;
+  /** The game's font family. */
+  readonly font: string;
+}
+
+/** How long a word stays up over him (sim ticks: a held tick holds it). */
+const WORD_TICKS = 84;
+/** The marker's tuft rustles one way, then the other, every this many ticks. */
+const RUSTLE_TICKS = 6;
 
 export interface BrakkieViewSetup {
   readonly scene: Phaser.Scene;
@@ -212,11 +240,26 @@ export interface BrakkieViewSetup {
   readonly hd: boolean;
   /** The e2e hooks are on (else no hook object is kept up to date). */
   readonly hooks: boolean;
+  /** v1.17 (D-079): the words over him; "reduce motion" keeps the marker still. */
+  readonly words?: BrakkieWords;
+  readonly reducedMotion?: boolean;
 }
 
 export class BrakkieView {
   private readonly img: Phaser.GameObjects.Image;
   private readonly bird: Phaser.GameObjects.Image;
+  /** v1.17 (D-079): the pointed flock's marker (its own layer: the mid plane's fixtures). */
+  private readonly marker: Phaser.GameObjects.Image;
+  private markerLayer: string | null = null;
+  private markerShown = false;
+  private markerScale = NaN;
+  private markerX = NaN;
+  private markerY = NaN;
+  private markerRot = NaN;
+  /** v1.17: the word over him and until when (sim tick). */
+  private readonly word: Phaser.GameObjects.Text;
+  private wordText: string | null = null;
+  private wordUntil = -1;
   private layerId: string | null = null;
   private k = 1;
   private sheet: 'standard' | 'hd' | null = null;
@@ -256,12 +299,34 @@ export class BrakkieView {
     barks: 0,
     flushes: 0,
     hits: 0,
+    marker: null,
+    word: null,
+    streak: 0,
+    bestStreak: 0,
+    react: null,
+    whistle: null,
+    points: 0,
+    goodPoints: 0,
+    reactions: 0,
+    whistles: 0,
   };
 
   constructor(private readonly s: BrakkieViewSetup) {
     // Built hidden on the sheet's key (a placeholder until the sheet is in: never shown so).
     this.img = s.scene.add.image(0, 0, '__DEFAULT').setVisible(false);
     this.bird = s.scene.add.image(0, 0, '__DEFAULT').setVisible(false);
+    this.marker = s.scene.add.image(0, 0, '__DEFAULT').setVisible(false);
+    this.word = s.scene.add
+      .text(0, 0, '', {
+        fontFamily: s.words?.font ?? 'sans-serif',
+        fontSize: '34px',
+        fontStyle: '900',
+        color: '#FFF3D6',
+        stroke: '#1C130F',
+        strokeThickness: 7,
+      })
+      .setOrigin(0.5, 1)
+      .setVisible(false);
     // e2e only (test hooks on): hide him, so a spec can grab the same held tick with and without
     // him and find his drawn pixels (lessons 14 and 22: real pixels, the centroid on his shape).
     if (s.hooks && typeof window !== 'undefined')
@@ -290,13 +355,19 @@ export class BrakkieView {
     this.sheet = t.sheet;
     this.img.setTexture(BRAKKIE_SHEET, 'sit');
     this.bird.setTexture(BRAKKIE_SHEET, 'bird');
+    this.marker.setTexture(BRAKKIE_SHEET, 'marker');
     setFootOrigin(this.bird, false);
+    setFootOrigin(this.marker, false);
     this.frame = 'sit';
     this.calls += 4;
     return true;
   }
 
   private hide(): void {
+    if (this.word.visible) {
+      this.word.setVisible(false);
+      this.calls++;
+    }
     if (this.shown) {
       this.img.setVisible(false);
       this.shown = false;
@@ -316,6 +387,7 @@ export class BrakkieView {
     if (layer === undefined) return false;
     layer.fixtures.add(this.img);
     layer.fixtures.add(this.bird);
+    layer.fixtures.add(this.word);
     this.layerId = layerId;
     const tint = this.s.parallax.layerTint(layerId);
     if (tint !== this.tint) {
@@ -340,6 +412,10 @@ export class BrakkieView {
     const frame = d === null ? null : dogFrame(d);
     if (d === null || frame === null || this.hidden || !this.sheetReady()) {
       this.hide();
+      if (this.markerShown) {
+        this.marker.setVisible(false);
+        this.markerShown = false;
+      }
       if (d !== null) this.fillHook(d, null, false, 0, 0, 0);
       this.hook.calls = this.calls;
       this.lastMs = this.s.now() - t0;
@@ -386,6 +462,7 @@ export class BrakkieView {
     const onScreen = sx > -CULL_PX && sx < w + CULL_PX;
     if (!onScreen) {
       this.hide();
+      this.drawMarker(d);
       this.fillHook(d, null, false, x, y, d.y);
       this.hook.calls = this.calls;
       this.lastMs = this.s.now() - t0;
@@ -426,7 +503,10 @@ export class BrakkieView {
       this.calls++;
     }
     // The bird in his mouth (the running frames only).
-    const carry = d.carrying && !this.birdHidden && (frame === 'run_a' || frame === 'run_b');
+    const carry =
+      d.carrying &&
+      !this.birdHidden &&
+      (frame === 'run_a' || frame === 'run_b' || frame === 'run_c' || frame === 'run_d');
     if (carry !== this.birdShown) {
       this.bird.setVisible(carry);
       this.birdShown = carry;
@@ -437,9 +517,78 @@ export class BrakkieView {
       this.bird.setPosition(x + m.x * scale * d.facing, y + m.y * scale);
       this.calls++;
     }
+    this.drawWord(state.tick, x, y, scale);
+    this.drawMarker(d);
     this.fillHook(d, frame, true, x, y, d.cross === null ? d.y : y);
     this.hook.calls = this.calls;
     this.lastMs = this.s.now() - t0;
+  }
+
+  /** v1.17 (D-079): the word over his head, up WORD_TICKS sim ticks after the event. */
+  private drawWord(tick: number, x: number, y: number, scale: number): void {
+    const on = this.wordText !== null && tick <= this.wordUntil;
+    if (on !== this.word.visible) {
+      this.word.setVisible(on);
+      this.calls++;
+    }
+    if (!on) return;
+    const wx = x;
+    const wy = y - 200 * scale;
+    if (this.word.x !== wx || this.word.y !== wy) {
+      this.word.setPosition(wx, wy).setScale(Math.max(0.6, scale));
+      this.calls += 2;
+    }
+  }
+
+  /** v1.17 (D-079): the marker where the pointed flock sits (a rustling tuft and a chevron). */
+  private drawMarker(d: SimDog): void {
+    const p = d.point;
+    if (p === null) {
+      if (this.markerShown) {
+        this.marker.setVisible(false);
+        this.markerShown = false;
+        this.calls++;
+      }
+      return;
+    }
+    if (p.layerId !== this.markerLayer) {
+      const layer = this.s.parallax.layer(p.layerId);
+      if (layer === undefined) return;
+      layer.fixtures.add(this.marker);
+      this.markerLayer = p.layerId;
+      const tint = this.s.parallax.layerTint(p.layerId);
+      if (tint === 0xffffff) this.marker.clearTint();
+      else this.marker.setTint(tint);
+    }
+    if (!this.markerShown) {
+      this.marker.setVisible(true);
+      this.markerShown = true;
+      this.calls++;
+    }
+    const res = brakkieFrame('marker').res;
+    // Drawn at near-plane size × the mid plane's (his own scale there), a little larger to read.
+    const sc = (p.scale * 1.4) / (res * this.k);
+    if (sc !== this.markerScale) {
+      this.marker.setScale(sc);
+      this.markerScale = sc;
+      this.calls++;
+    }
+    if (p.x !== this.markerX || p.y !== this.markerY) {
+      this.marker.setPosition(p.x, p.y);
+      this.markerX = p.x;
+      this.markerY = p.y;
+      this.calls++;
+    }
+    // The grass rustles every few ticks (still with "reduce motion").
+    const rot =
+      this.s.reducedMotion === true
+        ? 0
+        : (Math.floor(d.t / RUSTLE_TICKS) % 2 === 0 ? 1 : -1) * 0.08;
+    if (rot !== this.markerRot) {
+      this.marker.setRotation(rot);
+      this.markerRot = rot;
+      this.calls++;
+    }
   }
 
   /** The e2e hook (kept only with the hooks on: no work otherwise). */
@@ -468,6 +617,23 @@ export class BrakkieView {
     h.barks = d.barks;
     h.flushes = d.flushes;
     h.hits = d.hits;
+    h.streak = d.streak;
+    h.bestStreak = d.bestStreak;
+    h.react = d.react;
+    h.whistle = d.whistle;
+    h.points = d.points;
+    h.goodPoints = d.goodPoints;
+    h.reactions = d.reactions;
+    h.whistles = d.whistles;
+    h.word = this.word.visible ? this.wordText : null;
+    const ml = this.markerLayer === null ? undefined : this.s.parallax.layer(this.markerLayer);
+    h.marker =
+      this.markerShown && ml !== undefined && d.point !== null
+        ? {
+            x: Math.round(ml.root.x + d.point.x * ml.root.scaleX),
+            y: Math.round(ml.root.y + d.point.y * ml.root.scaleY),
+          }
+        : null;
     if (layer !== undefined) {
       h.x = Math.round(layer.root.x + x * layer.root.scaleX);
       h.y = Math.round(layer.root.y + y * layer.root.scaleY);
@@ -486,13 +652,30 @@ export class BrakkieView {
         this.barkSecond = !this.barkSecond;
       } else if (e.type === 'brakkieFlushed') key = BRAKKIE_SOUNDS.bark2;
       else if (e.type === 'brakkieHit') key = BRAKKIE_SOUNDS.yelp;
-      else if (e.type === 'brakkieFetched') this.fetchedHome = true;
+      else if (e.type === 'brakkieFetched') {
+        this.fetchedHome = true;
+        // v1.17 (D-079): a happy yap as he delivers ("Bring!"); he's off screen at the bakkie,
+        // so it comes from the bakkie's side.
+        audio.playExtra(BRAKKIE_SOUNDS.yap, 0, () => 0, 1, -4);
+      } else if (e.type === 'brakkiePointed') this.say(this.s.words?.word('point'), e.tick);
+      else if (e.type === 'brakkieWhistled') {
+        audio.playExtra(BRAKKIE_SOUNDS.whistle, 0, () => 0, 1, -2);
+        this.say(this.s.words?.word(e.action), e.tick);
+      } else if (e.type === 'brakkieReacted' && e.kind === 'proud') key = BRAKKIE_SOUNDS.bark2;
       else if (e.type === 'brakkieArrived' && this.fetchedHome) {
         this.fetchedHome = false;
         key = BRAKKIE_SOUNDS.pant;
       }
       if (key !== null) audio.playExtra(key, this.pan(width), () => 0);
     }
+  }
+
+  /** v1.17: a word over him for WORD_TICKS. */
+  private say(text: string | undefined, tick: number): void {
+    if (text === undefined || text === '') return;
+    if (text !== this.wordText) this.word.setText(text);
+    this.wordText = text;
+    this.wordUntil = tick + WORD_TICKS;
   }
 
   private pan(width: number): number {
@@ -507,9 +690,84 @@ export class BrakkieView {
   destroy(): void {
     this.img.destroy();
     this.bird.destroy();
+    this.marker.destroy();
+    this.word.destroy();
     releaseBrakkieTexture(this.s.scene.textures);
     this.sheet = null;
   }
+}
+
+// --- the whistle button (v1.17, D-079) ------------------------------------------------------------
+
+// The last drawn look per Graphics: the HUD scene makes a new Graphics each hunt, so a key kept for
+// the module would skip drawing the new one.
+const whistleKeys = new WeakMap<Phaser.GameObjects.Graphics, string>();
+
+/**
+ * The HUD's round 72-px whistle button (touch; `r` null on a mouse or without a layout), drawn by
+ * this lazy chunk: shown while Brakkie is out, dimmed while the whistle would do nothing, a whistle
+ * on it; redrawn only on a change. Keeps the e2e hook's `whistleButton`.
+ */
+export function drawWhistleButton(
+  g: Phaser.GameObjects.Graphics,
+  r: { readonly x: number; readonly y: number; readonly w: number; readonly h: number } | null,
+  d: SimDog | null,
+  ink: number,
+  enamel: number,
+  hook: {
+    whistleButton: { x: number; y: number; w: number; h: number; on: boolean } | null;
+  } | null,
+): void {
+  const show = r !== null && d !== null && d.present;
+  const on = show && d.whistle !== null;
+  if (hook) hook.whistleButton = show ? { x: r.x, y: r.y, w: r.w, h: r.h, on } : null;
+  if (show !== g.visible) g.setVisible(show);
+  if (!show) return;
+  const key = `${r.x},${r.y},${on ? 1 : 0}`;
+  if (key === whistleKeys.get(g)) return;
+  whistleKeys.set(g, key);
+  const cx = r.x + r.w / 2;
+  const cy = r.y + r.h / 2;
+  const rad = r.w / 2;
+  g.clear();
+  g.fillStyle(ink, 0.9).fillCircle(cx, cy, rad);
+  g.fillStyle(on ? enamel : 0x7a7466, 1).fillCircle(cx, cy, rad - 6);
+  // The whistle: a round chamber with its mouthpiece and the lanyard ring.
+  g.fillStyle(ink, 1);
+  g.fillCircle(cx + 6, cy + 4, 15);
+  g.fillRect(cx - 24, cy - 8, 24, 12);
+  g.fillStyle(on ? 0xd8dde4 : 0xa0a0a0, 1);
+  g.fillCircle(cx + 6, cy + 4, 11);
+  g.fillRect(cx - 21, cy - 5, 22, 6);
+  g.fillStyle(ink, 1).fillRect(cx - 2, cy - 7, 7, 4);
+  g.lineStyle(3, ink, 1).strokeCircle(cx + 18, cy - 12, 5);
+}
+
+/** The pop-up of a bonus: Brakkie's ("Bring! +15", "Goeie hond! +30", "Mooi punt! +20", the word
+ *  from the lazy guide tables) or the points alone (any other bonus, or before the tables are in);
+ *  Brakkie's go to the e2e hook's log. */
+export function popText(
+  bonus: string,
+  award: string,
+  lookup: (key: string) => string,
+  hook: { brakkiePops: string[] } | null,
+): string {
+  const key =
+    bonus === 'bring'
+      ? 'bring'
+      : bonus === 'bringStreak'
+        ? 'streak'
+        : bonus === 'goodPoint'
+          ? 'good_point'
+          : null;
+  const word = key === null ? '' : lookup(`guide.brakkie.${key}`);
+  if (word === '') return award;
+  const text = `${word} ${award}`;
+  if (hook) {
+    hook.brakkiePops.push(text);
+    if (hook.brakkiePops.length > 40) hook.brakkiePops.shift();
+  }
+  return text;
 }
 
 // --- the title's wag -----------------------------------------------------------------------------

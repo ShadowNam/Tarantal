@@ -1,9 +1,11 @@
 // Device input → sim Commands (Tech §6). Pointer Events only, one path for mouse, touch and pen.
 //   Mouse:  left button fires at once · right button / Space reloads · Q blows the Vuvuzela ·
+//           F or the middle button whistles for Brakkie (v1.17) ·
 //           1/2/3 use Season Run consumables and the rental (or tap/click their buttons) ·
 //           A/D, ←/→ or the outer 12 % of the screen pans.
 //   Touch:  tap fires at the finger · horizontal drag pans with inertia · flick-down or a tap on
-//           the shell belt reloads · a tap on the gadget button blows the Vuvuzela.
+//           the shell belt reloads · a tap on the gadget button blows the Vuvuzela · a tap on
+//           the whistle button whistles for Brakkie (v1.17).
 //   Hold-to-fire (Mielie-Masjien, Chilli Biltong — the snapshot says when): pressing starts a
 //   hold (fireHoldStart), moving aims it (fireHoldMove), lifting ends it (fireHoldEnd). On touch a
 //   held finger aims instead of panning; holding it near a screen edge pans (D-021).
@@ -37,6 +39,8 @@ export interface InputHost {
   isOnBelt(x: number, y: number): boolean;
   /** True if (x, y) in design px is on the gadget button. */
   isOnGadget(x: number, y: number): boolean;
+  /** v1.17 (D-079): true if (x, y) is on Brakkie's whistle button (shown on touch). */
+  isOnWhistle?(x: number, y: number): boolean;
   /** Season Run consumable/rental button under (x, y) (its consumable slot), or null. */
   itemAt(x: number, y: number): number | null;
   /** True if (x, y) is on a HUD control handled elsewhere (pause, FTUE skip): never fires. */
@@ -401,8 +405,9 @@ export class InputMapper {
       return;
     }
     const item = this.host.itemAt(p.x, p.y);
+    const onWhistle = this.host.isOnWhistle?.(p.x, p.y) ?? false;
     const onButton =
-      this.host.isOnBelt(p.x, p.y) || this.host.isOnGadget(p.x, p.y) || item !== null;
+      this.host.isOnBelt(p.x, p.y) || this.host.isOnGadget(p.x, p.y) || item !== null || onWhistle;
     if (e.pointerType === 'mouse') {
       const zoom = this.rifleZoom();
       if (e.button === 0) {
@@ -410,6 +415,7 @@ export class InputMapper {
         if (this.host.isOnBelt(p.x, p.y)) this.host.queue({ t: 'reload' });
         else if (this.host.isOnGadget(p.x, p.y)) this.host.queue({ t: 'gadget' });
         else if (item !== null) this.host.queue({ t: 'consumable', slot: item });
+        else if (onWhistle) this.host.queue({ t: 'whistle' });
         else if (zoom !== null && this.aimHold === null) {
           // The pointer keeps reporting outside the canvas while the sight is up.
           try {
@@ -424,6 +430,10 @@ export class InputMapper {
         // Right-click while the sight is up cancels it; otherwise it reloads.
         if (this.aimHold !== null) this.endAim('cancel');
         else this.host.queue({ t: 'reload' });
+      } else if (e.button === 1) {
+        // v1.17 (D-079): the middle button whistles for Brakkie (no autoscroll).
+        e.preventDefault();
+        this.host.queue({ t: 'whistle' });
       }
       return;
     }
@@ -558,6 +568,7 @@ export class InputMapper {
       case 'tap':
         if (this.host.isOnBelt(end.x, end.y)) this.host.queue({ t: 'reload' });
         else if (this.host.isOnGadget(end.x, end.y)) this.host.queue({ t: 'gadget' });
+        else if (this.host.isOnWhistle?.(end.x, end.y) === true) this.host.queue({ t: 'whistle' });
         else if (this.host.itemAt(end.x, end.y) !== null) {
           const slot = this.host.itemAt(end.x, end.y);
           if (slot !== null) this.host.queue({ t: 'consumable', slot });
@@ -631,6 +642,12 @@ export class InputMapper {
     if (e.code === 'KeyQ') {
       e.preventDefault();
       if (down && !e.repeat) this.host.queue({ t: 'gadget' });
+      return;
+    }
+    // v1.17 (D-079): F whistles for Brakkie.
+    if (e.code === 'KeyF') {
+      e.preventDefault();
+      if (down && !e.repeat) this.host.queue({ t: 'whistle' });
       return;
     }
     const dir: Record<string, number> = { KeyA: -1, ArrowLeft: -1, KeyD: 1, ArrowRight: 1 };

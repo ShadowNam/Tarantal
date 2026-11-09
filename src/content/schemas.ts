@@ -1580,6 +1580,14 @@ export const BiomeSchema = obj({
         tailwindSpeedMul: pos,
         headwindSpeedMul: pos,
         driftPxAtFar: nonNeg,
+        /** v1.17 (D-079): drift grows as strength ^ strengthExponent (1 = linear, the old rule). */
+        strengthExponent: z.union([z.literal(1), z.literal(1.5), z.literal(2)]).optional(),
+        /** v1.17 (D-079): drift × this on each plane (far = 1 by definition of driftPxAtFar;
+         *  linear between planes by scroll factor). Absent: far and Ver 1, near and mid 0. */
+        driftPlaneMul: allPlanes(nonNeg).optional(),
+        /** v1.17 (D-079): gusts — every everySeconds (gap) one lasting `seconds`, adding up to
+         *  `add` to the strength at its peak (never above 1). Drift and visuals only. */
+        gusts: obj({ everySeconds: range(pos), seconds: range(pos), add: nonNeg }).optional(),
       })
       .optional(),
     /** M8 Okavango sun-showers: a shower every `everySeconds` (gap) for `lastSeconds`, drawn from
@@ -2143,7 +2151,12 @@ export const BrakkieSchema = obj({
   /** Home: this far past the panorama's end (off every screen, LAYER_BLEED_PX + the widest view). */
   homeOffPx: pos,
   /** Standing (trot, run, sniff, sit, bark, carry, yelp) and lying (lie, dig). */
-  hitboxes: obj({ stand: dogHitbox, low: dogHitbox }),
+  hitboxes: obj({
+    stand: dogHitbox,
+    low: dogHitbox,
+    /** v1.17 (D-079): on point — body low and level, head stretched forward. */
+    point: dogHitbox,
+  }),
   /** runBeyondPx: a new spot farther than this he runs to instead of trotting. */
   speeds: obj({ trotPx: pos, runPx: pos, boltPx: pos, runBeyondPx: pos }),
   /** He trots in from the bakkie this long into the hunt. */
@@ -2190,7 +2203,6 @@ export const BrakkieSchema = obj({
     wideSpreadPx: pos,
   }),
   fetch: obj({
-    chance: fraction,
     planes: z.array(z.enum(['near', 'mid'])).min(1),
     /** The bird is down after this. */
     delaySeconds: nonNeg,
@@ -2201,6 +2213,9 @@ export const BrakkieSchema = obj({
     waitSeconds: nonNeg,
     /** v1.16 (D-078): birds he means to fetch, one at a time in the order they fell. */
     queueMax: posInt,
+    /** v1.17 (D-079): like a real gundog he is sent once the shooting stops: he runs out for a
+     *  bird only after the gun has been quiet (no shot, no sight or fire held) this long. */
+    quietSeconds: nonNeg,
     /** Only for a bag this close to the view's centre (screen px). */
     maxDxPx: pos,
     pickupSeconds: pos,
@@ -2225,15 +2240,37 @@ export const BrakkieSchema = obj({
     firstSeconds: range(pos),
     everySeconds: range(pos),
     chance: fraction,
-    digSeconds: pos,
-    size: range(posInt),
     /** The flock bursts up within this of the view's centre (screen px). */
     maxDxPx: pos,
     retrySeconds: pos,
   }),
+  /** v1.17 (D-079): "Bring!" — each bird he delivers pays `points` (an event bonus, × Frenzy ×
+   *  Stampede); every streakEvery deliveries in a row "Goeie hond!" pays streakPoints. The streak
+   *  breaks when he is hit or a shot is aimed within clear.aimPx of him while he carries a bird. */
+  bring: obj({ points: posInt, streakEvery: posInt, streakPoints: posInt }),
+  /** v1.17 (D-079): "Staan!" — the flush is a point: he freezes `seconds` at a hidden flock of
+   *  `size` that sits aheadPx in front of his nose on the mid ground, then springs in
+   *  (springSeconds) and it bursts up. goodPoint: `bags` of its birds bagged within withinSeconds
+   *  of the burst pay `points` ("Mooi punt!"). */
+  point: obj({
+    seconds: pos,
+    springSeconds: pos,
+    size: posInt,
+    aheadPx: nonNeg,
+    goodPoint: obj({ bags: posInt, points: posInt, withinSeconds: pos }),
+  }),
+  /** v1.17 (D-079): Oupa's whistle — at most once per cooldownSeconds; heel: he trots to
+   *  heelDxPx from the view's centre on the bakkie side and sits heelSeconds. */
+  whistle: obj({ cooldownSeconds: pos, heelSeconds: pos, heelDxPx: pos }),
+  /** v1.17 (D-079): a reaction lasts `seconds`, only from idle, at most one per minGapSeconds;
+   *  the head tilt after tiltMisses shots in a row that hit nothing. */
+  react: obj({ seconds: pos, minGapSeconds: pos, tiltMisses: posInt }),
   /** Test builds only (?brakkiePreview=fetch, the screenshot spec): this many seconds in he
    *  fetches a bird placed beside him (visual only). Never in shipped content (cross-refs). */
   demoFetchSeconds: pos.optional(),
+  /** v1.17 (D-079) test builds only (?brakkiePreview=react): a proud hop this many seconds in
+   *  (when he is idle). Never in shipped content (cross-refs). */
+  demoProudSeconds: pos.optional(),
   hit: obj({
     /** Points off for a shot aimed at him. */
     penalty: posInt,
@@ -3018,6 +3055,8 @@ export const FeelSchema = obj({
       manyBirds: pos,
       /** Within this fraction of the area's best (and not a new best): a near miss. */
       nearRecordFrac: fraction,
+      /** v1.17 (D-079): Brakkie's Bring streak this long or more earns his line. */
+      bringStreak: posInt,
     }),
     danceMs: pos,
     danceFrameMs: pos,
@@ -3398,6 +3437,8 @@ export const NotaboekMetricSchema = z.enum([
   'brakkieMates',
   /** v1.13 (D-075): every veld cameo of the hunt's area seen in it (1 or 0; scope hunt). */
   'veldkenner',
+  /** v1.17 (D-079): Brakkie's best Bring streak of the hunt (birds delivered in a row). */
+  'bringStreak',
 ]);
 export type NotaboekMetric = z.infer<typeof NotaboekMetricSchema>;
 

@@ -7,7 +7,8 @@ import { loadContent } from '../../../tools/testContent';
 import type { SimEvent } from '../events';
 import { hashEvents } from '../events';
 import { createSim, type Sim } from '../Sim';
-import type { ModeConfig, SeasonHuntConfig } from '../types';
+import { createRecorder, decodeInputLogText, encodeInputLogText, runReplay } from '../replay';
+import type { Command, ModeConfig, SeasonHuntConfig } from '../types';
 
 const content = loadContent();
 const B = content.brakkie;
@@ -106,8 +107,9 @@ describe('Brakkie in the hunt (D-069)', () => {
     // The decision the fetch e2e no longer drives by shooting (it was timing-bound on CI): bots
     // bag birds through the real hit test; he starts a fetch, picks the bird up and brings it
     // home at least once a hunt (the balance doc's 0.6–2.6 fetches a hunt).
+    // v1.17 (D-079): he goes in a lull or when sent: the companion bot sends him ("Soek!").
     const s = sim({ id: 'classic', biome: 'karoo-autumn' }, 42);
-    const bot = createBot('competent', 42, content, 'pointer');
+    const bot = createBot('companion', 42, content, 'pointer');
     const types: string[] = [];
     while (!s.isOver()) {
       s.step(bot.next(s.snapshot()));
@@ -199,5 +201,91 @@ describe('v1.13 polish: a pan that leaves his head in the gun stripe gets him up
       checked++;
     }
     expect(checked).toBe(1);
+  });
+});
+
+describe('Brakkie the companion in the hunt (v1.17, D-079)', () => {
+  it('the whistle is a recorded command: a hunt with whistles replays to the same events', () => {
+    const mode: ModeConfig = { id: 'daily', biome: 'bushveld-winter' };
+    const s = sim(mode, 31);
+    const rec = createRecorder({
+      seed: 31,
+      contentHash: 'ab'.repeat(32),
+      mode,
+      inputKind: 'pointer',
+    });
+    const ev: SimEvent[] = [...s.drainEvents()];
+    const bot = createBot('competent', 31, content, 'pointer');
+    let whistles = 0;
+    while (!s.isOver()) {
+      const cmds: Command[] = [...bot.next(s.snapshot())];
+      // Whistle whenever it would do something (spring a point, heel, seek), now and then.
+      const w = s.snapshot().brakkie?.whistle ?? null;
+      if (w !== null && s.tick % 97 === 0) {
+        cmds.push({ t: 'whistle' });
+        whistles++;
+      }
+      rec.record(s.tick, cmds);
+      s.step(cmds);
+      ev.push(...s.drainEvents());
+    }
+    expect(whistles).toBeGreaterThan(0);
+    const acted = ev.filter((e) => e.type === 'brakkieWhistled');
+    expect(acted.length).toBeGreaterThan(0);
+    const log = decodeInputLogText(encodeInputLogText(rec.toLog()));
+    expect(runReplay(log, content).eventHash).toBe(hashEvents(ev));
+  });
+
+  it('Bring and Goeie hond pay as event bonuses in a real hunt (× Frenzy × Stampede)', () => {
+    // The companion bot whistles him out, so he delivers (the competent bot rarely leaves a 6-s lull).
+    const s = sim({ id: 'classic', biome: 'okavango-spring' }, 5);
+    const bot = createBot('companion', 5, content, 'pointer');
+    const ev: SimEvent[] = [];
+    while (!s.isOver()) {
+      s.step(bot.next(s.snapshot()));
+      ev.push(...s.drainEvents());
+    }
+    const brings = ev.filter((e) => e.type === 'bonusAwarded' && e.bonus === 'bring');
+    const fetched = ev.filter((e) => e.type === 'brakkieFetched');
+    expect(fetched.length).toBeGreaterThan(2);
+    expect(brings.length).toBe(fetched.length);
+    expect(ev.some((e) => e.type === 'bonusAwarded' && e.bonus === 'bringStreak')).toBe(true);
+    for (const b of brings)
+      if (b.type === 'bonusAwarded') {
+        expect(b.base).toBe(B.bring.points);
+        expect(b.award).toBeGreaterThanOrEqual(B.bring.points);
+      }
+    const d = s.snapshot().brakkie;
+    expect(d?.points).toBe(
+      ev.reduce(
+        (n, e) =>
+          e.type === 'bonusAwarded' &&
+          (e.bonus === 'bring' || e.bonus === 'bringStreak' || e.bonus === 'goodPoint')
+            ? n + e.award
+            : n,
+        0,
+      ),
+    );
+  });
+
+  it('a point in a real hunt flushes a flock of 5 (the Whole Flock is possible)', () => {
+    let seen = false;
+    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      const s = sim({ id: 'classic', biome: 'kalahari-summer' }, seed);
+      const ev: SimEvent[] = [];
+      while (!s.isOver() && !seen) {
+        s.step([]);
+        ev.push(...s.drainEvents());
+        const f = ev.find((e) => e.type === 'brakkieFlushed' && e.flockId !== null);
+        if (f?.type === 'brakkieFlushed' && f.flockId !== null) {
+          const flock = s.snapshot().flocks.find((x) => x.id === f.flockId);
+          expect(flock?.spawnSize).toBe(B.point.size);
+          expect(ev.some((e) => e.type === 'brakkiePointed')).toBe(true);
+          seen = true;
+        }
+      }
+      if (seen) break;
+    }
+    expect(seen).toBe(true);
   });
 });

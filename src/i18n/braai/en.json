@@ -32,9 +32,11 @@
   "braai.say.open_some": "Birds in the pickup. Not bad at all!",
   "braai.say.rank_up": "A new rank! Ouma will want to hear this.",
   "braai.say.swarm": "When the flying ants came out, you were ready. That rain brought luck!",
+  "braai.say.brakkie": "Brakkie brought them in one after another. What a good dog!",
   "braai.say.ver": "And that one right out by the horizon. Great shooting!",
   "braai.say.whole_flock": "The whole flock! Not one got away.",
   "braai.swarm": "{n} birds in the flying-ant feast. That rain brought luck!",
+  "braai.brakkie": "Brakkie brought in {n} in a row. What a good dog!",
   "braai.ver": "{n} right out by the horizon. Great shooting!",
   "braai.whole_flock": "The whole flock, {n} ×! Not one got away."
 }

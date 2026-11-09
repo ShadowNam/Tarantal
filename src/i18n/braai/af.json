@@ -32,9 +32,11 @@
   "braai.say.open_some": "Voëls in die bakkie. Glad nie sleg nie!",
   "braai.say.rank_up": "'n Nuwe rang! Ouma sal dit wil hoor.",
   "braai.say.swarm": "Toe die rysmiere uitkom, was jy reg. Daai reën het geluk gebring!",
+  "braai.say.brakkie": "Brakkie het hulle een na die ander aangedra. Wat 'n goeie hond!",
   "braai.say.ver": "En daai een heel daar by die horison. Lekker geskiet!",
   "braai.say.whole_flock": "Die hele swerm! Nie een het weggekom nie.",
   "braai.swarm": "{n} voëls in die rysmierfees. Daai reën het geluk gebring!",
+  "braai.brakkie": "Brakkie het {n} agtermekaar aangedra. Wat 'n goeie hond!",
   "braai.ver": "{n} heel daar by die horison. Lekker geskiet!",
   "braai.whole_flock": "Die hele swerm, {n} ×! Nie een het weggekom nie."
 }

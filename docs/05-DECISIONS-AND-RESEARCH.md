@@ -4238,6 +4238,75 @@ tightest hunts stay at the ~245–247 MB measured before (≤ 256 MB).
 rim light and wing light in every morph), Brakkie's coat the same in every pose, every baboon frame
 shades all four limbs and the raiders show nostrils.
 
+### D-079 — v1.17 Brakkie the companion and real wind (9 Nov 2026)
+
+**The owner's words (8 Nov, evening).** "When the wind is showing some stronger wind, I think the
+bullets should also drift off a bit more." · "I see great potential in the dog, could be a great
+companion and help more and more with the hunts and help get extra points in collecting and
+hunting down close ones." · "Get the dog more detail also."
+
+**Research → mechanics.** Real gundogs do three jobs (standard gundog practice: pointers and
+setters, spaniels, retrievers): **point** — freeze, body low, a front paw lifted, tail up, at birds
+hidden in cover, and hold until the handler comes up; **flush** — spring in on command so the birds
+rise for the gun; **retrieve** — wait ("steady to wing and shot") until sent, then bring the bird
+to hand. A handler works the dog with a **whistle** (recall, stop, send). Good game companions
+help and never block or mock the player. So: "Staan!" (the point, with a marker), "Spring!" (the
+whistle flushes now), "Bring!" (each delivery pays; a streak for clean retrieves), "Soek!" (sent
+with the whistle) and "Hier!" (heel, out of the way); he is steady while the shooting goes on (runs
+out in a lull) — which is also what keeps a player who ignores him from earning much; proud and
+sympathetic reactions, never laughing.
+
+**What.**
+- **Wind** (`src/sim/omen/wind.ts`, biome `omen.wind`): drift on every plane, × the plane's share
+  (`driftPlaneMul` near 0.15, mid 0.5, far 1, Ver 1.4; linear by scroll factor between planes, the
+  sky as Ver), × strength^1.5 (`strengthExponent`), gusts (`gusts`: every 5–10 s, 1.2–2.2 s, up to
+  +0.3, seeded from the first wind roll — no extra draws on `omen`). Per weapon `windSensitivity`
+  and the Windleser's `windDriftMul` unchanged. The windsock, dust and leaves read the gusting
+  strength; new: a HUD wind meter (arrow + 5 bars, phones too) and near grass tufts leaning by
+  strength^1.5 (a lazy chunk, no textures).
+- **Brakkie** (`content/brakkie.json` `bring`, `point`, `whistle`, `react`, `fetch.quietSeconds`,
+  `hitboxes.point`): Bring +15 (event bonus × Frenzy × Stampede at delivery), Goeie hond +30 every
+  3rd in a row, the streak broken by a hit or an aim within `clear.aimPx` while he carries; the
+  ready rule (no chance draw); he runs out only after the gun is quiet 6 s (`fetch.quietSeconds`), or when sent with the
+  whistle; the point (2.5 s, a flock of 5 a marker shows, Mooi punt +20 for 3 of its birds within
+  8 s); the whistle as a recorded command (`whistle`: F, the middle button, a 72-px phone button);
+  reactions (0.8 s, from idle, ≤ 1 per 8 s). Words in i18n (af/en/de/nl). Notaboek
+  "brakkie_bring_5", Oupa's braai line for a streak ≥ 3.
+- **Art** (`tools/art/brakkie.ts`): eye patch, ear flaps, whiskers, tongue, denser fur, docked tail,
+  collar, toe lines, 4-frame trot and run, point ×2, proud ×2, tilt, marker; sheet 512 × 448 (HD
+  1024 × 896). Sounds: the whistle, a happy yap.
+
+**Changed on the way (balance).** With every bird fetched at once a bot that ignores him gained
++15 % (≈ 19 fetches a hunt). The fix follows the research, not the numbers: he is steady while the
+gun works (`fetch.quietSeconds` 6) and is sent with the whistle ("Soek!" when a bird is down). The
+point came a little less often (flush every 60–80 s, first at 24–36 s) so the bigger flock adds no
+free birds. The +15 / +30 / +20 the brief asked for are kept.
+
+**Balance.** `docs/balance/v1.17-companion.md`. Every area (`balance-sim`, 200 seeds, main →
+branch; the bots never whistle): every bot within −1.5 … +3.2 % (Namibië the most, +2.2 … +3.2 %);
+all gates pass (Okavango's competent mean 4,498 at 500 seeds; 4,525 at 200 was noise near the
+4,500 cap). Brakkie (`tools/companion-sweep.ts`, 500 hunts a cell): a player who works with him
++5.3 … +7.5 % (Bushveld ½ point over the +7 % aim, within noise — kept, the owner wants him to pay);
+one who ignores him +0.1 … +2.1 %; accidental hits ≤ 0.016 a hunt.
+
+**Budgets.** First download 3,026.5 → 3,027.8 KB gzip (≤ 3,072; the wind meter, grass, the
+whistle button and Brakkie's pop-ups ride in his lazy chunk `BrakkieView` 6.0 KB gz). Brakkie's
+sheet 512 × 256 → 512 × 448 (HD 1024 × 512 → 1024 × 896: +1.5 MiB of texture memory while he is
+out); the `brakkie-hd` download is now 114.5 KB. `npm run size -- --strict`: OK.
+
+**Tests.** Unit: wind drift by plane and strength (monotonic, deterministic, gusts never draw on
+`omen`, the old rule without the new fields), the wind meter's bars, the grass lean; the whistle
+command (InputLog round trip; a whole Daily with whistles replays to the same events); the Bring
+streak (paid, every 3rd, broken by a hit and by an aim close by while carrying, not otherwise);
+the point (a flock of 5 where the marker is, only with room for a flock, Mooi punt once, not for
+another flock or late); the whistle (spring, heel, seek, nothing while carrying or on the
+cooldown); reactions (from idle, the rate limit, 0.8 s, the tilt after misses); the lull rule and
+"Soek!"; the hunt log's best streak and the braai line; the test flags. e2e: `brakkie.spec.ts`
+(the point and marker; F, the middle button and the phone's whistle button; the Bring pop-up),
+`wind.spec.ts` (the meter and the grass on desktop, Pixel 7, iPhone 14), `perf.spec.ts` (the
+companion at 4× throttle ≤ 0.3 ms a frame). Screenshots: `art-preview-companion.spec.ts`
+(`v117-companion-*`). Golden replays re-recorded with each sim change (reasons in the commits).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

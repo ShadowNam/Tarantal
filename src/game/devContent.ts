@@ -470,7 +470,7 @@ export function withNoBrakkie(b: ContentBundle): ContentBundle {
 }
 
 /** v1.12 (D-069): the moments `?brakkiePreview=` brings on quickly (lesson 11). */
-export const BRAKKIE_PREVIEWS = ['fetch', 'bark', 'flush'] as const;
+export const BRAKKIE_PREVIEWS = ['fetch', 'bark', 'flush', 'point', 'react'] as const;
 export type BrakkiePreview = (typeof BRAKKIE_PREVIEWS)[number];
 
 /**
@@ -491,16 +491,51 @@ export function withBrakkiePreview(
     brakkie: {
       ...d,
       enterSeconds: [0.5, 0.5],
-      fetch: { ...d.fetch, chance: 1, awaySeconds: [2, 2.5] },
+      fetch: { ...d.fetch, awaySeconds: [2, 2.5] },
       hit: { ...d.hit, awaySeconds: [3, 3.5] },
       ...(on('fetch') ? { demoFetchSeconds: 3 } : {}),
       bark: on('bark')
         ? { ...d.bark, everySeconds: [3, 4], maxDxPx: 1300, retrySeconds: 0.5 }
         : d.bark,
-      flush: on('flush')
-        ? { ...d.flush, firstSeconds: [4, 4], everySeconds: [8, 10], chance: 1 }
-        : d.flush,
+      flush:
+        on('flush') || on('point')
+          ? { ...d.flush, firstSeconds: [4, 4], everySeconds: [8, 10], chance: 1 }
+          : d.flush,
+      // v1.17 (D-079): `point` holds the point 8 s (the screenshot's marker, lesson 10); `react`
+      // makes a reaction last 6 s, lets one come every second, and has him do a proud hop 4 s in.
+      ...(on('point') ? { point: { ...d.point, seconds: 8 } } : {}),
+      ...(on('react')
+        ? { react: { ...d.react, seconds: 6, minGapSeconds: 1 }, demoProudSeconds: 4 }
+        : {}),
     },
+  };
+}
+
+/**
+ * v1.17 (D-079) e2e/dev only: `?wind=strong` — every map with wind blows at full strength one
+ * way for a minute with a long gust every second or so (the screenshot's strong wind and the
+ * wind-HUD e2e: no waiting for a gust).
+ */
+export function withWindParams(b: ContentBundle, params: URLSearchParams): ContentBundle {
+  if (params.get('wind') !== 'strong') return b;
+  return {
+    ...b,
+    biomes: b.biomes.map((x) =>
+      x.omen.wind === undefined
+        ? x
+        : {
+            ...x,
+            omen: {
+              ...x.omen,
+              wind: {
+                ...x.omen.wind,
+                strength: [0.95, 0.95],
+                directionChangeSeconds: [120, 120],
+                gusts: { everySeconds: [0.5, 0.5], seconds: [6, 6], add: 0.3 },
+              },
+            },
+          },
+    ),
   };
 }
 

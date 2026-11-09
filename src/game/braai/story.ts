@@ -15,6 +15,8 @@ export const STORY_MOMENTS = [
   'ver',
   'far',
   'whole_flock',
+  // v1.17 (D-079): Brakkie's Bring streak of 3 or more.
+  'brakkie',
   'blikkies',
   'swarm',
   'meerkat',
@@ -134,6 +136,7 @@ export function storyMoments(i: StoryInput, t: BraaiTuning): StoryLine[] {
   if (f.verBagged > 0) out.push(line('ver', { n: f.verBagged }));
   else if (f.farBagged > 0) out.push(line('far', { n: f.farBagged }));
   if (r.wholeFlocks > 0) out.push(line('whole_flock', { n: r.wholeFlocks }));
+  if (f.bringStreak >= t.story.bringStreak) out.push(line('brakkie', { n: f.bringStreak }));
   const chain = r.cans?.bestChain ?? 0;
   if (chain >= 3) out.push(line('blikkies', { n: chain }));
   if (f.swarmBagged >= 3) out.push(line('swarm', { n: f.swarmBagged }));

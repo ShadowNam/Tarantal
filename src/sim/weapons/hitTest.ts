@@ -303,6 +303,9 @@ export function resolvePellet(
   birdsByPlane: Readonly<Record<PlaneId, readonly HitBird[]>>,
   extras: ReadonlyMap<string, readonly HitExtra[]> = new Map(),
   driftDx: (scrollFactor: number) => number = () => 0,
+  /** v1.17 (D-079): set to the scroll factor of the layer the pellet stopped on (-1: it flew on
+   *  into the sky), so the sim knows how far the wind took it. */
+  stop?: { f: number },
 ): PelletResult {
   /** 1.9.3 (D-056): the first nut the pellet passed. Any target behind it takes the pellet (a
    *  bird, a Spookjag thing, a crate, a secret part, a meerkat, a paper, a can — review M17);
@@ -311,8 +314,23 @@ export function resolvePellet(
   /** v1.13 (D-075): the first cameo the pellet passed: a cameo never hides anything behind it
    *  (a target); only when the pellet meets no target is the cameo its result. */
   let cameo: PelletResult | null = null;
-  const after = (r: PelletResult): PelletResult => (isTarget(r) ? r : (nut ?? cameo ?? r));
+  let nutF = -1;
+  let cameoF = -1;
+  let atF = -1;
+  const done = (f: number, r: PelletResult): PelletResult => {
+    if (stop !== undefined) stop.f = f;
+    return r;
+  };
+  const after = (r: PelletResult): PelletResult =>
+    isTarget(r)
+      ? done(atF, r)
+      : nut !== null
+        ? done(nutF, nut)
+        : cameo !== null
+          ? done(cameoF, cameo)
+          : done(atF, r);
   for (const slice of geometry.slices) {
+    atF = slice.scrollFactor;
     const p = tapToPlane(cx, slice.scrollFactor, dx + driftDx(slice.scrollFactor), sy);
     if (slice.plane !== null) {
       const scale = geometry.planeScale[slice.plane];
@@ -321,7 +339,7 @@ export function resolvePellet(
       for (const bird of birdsByPlane[slice.plane]) {
         const floor = bird.snappable ? minPx : 0;
         if (bird.hittable && pointInBird(p.x, p.y, bird, scale, assist, floor)) {
-          return { ...NOTHING, birdId: bird.id };
+          return done(atF, { ...NOTHING, birdId: bird.id });
         }
       }
     }
@@ -330,12 +348,18 @@ export function resolvePellet(
         if (!pointInCapsule(p.x, p.y, e)) continue;
         const hit = { ...NOTHING, canId: e.canId, canDx: p.x - e.x, canDy: p.y - e.y };
         if (e.passThrough !== true) return after(hit);
-        nut ??= { ...hit, passThrough: true };
+        if (nut === null) {
+          nut = { ...hit, passThrough: true };
+          nutF = atF;
+        }
         continue;
       }
       if (!pointInOccluder(p.x, p.y, { propId: '', x: e.x, y: e.y, shape: e.shape })) continue;
       if (e.kind === 'cameo') {
-        cameo ??= { ...NOTHING, cameoId: e.cameoId };
+        if (cameo === null) {
+          cameo = { ...NOTHING, cameoId: e.cameoId };
+          cameoF = atF;
+        }
         continue;
       }
       if (e.kind === 'paper') return after({ ...NOTHING, paperId: e.paperId });
@@ -356,7 +380,7 @@ export function resolvePellet(
       if (pointInOccluder(p.x, p.y, o)) return after({ ...NOTHING, propId: o.propId });
     }
   }
-  return nut ?? cameo ?? NOTHING;
+  return nut !== null ? done(nutF, nut) : cameo !== null ? done(cameoF, cameo) : done(-1, NOTHING);
 }
 
 /**
@@ -417,6 +441,8 @@ export interface PatternPellet {
   readonly pdx: number;
   readonly psy: number;
   readonly r: PelletResult;
+  /** v1.17 (D-079): the scroll factor of the layer it stopped on (-1: the sky). */
+  readonly f: number;
 }
 
 /**
@@ -443,7 +469,9 @@ export function resolvePattern(
     offsets.map((o) => {
       const pdx = dx + sx + o.ox;
       const psy = sy + sy2 + o.oy;
-      return { pdx, psy, r: resolvePellet(pdx, psy, cx, precise, birdsByPlane, extras, driftDx) };
+      const stop = { f: -1 };
+      const r = resolvePellet(pdx, psy, cx, precise, birdsByPlane, extras, driftDx, stop);
+      return { pdx, psy, r, f: stop.f };
     });
   const pellets = at(0, 0);
   if (assisted === null) return pellets;

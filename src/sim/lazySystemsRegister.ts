@@ -7,6 +7,7 @@ import { createHarvestSystem } from './harvest/system';
 import { registerLazySystems } from './lazySystems';
 import { createOstrichSystem } from './ostriches/system';
 import { createTellSystem } from './tells/system';
+import { createWind, tickWind, windDriftAt, windSpeedMul, windView } from './omen/wind';
 
 registerLazySystems({
   baboons: createBaboonSystem,
@@ -15,4 +16,5 @@ registerLazySystems({
   harvest: createHarvestSystem,
   brakkie: createBrakkieSystem,
   cameos: createCameoSystem,
+  wind: { createWind, tickWind, windDriftAt, windSpeedMul, windView },
 });

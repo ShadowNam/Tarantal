@@ -1,5 +1,5 @@
 {
-  "$comment": "Brakkie, Oupa's Jack Russell (GDD §11.3f, D-069; v1.16 D-078: livelier — shorter rests, runs about (runChance), fetches most birds that fall in reach (fetch.chance) one at a time from a queue of up to fetch.queueMax, back from the bakkie after backSeconds when more wait). A sim entity on his own stream `dog`: never a target, never hurt, never removed. Px are design px on the near plane at his scale 1 (the mid plane converts by plane scale, D-049); times in seconds. areas: the maps he comes to and the side the bakkie stands (-1 left, 1 right). hitboxes: sprite-local px from his feet (x forward), facing right.",
+  "$comment": "Brakkie, Oupa's Jack Russell (GDD §11.3f, D-069; v1.16 D-078: livelier — shorter rests, runs about (runChance), fetches every bird that falls in reach one at a time from a queue of up to fetch.queueMax, back from the bakkie after backSeconds when more wait). v1.17 D-079, the companion: bring (Bring! +15 per delivery, Goeie hond! +30 every 3rd in a row), point (Staan!: the flush is a point at a hidden flock of 5; Mooi punt! +20 for 3 of its birds), whistle (Fluit!: spring / heel / seek), react (a proud hop, a head tilt). A sim entity on his own stream `dog`: never a target, never hurt, never removed. Px are design px on the near plane at his scale 1 (the mid plane converts by plane scale, D-049); times in seconds. areas: the maps he comes to and the side the bakkie stands (-1 left, 1 right). hitboxes: sprite-local px from his feet (x forward), facing right.",
   "version": 1,
   "modes": ["classic", "daily", "seasonHunt"],
   "seasonKinds": ["plain", "omen"],
@@ -14,7 +14,8 @@
   "homeOffPx": 480,
   "hitboxes": {
     "stand": { "body": { "ox": -4, "oy": -60, "rx": 84, "ry": 38 }, "head": { "ox": 74, "oy": -112, "r": 30 } },
-    "low": { "body": { "ox": -4, "oy": -30, "rx": 96, "ry": 28 }, "head": { "ox": 84, "oy": -52, "r": 28 } }
+    "low": { "body": { "ox": -4, "oy": -30, "rx": 96, "ry": 28 }, "head": { "ox": 84, "oy": -52, "r": 28 } },
+    "point": { "body": { "ox": -2, "oy": -58, "rx": 80, "ry": 32 }, "head": { "ox": 84, "oy": -80, "r": 28 } }
   },
   "speeds": { "trotPx": 240, "runPx": 820, "boltPx": 1000, "runBeyondPx": 1200 },
   "enterSeconds": [3, 6],
@@ -31,12 +32,12 @@
   },
   "clear": { "aimPx": 340, "pathPx": 220, "pathStepPx": 100, "fencePx": 420, "checkSeconds": 0.2, "holdBackSeconds": 1.2, "wideSpreadPx": 120 },
   "fetch": {
-    "chance": 0.85,
     "planes": ["near", "mid"],
     "delaySeconds": 0.9,
     "clearPx": 700,
     "waitSeconds": 5,
-    "queueMax": 3,
+    "queueMax": 2,
+    "quietSeconds": 6,
     "maxDxPx": 640,
     "pickupSeconds": 0.6,
     "crossSeconds": 1.1,
@@ -45,13 +46,21 @@
   },
   "bark": { "everySeconds": [14, 26], "barkSeconds": 1.4, "threatAtSeconds": 0.5, "maxDxPx": 900, "retrySeconds": 3 },
   "flush": {
-    "firstSeconds": [20, 32],
-    "everySeconds": [35, 55],
-    "chance": 0.7,
-    "digSeconds": 1.6,
-    "size": [3, 4],
+    "firstSeconds": [24, 36],
+    "everySeconds": [60, 80],
+    "chance": 0.5,
     "maxDxPx": 450,
     "retrySeconds": 4
   },
+  "bring": { "points": 15, "streakEvery": 3, "streakPoints": 30 },
+  "point": {
+    "seconds": 2.5,
+    "springSeconds": 0.4,
+    "size": 5,
+    "aheadPx": 160,
+    "goodPoint": { "bags": 3, "points": 20, "withinSeconds": 8 }
+  },
+  "whistle": { "cooldownSeconds": 3, "heelSeconds": 10, "heelDxPx": 430 },
+  "react": { "seconds": 0.8, "minGapSeconds": 8, "tiltMisses": 3 },
   "hit": { "penalty": 25, "cooldownSeconds": 2, "yelpSeconds": 0.45, "awaySeconds": [12, 18] }
 }

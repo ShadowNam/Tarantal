@@ -98,6 +98,8 @@ describe('HUD layout at 16:9, 19.5:9 and 4:3', () => {
           l.gadget,
           l.chips,
           l.windsock,
+          l.windMeter,
+          l.whistle,
           l.pause,
           l.skip,
           l.quota,

@@ -1,5 +1,5 @@
 // v1.12 (D-069): Brakkie's sheet table — every frame inside the sheet the keys name, none
-// overlapping, origins inside their frames, and the GPU cost capped at 0.5 MiB (lessons 29, 38):
+// overlapping, origins inside their frames, and the GPU cost capped at 0.875 MiB (lessons 29, 38):
 // 254.8 + 0.5 = 255.3 MB in the Okavango Reënbui HD hunt.
 import { describe, expect, it } from 'vitest';
 import { BRAKKIE_SHEET as KEY, BRAKKIE_SHEET_H as KH, BRAKKIE_SHEET_W as KW } from './brakkieKeys';
@@ -44,15 +44,15 @@ describe('Brakkie sheet (D-069)', () => {
     expect(new Set(frames.map((f) => f.name)).size).toBe(frames.length);
   });
 
-  it('costs at most 0.5 MiB on the GPU (Standard); the HD twin is 2×', () => {
+  it('costs at most 0.875 MiB on the GPU (Standard, v1.17: was 0.5); the HD twin is 2×', () => {
     expect(BRAKKIE_SHEET_W * BRAKKIE_SHEET_H * 4).toBeLessThanOrEqual(GPU_BYTES_CAP);
-    expect(GPU_BYTES_CAP).toBe(512 * 1024);
+    expect(GPU_BYTES_CAP).toBe(512 * 448 * 4);
     expect(brakkieTexelsPerPx(BRAKKIE_SHEET_W)).toBe(1);
     expect(brakkieTexelsPerPx(BRAKKIE_SHEET_W * 2)).toBe(2);
   });
 
   it('the mouth the bird hangs from is inside each running frame', () => {
-    for (const name of ['run_a', 'run_b'] as const) {
+    for (const name of ['run_a', 'run_b', 'run_c', 'run_d'] as const) {
       const f = frames.find((x) => x.name === name);
       if (f === undefined) throw new Error(name);
       const m = MOUTH[name];

@@ -143,6 +143,21 @@ describe('InputLog', () => {
     expect(decodeInputLogText(encodeInputLogText(log))).toEqual(log);
   });
 
+  it('v1.17 (D-079): the whistle round-trips (appended op, no version change)', () => {
+    const rec = createRecorder({
+      seed: 9,
+      contentHash: HASH,
+      mode: { id: 'daily' },
+      inputKind: 'touch',
+    });
+    rec.record(4, [{ t: 'whistle' }, { t: 'fire', dx: 1, sy: 2 }]);
+    rec.record(200, [{ t: 'whistle' }]);
+    const log = rec.toLog();
+    expect(log.v).toBe(INPUT_LOG_VERSION);
+    expect(decodeInputLogText(encodeInputLogText(log))).toEqual(log);
+    expect(log.commands.filter(([, c]) => c.t === 'whistle')).toHaveLength(2);
+  });
+
   it('records tick deltas, with 0 for same-tick commands, and quantises to 0.5', () => {
     const rec = createRecorder({
       seed: 1,

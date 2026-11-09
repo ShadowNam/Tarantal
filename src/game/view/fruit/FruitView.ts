@@ -19,6 +19,7 @@ import type { ParallaxView } from '../ParallaxView';
 import {
   fruitShot,
   fruitAim,
+  impactOf,
   pelletsOnLayer,
   shotDriftPx,
   type Impact,
@@ -270,12 +271,7 @@ export class FruitView {
     }
     for (const [shotId, list] of shots) {
       const tick = list[0]?.tick ?? state.tick;
-      const impacts: Impact[] = list.map((e) => ({
-        dx: e.dx,
-        sy: e.sy,
-        ...(e.cx === undefined ? {} : { cx: e.cx }),
-        stop: stopOf(e),
-      }));
+      const impacts: Impact[] = list.map((e) => impactOf(e, stopOf(e)));
       const weapon = this.world.weapons.find((w) => w.id === this.shotWeapon.get(shotId));
       const frame: ShotFrame = {
         camX: this.world.cameraAt(tick) ?? state.cameraX,
@@ -286,6 +282,7 @@ export class FruitView {
           this.windDriftMul(state.season?.charms ?? []),
         ),
         farFactor: this.world.farFactor,
+        ...(state.wind === null ? {} : { curve: state.wind.curve }),
       };
       const byFactor = new Map<number, LayerPellet[]>();
       const pelletsOn = (factor: number): LayerPellet[] => {

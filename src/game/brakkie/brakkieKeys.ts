@@ -7,9 +7,10 @@ export const BRAKKIE_GROUP = 'brakkie';
 
 /** Every Brakkie frame on one sheet (texture key). */
 export const BRAKKIE_SHEET = 'brakkie/sheet';
-/** Sheet size at 1× (sheet px; frames at half size, drawn ×2). The HD twin is 2× (1024 × 512). */
+/** Sheet size at 1× (sheet px; frames at half size, drawn ×2). The HD twin is 2× (1024 × 896).
+ *  v1.17 (D-079): 512 × 448 (was 256 rows) for the companion's frames and the smoother cycles. */
 export const BRAKKIE_SHEET_W = 512;
-export const BRAKKIE_SHEET_H = 256;
+export const BRAKKIE_SHEET_H = 448;
 
 /** Sounds through the AudioDirector (recordings from the lazy group; silent until they arrive). */
 export const BRAKKIE_SOUNDS = {
@@ -20,5 +21,8 @@ export const BRAKKIE_SOUNDS = {
   yelp: 'sfx/brakkie_yelp',
   /** Happy panting when he's back from a fetch. */
   pant: 'sfx/brakkie_pant',
+  /** v1.17 (D-079): Oupa's whistle, and the happy yap as he delivers a bird. */
+  whistle: 'sfx/brakkie_whistle',
+  yap: 'sfx/brakkie_yap',
 } as const;
 export type BrakkieSound = keyof typeof BRAKKIE_SOUNDS;

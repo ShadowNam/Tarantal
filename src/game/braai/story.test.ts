@@ -7,6 +7,7 @@ import en from '../../i18n/braai/en.json';
 import nl from '../../i18n/braai/nl.json';
 import {
   STORY_LINE_IDS,
+  storyMoments,
   captionKey,
   earnsDance,
   isPerfectHunt,
@@ -167,13 +168,13 @@ describe('the braai story (D-068)', () => {
         expect(say, sayKey(id)).toBeTruthy();
         expect(say).not.toMatch(/[{}0-9]/);
       }
-    // 19 phrases: the voiced clip count per language (57 clips in en/af/de).
-    expect(STORY_LINE_IDS.length).toBe(19);
+    // 20 phrases (v1.17: + brakkie): the voiced clip count per language (60 clips in en/af/de).
+    expect(STORY_LINE_IDS.length).toBe(20);
   });
 });
 
 describe('story facts from the event stream', () => {
-  it('counts Ver and far bags, scolds and the swarm', () => {
+  it('counts Ver and far bags, scolds, the swarm and the Bring streak', () => {
     const log = new StoryFactsLog();
     const bag = (plane: 'near' | 'mid' | 'far' | 'ver') =>
       ({
@@ -202,6 +203,10 @@ describe('story facts from the event stream', () => {
         points: -50,
       },
       { type: 'secretPenalty', tick: 4, propId: 'camelthorn', partId: 'nest', points: -100 },
+      // v1.17 (D-079): Brakkie's best Bring streak (the most in a row, not the last).
+      { type: 'brakkieFetched', tick: 5, streak: 3, points: 45 },
+      { type: 'brakkieStreakBroken', tick: 6, streak: 3, why: 'hit' },
+      { type: 'brakkieFetched', tick: 7, streak: 1, points: 15 },
     ]);
     expect(log.facts()).toEqual({
       verBagged: 1,
@@ -210,7 +215,20 @@ describe('story facts from the event stream', () => {
       meerkatScolds: 1,
       nestScolds: 1,
       swarmBagged: 4,
+      bringStreak: 3,
     });
     expect(new StoryFactsLog().facts()).toEqual(NO_FACTS);
+  });
+});
+
+describe('v1.17 (D-079): Brakkie in the story', () => {
+  it('a Bring streak of story.bringStreak or more earns his line, with the count', () => {
+    const t = loadFeel().braai;
+    const facts = (n: number) => ({ ...NO_FACTS, bringStreak: n });
+    const ids = (n: number) => storyMoments(input({ facts: facts(n) }), t).map((l) => l.id);
+    expect(ids(t.story.bringStreak - 1)).not.toContain('brakkie');
+    expect(ids(t.story.bringStreak)).toContain('brakkie');
+    const l = storyMoments(input({ facts: facts(4) }), t).find((x) => x.id === 'brakkie');
+    expect(l?.vars.n).toBe(4);
   });
 });

@@ -30,13 +30,16 @@ interface Rig {
     busy: (plane: 'near' | 'mid', x: number, px: number) => boolean;
     barkFlock: { flockId: number; x: number } | null;
     penalty: number;
+    canFlush: boolean;
   };
+  bonuses: { id: string; base: number; tick: number }[];
 }
 
 function rig(seed = 3, homeSide: 1 | -1 = -1): Rig {
   const events: SimEvent[] = [];
   const threats: Rig['threats'] = [];
   const flushes: Rig['flushes'] = [];
+  const bonuses: Rig['bonuses'] = [];
   const state: Rig['state'] = {
     tick: 0,
     cameraX: 2560,
@@ -44,6 +47,7 @@ function rig(seed = 3, homeSide: 1 | -1 = -1): Rig {
     busy: () => false,
     barkFlock: null,
     penalty: 0,
+    canFlush: true,
   };
   const host: BrakkieHost = {
     tick: () => state.tick,
@@ -66,6 +70,11 @@ function rig(seed = 3, homeSide: 1 | -1 = -1): Rig {
       flushes.push({ x, size, tick: state.tick });
       return 99;
     },
+    canFlush: () => state.canFlush,
+    bonus: (id, base) => {
+      bonuses.push({ id, base, tick: state.tick });
+      return base;
+    },
   };
   const sys = createBrakkieSystem(
     content,
@@ -74,7 +83,7 @@ function rig(seed = 3, homeSide: 1 | -1 = -1): Rig {
       planeScale: { near: 1, mid: 0.42 },
       groundY: { near: B.groundY, mid: 760 },
       homeSide,
-      durationTicks: secondsToTicks(90),
+      durationTicks: secondsToTicks(180),
     },
     createRng(seed).stream('dog'),
     host,
@@ -92,12 +101,17 @@ function rig(seed = 3, homeSide: 1 | -1 = -1): Rig {
     }
     throw new Error(`not reached in ${max} ticks: ${JSON.stringify(sys.view())}`);
   };
-  return { sys, events, threats, flushes, run, until, state };
+  return { sys, events, threats, flushes, bonuses, run, until, state };
 }
 
 /** A shot aimed at his body centre (layer coords → the aim point on every layer). */
 function aimAtHim(v: BrakkieView): (layerId: string) => { x: number; y: number } {
-  const box = v.pose === 'lie' || v.pose === 'dig' ? B.hitboxes.low : B.hitboxes.stand;
+  const box =
+    v.pose === 'point'
+      ? B.hitboxes.point
+      : v.pose === 'lie' || v.pose === 'dig'
+        ? B.hitboxes.low
+        : B.hitboxes.stand;
   return () => ({
     x: v.x + box.body.ox * v.scale * v.facing,
     y: v.y + box.body.oy * v.scale,
@@ -230,24 +244,25 @@ describe('Brakkie (D-069)', () => {
     const r = rig(6);
     r.until((v) => v.phase === 'rest');
     const x0 = r.sys.view().x;
-    // Three birds down in a row (fetch.chance < 1: bag until three are queued, bounded).
-    for (let i = 0; i < 40 && r.sys.view().queued < 3; i++) r.sys.bagged('near', x0 + 250 + i * 10);
-    expect(r.sys.view().queued).toBe(3);
+    const n = B.fetch.queueMax;
+    // queueMax birds down in a row (v1.17: every one joins: the ready rule, no chance roll).
+    for (let i = 0; i < n; i++) r.sys.bagged('near', x0 + 250 + i * 10);
+    expect(r.sys.view().queued).toBe(n);
     // The queue is capped at queueMax.
     for (let i = 0; i < 10; i++) r.sys.bagged('near', x0 + 300);
-    expect(r.sys.view().queued).toBe(B.fetch.queueMax);
+    expect(r.sys.view().queued).toBe(n);
     const picked: number[] = [];
     let maxCarry = 0;
-    for (let i = 0; i < 60 * 60 && r.sys.view().fetches < 3; i++) {
+    for (let i = 0; i < 60 * 60 && r.sys.view().fetches < n; i++) {
       r.run(1);
       const v = r.sys.view();
       if (v.phase === 'pickup' && v.t === 1) picked.push(v.x);
       maxCarry = Math.max(maxCarry, v.carrying ? 1 : 0);
     }
-    expect(r.sys.view().fetches).toBe(3);
+    expect(r.sys.view().fetches).toBe(n);
+    expect(picked).toHaveLength(n);
     // One at a time, in the order they fell (each a different bird).
     expect(maxCarry).toBe(1);
-    expect(picked).toHaveLength(3);
     expect([...picked].sort((a, b) => a - b)).toEqual(picked);
     // Back out quickly between fetches (backSeconds, not awaySeconds).
     const fetched = r.events.filter((e) => e.type === 'brakkieFetched').map((e) => e.tick);
@@ -321,16 +336,13 @@ describe('Brakkie (D-069)', () => {
     expect(r.threats.length).toBe(0);
   });
 
-  it('a flush digs, then one flock of flush.size bursts up on the mid plane', () => {
-    const r = rig(10);
-    r.run(60 * 88);
+  it('a flush is a point, then one flock of point.size bursts up on the mid plane', () => {
+    const r = rig(3);
+    r.run(60 * 175);
     const flushed = r.events.filter((e) => e.type === 'brakkieFlushed');
     expect(flushed.length).toBe(r.flushes.length);
     expect(r.flushes.length).toBeGreaterThan(0);
-    for (const f of r.flushes) {
-      expect(f.size).toBeGreaterThanOrEqual(B.flush.size[0]);
-      expect(f.size).toBeLessThanOrEqual(B.flush.size[1]);
-    }
+    for (const f of r.flushes) expect(f.size).toBe(B.point.size);
     expect(new Set(r.flushes.map((f) => f.tick)).size).toBe(r.flushes.length);
   });
 
@@ -381,5 +393,255 @@ describe('Brakkie (D-069)', () => {
     expect(shapes()).toBe(0);
     r.until((v) => v.present);
     expect(shapes()).toBe(2);
+  });
+});
+
+/** A spot 200 px from him towards the view's centre (always in reach). */
+function towardCentre(r: Rig): number {
+  const x = r.sys.view().x;
+  return x + (x > r.state.cameraX ? -200 : 200);
+}
+
+/** Has him fetch and deliver one bird bagged just beside him (he must be idle on the near plane). */
+function deliverOne(r: Rig): void {
+  r.until((v) => v.present && v.phase === 'rest' && v.plane === 'near');
+  r.sys.bagged('near', towardCentre(r));
+  r.until((v) => v.phase === 'carry', 60 * 30);
+  r.until((v) => v.phase === 'away', 60 * 30);
+}
+
+describe('Brakkie the companion (v1.17, D-079)', () => {
+  it('"Bring!": every delivery pays bring.points; every 3rd in a row the streak bonus', () => {
+    const r = rig(21);
+    for (let i = 0; i < B.bring.streakEvery; i++) deliverOne(r);
+    const ids = r.bonuses.map((b) => b.id);
+    expect(ids.filter((id) => id === 'bring').length).toBe(B.bring.streakEvery);
+    expect(ids.filter((id) => id === 'bringStreak').length).toBe(1);
+    expect(r.bonuses.find((b) => b.id === 'bring')?.base).toBe(B.bring.points);
+    expect(r.bonuses.find((b) => b.id === 'bringStreak')?.base).toBe(B.bring.streakPoints);
+    const v = r.sys.view();
+    expect(v.streak).toBe(B.bring.streakEvery);
+    expect(v.bestStreak).toBe(B.bring.streakEvery);
+    expect(v.points).toBe(B.bring.points * B.bring.streakEvery + B.bring.streakPoints);
+    const last = r.events.filter((e) => e.type === 'brakkieFetched').at(-1);
+    expect(last?.type === 'brakkieFetched' ? last.streak : -1).toBe(B.bring.streakEvery);
+  });
+
+  it('the ready rule: every bird in reach is fetched (no chance roll)', () => {
+    for (const seed of [1, 2, 3, 4, 5]) {
+      const r = rig(seed);
+      deliverOne(r);
+      expect(r.sys.view().fetches).toBe(1);
+    }
+  });
+
+  it('the streak breaks when he is hit', () => {
+    const r = rig(22);
+    deliverOne(r);
+    deliverOne(r);
+    expect(r.sys.view().streak).toBe(2);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.sys.shot(5, true, () => ({ x: -9999, y: -9999 }));
+    expect(r.sys.view().streak).toBe(0);
+    expect(r.sys.view().bestStreak).toBe(2);
+    const broke = r.events.find((e) => e.type === 'brakkieStreakBroken');
+    expect(broke?.type === 'brakkieStreakBroken' && broke.why).toBe('hit');
+  });
+
+  it('the streak breaks for a shot aimed close by while he carries, not for one far off', () => {
+    const r = rig(23);
+    deliverOne(r);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.sys.bagged('near', towardCentre(r));
+    r.until((v) => v.carrying, 60 * 30);
+    // Far off: nothing.
+    r.sys.aimed(() => ({ x: r.sys.view().x + 2000, y: 0 }), false);
+    expect(r.sys.view().streak).toBe(1);
+    // Close by: broken.
+    r.sys.aimed(aimAtHim(r.sys.view()), false);
+    expect(r.sys.view().streak).toBe(0);
+    const broke = r.events.find((e) => e.type === 'brakkieStreakBroken');
+    expect(broke?.type === 'brakkieStreakBroken' && broke.why).toBe('aim');
+    // Not carrying: an aim close by breaks nothing.
+    r.until((v) => v.phase === 'away', 60 * 30);
+    expect(r.sys.view().streak).toBe(1);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.sys.aimed(aimAtHim(r.sys.view()), false);
+    expect(r.sys.view().streak).toBe(1);
+  });
+
+  it('"Staan!": the flush is a point (marker ahead), then a flock of 5 bursts up there', () => {
+    const r = rig(3);
+    r.until((v) => v.phase === 'point', 60 * 175);
+    const v = r.sys.view();
+    expect(v.pose).toBe('point');
+    expect(v.point).not.toBeNull();
+    expect(v.point?.layerId).toBe(MID);
+    const pointed = r.events.find((e) => e.type === 'brakkiePointed');
+    expect(pointed).toBeDefined();
+    const t0 = r.state.tick;
+    r.until((x) => x.phase !== 'point', 60 * 10);
+    expect(r.state.tick - t0).toBeGreaterThanOrEqual(secondsToTicks(B.point.seconds) - 2);
+    expect(r.flushes.length).toBe(1);
+    expect(r.flushes[0]?.size).toBe(B.point.size);
+    expect(r.flushes[0]?.x).toBeCloseTo(v.point?.x ?? NaN, 6);
+    expect(r.sys.view().point).toBeNull();
+  });
+
+  it('points only when a flock can be there (the flock cap)', () => {
+    const r = rig(3);
+    r.state.canFlush = false;
+    r.run(60 * 175);
+    expect(r.events.some((e) => e.type === 'brakkiePointed')).toBe(false);
+  });
+
+  it('"Mooi punt!": 3 of the pointed flock bagged in its flush pay goodPoint once', () => {
+    const r = rig(3);
+    r.until((v) => v.phase === 'point', 60 * 175);
+    r.until((v) => v.phase !== 'point', 60 * 10);
+    // The stub host gives every flush flock id 99.
+    r.sys.bagged('mid', 0, 99);
+    r.sys.bagged('mid', 0, 99);
+    expect(r.bonuses.some((b) => b.id === 'goodPoint')).toBe(false);
+    r.sys.bagged('far', 0, 99);
+    r.sys.bagged('mid', 0, 99);
+    expect(r.bonuses.filter((b) => b.id === 'goodPoint').length).toBe(1);
+    expect(r.bonuses.find((b) => b.id === 'goodPoint')?.base).toBe(B.point.goodPoint.points);
+    expect(r.sys.view().goodPoints).toBe(1);
+  });
+
+  it('no Mooi punt for birds of another flock or after the window', () => {
+    const r = rig(3);
+    r.until((v) => v.phase === 'point', 60 * 175);
+    r.until((v) => v.phase !== 'point', 60 * 10);
+    for (let i = 0; i < 3; i++) r.sys.bagged('mid', 0, 7);
+    r.run(secondsToTicks(B.point.goodPoint.withinSeconds) + 1);
+    for (let i = 0; i < 3; i++) r.sys.bagged('mid', 0, 99);
+    expect(r.bonuses.some((b) => b.id === 'goodPoint')).toBe(false);
+  });
+
+  it('"Fluit!": on point the whistle springs the flock now', () => {
+    const r = rig(3);
+    r.until((v) => v.phase === 'point', 60 * 175);
+    expect(r.sys.view().whistle).toBe('spring');
+    r.run(5);
+    r.sys.whistle();
+    expect(r.flushes.length).toBe(1);
+    const f = r.events.find((e) => e.type === 'brakkieFlushed');
+    expect(f?.type === 'brakkieFlushed' && f.whistled).toBe(true);
+    const w = r.events.find((e) => e.type === 'brakkieWhistled');
+    expect(w?.type === 'brakkieWhistled' && w.action).toBe('spring');
+  });
+
+  it('roaming: "Hier!" — to heel on the bakkie side, sits heelSeconds; "Soek!" sends him back', () => {
+    const r = rig(24, -1);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    expect(r.sys.view().whistle).toBe('heel');
+    const w0 = r.state.tick;
+    r.sys.whistle();
+    // The cooldown: nothing for cooldownSeconds.
+    expect(r.sys.view().whistle).toBeNull();
+    r.until((v) => v.phase === 'heel', 60 * 10);
+    const v = r.sys.view();
+    expect(v.pose).toBe('sit');
+    expect(v.x).toBeCloseTo(r.state.cameraX - B.whistle.heelDxPx, 5);
+    r.run(Math.max(0, w0 + secondsToTicks(B.whistle.cooldownSeconds) - r.state.tick));
+    expect(r.sys.view().whistle).toBe('seek');
+    r.sys.whistle();
+    expect(['trot', 'rest']).toContain(r.sys.view().phase);
+    const actions = r.events.flatMap((e) => (e.type === 'brakkieWhistled' ? [e.action] : []));
+    expect(actions).toEqual(['heel', 'seek']);
+  });
+
+  it('heel ends by itself after heelSeconds', () => {
+    const r = rig(24, 1);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.sys.whistle();
+    r.until((v) => v.phase === 'heel', 60 * 10);
+    const t0 = r.state.tick;
+    r.until((v) => v.phase !== 'heel', secondsToTicks(B.whistle.heelSeconds) + 5);
+    expect(r.state.tick - t0).toBe(secondsToTicks(B.whistle.heelSeconds));
+  });
+
+  it('the whistle does nothing while he carries, bolts or is away, and within the cooldown', () => {
+    const r = rig(25);
+    expect(r.sys.view().whistle).toBeNull();
+    r.sys.whistle();
+    expect(r.events.some((e) => e.type === 'brakkieWhistled')).toBe(false);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.sys.bagged('near', towardCentre(r));
+    r.until((v) => v.carrying, 60 * 30);
+    expect(r.sys.view().whistle).toBeNull();
+    r.sys.whistle();
+    expect(r.events.some((e) => e.type === 'brakkieWhistled')).toBe(false);
+  });
+
+  it('reactions: a proud hop from idle, at most one per minGapSeconds, never while busy', () => {
+    const r = rig(26);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.sys.cheer();
+    expect(r.sys.view().phase).toBe('react');
+    expect(r.sys.view().react).toBe('proud');
+    r.until((v) => v.phase !== 'react', 60 * 5);
+    // Within the gap: nothing.
+    r.until((v) => v.phase === 'rest' || v.phase === 'trot', 60 * 5);
+    r.sys.cheer();
+    expect(r.sys.view().reactions).toBe(1);
+    r.run(secondsToTicks(B.react.minGapSeconds));
+    r.until((v) => v.present && (v.phase === 'rest' || v.phase === 'trot'), 60 * 30);
+    r.sys.cheer();
+    expect(r.sys.view().reactions).toBe(2);
+    const kinds = r.events.flatMap((e) => (e.type === 'brakkieReacted' ? [e.kind] : []));
+    expect(kinds).toEqual(['proud', 'proud']);
+  });
+
+  it('the head tilt after react.tiltMisses clean misses in a row (a hit resets the count)', () => {
+    const r = rig(27);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    const far = (): { x: number; y: number } => ({ x: -9999, y: -9999 });
+    for (let i = 0; i < B.react.tiltMisses - 1; i++) r.sys.aimed(far, true);
+    r.sys.aimed(far, false);
+    r.sys.aimed(far, true);
+    expect(r.sys.view().reactions).toBe(0);
+    for (let i = 0; i < B.react.tiltMisses - 1; i++) r.sys.aimed(far, true);
+    expect(r.sys.view().react).toBe('tilt');
+    expect(r.sys.view().pose).toBe('tilt');
+  });
+
+  it('a reaction is short (react.seconds)', () => {
+    const r = rig(28);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.sys.cheer();
+    const t0 = r.state.tick;
+    r.until((v) => v.phase !== 'react', 60 * 5);
+    expect(r.state.tick - t0).toBe(secondsToTicks(B.react.seconds));
+  });
+});
+
+describe('Brakkie is sent once the shooting stops (v1.17, D-079)', () => {
+  it('a bird down waits while the gun is busy; he goes in a lull of fetch.quietSeconds', () => {
+    const r = rig(31);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.state.gunUp = true;
+    r.sys.bagged('near', towardCentre(r));
+    r.run(secondsToTicks(B.fetch.delaySeconds) + 60);
+    expect(r.sys.view().queued).toBe(1);
+    expect(r.events.some((e) => e.type === 'brakkieFetchStarted')).toBe(false);
+    r.state.gunUp = false;
+    r.until((v) => v.phase === 'fetch', 60 * 5);
+  });
+
+  it('"Soek!": with a bird waiting the whistle sends him for it at once, gun busy or not', () => {
+    const r = rig(32);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.state.gunUp = true;
+    r.sys.bagged('near', towardCentre(r));
+    expect(r.sys.view().whistle).toBe('heel');
+    r.run(secondsToTicks(B.fetch.delaySeconds) + 2);
+    expect(r.sys.view().whistle).toBe('seek');
+    r.sys.whistle();
+    expect(r.sys.view().phase).toBe('fetch');
+    const w = r.events.find((e) => e.type === 'brakkieWhistled');
+    expect(w?.type === 'brakkieWhistled' && w.action).toBe('seek');
   });
 });

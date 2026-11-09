@@ -97,6 +97,19 @@ describe('hunt log', () => {
     expect(createHuntLogger().finish(r).brakkieMates).toBe(0);
   });
 
+  it('v1.17 (D-079): Brakkie\'s best Bring streak of the hunt (Notaboek "Goeie hond")', () => {
+    const r = { baggedByPlane: { far: 0, ver: 0 } } as unknown as HuntResult;
+    const log = createHuntLogger();
+    log.add([
+      { type: 'brakkieFetched', tick: 300, streak: 1, points: 15 },
+      { type: 'brakkieFetched', tick: 600, streak: 2, points: 15 },
+      { type: 'brakkieStreakBroken', tick: 700, streak: 2, why: 'aim' },
+      { type: 'brakkieFetched', tick: 900, streak: 1, points: 15 },
+    ]);
+    expect(log.finish(r).bringStreak).toBe(2);
+    expect(createHuntLogger().finish(r).bringStreak).toBe(0);
+  });
+
   it('records a perching creature only once it lands and calls (same rule as the ⛔ call-out)', () => {
     const log = createHuntLogger((c) => c === 'kwevoel');
     log.add([

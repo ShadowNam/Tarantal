@@ -141,7 +141,8 @@
       "lineMs": 3200,
       "gapMs": 450,
       "manyBirds": 15,
-      "nearRecordFrac": 0.9
+      "nearRecordFrac": 0.9,
+      "bringStreak": 3
     },
     "danceMs": 3600,
     "danceFrameMs": 200,

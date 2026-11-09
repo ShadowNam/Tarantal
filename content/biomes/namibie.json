@@ -306,7 +306,26 @@
       ],
       "tailwindSpeedMul": 1.3,
       "headwindSpeedMul": 0.75,
-      "driftPxAtFar": 40
+      "driftPxAtFar": 40,
+      "strengthExponent": 1.5,
+      "driftPlaneMul": {
+        "$comment": "v1.17 (D-079): the drift grows with distance — near a little, mid noticeable, far the most (1 = driftPxAtFar), Ver more.",
+        "near": 0.15,
+        "mid": 0.5,
+        "far": 1,
+        "ver": 1.4
+      },
+      "gusts": {
+        "everySeconds": [
+          5,
+          10
+        ],
+        "seconds": [
+          1.2,
+          2.2
+        ],
+        "add": 0.3
+      }
     },
     "visual": {
       "windSock": true,

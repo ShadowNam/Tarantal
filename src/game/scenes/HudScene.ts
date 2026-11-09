@@ -60,6 +60,7 @@ import { FAMILIEFOTO_SECRET } from '../../sim/meerkats/colony';
 import { BLIKKIESDANS_SECRET } from '../../sim/cans/cans';
 import { MAKALANI_SECRET } from '../../sim/nuts/makalani';
 import { HarvestBars, harvestBarsRects } from '../ui/HarvestBars';
+import { brakkieChunk } from '../brakkie/brakkieChunk';
 
 export interface HudControls {
   readonly pause: () => void;
@@ -187,6 +188,10 @@ export class HudScene extends Phaser.Scene {
   private readonly captionCrate: { id: string | null } = { id: null };
   private sockPole!: Phaser.GameObjects.Rectangle;
   private sock!: Phaser.GameObjects.Image;
+  /** v1.17 (D-079): the wind meter (arrow + 5 strength bars), redrawn only when it changes. */
+  private windMeter!: Phaser.GameObjects.Graphics;
+  /** v1.17 (D-079): Brakkie's whistle button (touch; hidden without him or while he is away). */
+  private whistleBtn!: Phaser.GameObjects.Graphics;
   private callout!: Phaser.GameObjects.Text;
   /** Don't-shoot creatures already called out (first sighting ever: Bird Book + this hunt). */
   private readonly sighted = new Set<string>();
@@ -356,6 +361,8 @@ export class HudScene extends Phaser.Scene {
     this.captionCrate.id = null;
     this.sockPole = this.add.rectangle(0, 0, 8, 1, C.ink, 1).setOrigin(0, 0).setVisible(false);
     this.sock = this.add.image(0, 0, TEX.windsock).setVisible(false);
+    this.windMeter = this.add.graphics().setVisible(false);
+    this.whistleBtn = this.add.graphics().setVisible(false);
     const so = { x: 6 / 150, y: 0.5 };
     this.sock.setOrigin(so.x, so.y);
     this.callout = text(48, '#FF6B5A').setOrigin(0.5).setVisible(false);
@@ -498,6 +505,11 @@ export class HudScene extends Phaser.Scene {
     // The language may have changed in the pause menu: redraw the FTUE line too.
     this.promptKey = null;
     this.relayout();
+  }
+
+  isOnWhistle(x: number, y: number): boolean {
+    const l = this.layoutNow;
+    return l !== null && this.whistleBtn.visible && rectContains(l.whistle, x, y);
   }
 
   isOnGadget(x: number, y: number): boolean {
@@ -669,6 +681,8 @@ export class HudScene extends Phaser.Scene {
         gadget: l.gadget,
         chips: l.chips,
         windsock: l.windsock,
+        windMeter: l.windMeter,
+        whistle: l.whistle,
         pause: l.pause,
         quota: l.quota,
         charms: l.charms,
@@ -1073,8 +1087,12 @@ export class HudScene extends Phaser.Scene {
       if (this.rangeOn && SCORE_FEEDBACK.has(e.type)) continue;
       if (e.type === 'scoreAwarded')
         this.pushPop(`${popParts(e.points, e.mult)}  ${formatAward(e.award)}`, '#F3EAD3');
-      else if (e.type === 'bonusAwarded') this.pushPop(formatAward(e.award), '#FFD25A');
-      else if (e.type === 'penaltyApplied') this.pushPop(formatAward(e.points), '#FF6B5A');
+      else if (e.type === 'bonusAwarded') {
+        // v1.17 (D-079): Brakkie's bonuses pop with their word at the edge ("Bring! +15").
+        const award = formatAward(e.award);
+        const text = brakkieChunk()?.popText(e.bonus, award, (k) => this.lazy(k), this.ctx.hook);
+        this.pushPop(text ?? award, text === undefined || text === award ? '#FFD25A' : '#FFE9A8');
+      } else if (e.type === 'penaltyApplied') this.pushPop(formatAward(e.points), '#FF6B5A');
       else if (e.type === 'emptyClick') this.beltFlashUntil = now + 220;
       else if (e.type === 'reloadStarted' && e.auto === true && this.ctx.hook)
         this.ctx.hook.reloadFx.autoReloads++;
@@ -1122,6 +1140,15 @@ export class HudScene extends Phaser.Scene {
     );
     if (this.ctx.hook) this.ctx.hook.pickupCard = this.pickupCard?.shown ?? null;
     this.drawWindsock(s);
+    // v1.17 (D-079): the whistle button (touch), drawn by Brakkie's lazy chunk once it is in.
+    brakkieChunk()?.drawWhistleButton(
+      this.whistleBtn,
+      this.layoutNow !== null && this.inputKind !== 'pointer' ? this.layoutNow.whistle : null,
+      s.brakkie,
+      C.ink,
+      C.enamel,
+      this.ctx.hook,
+    );
 
     this.harvestBars?.update(s.harvest);
     // v1.8c (D-063): the Harvest's clock is its 30 s (not the intro or the outro).
@@ -1630,6 +1657,14 @@ export class HudScene extends Phaser.Scene {
     const show = l !== null && wind !== null && this.ctx.huntBiome.omen.visual?.windSock === true;
     this.sock.setVisible(show);
     this.sockPole.setVisible(show);
+    // v1.17 (D-079): the wind meter, drawn by the lazy Brakkie/wind chunk once it is in.
+    brakkieChunk()?.drawWindMeter(
+      this.windMeter,
+      this.layoutNow?.windMeter ?? null,
+      wind,
+      C.ink,
+      this.ctx.hook,
+    );
     if (!show) return;
     const droop = (1 - wind.strength) * 0.9;
     const wobble = Math.sin(this.time.now / 140) * 0.06 * wind.strength;

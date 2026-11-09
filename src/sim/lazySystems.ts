@@ -12,6 +12,7 @@ import type { CameoSystemFactory } from './cameos/system';
 import type { HarvestSystemFactory } from './harvest/system';
 import type { OstrichSystemFactory } from './ostriches/system';
 import type { TellSystemFactory } from './tells/system';
+import type * as WindModel from './omen/wind';
 
 export interface LazySystems {
   readonly baboons: BaboonSystemFactory;
@@ -23,6 +24,11 @@ export interface LazySystems {
   readonly brakkie: BrakkieSystemFactory;
   /** v1.13 (D-075): the veld cameos. */
   readonly cameos: CameoSystemFactory;
+  /** v1.17 (D-079): the wind model (drift by plane and strength, gusts). */
+  readonly wind: Pick<
+    typeof WindModel,
+    'createWind' | 'tickWind' | 'windDriftAt' | 'windSpeedMul' | 'windView'
+  >;
 }
 
 let registered: LazySystems | null = null;
@@ -39,6 +45,7 @@ export function registeredLazySystems(): LazySystems | null {
 export function needsLazySystems(biome: Biome): boolean {
   return (
     biome.baboons !== undefined ||
+    biome.omen.wind !== undefined ||
     biome.harvest !== undefined ||
     biome.ostriches !== undefined ||
     biome.props.some((p) => p.secret?.tell !== undefined) ||

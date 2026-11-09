@@ -26,6 +26,11 @@ export interface HudLayout {
   readonly chips: Rect;
   /** Wind sock (omen hunts), between the timer and the score. */
   readonly windsock: Rect;
+  /** v1.17 (D-079): the wind meter (arrow + strength bars) under the sock, above the Frenzy bar. */
+  readonly windMeter: Rect;
+  /** v1.17 (D-079): Brakkie's whistle (touch), a 72-px round button above the gadget: the bottom
+   *  corner opposite the shells (mirrored with them). */
+  readonly whistle: Rect;
   /** Gun pivot (bottom-centre of the gun sprite). */
   readonly gun: { readonly x: number; readonly y: number };
   /** Pause button (touch players have no Esc), top centre. */
@@ -59,6 +64,8 @@ export const ITEM_GAP = 14;
 
 /** Pause button size (a ≥ 64 px tap target). */
 export const PAUSE_PX = 88;
+/** v1.17 (D-079): Brakkie's whistle button (≥ 64 px tap target). */
+export const WHISTLE_PX = 72;
 
 export interface HudSizing {
   readonly marginPx: number;
@@ -124,6 +131,7 @@ export function hudLayout(
     h: MAX_CHIPS * s.chipH + (MAX_CHIPS - 1) * CHIP_GAP,
   };
   const windsock: Rect = { x: timer.x + timer.w + 24, y: top + 10, w: 170, h: 76 };
+  const windMeter: Rect = { x: windsock.x, y: windsock.y + windsock.h + 2, w: 150, h: 22 };
   const quota: Rect = { x: score.x, y: score.y + score.h + 6, w: score.w, h: 40 };
   const charmsW = Math.max(0, Math.min(600, 2 * (score.x - 24 - (safe.x + safe.w / 2))));
   const charms: Rect = {
@@ -141,6 +149,12 @@ export function hudLayout(
     w: itemPx,
     h: itemPx,
   }));
+  const whistle: Rect = {
+    x: mirrored ? right - WHISTLE_PX : left,
+    y: gadget.y - 24 - WHISTLE_PX,
+    w: WHISTLE_PX,
+    h: WHISTLE_PX,
+  };
   const zb = s.zoomButtonPx;
   const zoomRowW = zb * 2 + 2 * 10 + 96;
   const zoomX = mirrored ? belt.x : belt.x + belt.w - zoomRowW;
@@ -159,6 +173,8 @@ export function hudLayout(
     gadget,
     chips,
     windsock,
+    windMeter,
+    whistle,
     gun: { x: safe.x + safe.w * (mirrored ? 0.38 : 0.62), y: height },
     pause,
     skip,

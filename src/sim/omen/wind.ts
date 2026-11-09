@@ -1,19 +1,44 @@
 // Karoo wind (GDD §11 omen): a direction (±1) and a strength (0..1 of the biome's effects),
 // re-rolled every directionChangeSeconds. Flying birds with the wind go faster (tailwind), against
-// it slower (headwind); pellets on the far plane drift downwind by driftPxAtFar × strength ×
-// the weapon's windSensitivity (Tech §3.4). Randomness: rng.stream('omen').
+// it slower (headwind). v1.17 (D-079): a pellet drifts downwind on EVERY plane, more the farther
+// it flies (driftPlaneMul by the plane's scroll factor: near a little, far the most, Ver more), and
+// faster than linearly with strength (strength ^ strengthExponent: a strong gust clearly pushes
+// the shot, a light breeze barely does). Gusts: short peaks on top of the period's strength.
+// Randomness: rng.stream('omen') for the rolls; the gusts come from a stream seeded with the
+// first roll (no extra draws on 'omen', so the showers, the storm and the dust devils keep their
+// sequences). Tech §3.4. v1.17: lives in the lazy sim-systems chunk (LazySystems.wind): every map
+// with wind has a baboon troop, so its hunts load that chunk anyway.
 import type { Biome } from '../../content/schemas';
 import { secondsToTicks } from '../clock';
 import type { RandomStream } from '../rng';
-import type { WindView } from '../types';
+import type { PlaneId, WindView } from '../types';
+import { planeDriftMul, type DriftCurve } from './windCurve';
+
+export { planeDriftMul };
 
 export type WindConfig = NonNullable<Biome['omen']['wind']>;
+
+/** Each plane's scroll factor (from scoring.planes). */
+export type PlaneFactors = Readonly<Record<PlaneId, number>>;
+
+interface Gust {
+  readonly start: number;
+  readonly len: number;
+}
 
 export interface Wind {
   readonly cfg: WindConfig;
   dir: 1 | -1;
+  /** The period's strength (rolled); `strengthNow()` adds the gust. */
   strength: number;
   ticksToChange: number;
+  /** Ticks since the hunt began (the gust clock). */
+  t: number;
+  gust: Gust | null;
+  nextGust: number;
+  readonly gustRng: (() => number) | null;
+  /** [scroll factor, drift mul] by factor, highest first (near → Ver). */
+  readonly curve: DriftCurve;
 }
 
 function roll(w: Wind, rng: RandomStream): void {
@@ -25,33 +50,127 @@ function roll(w: Wind, rng: RandomStream): void {
   );
 }
 
-export function createWind(cfg: WindConfig, rng: RandomStream): Wind {
-  const w: Wind = { cfg, dir: 1, strength: 0, ticksToChange: 0 };
+const PLANE_ORDER: readonly PlaneId[] = ['near', 'mid', 'far', 'ver'];
+
+export function createWind(
+  cfg: WindConfig,
+  rng: RandomStream,
+  planes: PlaneFactors = { near: 1, mid: 0.6, far: 0.35, ver: 0.22 },
+): Wind {
+  const mul = cfg.driftPlaneMul ?? { near: 0, mid: 0, far: 1, ver: 1 };
+  const curve = PLANE_ORDER.map((p) => [planes[p], mul[p]] as const).sort((a, b) => b[0] - a[0]);
+  const w: Wind = {
+    cfg,
+    dir: 1,
+    strength: 0,
+    ticksToChange: 0,
+    t: 0,
+    gust: null,
+    nextGust: 0,
+    gustRng: null,
+    curve,
+  };
   roll(w, rng);
-  return w;
+  if (cfg.gusts === undefined) return w;
+  // Seeded with the first roll's numbers: no extra draw on the omen stream.
+  const seed = (w.ticksToChange * 7919 + Math.floor(w.strength * 1e6) + (w.dir > 0 ? 1 : 0)) >>> 0;
+  const g: Wind = { ...w, gustRng: gustStream(seed) };
+  g.nextGust = gapTicks(g);
+  return g;
 }
 
-/** Advances one tick; returns true when the wind changed. */
-export function tickWind(w: Wind, rng: RandomStream): boolean {
+/** The gusts' own little generator (mulberry32: integer arithmetic only, the same everywhere),
+ *  so the wind adds no draws to the omen stream. */
+function gustStream(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const between = (r: () => number, lo: number, hi: number): number => lo + (hi - lo) * r();
+
+function gapTicks(w: Wind): number {
+  const r = w.gustRng;
+  const g = w.cfg.gusts;
+  if (r === null || g === undefined) return Number.MAX_SAFE_INTEGER;
+  return Math.max(1, secondsToTicks(between(r, g.everySeconds[0], g.everySeconds[1])));
+}
+
+/** strength ^ exponent for the exponents content allows (1, 1.5, 2): no transcendental math. */
+function shape(s: number, e: 1 | 1.5 | 2): number {
+  if (s <= 0) return 0;
+  return e === 1 ? s : e === 2 ? s * s : s * Math.sqrt(s);
+}
+
+/** Advances one tick; returns 'changed' when the wind was re-rolled, 'gust' when a gust began. */
+export function tickWind(w: Wind, rng: RandomStream): false | 'changed' | 'gust' {
+  w.t++;
+  let out: false | 'changed' | 'gust' = false;
+  if (w.gust !== null && w.t >= w.gust.start + w.gust.len) w.gust = null;
+  const g = w.cfg.gusts;
+  if (g !== undefined && w.gustRng !== null && w.gust === null && w.t >= w.nextGust) {
+    const len = Math.max(1, secondsToTicks(between(w.gustRng, g.seconds[0], g.seconds[1])));
+    w.gust = { start: w.t, len };
+    w.nextGust = w.t + len + gapTicks(w);
+    out = 'gust';
+  }
   w.ticksToChange--;
-  if (w.ticksToChange > 0) return false;
+  if (w.ticksToChange > 0) return out;
   roll(w, rng);
-  return true;
+  return 'changed';
 }
 
-/** Speed multiplier for something flying in direction `sign` (0 = not moving across). */
+/** 0..1: how far into its peak the gust is (a quick rise, a slower fall), 0 without one. */
+export function gustLevel(w: Wind): number {
+  if (w.gust === null) return 0;
+  const p = (w.t - w.gust.start) / w.gust.len;
+  if (p < 0 || p >= 1) return 0;
+  return p < 0.3 ? p / 0.3 : (1 - p) / 0.7;
+}
+
+/** The strength now: the period's plus the gust's (never above 1). */
+export function strengthNow(w: Wind): number {
+  const add = w.cfg.gusts?.add ?? 0;
+  return Math.min(1, w.strength + add * gustLevel(w));
+}
+
+/** Speed multiplier for something flying in direction `sign` (0 = not moving across). The
+ *  period's strength only (birds don't feel a gust). */
 export function windSpeedMul(w: Wind | null, sign: number): number {
   if (w === null || sign === 0) return 1;
   const mul = Math.sign(sign) === w.dir ? w.cfg.tailwindSpeedMul : w.cfg.headwindSpeedMul;
   return 1 + (mul - 1) * w.strength;
 }
 
-/** Screen-px drift of a far-plane pellet for a weapon with this wind sensitivity. */
+/** Screen-px drift at the far plane for a weapon with this wind sensitivity, now (signed). */
 export function windDriftPx(w: Wind | null, windSensitivity: number): number {
   if (w === null) return 0;
-  return w.cfg.driftPxAtFar * w.strength * w.dir * windSensitivity;
+  return (
+    w.cfg.driftPxAtFar *
+    shape(strengthNow(w), w.cfg.strengthExponent ?? 1) *
+    w.dir *
+    windSensitivity
+  );
+}
+
+/** The drift of a pellet that reaches scroll factor `f` (screen px, signed). */
+export function windDriftAt(w: Wind | null, windSensitivity: number, f: number): number {
+  if (w === null) return 0;
+  return windDriftPx(w, windSensitivity) * planeDriftMul(w.curve, f);
 }
 
 export function windView(w: Wind | null): WindView | null {
-  return w === null ? null : { dir: w.dir, strength: w.strength };
+  if (w === null) return null;
+  const s = strengthNow(w);
+  return {
+    dir: w.dir,
+    strength: s,
+    gust: gustLevel(w),
+    farDriftPx: w.cfg.driftPxAtFar * shape(s, w.cfg.strengthExponent ?? 1),
+    curve: w.curve,
+  };
 }

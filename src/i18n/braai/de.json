@@ -32,9 +32,11 @@
   "braai.say.open_some": "Vögel auf dem Pick-up. Gar nicht schlecht!",
   "braai.say.rank_up": "Ein neuer Rang! Das will Ouma hören.",
   "braai.say.swarm": "Als die fliegenden Ameisen kamen, warst du bereit. Der Regen hat Glück gebracht!",
+  "braai.say.brakkie": "Brakkie hat sie einen nach dem anderen gebracht. Was für ein guter Hund!",
   "braai.say.ver": "Und der ganz draußen am Horizont. Lekker geschossen!",
   "braai.say.whole_flock": "Der ganze Schwarm! Nicht einer ist entkommen.",
   "braai.swarm": "{n} Vögel beim Fest der fliegenden Ameisen. Der Regen hat Glück gebracht!",
+  "braai.brakkie": "Brakkie hat {n} hintereinander gebracht. Was für ein guter Hund!",
   "braai.ver": "{n} ganz draußen am Horizont. Lekker geschossen!",
   "braai.whole_flock": "Der ganze Schwarm, {n} ×! Nicht einer ist entkommen."
 }

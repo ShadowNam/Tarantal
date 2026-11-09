@@ -796,6 +796,22 @@ the near legs white, the far legs a gentle grey. The coat is warm-lit on top and
 underneath; hair strokes only along the edges and inside the tan patches (whose edges are darker).
 A clear white eye highlight and a wet highlight on the nose.
 
+**v1.17 (D-079) more detail and the companion's frames** (the owner: "get the dog more detail
+also"). A brown patch round the eye (the blaze keeps clear of it), clearer tan ear flaps folding
+forward with a lit fold and fur on the edge, fine whisker lines from the whisker dots, a pink tongue
+that hangs out over the lower lip when he pants, denser hair in the tan patches and on the head, a
+**short docked tail** (58 % of the old line) carried high and wagging between frames, a **plain
+leather collar** close behind the head with a small brass ring (no tag, no text), **three toe
+lines** on every paw. **4-frame cycles** for the trot and the run (a → c → b → d; the passing
+frames with the stance pair under him and the swinging pair lifted; the gallop's front landing and
+hind push), quicker per frame. New frames: **point** ×2 (body low and level, nose on the flock, the
+near front paw lifted and folded, tail straight up; b is the quiver, 1 px), **proud** ×2 (a bounce
+down, then up on his hind legs barking, front paws off the ground — the hind feet stay planted),
+**tilt** (sitting, head tilted, the near ear flopped), and the **marker** (a grass tuft of seven
+blades with a small white chevron over it). The sheet is now **512 × 448** at 1× (HD 1024 × 896;
+0.875 MiB, a unit test caps it); every box refitted to its drawing. BEFORE | AFTER:
+`npm run art:compare-companion` → `docs/art-preview/compare/v117-companion-before-after-*.png`.
+
 ### 5.7 Veld cameos (1.17.0, D-075)
 Interim at the D-035 bar, inked Bosveld Comic in daylight; true to each area's wildlife, never shown
 hurt, no blood. One sheet per area (`cameos/<area>`, its own lazy group `cameos-<area>`, the HD twin
@@ -1131,6 +1147,11 @@ line after his first fetch of a hunt ("Good boy, Brakkie! Bring it here."), and 
 greeting when the player first taps him ("Come, Brakkie! We're going hunting.") — 9 clips in
 en/af/de with the interim voice pipeline (§10.1), Dutch text. "Brakkie" is his name in every
 language; "the farm dog" is translated.
+
+**v1.17 (D-079):** Oupa's whistle for him (two short rising lip-whistled notes, "fwiet-fwiet") and
+a happy little yap as he delivers a bird, made in code in the same group; the proud hop uses the
+double bark. Oupa's braai line for a Bring streak of 3+ ("Brakkie brought in {n} in a row. What a
+good dog!") in en/af/de (interim voices), Dutch text.
 
 ### 10.6 The veld cameos' sounds and Oupa's scold (1.17.0, D-075)
 

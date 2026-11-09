@@ -3,6 +3,11 @@
 // barks at a flock now and then (one threat), flushes a hidden flock now and then, and when a shot
 // hits him he yelps and bolts to the bakkie: −25 only for a shot aimed at him (D-062/D-063's rule)
 // with the weaver nest's cooldown. Never a target, never hurt, never removed.
+// v1.17 (D-079, GDD §11.3f) the companion: every bird he delivers pays "Bring!" (+15, × Frenzy ×
+// Stampede), every 3rd in a row "Goeie hond!" (+30); the flush is a point ("Staan!": he freezes
+// at a hidden flock of 5, springs in after point.seconds); "Mooi punt!" (+20) for 3+ of its birds
+// bagged in the flush; Oupa's whistle (a recorded command) springs the point, calls him to heel,
+// or sends him back to work; short reactions (a proud hop, a sympathetic head tilt), no points.
 // Pure and deterministic: his own stream `dog` for every draw, ticks, plain arithmetic. It lives in
 // the lazy sim-systems chunk with the baboons; the sim talks to it through BrakkieHost only.
 import type { ContentBundle } from '../../content/schemas';
@@ -39,6 +44,10 @@ export interface BrakkieHost {
   /** A hidden flock of `size` bursts up flushing at layer x of the mid plane (every draw from
    *  the dog's stream); its id, or null: no room (the map's flock or bird caps). */
   flush(x: number, size: number): number | null;
+  /** v1.17 (D-079): a flock could burst up now (the map's flock cap has room). */
+  canFlush(): boolean;
+  /** v1.17 (D-079): an event bonus (× Frenzy × Stampede); the points paid. */
+  bonus(id: 'bring' | 'bringStreak' | 'goodPoint', base: number): number;
 }
 
 export interface BrakkieSystem {
@@ -53,8 +62,18 @@ export interface BrakkieSystem {
     hitTarget: boolean,
     aimOn: (layerId: string) => { readonly x: number; readonly y: number },
   ): void;
-  /** A bird bagged on `plane` at layer (x, y): he may fetch it. */
-  bagged(plane: PlaneId, x: number): void;
+  /** A bird bagged on `plane` at layer x (of flock `flockId`): he may fetch it. */
+  bagged(plane: PlaneId, x: number, flockId?: number | null): void;
+  /** v1.17 (D-079): every shot's aim point on a layer (the Bring streak breaks for one aimed
+   *  close by while he carries a bird), and whether it missed everything. */
+  aimed(
+    aimOn: (layerId: string) => { readonly x: number; readonly y: number },
+    miss: boolean,
+  ): void;
+  /** v1.17 (D-079): something to be proud of (a Whole Flock, Twee Vlieë, Frenzy ×3, a Ver bag). */
+  cheer(): void;
+  /** v1.17 (D-079): Oupa's whistle. */
+  whistle(): void;
   step(): void;
   view(): BrakkieView;
   /** Where he stands on the near plane and the room he keeps (layer px), else null (away,
@@ -79,9 +98,19 @@ export interface BrakkieGeometry {
 
 /** Phases where he stands about (or trots) on his own business: he keeps out of the line of
  *  fire in these. */
-const STANDING: ReadonlySet<DogPhase> = new Set<DogPhase>(['rest', 'trot', 'bark', 'toDig', 'dig']);
+const STANDING: ReadonlySet<DogPhase> = new Set<DogPhase>([
+  'rest',
+  'trot',
+  'bark',
+  'toDig',
+  'dig',
+  'point',
+  'toHeel',
+  'heel',
+  'react',
+]);
 
-/** The poses drawn standing (the rest are lying low). */
+/** The poses drawn standing (the rest are lying low; v1.17: the point has its own box). */
 const LOW_POSES: ReadonlySet<DogPose> = new Set<DogPose>(['lie', 'dig']);
 
 interface Cross {
@@ -131,6 +160,23 @@ interface Dog {
   fetches: number;
   barks: number;
   flushes: number;
+  /** v1.17 (D-079): the point's flock spot on the mid plane (layer x), while on point/springing. */
+  pointX: number | null;
+  /** The flock he pointed and its birds bagged so far (Mooi punt), until goodUntil. */
+  pointFlock: number | null;
+  pointBags: number;
+  goodUntil: number;
+  streak: number;
+  bestStreak: number;
+  points: number;
+  goodPoints: number;
+  /** Shots in a row that missed everything (the head tilt). */
+  misses: number;
+  react: 'proud' | 'tilt' | null;
+  nextReact: number;
+  reactions: number;
+  nextWhistle: number;
+  whistles: number;
 }
 
 /** His id in hit results (one dog). */
@@ -149,6 +195,9 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   const rangeTicks = (r: readonly [number, number]): number => ticks(rng.range(r[0], r[1]));
   const checkTicks = Math.max(1, ticks(B.clear.checkSeconds));
   const holdTicks = ticks(B.clear.holdBackSeconds);
+  const quietTicks = ticks(B.fetch.quietSeconds);
+  /** v1.17: set while the whistle sends him (tryFetch skips the lull). */
+  let sent = false;
   const cooldownTicks = ticks(B.hit.cooldownSeconds);
   /** His size on a plane (hitbox px are at the near plane's scale). */
   const k = (plane: DogPlane): number => geo.planeScale[plane] / geo.planeScale.near;
@@ -189,11 +238,27 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     fetches: 0,
     barks: 0,
     flushes: 0,
+    pointX: null,
+    pointFlock: null,
+    pointBags: 0,
+    goodUntil: 0,
+    streak: 0,
+    bestStreak: 0,
+    points: 0,
+    goodPoints: 0,
+    misses: 0,
+    react: null,
+    nextReact: 0,
+    reactions: 0,
+    nextWhistle: 0,
+    whistles: 0,
   };
   dog.nextBark = dog.dur + rangeTicks(B.bark.everySeconds);
   dog.nextFlush = rangeTicks(B.flush.firstSeconds);
   /** Test builds only (?brakkiePreview=fetch): when he fetches a bird placed beside him. */
   let demoTick = B.demoFetchSeconds === undefined ? null : ticks(B.demoFetchSeconds);
+  /** Test builds only (?brakkiePreview=react): when he does a proud hop. */
+  let demoProud = B.demoProudSeconds === undefined ? null : ticks(B.demoProudSeconds);
 
   const present = (): boolean => dog.phase !== 'away';
   const hittable = (): boolean => present() && dog.phase !== 'cross';
@@ -205,7 +270,12 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     y: number;
     shape: { type: 'ellipse'; rx: number; ry: number };
   }[] {
-    const box = LOW_POSES.has(dog.pose) ? B.hitboxes.low : B.hitboxes.stand;
+    const box =
+      dog.pose === 'point'
+        ? B.hitboxes.point
+        : LOW_POSES.has(dog.pose)
+          ? B.hitboxes.low
+          : B.hitboxes.stand;
     const s = k(dog.plane);
     const y = geo.groundY[dog.plane];
     return [
@@ -223,6 +293,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   }
 
   function setPhase(phase: DogPhase, pose: DogPose, dur: number): void {
+    // The point's flock spot lives only while he is on point.
+    if (phase !== 'point') dog.pointX = null;
     dog.phase = phase;
     dog.pose = pose;
     dog.t = 0;
@@ -370,6 +442,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     dropStale(tick);
     if (dog.queue.length === 0 || !idle() || tick < dog.fetchCheck) return;
     dog.fetchCheck = tick + checkTicks;
+    // v1.17 (D-079): only in a lull in the shooting, or sent with the whistle ("Soek!").
+    if (!sent && host.gunUp(quietTicks)) return;
     for (let i = 0; i < dog.queue.length; i++) {
       const f = dog.queue[i];
       if (f === undefined || tick < f.readyTick) continue;
@@ -426,20 +500,157 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     }
     dog.nextFlush = tick + rangeTicks(B.flush.everySeconds);
     if (!rng.chance(B.flush.chance)) return;
-    // He digs where he is if that's near the view's centre, else at a clear spot that is.
+    // v1.17 (D-079): only at a flock that can be there (the map's flock cap has room).
+    if (!host.canFlush()) return;
+    // He points from where he is if that's near the view's centre, else from a clear spot that is.
     const near = Math.abs(dxOf(dog.plane, dog.x)) <= B.flush.maxDxPx;
     const x = near ? dog.x : pickSpot();
     if (x === null || Math.abs(dxOf(dog.plane, x)) > B.flush.maxDxPx) return;
-    if (x === dog.x) setPhase('dig', 'dig', ticks(B.flush.digSeconds));
+    if (x === dog.x) startPoint(tick);
     else moveTo('toDig', 'run', x, B.speeds.runPx);
   }
 
-  function burst(tick: number): void {
-    const midX = planeCentreX(host.cameraX(), geo.layers.mid.scrollFactor) + dxOf(dog.plane, dog.x);
-    const size = rng.int(B.flush.size[0], B.flush.size[1]);
-    const flockId = host.flush(midX, size);
-    if (flockId !== null) dog.flushes++;
-    host.emit({ type: 'brakkieFlushed', tick, flockId, x: dog.x });
+  /** v1.17 (D-079): "Staan!" — he freezes on point at the hidden flock in front of him (towards
+   *  the view's centre, the flock's spot on the mid ground ahead of his nose). */
+  function startPoint(tick: number): void {
+    const dx = dxOf(dog.plane, dog.x);
+    if (dx !== 0) dog.facing = dx > 0 ? -1 : 1;
+    const midCentre = planeCentreX(host.cameraX(), geo.layers.mid.scrollFactor);
+    const ahead = B.point.aheadPx * dog.facing;
+    dog.pointX = midCentre + dx + ahead;
+    setPhase('point', 'point', ticks(B.point.seconds));
+    host.emit({
+      type: 'brakkiePointed',
+      tick,
+      x: dog.x,
+      markerX: dog.pointX,
+      markerY: geo.groundY.mid,
+    });
+  }
+
+  function burst(tick: number, whistled: boolean): void {
+    const midX =
+      dog.pointX ??
+      planeCentreX(host.cameraX(), geo.layers.mid.scrollFactor) + dxOf(dog.plane, dog.x);
+    dog.pointX = null;
+    const flockId = host.flush(midX, B.point.size);
+    if (flockId !== null) {
+      dog.flushes++;
+      dog.pointFlock = flockId;
+      dog.pointBags = 0;
+      dog.goodUntil = tick + ticks(B.point.goodPoint.withinSeconds);
+    }
+    host.emit({
+      type: 'brakkieFlushed',
+      tick,
+      flockId,
+      x: dog.x,
+      pointed: true,
+      ...(whistled ? { whistled: true as const } : {}),
+    });
+  }
+
+  /** Into the spring: a short bound towards the flock, then it bursts up. */
+  function spring(): void {
+    setPhase('spring', 'run', ticks(B.point.springSeconds));
+  }
+
+  /** v1.17 (D-079): a reaction (only from idle, at most one per react.minGapSeconds). */
+  function tryReact(kind: 'proud' | 'tilt'): boolean {
+    const tick = host.tick();
+    if (!present() || !idle() || dog.plane !== 'near' || tick < dog.nextReact) return false;
+    dog.react = kind;
+    dog.reactions++;
+    dog.nextReact = tick + ticks(B.react.minGapSeconds);
+    setPhase('react', kind, ticks(B.react.seconds));
+    host.emit({ type: 'brakkieReacted', tick, kind });
+    return true;
+  }
+
+  /** The heel spot: the view's bakkie side on the near plane (inside his band, off the gun). */
+  function heelX(): number {
+    const sf = geo.layers.near.scrollFactor;
+    return planeCentreX(host.cameraX(), sf) + geo.homeSide * B.whistle.heelDxPx;
+  }
+
+  /** A bird in his queue is down and ready to fetch (he would go in a lull). */
+  function birdWaiting(): boolean {
+    const tick = host.tick();
+    return dog.queue.some((f) => tick >= f.readyTick);
+  }
+
+  /** What the whistle would do now (null: nothing). */
+  function whistleAction(): 'spring' | 'heel' | 'seek' | null {
+    if (!present() || dog.plane !== 'near') return null;
+    switch (dog.phase) {
+      case 'point':
+        return 'spring';
+      case 'rest':
+      case 'trot':
+      case 'bark':
+      case 'react':
+      case 'toDig':
+        // A bird is waiting: "Soek!" sends him for it now (a gundog sent on the whistle).
+        return birdWaiting() ? 'seek' : 'heel';
+      case 'toHeel':
+      case 'heel':
+        return 'seek';
+      default:
+        return null;
+    }
+  }
+
+  function whistle(): void {
+    const tick = host.tick();
+    if (tick < dog.nextWhistle) return;
+    const action = whistleAction();
+    if (action === null) return;
+    dog.nextWhistle = tick + ticks(B.whistle.cooldownSeconds);
+    dog.whistles++;
+    host.emit({ type: 'brakkieWhistled', tick, action });
+    if (action === 'spring') {
+      burst(tick, true);
+      spring();
+      return;
+    }
+    dog.barkFlock = null;
+    dog.react = null;
+    if (action === 'heel') {
+      dog.pointX = null;
+      const x = heelX();
+      if (Math.abs(x - dog.x) < 1) setPhase('heel', 'sit', ticks(B.whistle.heelSeconds));
+      else moveTo('toHeel', 'trot', x, B.speeds.runPx);
+      return;
+    }
+    // "Soek!": a waiting bird first (sent: no lull needed), else back to work at once.
+    if (birdWaiting()) {
+      rest();
+      sent = true;
+      dog.fetchCheck = tick;
+      tryFetch(tick);
+      sent = false;
+      if (dog.phase === 'rest') dog.t = Math.max(0, dog.dur - checkTicks);
+      return;
+    }
+    if (!roam()) rest();
+  }
+
+  /** v1.17 (D-079): a delivery — "Bring!" and the streak. */
+  function delivered(tick: number): void {
+    dog.fetches++;
+    dog.streak++;
+    dog.bestStreak = Math.max(dog.bestStreak, dog.streak);
+    let points = host.bonus('bring', B.bring.points);
+    if (dog.streak % B.bring.streakEvery === 0)
+      points += host.bonus('bringStreak', B.bring.streakPoints);
+    dog.points += points;
+    host.emit({ type: 'brakkieFetched', tick, streak: dog.streak, points });
+  }
+
+  function breakStreak(why: 'hit' | 'aim'): void {
+    if (dog.streak === 0) return;
+    host.emit({ type: 'brakkieStreakBroken', tick: host.tick(), streak: dog.streak, why });
+    dog.streak = 0;
   }
 
   function step(): void {
@@ -447,6 +658,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     if (dog.cooldown > 0) dog.cooldown--;
     dog.t++;
     // Test builds only: the screenshot spec's fetch, a bird placed beside him (no bag needed).
+    if (demoProud !== null && tick >= demoProud && tryReact('proud')) demoProud = null;
     if (demoTick !== null && tick >= demoTick && idle() && dog.plane === 'near' && !dog.carrying) {
       demoTick = null;
       const x = dog.x + 260 * k('near') * dog.facing;
@@ -496,7 +708,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       case 'fetch':
       case 'carry':
       case 'bolt':
-      case 'toDig': {
+      case 'toDig':
+      case 'toHeel': {
         const d = dog.goal - dog.x;
         if (Math.abs(d) > dog.speed) {
           dog.x += Math.sign(d) * dog.speed;
@@ -505,12 +718,10 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
         dog.x = dog.goal;
         if (dog.phase === 'trot') rest();
         else if (dog.phase === 'fetch') setPhase('pickup', 'sniff', ticks(B.fetch.pickupSeconds));
-        else if (dog.phase === 'toDig') setPhase('dig', 'dig', ticks(B.flush.digSeconds));
+        else if (dog.phase === 'toDig') startPoint(tick);
+        else if (dog.phase === 'toHeel') setPhase('heel', 'sit', ticks(B.whistle.heelSeconds));
         else {
-          if (dog.phase === 'carry') {
-            dog.fetches++;
-            host.emit({ type: 'brakkieFetched', tick });
-          }
+          if (dog.phase === 'carry') delivered(tick);
           // More birds waiting: he drops this one and is straight back out for the next.
           dropStale(tick);
           const away =
@@ -566,9 +777,23 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
         if (dog.t >= dog.dur) rest();
         return;
       case 'dig':
+      case 'point':
         if (dog.t < dog.dur) return;
-        burst(tick);
+        burst(tick, false);
+        spring();
+        return;
+      case 'spring':
+        if (dog.t < dog.dur) return;
         setPhase('rest', 'bark', ticks(B.bark.barkSeconds));
+        return;
+      case 'heel':
+        if (dog.t < dog.dur) return;
+        if (!roam()) rest();
+        return;
+      case 'react':
+        if (dog.t < dog.dur) return;
+        dog.react = null;
+        rest();
         return;
       case 'yelp':
         if (dog.t >= dog.dur) goHome('bolt', B.speeds.boltPx);
@@ -621,7 +846,12 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       y: geo.groundY[dog.plane],
       points,
     });
+    breakStreak('hit');
     if (dog.phase === 'yelp' || dog.phase === 'bolt') return;
+    // On point: the flock was there all the same — it bursts up as he yelps.
+    if (dog.phase === 'point') burst(tick, false);
+    dog.pointX = null;
+    dog.react = null;
     dog.queue.length = 0;
     dog.shy = true;
     dog.carrying = false;
@@ -631,13 +861,23 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
 
   /** v1.16 (D-078): a bird down in reach joins his queue (whatever he is doing, unless he bolted
    *  from a hit or a wide-spread gun is out); he fetches them one at a time. */
-  function bagged(plane: PlaneId, x: number): void {
+  function bagged(plane: PlaneId, x: number, flockId: number | null = null): void {
+    // v1.17 (D-079): "Mooi punt!" — 3+ birds of the flock he pointed, bagged in its flush.
+    if (flockId !== null && flockId === dog.pointFlock && host.tick() <= dog.goodUntil) {
+      dog.pointBags++;
+      if (dog.pointBags === B.point.goodPoint.bags) {
+        dog.goodPoints++;
+        dog.points += host.bonus('goodPoint', B.point.goodPoint.points);
+        dog.pointFlock = null;
+      }
+    }
     if (plane !== 'near' && plane !== 'mid') return;
     if (!B.fetch.planes.includes(plane) || dog.shy || host.wideGun()) return;
     if (dog.phase === 'yelp' || dog.phase === 'bolt') return;
     if (dog.queue.length >= B.fetch.queueMax) return;
     if (Math.abs(dxOf(plane, x)) > B.fetch.maxDxPx) return;
-    if (!rng.chance(B.fetch.chance)) return;
+    // v1.17 (D-079): the ready rule — no chance roll: every bird in reach joins the queue (the
+    // same for every Daily player).
     const ready = host.tick() + ticks(B.fetch.delaySeconds);
     dog.queue.push({ plane, x, readyTick: ready, giveUpTick: null });
   }
@@ -679,7 +919,46 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       fetches: dog.fetches,
       barks: dog.barks,
       flushes: dog.flushes,
+      point:
+        dog.pointX === null
+          ? null
+          : {
+              layerId: geo.layers.mid.id,
+              x: dog.pointX,
+              y: geo.groundY.mid,
+              scale: k('mid'),
+            },
+      streak: dog.streak,
+      bestStreak: dog.bestStreak,
+      whistle: host.tick() < dog.nextWhistle ? null : whistleAction(),
+      react: dog.react,
+      points: dog.points,
+      goodPoints: dog.goodPoints,
+      reactions: dog.reactions,
+      whistles: dog.whistles,
     };
+  }
+
+  function aimed(
+    aimOn: (layerId: string) => { readonly x: number; readonly y: number },
+    miss: boolean,
+  ): void {
+    if (miss) {
+      dog.misses++;
+      if (dog.misses >= B.react.tiltMisses && tryReact('tilt')) dog.misses = 0;
+    } else dog.misses = 0;
+    if (!dog.carrying || !present()) return;
+    const a = aimOn(geo.layers[dog.plane].id);
+    const s = k(dog.plane);
+    const box = B.hitboxes.stand.body;
+    const dx = a.x - (dog.x + box.ox * s * dog.facing);
+    const dy = a.y - (geo.groundY[dog.plane] + box.oy * s);
+    const r = B.clear.aimPx * s;
+    if (dx * dx + dy * dy <= r * r) breakStreak('aim');
+  }
+
+  function cheer(): void {
+    tryReact('proud');
   }
 
   const spot = { x: 0, halfPx: B.clear.aimPx };
@@ -689,5 +968,5 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     return spot;
   }
 
-  return { extras, shot, bagged, step, view, nearSpot };
+  return { extras, shot, bagged, aimed, cheer, whistle, step, view, nearSpot };
 };

@@ -552,6 +552,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   if (brakkie.seasonKinds.includes('boss')) err('brakkie.json', 'no Brakkie in a boss hunt (GDD §11.3f)');
   if (brakkie.demoFetchSeconds !== undefined)
     err('brakkie.json', 'demoFetchSeconds is for test builds only (?brakkiePreview=fetch)');
+  if (brakkie.demoProudSeconds !== undefined)
+    err('brakkie.json', 'demoProudSeconds is for test builds only (?brakkiePreview=react)');
   {
     // He stands below the pop-ups (lesson 21: shots at a pop-up pass over him) and on the screen.
     const nearScale = scoring.planes.near.scale;
@@ -565,7 +567,9 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       const spread = Math.max(
         ...weapons.weapons.flatMap((w) => (w.kind === 'primary' ? [w.spreadPx] : [])),
       );
-      if (mid !== undefined && brakkie.groundY + top(brakkie.hitboxes.stand) - mid[1] <= spread)
+      // v1.17 (D-079): on point too (its own box).
+      const highest = Math.min(top(brakkie.hitboxes.stand), top(brakkie.hitboxes.point));
+      if (mid !== undefined && brakkie.groundY + highest - mid[1] <= spread)
         err('brakkie.json', `on ${b.id} his head is within a pellet spread of the mid ground`);
     }
   }
