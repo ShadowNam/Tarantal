@@ -103,42 +103,42 @@
     },
     "cameos/bushveld": {
       "file": {
-        "path": "assets/cameos-bushveld-hd/img/cameos_bushveld.0d1ae42df919.png",
-        "bytes": 26823,
-        "hash": "0d1ae42df919"
+        "path": "assets/cameos-bushveld-hd/img/cameos_bushveld.868de42a5e97.png",
+        "bytes": 57892,
+        "hash": "868de42a5e97"
       },
-      "width": 512,
-      "height": 352,
+      "width": 1056,
+      "height": 514,
       "scale": 0.5
     },
     "cameos/kalahari": {
       "file": {
-        "path": "assets/cameos-kalahari-hd/img/cameos_kalahari.774b01eb935a.png",
-        "bytes": 28288,
-        "hash": "774b01eb935a"
+        "path": "assets/cameos-kalahari-hd/img/cameos_kalahari.689e4e8b6662.png",
+        "bytes": 67235,
+        "hash": "689e4e8b6662"
       },
-      "width": 1024,
-      "height": 304,
+      "width": 1120,
+      "height": 664,
       "scale": 0.5
     },
     "cameos/karoo": {
       "file": {
-        "path": "assets/cameos-karoo-hd/img/cameos_karoo.67e25e808cbc.png",
-        "bytes": 46751,
-        "hash": "67e25e808cbc"
+        "path": "assets/cameos-karoo-hd/img/cameos_karoo.8778041c6248.png",
+        "bytes": 120759,
+        "hash": "8778041c6248"
       },
-      "width": 1024,
-      "height": 608,
+      "width": 1216,
+      "height": 1502,
       "scale": 0.5
     },
     "cameos/namibie": {
       "file": {
-        "path": "assets/cameos-namibie-hd/img/cameos_namibie.f0a9c30a4b07.png",
-        "bytes": 57796,
-        "hash": "f0a9c30a4b07"
+        "path": "assets/cameos-namibie-hd/img/cameos_namibie.f972ccc6cbf9.png",
+        "bytes": 136524,
+        "hash": "f972ccc6cbf9"
       },
-      "width": 1024,
-      "height": 848,
+      "width": 1856,
+      "height": 1210,
       "scale": 0.5
     },
     "crate/box": {
@@ -189,16 +189,6 @@
       },
       "width": 80,
       "height": 80,
-      "scale": 0.5
-    },
-    "fx/dust_devil": {
-      "file": {
-        "path": "assets/common-hd/img/fx_dust_devil.97aa7fb4f8b6.png",
-        "bytes": 19311,
-        "hash": "97aa7fb4f8b6"
-      },
-      "width": 600,
-      "height": 1040,
       "scale": 0.5
     },
     "fx/feather": {
@@ -441,84 +431,14 @@
       "height": 232,
       "scale": 0.5
     },
-    "namibie/camelthorn_mature": {
+    "namibie/ostriches": {
       "file": {
-        "path": "assets/namibie-hd/img/namibie_camelthorn_mature.c2beafc51569.png",
-        "bytes": 93935,
-        "hash": "c2beafc51569"
+        "path": "assets/namibie-hd/img/namibie_ostriches.ab191dfcdbb4.png",
+        "bytes": 384171,
+        "hash": "ab191dfcdbb4"
       },
-      "width": 800,
-      "height": 592,
-      "scale": 0.5
-    },
-    "namibie/camelthorn_old": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_camelthorn_old.ef80a365e187.png",
-        "bytes": 72161,
-        "hash": "ef80a365e187"
-      },
-      "width": 780,
-      "height": 592,
-      "scale": 0.5
-    },
-    "namibie/camelthorn_young": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_camelthorn_young.48734e427e01.png",
-        "bytes": 34300,
-        "hash": "48734e427e01"
-      },
-      "width": 460,
-      "height": 544,
-      "scale": 0.5
-    },
-    "namibie/nest_camelthorn": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_nest_camelthorn.7458881c600d.png",
-        "bytes": 519951,
-        "hash": "7458881c600d"
-      },
-      "width": 2088,
-      "height": 2088,
-      "scale": 0.5
-    },
-    "namibie/pan_grass_a": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_pan_grass_a.60014821c9f5.png",
-        "bytes": 54581,
-        "hash": "60014821c9f5"
-      },
-      "width": 720,
-      "height": 524,
-      "scale": 0.5
-    },
-    "namibie/pan_grass_b": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_pan_grass_b.036420edd167.png",
-        "bytes": 58565,
-        "hash": "036420edd167"
-      },
-      "width": 760,
-      "height": 524,
-      "scale": 0.5
-    },
-    "namibie/quiver_egg": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_quiver_egg.46cb111f524e.png",
-        "bytes": 30863,
-        "hash": "46cb111f524e"
-      },
-      "width": 480,
-      "height": 508,
-      "scale": 0.5
-    },
-    "namibie/quiver_tree": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_quiver_tree.a7aff04c29ef.png",
-        "bytes": 30859,
-        "hash": "a7aff04c29ef"
-      },
-      "width": 480,
-      "height": 524,
+      "width": 2880,
+      "height": 2956,
       "scale": 0.5
     },
     "oes/farmhouse": {
@@ -689,16 +609,6 @@
       },
       "width": 12,
       "height": 80,
-      "scale": 0.5
-    },
-    "omen/rainbow": {
-      "file": {
-        "path": "assets/common-hd/img/omen_rainbow.d21fc24c67dd.png",
-        "bytes": 17131,
-        "hash": "d21fc24c67dd"
-      },
-      "width": 1024,
-      "height": 512,
       "scale": 0.5
     },
     "secret/mark": {

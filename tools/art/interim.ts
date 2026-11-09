@@ -163,6 +163,9 @@ const hdSrc = join(src, HD_SOURCE_DIR);
 
 /** D-053: writes one 2× source into art-source/hd/ (palette PNG unless `full`). */
 function putHd(rel: string, img: Rgba, colours?: number, full = false): void {
+  // D-080: a sprite key the HD pack leaves out (hdPack.ts) gets no 2× source.
+  const sprite = /^sprites\/(.+)\.png$/.exec(rel)?.[1];
+  if (sprite !== undefined && !hdAllowed(sprite)) return;
   put(join(hdSrc, rel), full ? encodePng(img) : encodePng8(img, colours));
   console.log(`hd/${rel}`);
 }
@@ -792,7 +795,7 @@ if (wants('blikkies')) {
   }
 }
 if (wants('namiblife') && !hdOnly) {
-  // v1.7d (D-059): the ostriches' sheet at 1.5× (Namibië's group), one sheet for Standard and HD.
+  // v1.7d (D-059): the ostriches' sheet (Namibië's group); D-080: 1.4× and a 2.8× HD twin.
   const png = join(src, 'sprites', `${OSTRICH_SHEET}.png`);
   if (!oursFile(png)) console.warn(`skip sprites/${OSTRICH_SHEET}: a human delivery is there`);
   else {
@@ -801,8 +804,8 @@ if (wants('namiblife') && !hdOnly) {
       png.replace(/\.png$/, '.json'),
       await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
     );
-    // No 2× twin: a 2× sheet would take Namibië's HD texture memory past its target (D-059).
-    rmSync(join(hdSrc, 'sprites', `${OSTRICH_SHEET}.png`), { force: true });
+    // D-080: the HD twin at 2× the Standard file (1.0 texture px per drawn px at the true size).
+    putHd(`sprites/${OSTRICH_SHEET}.png`, renderOstrichSheet(OSTRICH_MASTER * 2), OSTRICH_COLOURS);
     console.log(`sprites/${OSTRICH_SHEET}`);
   }
   // The hot-air balloons' sheet at 1× and its 2× twin.

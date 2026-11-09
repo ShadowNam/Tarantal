@@ -154,12 +154,12 @@
       "group": "cameos-bushveld",
       "origin": "interim",
       "file": {
-        "path": "assets/cameos-bushveld/img/cameos_bushveld.1a3e47477105.png",
-        "bytes": 10429,
-        "hash": "1a3e47477105"
+        "path": "assets/cameos-bushveld/img/cameos_bushveld.0b6c9a6a64bb.png",
+        "bytes": 24261,
+        "hash": "0b6c9a6a64bb"
       },
-      "width": 256,
-      "height": 176,
+      "width": 528,
+      "height": 257,
       "originX": 0,
       "originY": 0
     },
@@ -167,12 +167,12 @@
       "group": "cameos-kalahari",
       "origin": "interim",
       "file": {
-        "path": "assets/cameos-kalahari/img/cameos_kalahari.dd4598a9ca87.png",
-        "bytes": 11893,
-        "hash": "dd4598a9ca87"
+        "path": "assets/cameos-kalahari/img/cameos_kalahari.521e17270f13.png",
+        "bytes": 28981,
+        "hash": "521e17270f13"
       },
-      "width": 512,
-      "height": 152,
+      "width": 560,
+      "height": 332,
       "originX": 0,
       "originY": 0
     },
@@ -180,12 +180,12 @@
       "group": "cameos-karoo",
       "origin": "interim",
       "file": {
-        "path": "assets/cameos-karoo/img/cameos_karoo.54efdb7fc376.png",
-        "bytes": 18516,
-        "hash": "54efdb7fc376"
+        "path": "assets/cameos-karoo/img/cameos_karoo.d0a554ad6f73.png",
+        "bytes": 49877,
+        "hash": "d0a554ad6f73"
       },
-      "width": 512,
-      "height": 304,
+      "width": 608,
+      "height": 751,
       "originX": 0,
       "originY": 0
     },
@@ -193,12 +193,12 @@
       "group": "cameos-namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/cameos-namibie/img/cameos_namibie.18875c007b4d.png",
-        "bytes": 24310,
-        "hash": "18875c007b4d"
+        "path": "assets/cameos-namibie/img/cameos_namibie.10a77b2380a5.png",
+        "bytes": 58419,
+        "hash": "10a77b2380a5"
       },
-      "width": 512,
-      "height": 424,
+      "width": 928,
+      "height": 605,
       "originX": 0,
       "originY": 0
     },
@@ -3447,12 +3447,12 @@
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/namibie_ostriches.b3d7cac1537e.png",
-        "bytes": 147625,
-        "hash": "b3d7cac1537e"
+        "path": "assets/namibie/img/namibie_ostriches.5ee030a9e758.png",
+        "bytes": 138979,
+        "hash": "5ee030a9e758"
       },
-      "width": 1536,
-      "height": 1577,
+      "width": 1440,
+      "height": 1478,
       "originX": 0,
       "originY": 0
     },
