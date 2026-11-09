@@ -249,7 +249,7 @@ export class HuntScene extends Phaser.Scene {
   /** e2e/dev only (v1.17b, D-080, the sizes screenshots): standing guineafowl drawn as yardsticks
    *  with their feet at screen points (design px), each on a plane at that plane's size. View
    *  only: never in the sim. */
-  private rulers: { plane: PlaneId; sx: number; sy: number; facing: 1 | -1 }[] = [];
+  private rulers: (() => DrawBird[]) | null = null;
   /** v1.4 (#56): e2e only (__TM_TOOLS__.scopeCull): the zoomed view's culling, on by default. */
   static cullZoomed = true;
   private runner: HuntRunner | null = null;
@@ -721,7 +721,11 @@ export class HuntScene extends Phaser.Scene {
           ) => void;
         }
       ).__TM_RULERS__ = (r) => {
-        this.rulers = r.map((x) => ({ ...x, facing: x.facing ?? 1 }));
+        const list = r.map((x) => ({ ...x, facing: x.facing ?? 1 }));
+        void import('../view/rulerBirds').then((m) => {
+          this.rulers =
+            list.length === 0 ? null : () => m.rulerBirds(list, (p) => this.parallax.plane(p).root);
+        });
       };
     // e2e/dev only (D-029 art previews): freeze the gun on a clip frame for screenshots.
     if (this.ctx.hook)
@@ -861,36 +865,6 @@ export class HuntScene extends Phaser.Scene {
   }
 
   private redDotSet: ReadonlySet<string> | null = null;
-
-  /** e2e/dev only (D-080): the yardstick guineafowl as birds the BirdView draws (screen point →
-   *  the plane's layer coords; standing alert, never hittable, ids below every sim id). */
-  private rulerBirds(): DrawBird[] {
-    return this.rulers.map((r, i) => {
-      const root = this.parallax.plane(r.plane).root;
-      const x = (r.sx - root.x) / root.scaleX;
-      const y = (r.sy - root.y) / root.scaleY;
-      return {
-        x,
-        y,
-        view: {
-          id: -1000 - i,
-          creature: 'tarentaal',
-          kind: 'target',
-          plane: r.plane,
-          x,
-          y,
-          facing: r.facing,
-          motion: 'flock',
-          phase: 'alert',
-          behaviour: 'alert',
-          hittable: false,
-          flockId: null,
-          ground: null,
-          armored: false,
-        },
-      };
-    });
-  }
 
   private sightPicture(id: string | null): SightPicture | null {
     if (id === null) return null;
@@ -2253,7 +2227,7 @@ export class HuntScene extends Phaser.Scene {
     if (state.reenbui !== null)
       for (const f of state.flocks) if (f.feeding === true) this.feedingFlocks.add(f.id);
     this.birds.update(
-      this.rulers.length === 0 ? drawBirds : [...drawBirds, ...this.rulerBirds()],
+      this.rulers === null ? drawBirds : [...drawBirds, ...this.rulers()],
       state.tick,
       this.feedingFlocks,
     );
