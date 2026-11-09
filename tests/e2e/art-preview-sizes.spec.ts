@@ -419,6 +419,17 @@ async function pickArea(page: Page, touch: boolean, id: string): Promise<void> {
   });
   await tapRect(page, touch, 'area');
   await page.waitForFunction(() => window.__TM__?.menu === 'area', null, { timeout: 60_000 });
+  // The picker's cards publish their rects a frame or more later on software GL.
+  await page.waitForFunction(
+    (a) => {
+      const r = window.__TM__?.rects ?? {};
+      return r[`area_${a}`] !== undefined || r[`area_${a}_locked`] !== undefined;
+    },
+    id,
+    { timeout: 120_000 },
+  );
+  if ((await hook(page)).rects[`area_${id}_locked`] !== undefined)
+    throw new Error(`area ${id} is locked: the seeded save did not take`);
   await tapRect(page, touch, `area_${id}`);
   await page.waitForFunction((a) => window.__TM__?.classicArea === a, id, { timeout: 60_000 });
 }
