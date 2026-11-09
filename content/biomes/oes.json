@@ -301,25 +301,25 @@
         "plane": "near",
         "layer": "near",
         "u": 0.36,
-        "y": 1015
+        "y": 1045
       },
       {
         "plane": "near",
         "layer": "near",
         "u": 0.44,
-        "y": 1025
+        "y": 1055
       },
       {
         "plane": "near",
         "layer": "near",
         "u": 0.56,
-        "y": 1020
+        "y": 1050
       },
       {
         "plane": "near",
         "layer": "near",
         "u": 0.64,
-        "y": 1012
+        "y": 1042
       }
     ],
     "flockSpots": [
