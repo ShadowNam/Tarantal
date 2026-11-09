@@ -121,10 +121,9 @@ import {
 const MEERKAT_COLOURS = 32;
 import { FAUNA_MASTER, sheetHerds } from '../../src/game/view/faunaHerds';
 
-/** D-054: palette sizes of the far animals' sheets (Standard, HD): no visible change, far fewer
- *  bytes (the biome chunks are nearly full). */
+/** D-054: palette size of the far animals' sheets: no visible change, far fewer bytes (the biome
+ *  chunks are nearly full). D-080: no HD twin (Standard in HD). */
 const FAUNA_COLOURS = 48;
-const FAUNA_HD_COLOURS = 96;
 /** D-054: biomes whose herds load with the late group (the Karoo is the first download). */
 const FAUNA_LATE: ReadonlySet<string> = new Set(['karoo-autumn']);
 /** D-054: dust on the elephants (the Bushveld's red earth, the delta's grey mud). */
@@ -509,7 +508,8 @@ if (wants('fauna')) {
           biomePalette(cfg, biome.id)(n),
         ),
       );
-      putHd(`sprites/${herd.key}.png`, sheet.img, FAUNA_HD_COLOURS);
+      // D-080: no HD twin (STANDARD_IN_HD_KEYS: the herds are Standard in HD); the 2× master is
+      // averaged down to the 1× file.
       if (hdOnly) continue;
       const std = resize(
         sheet.img,
