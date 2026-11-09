@@ -1,5 +1,5 @@
 {
-  "$comment": "v1.13 Veld cameos (GDD §11.3g, D-075): non-target wildlife, sim entities on ONE stream `cameos`; never targets, never hurt, never removed. Px are design px on the cameo's plane as drawn (mid px already at the mid plane's scale), speeds layer px a second, times seconds. hitboxes: from the feet, facing right. A pellet passes THROUGH a cameo; −10 only for a shot aimed at one that hit no target with no live bird within hit.guardPx of the aim point. v1.17b (D-080, the owner: 'yes make all animals true size'): each kind's sizeMul grows it to its true size beside the guineafowl on its plane (tools/sizes.ts) — hit shapes, spacing and depth here are at sizeMul 1; the art's frames carry the same factor (cameoSheet.ts CAMEO_SIZE_MUL). The dung beetle keeps 1: drawn about twice its true size on purpose, so it reads. edgeDxPx 1350 → 1650 (the bigger animals start and end off the widest screen), clear.pathPx 160 → 230 (the tortoise's grown body keeps its room).",
+  "$comment": "v1.13 Veld cameos (GDD §11.3g, D-075): non-target wildlife, sim entities on ONE stream `cameos`; never targets, never hurt, never removed. Px are design px on the cameo's plane as drawn (mid px already at the mid plane's scale), speeds layer px a second, times seconds. hitboxes: from the feet, facing right. A pellet passes THROUGH a cameo; −10 only for a shot aimed at one that hit no target with no live bird within hit.guardPx of the aim point. v1.17b (D-080, the owner: 'yes make all animals true size'): each kind's sizeMul grows it to its true size beside the guineafowl on its plane (tools/sizes.ts) — hit shapes, spacing and depth here are at sizeMul 1; the art's frames carry the same factor (cameoSheet.ts CAMEO_SIZE_MUL). The dung beetle keeps 1: drawn about twice its true size on purpose, so it reads. edgeDxPx 1350 → 1650 (the bigger animals start and end off the widest screen), clear.pathPx 160 → 230 (the tortoise's grown body keeps its room). hit.guardPx 120 → 260: the benefit of the doubt grows with them (a bird within 260 px of the aim point, e.g. a lead shot at a bird leaving the screen past a gemsbok walking in, never charges the cameo).",
   "version": 1,
   "modes": ["classic", "daily", "seasonHunt"],
   "seasonKinds": ["plain", "omen"],
@@ -16,7 +16,7 @@
   "retrySeconds": 3,
   "lastStretchSeconds": 12,
   "clear": { "pathPx": 230, "pathStepPx": 100 },
-  "hit": { "penalty": 10, "cooldownSeconds": 2, "guardPx": 120 },
+  "hit": { "penalty": 10, "cooldownSeconds": 2, "guardPx": 260 },
   "kinds": {
     "warthogs": {
       "plane": "mid",

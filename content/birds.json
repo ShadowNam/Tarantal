@@ -889,7 +889,7 @@
       "runSeconds": [1.2, 2],
       "watchSeconds": [2, 3.5]
     },
-    "hit": { "penalty": 10, "cooldownSeconds": 2, "hissSeconds": 0.6, "barkKey": "bark.ostrich", "aimedOnly": true, "guardPx": 120 }
+    "hit": { "penalty": 10, "cooldownSeconds": 2, "hissSeconds": 0.6, "barkKey": "bark.ostrich", "aimedOnly": true, "guardPx": 260 }
   },
   "tells": {
     "$comment": "v1.7e (D-061, GDD §11.1c): the secrets' tell animals, one per secret (each secret names its own under `tell` in the biome file). Sizes are the secret prop's layer px; since v1.16 (D-078) each species' scale makes it its real size next to the guineafowl on its plane (±10 %, tools/sizes.ts); times in seconds. Non-targets: a hit costs nothing (no points, no Frenzy change); the animal is gone for goneSeconds, then comes back, and stays away once its secret is spent.",
