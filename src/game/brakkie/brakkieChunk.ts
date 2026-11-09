@@ -15,6 +15,12 @@ let loading: Promise<void> | null = null;
  * index, or one without his files, nothing loads.
  */
 export function requestBrakkie(audio: AudioDirector, hd: boolean): void {
+  void requestBrakkieCode().then(() => chunk?.loadBrakkieAssets(audio, hd));
+}
+
+/** v1.17 (D-079): the chunk's code alone (no files): it also carries the wind's grass and HUD
+ *  meter, asked for at a wind hunt's START. */
+export function requestBrakkieCode(): Promise<void> {
   loading ??= import('./BrakkieView')
     .then((m) => {
       chunk = m;
@@ -22,7 +28,7 @@ export function requestBrakkie(audio: AudioDirector, hd: boolean): void {
     .catch(() => {
       loading = null;
     });
-  void loading.then(() => chunk?.loadBrakkieAssets(audio, hd));
+  return loading;
 }
 
 /** The chunk, once it has arrived (its view polls for the sheet itself), else null. */

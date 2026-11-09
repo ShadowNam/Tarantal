@@ -12,6 +12,8 @@
 // hidden off screen; his own timer (lastMs → the hook's brakkieMs). Everything runs on sim time
 // from the snapshot, so a held frame (?holdAt) holds him.
 import type * as Phaser from 'phaser';
+// v1.17 (D-079): the wind's near grass and HUD meter ride in this lazy chunk.
+export { WindGrassView, drawWindMeter } from '../view/wind/WindGrassView';
 import type { Feel } from '../../content/schemas';
 import type { SimEvent } from '../../sim/events';
 import type { BrakkieView as SimDog, SimState } from '../../sim/types';
@@ -697,18 +699,35 @@ export class BrakkieView {
 
 // --- the whistle button (v1.17, D-079) ------------------------------------------------------------
 
-/** The HUD's round whistle button (the HUD calls it once this chunk is in, only on a change):
- *  a round enamel button, dimmed while the whistle would do nothing, with a whistle on it. */
+let whistleKey = '';
+
+/**
+ * The HUD's round 72-px whistle button (touch; `r` null on a mouse or without a layout), drawn by
+ * this lazy chunk: shown while Brakkie is out, dimmed while the whistle would do nothing, a whistle
+ * on it; redrawn only on a change. Keeps the e2e hook's `whistleButton`.
+ */
 export function drawWhistleButton(
   g: Phaser.GameObjects.Graphics,
-  r: { readonly x: number; readonly y: number; readonly w: number; readonly h: number },
-  on: boolean,
+  r: { readonly x: number; readonly y: number; readonly w: number; readonly h: number } | null,
+  d: SimDog | null,
   ink: number,
   enamel: number,
+  hook: {
+    whistleButton: { x: number; y: number; w: number; h: number; on: boolean } | null;
+  } | null,
 ): void {
+  const show = r !== null && d !== null && d.present;
+  const on = show && d.whistle !== null;
+  if (hook) hook.whistleButton = show ? { x: r.x, y: r.y, w: r.w, h: r.h, on } : null;
+  if (show !== g.visible) g.setVisible(show);
+  if (!show) return;
+  const key = `${r.x},${r.y},${on ? 1 : 0}`;
+  if (key === whistleKey) return;
+  whistleKey = key;
   const cx = r.x + r.w / 2;
   const cy = r.y + r.h / 2;
   const rad = r.w / 2;
+  g.clear();
   g.fillStyle(ink, 0.9).fillCircle(cx, cy, rad);
   g.fillStyle(on ? enamel : 0x7a7466, 1).fillCircle(cx, cy, rad - 6);
   // The whistle: a round chamber with its mouthpiece and the lanyard ring.
@@ -720,6 +739,33 @@ export function drawWhistleButton(
   g.fillRect(cx - 21, cy - 5, 22, 6);
   g.fillStyle(ink, 1).fillRect(cx - 2, cy - 7, 7, 4);
   g.lineStyle(3, ink, 1).strokeCircle(cx + 18, cy - 12, 5);
+}
+
+/** The pop-up of a bonus: Brakkie's ("Bring! +15", "Goeie hond! +30", "Mooi punt! +20", the word
+ *  from the lazy guide tables) or the points alone (any other bonus, or before the tables are in);
+ *  Brakkie's go to the e2e hook's log. */
+export function popText(
+  bonus: string,
+  award: string,
+  lookup: (key: string) => string,
+  hook: { brakkiePops: string[] } | null,
+): string {
+  const key =
+    bonus === 'bring'
+      ? 'bring'
+      : bonus === 'bringStreak'
+        ? 'streak'
+        : bonus === 'goodPoint'
+          ? 'good_point'
+          : null;
+  const word = key === null ? '' : lookup(`guide.brakkie.${key}`);
+  if (word === '') return award;
+  const text = `${word} ${award}`;
+  if (hook) {
+    hook.brakkiePops.push(text);
+    if (hook.brakkiePops.length > 40) hook.brakkiePops.shift();
+  }
+  return text;
 }
 
 // --- the title's wag -----------------------------------------------------------------------------

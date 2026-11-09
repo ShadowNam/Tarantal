@@ -1,11 +1,12 @@
-// v1.17 (D-079): grass tufts along the near ground that bow with the wind (the lazy wind chunk).
+// v1.17 (D-079): grass tufts along the near ground that bow with the wind (in Brakkie's lazy chunk).
 // Each tuft is drawn once (a Graphics with its foot at 0,0) and only turned each frame: no
 // texture, no redraw. They sit in the near plane's fixtures (above its props, below Brakkie and
 // the birds), low on the ground, so they never cover a target.
-import Phaser from 'phaser';
+import type * as Phaser from 'phaser';
 import type { SimState } from '../../../sim/types';
 import { coreWidth } from '../../../sim/world';
 import type { ParallaxView } from '../ParallaxView';
+import { windBars } from '../../ui/windMeter';
 import { grassLean } from './windGrass';
 
 export interface WindGrassOptions {
@@ -82,19 +83,35 @@ export class WindGrassView {
   }
 }
 
+let meterKey = '';
+
 /**
- * v1.17 (D-079): the HUD's wind meter (the HUD calls it once this chunk is in, and only when what
- * it shows changes): a dark plate, an arrow downwind and five bars rising left to right, lit by
- * `bars`, warmer during a gust.
+ * v1.17 (D-079): the HUD's wind meter under the sock on every map with wind (phones too), drawn by
+ * this lazy chunk: a dark plate, an arrow downwind and five bars rising left to right, lit by the
+ * strength now (a gust included, the number the drift uses), warmer during a gust. Redrawn only when
+ * what it shows changes; hidden without wind or a layout. Keeps the e2e hook's `windMeter`.
  */
 export function drawWindMeter(
   g: Phaser.GameObjects.Graphics,
-  r: { readonly x: number; readonly y: number; readonly w: number; readonly h: number },
-  dir: 1 | -1,
-  bars: number,
-  gust: boolean,
+  r: { readonly x: number; readonly y: number; readonly w: number; readonly h: number } | null,
+  wind: SimState['wind'],
   ink: number,
+  hook: { windMeter: { dir: 1 | -1; bars: number; gust: boolean; strength: number } | null } | null,
 ): void {
+  const show = r !== null && wind !== null;
+  g.setVisible(show);
+  if (!show) {
+    if (hook) hook.windMeter = null;
+    return;
+  }
+  const bars = windBars(wind.strength);
+  const gust = wind.gust > 0.15;
+  const dir = wind.dir;
+  if (hook) hook.windMeter = { dir, bars, gust, strength: wind.strength };
+  const key = `${r.x},${r.y},${dir},${bars},${gust ? 1 : 0}`;
+  if (key === meterKey && g.visible) return;
+  meterKey = key;
+  g.clear();
   g.fillStyle(ink, 0.45).fillRoundedRect(r.x, r.y, r.w, r.h, 8);
   const ax = r.x + 26;
   const ay = r.y + r.h / 2;

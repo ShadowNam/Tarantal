@@ -60,8 +60,6 @@ import { FAMILIEFOTO_SECRET } from '../../sim/meerkats/colony';
 import { BLIKKIESDANS_SECRET } from '../../sim/cans/cans';
 import { MAKALANI_SECRET } from '../../sim/nuts/makalani';
 import { HarvestBars, harvestBarsRects } from '../ui/HarvestBars';
-import { windBars } from '../ui/windMeter';
-import { windChunk } from '../view/wind/windChunk';
 import { brakkieChunk } from '../brakkie/brakkieChunk';
 
 export interface HudControls {
@@ -192,10 +190,8 @@ export class HudScene extends Phaser.Scene {
   private sock!: Phaser.GameObjects.Image;
   /** v1.17 (D-079): the wind meter (arrow + 5 strength bars), redrawn only when it changes. */
   private windMeter!: Phaser.GameObjects.Graphics;
-  private windMeterKey = '';
   /** v1.17 (D-079): Brakkie's whistle button (touch; hidden without him or while he is away). */
   private whistleBtn!: Phaser.GameObjects.Graphics;
-  private whistleKey = '';
   private callout!: Phaser.GameObjects.Text;
   /** Don't-shoot creatures already called out (first sighting ever: Bird Book + this hunt). */
   private readonly sighted = new Set<string>();
@@ -366,9 +362,7 @@ export class HudScene extends Phaser.Scene {
     this.sockPole = this.add.rectangle(0, 0, 8, 1, C.ink, 1).setOrigin(0, 0).setVisible(false);
     this.sock = this.add.image(0, 0, TEX.windsock).setVisible(false);
     this.windMeter = this.add.graphics().setVisible(false);
-    this.windMeterKey = '';
     this.whistleBtn = this.add.graphics().setVisible(false);
-    this.whistleKey = '';
     const so = { x: 6 / 150, y: 0.5 };
     this.sock.setOrigin(so.x, so.y);
     this.callout = text(48, '#FF6B5A').setOrigin(0.5).setVisible(false);
@@ -513,51 +507,9 @@ export class HudScene extends Phaser.Scene {
     this.relayout();
   }
 
-  /** v1.17 (D-079): the whistle button is shown (touch, Brakkie out on this hunt). */
-  private whistleShown(s: SimState | null): boolean {
-    const d = s?.brakkie ?? null;
-    return this.layoutNow !== null && this.inputKind !== 'pointer' && d !== null && d.present;
-  }
-
   isOnWhistle(x: number, y: number): boolean {
     const l = this.layoutNow;
     return l !== null && this.whistleBtn.visible && rectContains(l.whistle, x, y);
-  }
-
-  /** v1.17 (D-079): a round 72-px button with a whistle on it, dimmed while it would do
-   *  nothing (cooldown, carrying, bolting). Redrawn only when that changes. */
-  private drawWhistle(s: SimState): void {
-    const l = this.layoutNow;
-    // Drawn by Brakkie's lazy chunk (not the first download): shown once it is in.
-    const chunk = brakkieChunk();
-    const show = this.whistleShown(s) && chunk !== null;
-    this.whistleBtn.setVisible(show);
-    const d = s.brakkie;
-    if (this.ctx.hook)
-      this.ctx.hook.whistleButton =
-        show && l !== null ? { ...l.whistle, on: d !== null && d.whistle !== null } : null;
-    if (!show || l === null || d === null) return;
-    const on = d.whistle !== null;
-    const r = l.whistle;
-    const key = `${r.x},${r.y},${on ? 1 : 0}`;
-    if (key === this.whistleKey) return;
-    this.whistleKey = key;
-    chunk.drawWhistleButton(this.whistleBtn.clear(), r, on, C.ink, C.enamel);
-  }
-
-  /** v1.17 (D-079): the pop-up words of Brakkie's bonuses (i18n). */
-  private brakkieWord(bonus: string): string | null {
-    const key =
-      bonus === 'bring'
-        ? 'guide.brakkie.bring'
-        : bonus === 'bringStreak'
-          ? 'guide.brakkie.streak'
-          : bonus === 'goodPoint'
-            ? 'guide.brakkie.good_point'
-            : null;
-    if (key === null) return null;
-    // The guide tables are lazy: until they are in, the pop shows the points alone.
-    return this.lazy(key) || null;
   }
 
   isOnGadget(x: number, y: number): boolean {
@@ -792,8 +744,6 @@ export class HudScene extends Phaser.Scene {
       .setPosition(l.windsock.x + 20 - 4, l.windsock.y + 8)
       .setSize(8, Math.max(1, l.windsock.h - 8));
     this.sock.setPosition(l.windsock.x + 20, l.windsock.y + 14);
-    this.windMeterKey = '';
-    this.whistleKey = '';
     this.gadgetDrawn = '';
     if (this.lastState) this.render(this.lastState, []);
     this.hideScoring();
@@ -1139,13 +1089,9 @@ export class HudScene extends Phaser.Scene {
         this.pushPop(`${popParts(e.points, e.mult)}  ${formatAward(e.award)}`, '#F3EAD3');
       else if (e.type === 'bonusAwarded') {
         // v1.17 (D-079): Brakkie's bonuses pop with their word at the edge ("Bring! +15").
-        const word = this.brakkieWord(e.bonus);
-        const text = word === null ? formatAward(e.award) : `${word} ${formatAward(e.award)}`;
-        this.pushPop(text, word === null ? '#FFD25A' : '#FFE9A8');
-        if (word !== null && this.ctx.hook) {
-          this.ctx.hook.brakkiePops.push(text);
-          if (this.ctx.hook.brakkiePops.length > 40) this.ctx.hook.brakkiePops.shift();
-        }
+        const award = formatAward(e.award);
+        const text = brakkieChunk()?.popText(e.bonus, award, (k) => this.lazy(k), this.ctx.hook);
+        this.pushPop(text ?? award, text === undefined || text === award ? '#FFD25A' : '#FFE9A8');
       } else if (e.type === 'penaltyApplied') this.pushPop(formatAward(e.points), '#FF6B5A');
       else if (e.type === 'emptyClick') this.beltFlashUntil = now + 220;
       else if (e.type === 'reloadStarted' && e.auto === true && this.ctx.hook)
@@ -1194,7 +1140,15 @@ export class HudScene extends Phaser.Scene {
     );
     if (this.ctx.hook) this.ctx.hook.pickupCard = this.pickupCard?.shown ?? null;
     this.drawWindsock(s);
-    this.drawWhistle(s);
+    // v1.17 (D-079): the whistle button (touch), drawn by Brakkie's lazy chunk once it is in.
+    brakkieChunk()?.drawWhistleButton(
+      this.whistleBtn,
+      this.layoutNow !== null && this.inputKind !== 'pointer' ? this.layoutNow.whistle : null,
+      s.brakkie,
+      C.ink,
+      C.enamel,
+      this.ctx.hook,
+    );
 
     this.harvestBars?.update(s.harvest);
     // v1.8c (D-063): the Harvest's clock is its 30 s (not the intro or the outro).
@@ -1703,38 +1657,20 @@ export class HudScene extends Phaser.Scene {
     const show = l !== null && wind !== null && this.ctx.huntBiome.omen.visual?.windSock === true;
     this.sock.setVisible(show);
     this.sockPole.setVisible(show);
-    this.drawWindMeter(wind);
+    // v1.17 (D-079): the wind meter, drawn by the lazy Brakkie/wind chunk once it is in.
+    brakkieChunk()?.drawWindMeter(
+      this.windMeter,
+      this.layoutNow?.windMeter ?? null,
+      wind,
+      C.ink,
+      this.ctx.hook,
+    );
     if (!show) return;
     const droop = (1 - wind.strength) * 0.9;
     const wobble = Math.sin(this.time.now / 140) * 0.06 * wind.strength;
     this.sock
       .setScale(wind.dir * (0.55 + 0.45 * wind.strength), 1)
       .setRotation(wind.dir * (droop + wobble));
-  }
-
-  /**
-   * v1.17 (D-079): the wind meter under the sock on every map with wind (phones too): an arrow
-   * downwind and five bars, lit by the strength now (a gust included, the same number the drift
-   * uses); the bars of a gust glow warmer. Redrawn only when what it shows changes.
-   */
-  private drawWindMeter(wind: SimState['wind']): void {
-    const l = this.layoutNow;
-    // Drawn by the lazy wind chunk (not the first download): shown once it is in.
-    const chunk = windChunk();
-    const show = l !== null && wind !== null && chunk !== null;
-    this.windMeter.setVisible(show);
-    const hook = this.ctx.hook;
-    if (!show) {
-      if (hook) hook.windMeter = null;
-      return;
-    }
-    const bars = windBars(wind.strength);
-    const gust = wind.gust > 0.15;
-    if (hook) hook.windMeter = { dir: wind.dir, bars, gust, strength: wind.strength };
-    const key = `${l.windMeter.x},${l.windMeter.y},${wind.dir},${bars},${gust ? 1 : 0}`;
-    if (key === this.windMeterKey) return;
-    this.windMeterKey = key;
-    chunk.drawWindMeter(this.windMeter.clear(), l.windMeter, wind.dir, bars, gust, C.ink);
   }
 
   private showCallout(text: string, color: string): void {

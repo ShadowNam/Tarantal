@@ -70,8 +70,7 @@ import type { TellView } from '../view/tell/TellView';
 import type { BaboonView } from '../view/baboon/BaboonView';
 import type { ReenbuiView } from '../view/reenbui/ReenbuiView';
 import { braaiReady, requestBraai } from '../braai/braaiChunk';
-import { brakkieChunk, requestBrakkie } from '../brakkie/brakkieChunk';
-import { requestWind, windChunk } from '../view/wind/windChunk';
+import { brakkieChunk, requestBrakkie, requestBrakkieCode } from '../brakkie/brakkieChunk';
 import type { WindGrassView } from '../view/wind/WindGrassView';
 import { BRAKKIE_SHEET } from '../brakkie/brakkieKeys';
 import { secretOwnsRotor } from '../view/windpompMotion';
@@ -1856,7 +1855,7 @@ export class HuntScene extends Phaser.Scene {
     // they are in he isn't drawn (the sim runs him all the same).
     this.brakkieWanted = sim.snapshot().brakkie !== null;
     this.windWanted = sim.snapshot().wind !== null;
-    if (this.windWanted) requestWind();
+    if (this.windWanted) void requestBrakkieCode();
     if (this.brakkieWanted) requestBrakkie(this.ctx.audio, this.ctx.graphics.hd);
     // v1.13 (D-075): the area's cameo chunk and files, likewise asked for at START and never
     // waited for (lessons 14, 19).
@@ -2285,7 +2284,7 @@ export class HuntScene extends Phaser.Scene {
     }
     // v1.17 (D-079): the grass bows with the wind (built once the wind chunk is in).
     if (this.windGrass === null && this.windWanted && !this.ending) {
-      const chunk = windChunk();
+      const chunk = brakkieChunk();
       if (chunk !== null)
         this.windGrass = new chunk.WindGrassView({
           scene: this,
