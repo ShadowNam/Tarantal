@@ -248,7 +248,10 @@ for (const biome of AREAS)
     expect(others, "another area's HD layers on the GPU").toEqual([]);
     // Nor HD tiles of the layers D-054 keeps in Standard in HD.
     const standardOnly = h.textureTop.filter((t) =>
-      STANDARD_IN_HD_LAYERS.some((id) => t.key.includes(`layer/${area}/${id}/hd/`)),
+      STANDARD_IN_HD_LAYERS.some((id) =>
+        // D-080: an entry may name one area's layer (`namibie/near`).
+        t.key.includes(id.includes('/') ? `layer/${id}/hd/` : `layer/${area}/${id}/hd/`),
+      ),
     );
     expect(standardOnly, 'HD tiles of a Standard-in-HD layer').toEqual([]);
     expect(h.cameoTexture, "the area's cameo sheet in this hunt").toBe(biome !== 'okavango-spring');
