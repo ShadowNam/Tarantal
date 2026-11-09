@@ -433,12 +433,12 @@
     },
     "namibie/ostriches": {
       "file": {
-        "path": "assets/namibie-hd/img/namibie_ostriches.ab191dfcdbb4.png",
-        "bytes": 384171,
-        "hash": "ab191dfcdbb4"
+        "path": "assets/namibie-hd/img/namibie_ostriches.f19e4eea6936.png",
+        "bytes": 314711,
+        "hash": "f19e4eea6936"
       },
       "width": 2880,
-      "height": 2956,
+      "height": 2292,
       "scale": 0.5
     },
     "oes/farmhouse": {

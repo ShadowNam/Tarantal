@@ -12,6 +12,7 @@ import { CAMEO_SHEETS, CAMEO_SHEET_AREAS, CAMEO_SHEET_SIZE } from '../cameos/cam
 import { cameoFrames } from '../cameos/cameoSheet';
 import {
   OSTRICH_DRAWN_MUL,
+  OSTRICH_HEN_SCALE,
   OSTRICH_MASTER,
   OSTRICH_SHEET,
   OSTRICH_SHEET_W,
@@ -38,6 +39,8 @@ describe('the true-size animals’ texture density (D-080)', () => {
 
   it('the mid ostriches: drawn for their true size, ≥ 0.5 (Standard) and ≥ 1.0 (HD twin)', () => {
     expect(OSTRICH_DRAWN_MUL).toBe(loadContent().birds.ostriches.sizeMul);
+    // D-082: the hen's frames are drawn smaller from the same shapes, at the same density.
+    expect(OSTRICH_HEN_SCALE).toBe(loadContent().birds.ostriches.henScale);
     const file = images[OSTRICH_SHEET];
     if (file === undefined) throw new Error('no ostrich sheet in the index');
     // Texture px per layout px, over the layout px each drawn px stands for (sizeMul).
