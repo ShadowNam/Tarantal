@@ -15,6 +15,7 @@ import type { LayerNode, ParallaxView } from '../ParallaxView';
 import {
   EGG_SPOTS,
   OSTRICH_ART_SCALE,
+  OSTRICH_HEN_SCALE,
   OSTRICH_SHEET,
   ostrichFrame,
   ostrichFrames,
@@ -387,14 +388,10 @@ export class OstrichView {
         const f = state.ostriches.find((x) => x.id === e.familyId);
         const layer = f === undefined ? undefined : this.parallax.layer(f.layerId);
         if (f === undefined || layer === undefined) continue;
-        this.puff(
-          layer,
-          e.tick,
-          e.x,
-          e.nest ? e.y - 4 * f.size : e.y - 300 * f.size,
-          e.nest,
-          f.size,
-        );
+        // D-082: a hit hen's feathers fly from her (smaller) body.
+        const hen = !e.nest && f.birds.some((b) => b.id === e.ostrichId && !b.male);
+        const k = hen ? f.size * OSTRICH_HEN_SCALE : f.size;
+        this.puff(layer, e.tick, e.x, e.nest ? e.y - 4 * f.size : e.y - 300 * k, e.nest, k);
         audio.playExtra(OSTRICH_SOUNDS.hiss, this.pan(e.plane, e.x, width), OSTRICH_SYNTH.hiss);
       } else if (e.type === 'ostrichesRan') {
         audio.playExtra(OSTRICH_SOUNDS.thud, this.pan(e.plane, e.x, width), OSTRICH_SYNTH.thud);

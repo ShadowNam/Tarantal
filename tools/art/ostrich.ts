@@ -5,9 +5,11 @@
 // from a posed skeleton (body, two legs, neck, head) so every frame is the same bird; layered
 // shading (a lit back, a shaded belly, plume texture), thin edges a shade darker than the part
 // (no ink), a soft contact shadow; light from the upper left. Same proportions and coat as the
-// far-fauna ostrich (tools/art/farFauna.ts), at 197 px to the head (the mid plane).
+// far-fauna ostrich (tools/art/farFauna.ts), at 197 px to the head (the mid plane; the crown's
+// bristles reach ~210). D-082: the hen at OSTRICH_HEN_SCALE of that (~153).
 import {
   EGG_SPOTS,
+  OSTRICH_HEN_SCALE,
   OSTRICH_SHEET_H,
   OSTRICH_SHEET_W,
   ostrichFrames,
@@ -843,7 +845,8 @@ export function renderOstrichSheet(k: number): Rgba {
         ? drawScrape()
         : f.name === 'egg'
           ? drawEgg()
-          : drawOstrich(sex === 'm', pose);
+          : // D-082: the hen from the same shapes at her own, smaller size.
+            drawOstrich(sex === 'm', pose, sex === 'm' ? OSTRICH_H : OSTRICH_H * OSTRICH_HEN_SCALE);
     return g(
       {},
       el('clipPath', { id }, el('rect', { x: f.x, y: f.y, width: f.w, height: f.h })),

@@ -530,6 +530,9 @@ export const OstrichesSchema = obj({
    *  standing one is its true 2.5 m beside the guineafowl (tools/sizes.ts); the walks, the wander
    *  and the scare radius keep plane-scale px. */
   sizeMul: z.number().gt(0).max(4).default(1),
+  /** v1.20.2 (D-082): the hen's size as a share of the cock's — her drawing, her hit shapes and
+   *  her heightPx (a hen stands 1.7–2.0 m, a cock 2.1–2.8 m); the nest keeps the pair's size. */
+  henScale: pos.max(1).default(1),
   hitboxes: obj({
     stand: obj({ body: ellipseBox, neck: ellipseBox }),
     sit: obj({ body: ellipseBox, neck: ellipseBox }),

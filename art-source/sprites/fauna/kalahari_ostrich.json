@@ -6,8 +6,8 @@
   "group": "fauna-kalahari-summer",
   "frames": {
     "ostrich.alert.m.body": [0, 0, 129, 146, 77, 141, 0, 0],
-    "ostrich.alert.m.head": [291, 0, 42, 95, 15.5, 79.7, 33.5, -122.3],
-    "ostrich.graze.f.body": [129, 0, 109, 124, 65, 119, 0, 0],
-    "ostrich.graze.f.head": [238, 0, 53, 117, 13.2, 7.3, 28.2, -102.7]
+    "ostrich.alert.m.head": [277, 0, 42, 95, 15.5, 79.7, 33.5, -122.3],
+    "ostrich.graze.f.body": [129, 0, 99, 111, 59, 107, 0, 0],
+    "ostrich.graze.f.head": [228, 0, 49, 107, 12.5, 7.1, 25.5, -92.9]
   }
 }
