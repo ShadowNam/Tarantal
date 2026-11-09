@@ -94,12 +94,12 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_baobab_life.0af95f4fc8ea.png",
-        "bytes": 9661,
-        "hash": "0af95f4fc8ea"
+        "path": "assets/bushveld-winter/img/bushveld_baobab_life.9761d67ae061.png",
+        "bytes": 16357,
+        "hash": "9761d67ae061"
       },
-      "width": 256,
-      "height": 258,
+      "width": 336,
+      "height": 447,
       "originX": 0,
       "originY": 0
     },
