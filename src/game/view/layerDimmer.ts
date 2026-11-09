@@ -51,6 +51,13 @@ export class LayerDimmer {
     );
   }
 
+  /** D-080: the tint a layer is going to (its herds join late: they take this at once), or
+   *  undefined for a layer the dimmer doesn't know. */
+  tintOf(id: string): number | undefined {
+    const i = this.layers.findIndex((l) => l.id === id);
+    return i < 0 ? undefined : this.target[i];
+  }
+
   /** Whether a layer still waits for its new tint. */
   get busy(): boolean {
     return this.pending > 0;

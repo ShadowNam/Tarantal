@@ -283,6 +283,9 @@ export class ParallaxView {
           const fv = new View(scene, manifest, herds, coreWidth(layer.scrollFactor), holder, fauna);
           this.fauna.push(fv);
           this.faunaLayer.set(fv, layer.id);
+          // A dim already applied (New Year's dusk) before the herds came: theirs at once.
+          const dim = this.dimmer?.tintOf(layer.id);
+          if (dim !== undefined) fv.setTint(dim);
         });
       }
       const fruit = scene.add.container(0, 0);

@@ -409,7 +409,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       // D-080: far enough out that his true-size head (facing in) stays outside the gun's stripe.
       const out = Math.max(
         B.roam.viewHalfPx,
-        B.roam.gunStripePx[1] + B.hitboxes.stand.head.ox * B.sizeMul + 4,
+        B.roam.gunStripePx[1] + B.hitboxes.stand.head.ox * B.sizeMul + B.roam.stripeMarginPx,
       );
       const edge = planeCentreX(host.cameraX(), sf) + side * out;
       moveTo('trot', 'run', edge, B.speeds.runPx);

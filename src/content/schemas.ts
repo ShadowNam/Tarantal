@@ -2201,6 +2201,9 @@ export const BrakkieSchema = obj({
      *  on 16:9–21:9 for aims within ±500 px of the centre, and the left-handed mirror); a pan
      *  that leaves his head in it gets him up. */
     gunStripePx: range(nonNeg),
+    /** v1.17b (D-080): with no clear spot he waits at the view's edge, this far past where his
+     *  head (facing in) leaves the gun's stripe. */
+    stripeMarginPx: nonNeg.default(4),
     /** And this far from where he stands. */
     stepPx: range(pos),
     /** Spots tried before he rests where he is. */

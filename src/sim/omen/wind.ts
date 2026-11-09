@@ -50,9 +50,6 @@ function roll(w: Wind, rng: RandomStream): void {
   );
 }
 
-/** A gust's rise share when content leaves it out (the v1.17 shape). */
-const DEFAULT_RISE_SHARE = 0.3;
-
 const PLANE_ORDER: readonly PlaneId[] = ['near', 'mid', 'far', 'ver'];
 
 export function createWind(
@@ -140,7 +137,9 @@ export function gustLevel(w: Wind): number {
   if (w.gust === null) return 0;
   const p = (w.t - w.gust.start) / w.gust.len;
   if (p < 0 || p >= 1) return 0;
-  const rise = w.cfg.gusts?.riseShare ?? DEFAULT_RISE_SHARE;
+  // A gust exists only with content's gusts (createWind): their riseShare (the schema's default).
+  const rise = w.cfg.gusts?.riseShare;
+  if (rise === undefined) return 0;
   return p < rise ? p / rise : (1 - p) / (1 - rise);
 }
 

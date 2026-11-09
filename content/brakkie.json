@@ -25,6 +25,7 @@
     "scamperHalfPx": 760,
     "driftPx": 100,
     "gunStripePx": [65, 360],
+    "stripeMarginPx": 4,
     "stepPx": [260, 760],
     "tries": 6,
     "restSeconds": [1.2, 3.5],
