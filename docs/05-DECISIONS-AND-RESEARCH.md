@@ -4413,8 +4413,12 @@ aim point on its body, no bird within 260 px) still costs −10.
 Okavango's HD hunt (3.1 → 9.1 MB) and ~3.5 MB to Namibië's: they are **Standard in HD**
 (`hdPack.ts STANDARD_IN_HD_KEYS`; they stand on the far veld, itself Standard in HD since D-054,
 and 1 texture px per design px is a phone's screen px). The weaver colony's sheet is drawn at 3×
-(768 × 362, 1.1 MB) with no HD twin (0.5 MB before). The baboons, the warthogs and Brakkie draw
-their existing sheets larger (each ≥ 0.85 texture px per drawn px in Standard).
+(768 × 362, 1.1 MB) with no HD twin (0.5 MB before). The baboons and the warthogs draw their
+existing sheets larger (each ≥ 0.85 texture px per drawn px in Standard). **Brakkie (review 5):**
+at 1.35× his v1.17 sheet was stretched (soft beside the crisp guineafowl and gun); his own frames
+are now drawn for his true size at 0.5 sheet px per drawn px (HD 1.0), the bird he carries and the
+point's marker at their own size: 672 × 573, 1.47 MiB (HD 1,344 × 1,146, 5.88 MiB; v1.17 0.88 /
+3.5), downloads 84 / 197 KB.
 
 **Crisp true-size cameos and ostriches (review 4).** The first pass drew the cameos at 0.25 sheet
 px per drawn px (HD 0.5) and showed the ostriches' 1.5× sheet 2.8× larger (0.54): in the
@@ -4430,14 +4434,17 @@ chunk (HD 375 KB). **Room in Namibië's HD hunt** for its +34.5 MiB: its plant p
 weaver-nest camelthorn — 16.6 MiB alone — the camelthorns, the quiver trees, the pan grass) are
 Standard in HD (−19.5 MiB; their 1× files, 1 texture px per design px: a phone's own px, softer
 only on a 1440p+ desktop), and the rainbow and the dust devil join `HD_NO_GAIN_KEYS` (1.53 and
-2.20/255 from their 1× files upscaled, at D-053's bar; −3.3 MiB in every hunt). Estimated from the
-textures that changed, CI's v1.17 numbers → v1.17b: **Namibië 246.7 → ~253.9 MB**, Okavango +
-Reënbui 244.4 → ~240.3, Christmas (Okavango) 243.3 → ~239.2, New Year (Okavango) 244.5 → ~240.4,
-**the Harvest 232.7 → ~244.9** (its sheet 21.5 → 27.5 MB for the taller gap panel, its mid layer
-+9.5 MB for the true-size fence), Karoo 221.1 → ~222.7, Bushveld 227.8 → ~225.0, Kalahari 227.0 →
-~226.4; CI's `perf.spec.ts` measures them (its HD waits look for the area's HD layers, not HD
-herds). Namibië is the tightest (~2 MiB under 256): if CI measures it over, the next room is the
-baboon sheet's HD (10.0 MiB at 1.7 texture px per drawn px). The far herds in HD draw their 1×
+2.20/255 from their 1× files upscaled, at D-053's bar; −3.3 MiB in every hunt). Review 5: Brakkie's
+HD twin (+2.38 MiB in every hunt he is on) would have taken Namibië to ~256.3 — and the gemsbok's
+and Brakkie's views load their HD twins only under 256 − 6 MiB (`feel.json`), so they would have
+stayed Standard there; **Namibië's near layer is Standard in HD** (`STANDARD_IN_HD_LAYERS`
+`namibie/near`: 1.02/255 from its 1× tiles upscaled, under D-053's bar; 22.7 → 5.7 MiB, −17.0).
+Estimated from the textures that changed, CI's v1.17 numbers → v1.17b: **Namibië 246.7 → ~239.3
+MB**, Okavango + Reënbui 244.4 → ~242.7, Christmas (Okavango) 243.3 → ~241.6, New Year (Okavango)
+244.5 → ~242.8, **the Harvest 232.7 → ~244.9** (no Brakkie there; its sheet 21.5 → 27.5 MB for the
+taller gap panel, its mid layer +9.5 MB for the true-size fence), Karoo 221.1 → ~225.1, Bushveld
+227.8 → ~227.4, Kalahari 227.0 → ~228.8; CI's `perf.spec.ts` measures them (its HD waits look for
+the area's HD layers, not HD herds). The tightest is now the Harvest (~11 MiB under 256). The far herds in HD draw their 1×
 Standard sheets: on a Pixel 7 that is the screen's own px; on a 1440p+ desktop they are a little
 softer than the HD props (the screenshot spec's `herd-namibie-std-hd` pair shows it).
 
