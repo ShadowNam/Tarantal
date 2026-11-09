@@ -49,7 +49,12 @@ export type BonusId =
   | 'baboon'
   | 'raidStopped'
   // v1.8c (D-063): a warthog bagged in the Harvest.
-  | 'warthog';
+  | 'warthog'
+  // v1.17 (D-079): Brakkie the companion — a bird delivered ("Bring!"), every 3rd in a row
+  // ("Goeie hond!"), 3+ birds of the flock he pointed bagged in its flush ("Mooi punt!").
+  | 'bring'
+  | 'bringStreak'
+  | 'goodPoint';
 
 export type SimEvent =
   | {
@@ -922,8 +927,40 @@ export type SimEvent =
     }
   /** v1.12 (D-069): he has the bird in his mouth (he carries it back to Oupa). */
   | { readonly type: 'brakkiePickedUp'; readonly tick: number; readonly plane: 'near' | 'mid' }
-  /** v1.12 (D-069): back at the bakkie with the bird (Oupa's proud line). */
-  | { readonly type: 'brakkieFetched'; readonly tick: number }
+  /** v1.12 (D-069): back at the bakkie with the bird (Oupa's proud line). v1.17 (D-079): the
+   *  Bring streak after this delivery and the points it paid (the bring and any streak bonus). */
+  | {
+      readonly type: 'brakkieFetched';
+      readonly tick: number;
+      readonly streak?: number;
+      readonly points?: number;
+    }
+  /** v1.17 (D-079): the Bring streak broke (he was hit, or a shot was aimed close by while he
+   *  carried a bird). */
+  | {
+      readonly type: 'brakkieStreakBroken';
+      readonly tick: number;
+      readonly streak: number;
+      readonly why: 'hit' | 'aim';
+    }
+  /** v1.17 (D-079): "Staan!" — he freezes on point at a hidden flock; it sits at (markerX,
+   *  markerY) on the mid plane and bursts up after the point (or at the whistle). */
+  | {
+      readonly type: 'brakkiePointed';
+      readonly tick: number;
+      readonly x: number;
+      readonly markerX: number;
+      readonly markerY: number;
+    }
+  /** v1.17 (D-079): the whistle — what he did ("Spring!", "Hier!", "Soek!"). */
+  | {
+      readonly type: 'brakkieWhistled';
+      readonly tick: number;
+      readonly action: 'spring' | 'heel' | 'seek';
+    }
+  /** v1.17 (D-079): a short reaction (no points): a proud hop and double bark, or a sit and a
+   *  head tilt after misses (sympathetic, never mocking). */
+  | { readonly type: 'brakkieReacted'; readonly tick: number; readonly kind: 'proud' | 'tilt' }
   /** v1.12 (D-069): he barks at a mid flock; it hears it `threatTick` (one threat, 'dog'). */
   | {
       readonly type: 'brakkieBarked';
@@ -938,6 +975,9 @@ export type SimEvent =
       readonly tick: number;
       readonly flockId: number | null;
       readonly x: number;
+      /** v1.17 (D-079): the flock he pointed (sprung by the whistle when `whistled`). */
+      readonly pointed?: true;
+      readonly whistled?: true;
     }
   /** v1.12 (D-069): a shot hit him (`aimed`: the shot was aimed at him; points: the penalty or
    *  0 on the cooldown or a stray pellet). He yelps and bolts to the bakkie, never hurt. */

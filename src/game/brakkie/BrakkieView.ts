@@ -2,7 +2,7 @@
 // download): his files (the sheet, its HD twin, his barks, yelp and panting), the hunt's view and
 // the title's wag.
 //
-// Texture memory (lessons 29, 38, 40): his one sheet (0.5 MiB Standard, 2 MiB HD twin) becomes a
+// Texture memory (lessons 29, 38, 40): his one sheet (v1.17: 0.875 MiB Standard, 3.5 MiB HD twin) becomes a
 // texture when a hunt (or the title) first draws him and is removed when it ends — before the
 // tally opens, so the hunt → braai hand-over carries none of it. The HD twin is used only while the
 // textures in use leave room for it under the budget (feel.brakkie.hd); otherwise the Standard.
@@ -426,7 +426,10 @@ export class BrakkieView {
       this.calls++;
     }
     // The bird in his mouth (the running frames only).
-    const carry = d.carrying && !this.birdHidden && (frame === 'run_a' || frame === 'run_b');
+    const carry =
+      d.carrying &&
+      !this.birdHidden &&
+      (frame === 'run_a' || frame === 'run_b' || frame === 'run_c' || frame === 'run_d');
     if (carry !== this.birdShown) {
       this.bird.setVisible(carry);
       this.birdShown = carry;

@@ -491,7 +491,7 @@ export function withBrakkiePreview(
     brakkie: {
       ...d,
       enterSeconds: [0.5, 0.5],
-      fetch: { ...d.fetch, chance: 1, awaySeconds: [2, 2.5] },
+      fetch: { ...d.fetch, awaySeconds: [2, 2.5] },
       hit: { ...d.hit, awaySeconds: [3, 3.5] },
       ...(on('fetch') ? { demoFetchSeconds: 3 } : {}),
       bark: on('bark')

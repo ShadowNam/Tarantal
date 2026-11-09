@@ -131,8 +131,11 @@ describe('BrakkieView (D-069)', () => {
   it('frames from the snapshot: away is null, the trot and run alternate, the bark opens', () => {
     expect(dogFrame({ present: false, pose: 'trot', t: 0 })).toBeNull();
     expect(dogFrame({ present: true, pose: 'trot', t: 0 })).toBe('trot_a');
-    expect(dogFrame({ present: true, pose: 'trot', t: 8 })).toBe('trot_b');
-    expect(dogFrame({ present: true, pose: 'carry', t: 5 })).toBe('run_b');
+    expect(dogFrame({ present: true, pose: 'trot', t: 5 })).toBe('trot_c');
+    expect(dogFrame({ present: true, pose: 'trot', t: 10 })).toBe('trot_b');
+    expect(dogFrame({ present: true, pose: 'trot', t: 15 })).toBe('trot_d');
+    expect(dogFrame({ present: true, pose: 'carry', t: 4 })).toBe('run_c');
+    expect(dogFrame({ present: true, pose: 'carry', t: 8 })).toBe('run_b');
     expect(dogFrame({ present: true, pose: 'bark', t: 0 })).toBe('bark');
     expect(dogFrame({ present: true, pose: 'yelp', t: 3 })).toBe('yelp');
   });

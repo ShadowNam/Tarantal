@@ -28,7 +28,7 @@ describe('Brakkie test flags (D-069)', () => {
 
   it('?brakkie=1 brings him out half a second in; ?brakkiePreview=bark barks within seconds', () => {
     const c = withBrakkieParams(base, new URLSearchParams('brakkie=1&brakkiePreview=bark'));
-    expect(c.brakkie.fetch.chance).toBe(1);
+    expect(c.brakkie.enterSeconds).toEqual([0.5, 0.5]);
     const s = createSim({ seed: 2, content: c, mode, inputKind: 'pointer' });
     let arrived = -1;
     let barked = -1;

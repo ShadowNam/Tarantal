@@ -11,8 +11,12 @@ export { BRAKKIE_SHEET, BRAKKIE_SHEET_H, BRAKKIE_SHEET_W } from './brakkieKeys';
 export type BrakkieFrame =
   | 'trot_a'
   | 'trot_b'
+  | 'trot_c'
+  | 'trot_d'
   | 'run_a'
   | 'run_b'
+  | 'run_c'
+  | 'run_d'
   | 'sit'
   | 'wag_a'
   | 'lie'
@@ -20,7 +24,15 @@ export type BrakkieFrame =
   | 'bark'
   | 'dig'
   | 'yelp'
-  | 'bird';
+  | 'bird'
+  // v1.17 (D-079): the point (freeze, quiver), the proud hop (crouch, up), the head tilt, and
+  // the marker where the pointed flock sits (a rustling tuft with a small white chevron).
+  | 'point_a'
+  | 'point_b'
+  | 'proud_a'
+  | 'proud_b'
+  | 'tilt'
+  | 'marker';
 
 interface FrameSpec {
   readonly name: BrakkieFrame;
@@ -44,25 +56,39 @@ export interface BrakkieFrameRect extends FrameSpec {
 /** Each frame's box, fitted to its drawing with a 6 px margin on every side (lesson 12; the art
  *  test checks the fit). */
 const SPECS: readonly FrameSpec[] = [
-  { name: 'trot_a', w: 228, h: 169, ox: 95, oy: 158, res: 0.5 },
-  { name: 'trot_b', w: 228, h: 169, ox: 95, oy: 158, res: 0.5 },
-  { name: 'run_a', w: 265, h: 143, ox: 126, oy: 134, res: 0.5 },
-  { name: 'run_b', w: 265, h: 143, ox: 126, oy: 134, res: 0.5 },
-  { name: 'sit', w: 167, h: 181, ox: 88, oy: 170, res: 0.5 },
-  { name: 'wag_a', w: 167, h: 181, ox: 88, oy: 170, res: 0.5 },
-  { name: 'lie', w: 243, h: 95, ox: 122, oy: 86, res: 0.5 },
-  { name: 'sniff', w: 208, h: 159, ox: 86, oy: 148, res: 0.5 },
-  { name: 'bark', w: 218, h: 179, ox: 88, oy: 168, res: 0.5 },
-  { name: 'dig', w: 201, h: 165, ox: 90, oy: 154, res: 0.5 },
-  { name: 'yelp', w: 205, h: 156, ox: 87, oy: 145, res: 0.5 },
+  { name: 'trot_a', w: 222, h: 167, ox: 88, oy: 155, res: 0.5 },
+  { name: 'trot_b', w: 225, h: 169, ox: 91, oy: 157, res: 0.5 },
+  { name: 'run_a', w: 266, h: 134, ox: 126, oy: 128, res: 0.5 },
+  { name: 'run_b', w: 235, h: 141, ox: 99, oy: 131, res: 0.5 },
+  { name: 'trot_c', w: 220, h: 169, ox: 86, oy: 158, res: 0.5 },
+  { name: 'trot_d', w: 227, h: 169, ox: 93, oy: 158, res: 0.5 },
+  { name: 'run_c', w: 245, h: 146, ox: 105, oy: 137, res: 0.5 },
+  { name: 'run_d', w: 241, h: 142, ox: 103, oy: 133, res: 0.5 },
+  { name: 'sit', w: 150, h: 185, ox: 70, oy: 173, res: 0.5 },
+  { name: 'wag_a', w: 157, h: 185, ox: 77, oy: 173, res: 0.5 },
+  { name: 'lie', w: 233, h: 100, ox: 111, oy: 89, res: 0.5 },
+  { name: 'sniff', w: 209, h: 144, ox: 86, oy: 132, res: 0.5 },
+  { name: 'bark', w: 220, h: 182, ox: 87, oy: 171, res: 0.5 },
+  { name: 'dig', w: 201, h: 153, ox: 89, oy: 141, res: 0.5 },
+  { name: 'yelp', w: 206, h: 157, ox: 87, oy: 145, res: 0.5 },
   { name: 'bird', w: 94, h: 68, ox: 14, oy: 6, res: 0.5 },
+  { name: 'point_a', w: 226, h: 131, ox: 88, oy: 119, res: 0.5 },
+  { name: 'point_b', w: 226, h: 132, ox: 88, oy: 120, res: 0.5 },
+  { name: 'proud_a', w: 235, h: 157, ox: 100, oy: 145, res: 0.5 },
+  { name: 'proud_b', w: 212, h: 201, ox: 97, oy: 190, res: 0.5 },
+  { name: 'tilt', w: 148, h: 177, ox: 70, oy: 165, res: 0.5 },
+  { name: 'marker', w: 76, h: 93, ox: 35, oy: 84, res: 0.5 },
 ];
 
 /** Where his mouth is in the running frames (design px from his feet, facing right): the bird's
  *  origin when he carries one. */
-export const MOUTH: Readonly<Record<'run_a' | 'run_b', { x: number; y: number }>> = {
+export const MOUTH: Readonly<
+  Record<'run_a' | 'run_b' | 'run_c' | 'run_d', { x: number; y: number }>
+> = {
   run_a: { x: 116, y: -76 },
   run_b: { x: 112, y: -74 },
+  run_c: { x: 116, y: -82 },
+  run_d: { x: 114, y: -78 },
 };
 
 /** Sheet px a frame takes (rounded up). */
@@ -118,9 +144,9 @@ export function brakkieSheetHeight(): number {
   return Math.max(...FRAMES.map((f) => f.y + cellSize(f).h));
 }
 
-/** The sheet's GPU cost cap at 1× (bytes, RGBA): 0.5 MiB, inside the Okavango Reënbui HD hunt's
+/** The sheet's GPU cost cap at 1× (bytes, RGBA): v1.17 0.875 MiB (was 0.5), inside the Okavango Reënbui HD hunt's
  *  headroom (254.8 + 0.5 = 255.3 of 256 MB, D-069). */
-export const GPU_BYTES_CAP = 512 * 256 * 4;
+export const GPU_BYTES_CAP = 512 * 448 * 4;
 
 /** Texture px per sheet px of a file `width` px wide (1 for the Standard sheet, 2 for HD). */
 export function brakkieTexelsPerPx(width: number): number {

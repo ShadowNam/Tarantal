@@ -54,7 +54,7 @@ describe('Brakkie art (D-069)', () => {
   }
 
   it('v1.15 (D-077): every dog pose carries the same coat (fur strokes, the eye highlights)', () => {
-    const dogs = brakkieFrames().filter((f) => f.name !== 'bird');
+    const dogs = brakkieFrames().filter((f) => f.name !== 'bird' && f.name !== 'marker');
     const counts = dogs.map((f) => (frameArtForFit(f.name).match(/c-?\d/g) ?? []).length);
     // The same count of relative curves in every frame (the coat's 52 hair strokes among them):
     // the same coat whatever the pose, and ≥ 40 fails if the fur goes missing.

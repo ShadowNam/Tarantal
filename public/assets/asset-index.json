@@ -46,12 +46,12 @@
       "group": "brakkie",
       "origin": "interim",
       "file": {
-        "path": "assets/brakkie/img/brakkie_sheet.b060032768f3.png",
-        "bytes": 30181,
-        "hash": "b060032768f3"
+        "path": "assets/brakkie/img/brakkie_sheet.866f451ffdc5.png",
+        "bytes": 53254,
+        "hash": "866f451ffdc5"
       },
       "width": 512,
-      "height": 256,
+      "height": 448,
       "originX": 0,
       "originY": 0
     },

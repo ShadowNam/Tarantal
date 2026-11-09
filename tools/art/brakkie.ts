@@ -4,9 +4,13 @@
 // from the upper left, ink outlines, form from gradients. A smooth-coated terrier, mostly white
 // with a tan head (a white blaze down the muzzle), tan button ears folded forward, a tan saddle
 // patch at the base of his tail, a black nose, bright dark eyes, a short tail carried high.
-// Poses: trot (2), run (2), sit, the title's wag (sit ↔ wag), lie, sniff, bark, dig, the startled yelp
+// Poses: trot (4), run (4), sit, the title's wag (sit ↔ wag), lie, sniff, bark, dig, the startled yelp
 // (ears back, tail tucked, eyes wide — never hurt), and the guineafowl he carries (limp and whole,
-// no blood).
+// no blood). v1.17 (D-079, the owner: "get the dog more detail also"): a brown eye patch, tan ear
+// flaps folding forward, whisker lines, a pink tongue hanging when he pants, denser fur on the
+// patches, a short docked tail, a plain leather collar (no text), three toe lines on every paw,
+// 4-frame trot and run cycles; new frames for the companion: the point (2: freeze, quiver), the
+// proud hop (2), the head tilt (one ear flopped), and the marker where a pointed flock sits.
 // Coordinates: design px round each frame's origin (his feet), facing right, y down.
 import {
   BRAKKIE_SHEET_H,
@@ -32,6 +36,14 @@ const C = {
   nose: '#1A1414',
   eye: '#2A1A10',
   tongue: '#E07A80',
+  tongueShade: '#B4505A',
+  patch: '#6A3A18',
+  collar: '#8E3B2A',
+  collarLit: '#B85A40',
+  ring: '#C9A24A',
+  grass: '#7C8A3A',
+  grassLit: '#A8B456',
+  grassShade: '#4E5A24',
   mouth: '#5A2020',
   pad: '#3A2A26',
   // The guineafowl: slate with white spots, a blue face, a red wattle, the horny casque.
@@ -190,10 +202,11 @@ function leg(l: Leg, fill: string, front: boolean, far = false): string {
         opacity: far ? 0.35 : 0.22,
       }),
       // Neat toes and the pad's shade under the paw.
+      // v1.17 (D-079): three toe lines on every paw.
       line(
-        `M${r2(l.paw[0] + 5)} ${r2(l.paw[1] - 5)}l0.6 3M${r2(l.paw[0] + 9.5)} ${r2(l.paw[1] - 5)}l0.6 3`,
-        far ? '#7E7466' : C.whiteShade,
-        1,
+        `M${r2(l.paw[0] + 3)} ${r2(l.paw[1] - 6)}l0.4 4M${r2(l.paw[0] + 7)} ${r2(l.paw[1] - 6.5)}l0.4 4.4M${r2(l.paw[0] + 11)} ${r2(l.paw[1] - 6)}l0.4 4`,
+        far ? '#7E7466' : '#8C8478',
+        1.2,
       ),
       el('path', {
         d: ellipseD(l.paw[0] + 4, l.paw[1] + 0.5, 10, 2),
@@ -217,18 +230,27 @@ interface Pose {
   /** The head's skull centre and tilt (degrees, + = nose down). */
   readonly head: { readonly x: number; readonly y: number; readonly rot: number };
   readonly mouth: 'shut' | 'bark' | 'pant' | 'yelp';
-  readonly ears: 'up' | 'back';
+  /** v1.17: 'flop' — the head tilt's near ear hangs down at the side. */
+  readonly ears: 'up' | 'back' | 'flop';
   /** Legs: near front, far front, near back, far back. */
   readonly legs: readonly [Leg, Leg, Leg, Leg];
   /** The tail from its base: the tip, and a mid point for its curve. */
   readonly tail: { readonly base: P; readonly mid: P; readonly tip: P };
 }
 
-function tailArt(p: Paints, t: Pose['tail']): string {
+/** v1.17 (D-079): the tail is docked short: this much of the pose's tail line is drawn. */
+const DOCK = 0.58;
+
+function tailArt(p: Paints, pose: Pose['tail']): string {
+  const at = (q: P): P => [
+    pose.base[0] + (q[0] - pose.base[0]) * DOCK,
+    pose.base[1] + (q[1] - pose.base[1]) * DOCK,
+  ];
+  const t = { base: pose.base, mid: at(pose.mid), tip: at(pose.tip) };
   const d = `M${r2(t.base[0])} ${r2(t.base[1])}Q${r2(t.mid[0])} ${r2(t.mid[1])} ${r2(t.tip[0])} ${r2(t.tip[1])}`;
   return (
-    line(d, C.ink, 15) +
-    line(d, p.white.url, 9.5) +
+    line(d, C.ink, 17) +
+    line(d, p.white.url, 11.5) +
     el('path', {
       d,
       fill: 'none',
@@ -317,8 +339,8 @@ function fur(b: Pose['body']): string {
   }
   // Dense hair in the tan saddle and the back patch.
   const patches: readonly [number, number, number, number, number][] = [
-    [-b.rx * 0.72, -b.ry * 0.5, b.rx * 0.42, b.ry * 0.62, 16],
-    [-b.rx * 0.05, -b.ry * 0.95, b.rx * 0.26, b.ry * 0.36, 8],
+    [-b.rx * 0.72, -b.ry * 0.5, b.rx * 0.42, b.ry * 0.62, 26],
+    [-b.rx * 0.05, -b.ry * 0.95, b.rx * 0.26, b.ry * 0.36, 14],
   ];
   for (const [cx, cy, ax, ay, n] of patches)
     for (let k = 0; k < n; k++) {
@@ -357,11 +379,21 @@ function headArt(p: Paints, h: Pose['head'], mouth: Pose['mouth'], ears: Pose['e
         [10, 18],
       ])
     : '';
+  // v1.17 (D-079): a clearer button-ear flap — up from the crown, folding forward, its tip
+  // dropping towards the eye.
   const earUp: P[] = [
-    [-8, -18],
-    [4, -30],
-    [16, -22],
-    [12, -8],
+    [-10, -16],
+    [-1, -32],
+    [13, -29],
+    [20, -17],
+    [13, -9],
+  ];
+  const earFlop: P[] = [
+    [-6, -18],
+    [-18, -16],
+    [-26, -2],
+    [-20, 4],
+    [-10, -6],
   ];
   const earBack: P[] = [
     [-6, -14],
@@ -369,12 +401,12 @@ function headArt(p: Paints, h: Pose['head'], mouth: Pose['mouth'], ears: Pose['e
     [-20, -8],
     [-6, -6],
   ];
-  const ear = ears === 'up' ? earUp : earBack;
+  const ear = ears === 'up' ? earUp : ears === 'flop' ? earFlop : earBack;
   const blazeId = uid('bl');
   return g(
     { transform: `translate(${r2(h.x)} ${r2(h.y)}) rotate(${r2(h.rot)})` },
     // Far ear (just its tip behind the skull).
-    ears === 'up'
+    ears !== 'back'
       ? inkPath(
           polyD([
             [-14, -14],
@@ -403,7 +435,22 @@ function headArt(p: Paints, h: Pose['head'], mouth: Pose['mouth'], ears: Pose['e
           ]),
           fill: C.mouth,
         }),
-    jaw === '' || mouth === 'yelp' ? '' : el('path', { d: ellipseD(28, 20, 7, 4), fill: C.tongue }),
+    // v1.17 (D-079): panting, the pink tongue hangs out over the lower lip.
+    jaw === '' || mouth === 'yelp'
+      ? ''
+      : mouth === 'pant'
+        ? inkPath(
+            smoothD([
+              [20, 16],
+              [34, 15],
+              [36, 30],
+              [29, 37],
+              [22, 30],
+            ]),
+            C.tongue,
+            1.8,
+          ) + line('M28 18L29 32', C.tongueShade, 1.4)
+        : el('path', { d: ellipseD(28, 20, 7, 4), fill: C.tongue }),
     inkPath(skull, p.tan.url, INK * 1.1),
     inkPath(muzzle, p.tan.url, INK * 1.1),
     // The white blaze: up the muzzle to between the eyes.
@@ -433,6 +480,9 @@ function headArt(p: Paints, h: Pose['head'], mouth: Pose['mouth'], ears: Pose['e
     el('path', { d: ellipseD(41.2, -6.4, 2.6, 1.4), fill: '#FFFFFF', opacity: 0.85 }),
     el('path', { d: 'M44 -2.6q1.6 -1 3 0', fill: 'none', stroke: '#000000', 'stroke-width': 1 }),
     line('M43 1L42 5', C.ink, 1),
+    // v1.17 (D-079): the brown patch round the eye (the blaze keeps clear of it).
+    el('path', { d: ellipseD(12.5, -9, 12, 10.5), fill: C.patch }),
+    line('M5 -14q4 -3 9 -2M6 -4q5 2 10 0', C.tanShade, 1).replace('/>', ' opacity="0.7"/>'),
     // Eye: wide when he yelps.
     el('path', {
       d: ellipseD(14, -8, mouth === 'yelp' ? 5.2 : 4.4, mouth === 'yelp' ? 5.6 : 4.4),
@@ -451,11 +501,42 @@ function headArt(p: Paints, h: Pose['head'], mouth: Pose['mouth'], ears: Pose['e
     line(`M7 ${mouth === 'yelp' ? -16 : -14}Q14 -17 20 -13`, C.ink, 2),
     // Near ear: a button ear folded forward (laid back when startled).
     inkPath(smoothD(ear), p.tan.url, INK),
-    line(ears === 'up' ? 'M2 -24Q10 -22 13 -12' : 'M-10 -16Q-18 -16 -18 -10', C.tanShade, 2),
+    line(
+      ears === 'up'
+        ? 'M0 -26Q12 -24 16 -12'
+        : ears === 'flop'
+          ? 'M-10 -14Q-20 -10 -20 0'
+          : 'M-10 -16Q-18 -16 -18 -10',
+      C.tanShade,
+      2.2,
+    ),
     // The ear's lit fold and the fur on its edge.
-    line(ears === 'up' ? 'M-4 -20Q4 -28 12 -24' : 'M-8 -15Q-18 -20 -23 -20', C.tanLit, 1.6),
-    line(ears === 'up' ? 'M12 -10l2 2M14 -14l2 1' : 'M-20 -9l-2 2M-16 -8l-1 2', C.tanShade, 1),
-    // A whisker dot or two.
+    line(
+      ears === 'up'
+        ? 'M-6 -20Q2 -30 12 -27'
+        : ears === 'flop'
+          ? 'M-8 -17Q-18 -14 -23 -4'
+          : 'M-8 -15Q-18 -20 -23 -20',
+      C.tanLit,
+      1.6,
+    ),
+    line(
+      ears === 'up'
+        ? 'M14 -10l2 2M17 -15l2 1M4 -30l1 2'
+        : ears === 'flop'
+          ? 'M-22 2l-2 2M-24 -4l-2 1'
+          : 'M-20 -9l-2 2M-16 -8l-1 2',
+      C.tanShade,
+      1,
+    ),
+    // v1.17 (D-079): fur on the tan head (short strokes laid back from the brow).
+    line(
+      'M-18 -6l-5 1M-14 0l-5 2M-10 6l-4 2M-20 -12l-4 0M-6 -16l-4 -1M-12 -18l-3 -2M26 -12l-4 -1M32 -10l-4 -1',
+      C.tanShade,
+      0.9,
+    ).replace('/>', ' opacity="0.6"/>'),
+    // Whisker dots, and a few fine whiskers.
+    line('M36 3l12 -2M37 5l11 3M34 6l9 6', '#3A2A20', 0.6).replace('/>', ' opacity="0.55"/>'),
     el('circle', { cx: 34, cy: 2, r: 1, fill: C.tanShade }),
     el('circle', { cx: 37, cy: 4, r: 1, fill: C.tanShade }),
     el('circle', { cx: 31, cy: 4, r: 0.9, fill: C.tanShade }),
@@ -472,6 +553,49 @@ function neck(p: Paints, pose: Pose): string {
   return inkPath(limbD([sx, sy], [pose.head.x - 6, pose.head.y + 4], 40, 30), p.white.url);
 }
 
+/** v1.17 (D-079): a plain leather collar round the neck, close behind the head (no tag text). */
+function collar(pose: Pose): string {
+  const b = pose.body;
+  const rad = (-b.rot * Math.PI) / 180;
+  const sx = b.x + Math.cos(rad) * b.rx * 0.7;
+  const sy = b.y + Math.sin(rad) * b.rx * 0.7 - b.ry * 0.3;
+  const hx = pose.head.x - 6;
+  const hy = pose.head.y + 4;
+  const t = 0.84;
+  const cx = sx + (hx - sx) * t;
+  const cy = sy + (hy - sy) * t;
+  const dx = hx - sx;
+  const dy = hy - sy;
+  const n = Math.hypot(dx, dy) || 1;
+  // Across the neck: perpendicular to it, a little wider than the neck there (≈ 34 px).
+  const ux = (-dy / n) * 17;
+  const uy = (dx / n) * 17;
+  const d = `M${r2(cx + ux)} ${r2(cy + uy)}L${r2(cx - ux)} ${r2(cy - uy)}`;
+  // The ring hangs at the throat (the end of the band nearer the ground).
+  const low = cy + uy > cy - uy ? [cx + ux, cy + uy] : [cx - ux, cy - uy];
+  return (
+    line(d, C.ink, 9.5) +
+    line(d, C.collar, 6) +
+    line(d, C.collarLit, 1.6).replace('/>', ' opacity="0.8"/>') +
+    el('circle', {
+      cx: r2((low[0] ?? cx) + (dx / n) * 1.5),
+      cy: r2((low[1] ?? cy) + 3.5),
+      r: 3.2,
+      fill: 'none',
+      stroke: C.ink,
+      'stroke-width': 3.4,
+    }) +
+    el('circle', {
+      cx: r2((low[0] ?? cx) + (dx / n) * 1.5),
+      cy: r2((low[1] ?? cy) + 3.5),
+      r: 3.2,
+      fill: 'none',
+      stroke: C.ring,
+      'stroke-width': 1.6,
+    })
+  );
+}
+
 function dogArt(p: Paints, pose: Pose): string {
   const [nf, ff, nb, fb] = pose.legs;
   return g(
@@ -482,6 +606,7 @@ function dogArt(p: Paints, pose: Pose): string {
     tailArt(p, pose.tail),
     torso(p, pose.body),
     neck(p, pose),
+    collar(pose),
     leg(nb, p.white.url, false),
     leg(nf, p.white.url, true),
     headArt(p, pose.head, pose.mouth, pose.ears),
@@ -523,6 +648,129 @@ function pose(name: BrakkieFrame): Pose {
           L([-44, -68], [-56, -34], [-42, -2]),
         ],
         tail: { base: [-70, -98], mid: [-84, -122], tip: [-80, -144] },
+      };
+    // v1.17 (D-079): the passing frames between a and b (a → c → b → d): the stance pair
+    // straight under him, the swinging pair lifted.
+    case 'trot_c':
+      return {
+        body: { ...STAND_BODY, y: -81 },
+        head: { x: 78, y: -117, rot: -1 },
+        mouth: 'shut',
+        ears: 'up',
+        legs: [
+          L([44, -69], [50, -36], [50, -2]),
+          L([38, -69], [50, -46], [44, -20]),
+          L([-50, -69], [-48, -36], [-50, -2]),
+          L([-44, -69], [-52, -48], [-62, -26]),
+        ],
+        tail: { base: [-70, -99], mid: [-76, -124], tip: [-66, -142] },
+      };
+    case 'trot_d':
+      return {
+        body: { ...STAND_BODY, y: -81 },
+        head: { x: 78, y: -117, rot: -1 },
+        mouth: 'shut',
+        ears: 'up',
+        legs: [
+          L([44, -69], [56, -46], [50, -20]),
+          L([38, -69], [46, -36], [46, -2]),
+          L([-50, -69], [-58, -48], [-68, -26]),
+          L([-44, -69], [-46, -36], [-48, -2]),
+        ],
+        tail: { base: [-70, -99], mid: [-86, -120], tip: [-84, -140] },
+      };
+    // v1.17 (D-079): the gallop's other two beats — front feet landing, hind feet pushing off.
+    case 'run_c':
+      return {
+        body: { x: -1, y: -76, rx: 70, ry: 29, rot: 0 },
+        head: { x: 84, y: -100, rot: 8 },
+        mouth: 'pant',
+        ears: 'back',
+        legs: [
+          L([44, -64], [52, -34], [48, -4]),
+          L([38, -62], [40, -34], [30, -8]),
+          L([-50, -64], [-70, -48], [-84, -36]),
+          L([-44, -64], [-60, -40], [-66, -28]),
+        ],
+        tail: { base: [-68, -86], mid: [-92, -100], tip: [-106, -112] },
+      };
+    case 'run_d':
+      return {
+        body: { x: -1, y: -76, rx: 70, ry: 29, rot: -2 },
+        head: { x: 82, y: -96, rot: 8 },
+        mouth: 'pant',
+        ears: 'back',
+        legs: [
+          L([46, -64], [66, -50], [86, -40]),
+          L([40, -62], [58, -44], [72, -36]),
+          L([-48, -62], [-46, -32], [-34, -4]),
+          L([-42, -62], [-36, -30], [-26, -6]),
+        ],
+        tail: { base: [-66, -88], mid: [-90, -104], tip: [-104, -118] },
+      };
+    // v1.17 (D-079): "Staan!" — the classic point: body low and level, nose and eyes on the
+    // flock, the near front paw lifted and folded, tail straight up; b quivers.
+    case 'point_a':
+    case 'point_b': {
+      const q = name === 'point_b' ? 1 : 0;
+      return {
+        body: { x: -2, y: -58 - q, rx: 70, ry: 28, rot: -2 },
+        head: { x: 82, y: -78 - q, rot: 4 },
+        mouth: 'shut',
+        ears: 'up',
+        legs: [
+          L([46, -50 - q], [66, -46 - q], [62, -28 - q]),
+          L([38, -48], [48, -24], [58, -2]),
+          L([-50, -50], [-72, -30], [-56, -2]),
+          L([-44, -50], [-64, -26], [-72, -4]),
+        ],
+        tail: { base: [-70, -74 - q], mid: [-74 + q, -100], tip: [-72 + 2 * q, -126] },
+      };
+    }
+    // v1.17 (D-079): the proud hop — a bounce down (a), then up on his hind legs, front paws
+    // off the ground, barking (b): his hind feet stay planted (nothing floats).
+    case 'proud_a':
+      return {
+        body: { x: -4, y: -70, rx: 70, ry: 31, rot: -10 },
+        head: { x: 80, y: -104, rot: -10 },
+        mouth: 'bark',
+        ears: 'up',
+        legs: [
+          L([44, -58], [60, -30], [66, -2]),
+          L([38, -58], [48, -28], [50, -2]),
+          L([-50, -76], [-60, -40], [-46, -2]),
+          L([-44, -76], [-38, -40], [-62, -4]),
+        ],
+        tail: { base: [-70, -100], mid: [-90, -126], tip: [-96, -146] },
+      };
+    case 'proud_b':
+      return {
+        body: { x: -10, y: -88, rx: 66, ry: 30, rot: 24 },
+        head: { x: 60, y: -150, rot: -20 },
+        mouth: 'bark',
+        ears: 'up',
+        legs: [
+          L([30, -104], [56, -92], [66, -70]),
+          L([24, -102], [46, -84], [52, -62]),
+          L([-52, -70], [-48, -36], [-36, -2]),
+          L([-46, -70], [-58, -34], [-52, -4]),
+        ],
+        tail: { base: [-72, -82], mid: [-92, -106], tip: [-88, -130] },
+      };
+    // v1.17 (D-079): after misses — he sits and tilts his head, one ear flopping (sympathetic).
+    case 'tilt':
+      return {
+        body: { x: -6, y: -62, rx: 50, ry: 30, rot: 52 },
+        head: { x: 24, y: -132, rot: -24 },
+        mouth: 'shut',
+        ears: 'flop',
+        legs: [
+          L([18, -84], [22, -44], [26, -4]),
+          L([10, -84], [12, -44], [14, -2]),
+          L([-30, -40], [-6, -26], [-4, -2]),
+          L([-24, -40], [-2, -24], [6, -4]),
+        ],
+        tail: { base: [-46, -20], mid: [-64, -4], tip: [-62, -18] },
       };
     case 'run_a':
       // Stretched out: front legs reaching, back legs pushing.
@@ -646,7 +894,8 @@ function pose(name: BrakkieFrame): Pose {
         tail: { base: [-70, -60], mid: [-78, -40], tip: [-62, -26] },
       };
     case 'bird':
-      throw new Error('the bird is not a dog pose');
+    case 'marker':
+      throw new Error(`the ${name} is not a dog pose`);
   }
 }
 
@@ -698,8 +947,47 @@ export function frameArtForFit(name: BrakkieFrame): string {
   return frameArt(paints(), name);
 }
 
+/** v1.17 (D-079): where a pointed flock sits — a rustling grass tuft, a small white chevron
+ *  over it (pointing down at it). Its origin: the tuft's foot. */
+function marker(): string {
+  const blades: string[] = [];
+  const tips: readonly P[] = [
+    [-26, -30],
+    [-16, -44],
+    [-6, -52],
+    [4, -48],
+    [14, -54],
+    [24, -40],
+    [32, -26],
+  ];
+  for (const [i, tip] of tips.entries()) {
+    const base = -18 + i * 6;
+    const d = `M${base} 0Q${r2((base + tip[0]) / 2 - 3)} ${r2(tip[1] / 2)} ${tip[0]} ${tip[1]}`;
+    blades.push(line(d, C.ink, 6.2), line(d, i % 2 === 0 ? C.grass : C.grassLit, 3.4));
+  }
+  return g(
+    {},
+    el('path', { d: ellipseD(2, -1, 30, 4), fill: C.grassShade, opacity: 0.5 }),
+    ...blades,
+    // The chevron (a small V pointing down at the hidden flock).
+    inkPath(
+      polyD([
+        [-12, -76],
+        [0, -64],
+        [12, -76],
+        [12, -70],
+        [0, -58],
+        [-12, -70],
+      ]),
+      '#FFFFFF',
+      2.4,
+    ),
+  );
+}
+
 function frameArt(p: Paints, name: BrakkieFrame): string {
   if (name === 'bird') return bird(p);
+  if (name === 'marker') return marker();
   // The stretched gallop is drawn with its lowest paw on the ground (lesson 18: nothing floats).
   const dy = name === 'run_a' ? 12 : 0;
   return dy === 0

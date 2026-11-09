@@ -95,6 +95,8 @@ const OPS: readonly Command['t'][] = [
   'aimRelease',
   'aimCancel',
   'zoom',
+  // v1.17 (D-079): Brakkie's whistle (append only).
+  'whistle',
 ];
 /** Commands a v1–v4 log can hold (the v5 rifle commands come after them). */
 const V4_OPS = 9;
@@ -375,6 +377,7 @@ function readCommand(r: ByteReader, op: Command['t'] | undefined): Command {
     case 'gadget':
     case 'aimRelease':
     case 'aimCancel':
+    case 'whistle':
       return { t: op };
     case undefined:
       throw new Error('bad replay command');

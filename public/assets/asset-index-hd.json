@@ -23,12 +23,12 @@
     },
     "brakkie/sheet": {
       "file": {
-        "path": "assets/brakkie-hd/img/brakkie_sheet.6d77e0c9ebde.png",
-        "bytes": 71087,
-        "hash": "6d77e0c9ebde"
+        "path": "assets/brakkie-hd/img/brakkie_sheet.92a22731f174.png",
+        "bytes": 117755,
+        "hash": "92a22731f174"
       },
       "width": 1024,
-      "height": 512,
+      "height": 896,
       "scale": 0.5
     },
     "bushveld/aloe_a": {

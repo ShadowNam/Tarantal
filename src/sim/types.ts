@@ -123,7 +123,10 @@ export type Command =
   | { readonly t: 'aimRelease' }
   | { readonly t: 'aimCancel' }
   /** v1.3: the zoom step of the fitted sight (variable scopes; a fixed sight has one step). */
-  | { readonly t: 'zoom'; readonly step: number };
+  | { readonly t: 'zoom'; readonly step: number }
+  /** v1.17 (D-079): Oupa's whistle for Brakkie (on point: spring; roaming: to heel; at heel:
+   *  back to work). Recorded like every command, so replays and the Daily stay exact. */
+  | { readonly t: 'whistle' };
 
 export type CommandType = Command['t'];
 
@@ -172,9 +175,28 @@ export type DogPhase =
   | 'toDig'
   | 'dig'
   | 'yelp'
-  | 'bolt';
-/** v1.12 (D-069): how he is drawn (a baked frame strip each). */
-export type DogPose = 'trot' | 'run' | 'sniff' | 'sit' | 'lie' | 'bark' | 'dig' | 'carry' | 'yelp';
+  | 'bolt'
+  // v1.17 (D-079): on point at a hidden flock (instead of the dig), springing in, trotting to
+  // heel and sitting there at the whistle, and a short reaction.
+  | 'point'
+  | 'spring'
+  | 'toHeel'
+  | 'heel'
+  | 'react';
+/** v1.12 (D-069): how he is drawn (a baked frame strip each). v1.17: point, proud, tilt. */
+export type DogPose =
+  | 'trot'
+  | 'run'
+  | 'sniff'
+  | 'sit'
+  | 'lie'
+  | 'bark'
+  | 'dig'
+  | 'carry'
+  | 'yelp'
+  | 'point'
+  | 'proud'
+  | 'tilt';
 
 /** v1.13 (D-075): what a cameo visit is doing (each member's frame comes from this and its own
  *  ticks: baked strips in the view). */
@@ -260,6 +282,26 @@ export interface BrakkieView {
   readonly fetches: number;
   readonly barks: number;
   readonly flushes: number;
+  /** v1.17 (D-079): where the flock he points at sits (its marker on the mid plane), while he is
+   *  on point or springing in; else null. */
+  readonly point: {
+    readonly layerId: string;
+    readonly x: number;
+    readonly y: number;
+    readonly scale: number;
+  } | null;
+  /** v1.17: the Bring streak now and the best this hunt, and the birds delivered so far. */
+  readonly streak: number;
+  readonly bestStreak: number;
+  /** v1.17: the whistle would do something now (and its cooldown is over); what it would do. */
+  readonly whistle: 'spring' | 'heel' | 'seek' | null;
+  /** v1.17: the reaction playing (with phase 'react'), else null. */
+  readonly react: 'proud' | 'tilt' | null;
+  /** v1.17: counts for tests and the balance report. */
+  readonly points: number;
+  readonly goodPoints: number;
+  readonly reactions: number;
+  readonly whistles: number;
 }
 
 /** v1.10 (D-067): a Reënbui as drawn (phase ticks, the alate columns, the swarm's bags). */

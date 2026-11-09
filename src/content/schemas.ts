@@ -2151,7 +2151,12 @@ export const BrakkieSchema = obj({
   /** Home: this far past the panorama's end (off every screen, LAYER_BLEED_PX + the widest view). */
   homeOffPx: pos,
   /** Standing (trot, run, sniff, sit, bark, carry, yelp) and lying (lie, dig). */
-  hitboxes: obj({ stand: dogHitbox, low: dogHitbox }),
+  hitboxes: obj({
+    stand: dogHitbox,
+    low: dogHitbox,
+    /** v1.17 (D-079): on point — body low and level, head stretched forward. */
+    point: dogHitbox,
+  }),
   /** runBeyondPx: a new spot farther than this he runs to instead of trotting. */
   speeds: obj({ trotPx: pos, runPx: pos, boltPx: pos, runBeyondPx: pos }),
   /** He trots in from the bakkie this long into the hunt. */
@@ -2198,7 +2203,6 @@ export const BrakkieSchema = obj({
     wideSpreadPx: pos,
   }),
   fetch: obj({
-    chance: fraction,
     planes: z.array(z.enum(['near', 'mid'])).min(1),
     /** The bird is down after this. */
     delaySeconds: nonNeg,
@@ -2233,12 +2237,31 @@ export const BrakkieSchema = obj({
     firstSeconds: range(pos),
     everySeconds: range(pos),
     chance: fraction,
-    digSeconds: pos,
-    size: range(posInt),
     /** The flock bursts up within this of the view's centre (screen px). */
     maxDxPx: pos,
     retrySeconds: pos,
   }),
+  /** v1.17 (D-079): "Bring!" — each bird he delivers pays `points` (an event bonus, × Frenzy ×
+   *  Stampede); every streakEvery deliveries in a row "Goeie hond!" pays streakPoints. The streak
+   *  breaks when he is hit or a shot is aimed within clear.aimPx of him while he carries a bird. */
+  bring: obj({ points: posInt, streakEvery: posInt, streakPoints: posInt }),
+  /** v1.17 (D-079): "Staan!" — the flush is a point: he freezes `seconds` at a hidden flock of
+   *  `size` that sits aheadPx in front of his nose on the mid ground, then springs in
+   *  (springSeconds) and it bursts up. goodPoint: `bags` of its birds bagged within withinSeconds
+   *  of the burst pay `points` ("Mooi punt!"). */
+  point: obj({
+    seconds: pos,
+    springSeconds: pos,
+    size: posInt,
+    aheadPx: nonNeg,
+    goodPoint: obj({ bags: posInt, points: posInt, withinSeconds: pos }),
+  }),
+  /** v1.17 (D-079): Oupa's whistle — at most once per cooldownSeconds; heel: he trots to
+   *  heelDxPx from the view's centre on the bakkie side and sits heelSeconds. */
+  whistle: obj({ cooldownSeconds: pos, heelSeconds: pos, heelDxPx: pos }),
+  /** v1.17 (D-079): a reaction lasts `seconds`, only from idle, at most one per minGapSeconds;
+   *  the head tilt after tiltMisses shots in a row that hit nothing. */
+  react: obj({ seconds: pos, minGapSeconds: pos, tiltMisses: posInt }),
   /** Test builds only (?brakkiePreview=fetch, the screenshot spec): this many seconds in he
    *  fetches a bird placed beside him (visual only). Never in shipped content (cross-refs). */
   demoFetchSeconds: pos.optional(),

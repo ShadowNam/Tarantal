@@ -1138,6 +1138,8 @@ export function createSim(config: SimConfig): Sim {
           emit({ type: 'flockThreatened', tick, flockId: f.id, source: 'dog' });
           emitTransition(f, applyThreat(f, fromX, fParams, dogRng));
         },
+        canFlush: () => flocks.filter((f) => f.members.length > 0).length < biome.pacing.maxFlocks,
+        bonus: (id, base) => awardBonus(id, base),
         flush: (x, size) => {
           if (flocks.filter((f) => f.members.length > 0).length >= biome.pacing.maxFlocks)
             return null;
@@ -2537,6 +2539,10 @@ export function createSim(config: SimConfig): Sim {
     if (!ranged && !onlyThings && targets.length === 0 && pass.frenzyMissBehaviour === 'dropTier')
       newStreak = dropTier(streak, scoring.frenzyTiers);
     if (newStreak !== streak) {
+      // v1.17 (D-079): reaching Frenzy ×3 makes Brakkie proud.
+      const topMul = scoring.frenzyTiers[scoring.frenzyTiers.length - 1]?.mul ?? Infinity;
+      const wasMul = frenzyMul(streak, scoring.frenzyTiers);
+      if (wasMul < topMul && frenzyMul(newStreak, scoring.frenzyTiers) >= topMul) brakkie?.cheer();
       streak = newStreak;
       bestStreak = Math.max(bestStreak, streak);
       emit({
@@ -2587,7 +2593,9 @@ export function createSim(config: SimConfig): Sim {
         x: bird.x,
         y: bird.y,
       });
-      brakkie?.bagged(bird.plane, bird.x);
+      brakkie?.bagged(bird.plane, bird.x, bird.fm?.flockId ?? null);
+      // v1.17 (D-079): a Ver bag makes him proud.
+      if (bird.plane === 'ver') brakkie?.cheer();
       // The Skietbaan scores nothing (its stats count the hits).
       if (!ranged) {
         const s = scoreBag(
@@ -2730,6 +2738,12 @@ export function createSim(config: SimConfig): Sim {
         (layerId) =>
           tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
       );
+    // v1.17 (D-079): every shot's aim (the Bring streak, the head tilt after clean misses).
+    brakkie?.aimed(
+      (layerId) =>
+        tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
+      miss,
+    );
     // v1.13 (D-075): the cameos react to a pellet (and the springbok to a shot close by); −10
     // only for a shot aimed at one that hit no target with nothing aimed at near the aim point.
     if (cameos !== null) {
@@ -3091,6 +3105,8 @@ export function createSim(config: SimConfig): Sim {
     });
     const paid = ruleMul === 1 ? award : Math.round(award * ruleMul);
     score += paid;
+    // v1.17 (D-079): a Whole Flock or Twee Vlieë makes Brakkie proud.
+    if (bonus === 'wholeFlock' || bonus === 'twoFlies') brakkie?.cheer();
     if (countdownCfg !== null && countdownActive()) countdownPoints += paid;
     emit({ type: 'bonusAwarded', tick, bonus, base, award: paid });
     return paid;
@@ -3554,6 +3570,9 @@ export function createSim(config: SimConfig): Sim {
         return;
       case 'gadget':
         useGadget();
+        return;
+      case 'whistle':
+        brakkie?.whistle();
         return;
       case 'consumable':
         useConsumable(cmd.slot);
