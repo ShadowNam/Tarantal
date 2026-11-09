@@ -490,10 +490,23 @@ test('1. the Karoo (far herd, Brakkie, a cameo, a raider, the bakkie), then the 
           (b) => b.key === 'karoo/bakkie',
         ) ?? null,
     );
-  await panToX(page, touch, async () => {
-    const b = await bakkie();
-    return b === null ? null : b.x + b.w / 2;
-  });
+  // The bakkie stands at the Karoo's right end: hold D until the camera reaches its right limit
+  // (as art-preview-gfx3 does; short A/D presses never got it on screen on software GL).
+  await page.keyboard.down('KeyD');
+  await page.waitForFunction(
+    () => {
+      const t = window.__TM__;
+      const b = (window as unknown as Hooked).__TM__?.graphics.bounds.find(
+        (x) => x.key === 'karoo/bakkie',
+      );
+      return (
+        (t?.cameraX ?? 0) >= 4100 || (b !== undefined && b.x + b.w < (t?.designWidth ?? 1920) - 100)
+      );
+    },
+    null,
+    { timeout: 300_000 },
+  );
+  await page.keyboard.up('KeyD');
   await hold(page, touch);
   const bk = await bakkie();
   if (bk === null) throw new Error('no bakkie on screen');
