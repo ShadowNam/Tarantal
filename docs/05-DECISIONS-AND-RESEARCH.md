@@ -4441,10 +4441,13 @@ baboon sheet's HD (10.0 MiB at 1.7 texture px per drawn px). The far herds in HD
 Standard sheets: on a Pixel 7 that is the screen's own px; on a 1440p+ desktop they are a little
 softer than the HD props (the screenshot spec's `herd-namibie-std-hd` pair shows it).
 
-**First download** (web, gzip): 3,027.8 → 3,026.2 KB (≤ 3,072): the bigger art is all lazy;
-the far herds' view and tables, the test-only ruler hook and the herds' frame tables (pivots to
-0.1 px) moved out of or shrank in the entry. `npm run size -- --strict`: OK; lazy chunks
-Bushveld 1,457 KB, Okavango 1,477, Namibië + desert 1,519, the Harvest 1,229, late 1,490.
+**First download** (web, gzip): 3,027.8 → 3,024.1 KB (≤ 3,072): the bigger art is all lazy;
+the far herds' view and tables (the placeholder factory takes their literal keys from
+`faunaKeys.ts`, so `faunaHerds.ts` leaves the entry), the test-only ruler hook and the herds' frame
+tables (pivots to 0.1 px) moved out of or shrank in the entry. `npm run size -- --strict`: OK;
+lazy chunks Bushveld 1,457 KB, Okavango 1,477, Namibië + desert 1,511, the Harvest 1,229, late
+1,490, `fauna-*` 22–98, the cameo groups 39 / 66 / 36 / 63 KB (Bushveld, Karoo, Kalahari,
+Namibië; HD 56 / 117 / 65 / 132).
 
 **Balance** (`docs/balance/v1.17b-sizes.md`; 200 seeds per area, main 2d23df11 → branch). Every
 mean within −5.6 … +5.7 % (Namibië's competent +5.7 %, 4,483, after the ostrich pair became

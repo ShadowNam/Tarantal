@@ -26,7 +26,7 @@ import { omenSpecs } from './omenArt';
 import { verBand, type Band, type BiomeArt } from './biomeArt';
 import { sightSpecs } from './sightArt';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
-import { sheetHerds } from '../view/faunaHerds';
+import { FAUNA_SHEET_KEYS } from '../view/faunaKeys';
 import { FRUIT_SHEET, fruitSheetKey } from '../view/fruit/fruitTypes';
 import { TELL_SHEET, TELL_SHEET_H, TELL_SHEET_W } from '../view/tell/tellKeys';
 import { REENBUI_SHEET, REENBUI_SHEET_H, REENBUI_SHEET_W } from '../view/reenbui/reenbuiKeys';
@@ -1562,9 +1562,9 @@ export function createPlaceholderManifest(
   }
   // D-054: the far animals' herd sheets (drawn art only: the placeholder is empty, and FaunaView
   // shows no herd until its sheet and frame table are in).
-  for (const f of sheetHerds(biome.id))
+  for (const key of FAUNA_SHEET_KEYS[biome.id] ?? [])
     m.addTexture({
-      key: f.key,
+      key,
       width: 2,
       height: 2,
       originX: 0,
