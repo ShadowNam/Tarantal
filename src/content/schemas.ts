@@ -1918,6 +1918,9 @@ const harvestSchema = modeSetupSchema.extend({
     penalty: posInt,
     cooldownSeconds: pos,
     duckSeconds: pos,
+    /** v1.18 (D-081): Phase 2: they walk off to the farmhouse this far right of the gap (plane
+     *  scale 1; past the layer's end) and are gone. */
+    leavePx: pos,
   }),
   /** v1.18 (D-081): the small hole (the map's harvest.hole): young warthogs (yearlings: drawn
    *  youngScale of an adult, youngHitsToBag hits, youngPointsMul × a guineafowl's base) come
@@ -1933,6 +1936,63 @@ const harvestSchema = modeSetupSchema.extend({
     pigletChance: fraction,
     squeezeMul: z.number().gt(0).max(1),
     squeezePx: pos,
+  }),
+  /**
+   * v1.18 (D-081) Phase 2, "Defend the field": a bonus round after the rush when the Harvest score
+   * (the crop bonus in) reached unlockScore. A banner (bannerSeconds, no shooting), then `seconds`
+   * on the clock: the fence whole all round, the workers gone to the farmhouse, the crop meter as
+   * the rush left it. The wave list (`waves`: when, what, from where; jitterSeconds of seeded
+   * jitter, its own stream `harvestPhase2`) comes from both ends and over the back fence on the
+   * mid plane (warthogs jump it, piglets squeeze under it, baboons climb over the posts), round
+   * the ends on the near plane. Each that reaches the field eats (drainPerSecond) until stopped:
+   * bagged or driven out (a warthog's first hit, a baboon's, a shot landing within pigletScarePx
+   * of a piglet: never a target, aimed at costs warthogs.pigletPenalty). It ends when every one
+   * is stopped, the clock runs out or the crop is gone; then cropBonusPerPercent × crop left, plus
+   * perfectBonus if the crop didn't drop, plus clearBonus if all were stopped in time.
+   * Sizes are design px at plane scale 1; speeds px/s; times in seconds.
+   */
+  phase2: obj({
+    unlockScore: nonNegInt,
+    bannerSeconds: pos,
+    seconds: pos,
+    waves: z
+      .array(
+        obj({
+          at: nonNeg,
+          kind: z.enum(['warthog', 'piglet', 'baboon']),
+          from: z.enum(['left', 'right', 'back']),
+          plane: z.enum(['mid', 'near']),
+        }),
+      )
+      .min(1)
+      .refine(
+        (ws) => ws.every((w) => w.plane === 'mid' || w.from !== 'back'),
+        'only the mid plane has a back fence: near arrivals come round the ends',
+      ),
+    jitterSeconds: nonNeg,
+    /** Where they cross the fence on the mid plane (u ranges per side). */
+    crossU: obj({ left: range(fraction), right: range(fraction), back: range(fraction) }),
+    /** They run up behind the fence this far behind its ground line; a `back` arrival starts
+     *  backStartPx behind it (coming up out of the veld). */
+    behindPx: pos,
+    backStartPx: pos,
+    /** Off the panorama's end before they come in. */
+    entryPx: pos,
+    speeds: obj({ warthog: pos, piglet: pos, baboon: pos }),
+    fleeMul: pos,
+    jump: obj({ seconds: pos, heightPx: pos, lengthPx: pos }),
+    squeezeSeconds: pos,
+    climb: obj({ upSeconds: pos, dropSeconds: pos }),
+    /** Where they land inside the fence (below its ground line) and the eating spots' jitter. */
+    landPx: pos,
+    eatJitterPx: nonNeg,
+    pigletScarePx: pos,
+    drainPerSecond: obj({ warthog: nonNeg, piglet: nonNeg, baboon: nonNeg }),
+    cropBonusPerPercent: nonNeg,
+    perfectBonus: nonNegInt,
+    clearBonus: nonNegInt,
+    /** Test builds only (?harvestPhase2=1): the hunt starts with Phase 2's banner. */
+    direct: z.boolean().optional(),
   }),
   /** v1.17b (D-080): the field's fence on the gap's plane: a post's height above the ground
    *  (plane scale 1; 631 = a true 1.2 m beside the guineafowl, 265 px on the mid plane). The

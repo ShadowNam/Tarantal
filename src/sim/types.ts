@@ -508,11 +508,60 @@ export interface DescenderView {
   readonly t: number;
 }
 
-/** v1.8c (D-063): the Harvest's phase: the intro, the 30-s rush, the outro (the gap closes). */
-export type HarvestPhase = 'intro' | 'rush' | 'outro';
+/** v1.8c (D-063): the Harvest's phase: the intro, the 30-s rush, the outro (the gap closes).
+ *  v1.18 (D-081): Phase 2 — the banner, then the defence (the outro follows it). */
+export type HarvestPhase = 'intro' | 'rush' | 'outro' | 'banner' | 'defend';
+
+/** v1.18 (D-081): Phase 2's animals and what each is doing: running up (approach), over or under
+ *  the fence (jump, squeeze, climb then drop), to its spot (go), eating, driven out (flee),
+ *  bagged (tumble), gone. */
+export type Phase2Kind = 'warthog' | 'piglet' | 'baboon';
+export type Phase2Phase =
+  'approach' | 'jump' | 'squeeze' | 'climb' | 'drop' | 'go' | 'eat' | 'flee' | 'tumble' | 'gone';
+export interface Phase2AnimalView {
+  readonly id: number;
+  readonly kind: Phase2Kind;
+  readonly layerId: string;
+  readonly plane: PlaneId;
+  /** Drawn at this scale (× pigletScale for a piglet). */
+  readonly scale: number;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: 1 | -1;
+  /** Ticks in this phase, and a crossing leg's length. */
+  readonly t: number;
+  readonly dur: number;
+  readonly phase: Phase2Phase;
+  readonly from: 'left' | 'right' | 'back';
+  readonly hits: number;
+}
+
+/** v1.18 (D-081): Phase 2 for the view, the HUD and the tally. */
+export interface Phase2View {
+  readonly total: number;
+  /** Animals not yet stopped (the list's arrivals to come included). */
+  readonly left: number;
+  readonly bagged: number;
+  /** Ticks left on Phase 2's clock (its whole length in the banner). */
+  readonly ticksLeft: number;
+  readonly cropAtStart: number;
+  readonly animals: readonly Phase2AnimalView[];
+  /** Set when it ended: why, and the bonuses paid. */
+  readonly result: {
+    readonly reason: 'clear' | 'time' | 'eaten';
+    readonly total: number;
+    readonly stopped: number;
+    readonly bagged: number;
+    readonly cropAtStart: number;
+    readonly crop: number;
+    readonly cropBonus: number;
+    readonly perfectBonus: number;
+    readonly clearBonus: number;
+  } | null;
+}
 /** v1.8c (D-063): a warthog's pose (enter/trot: walking in; dig: eating; run: driven off). */
 export type WarthogPhase = 'trot' | 'dig' | 'run' | 'tumble';
-export type WorkerPhase = 'run' | 'work' | 'duck';
+export type WorkerPhase = 'run' | 'work' | 'duck' | 'leave';
 
 /** v1.8c (D-063): one animal or person in the Harvest (layer px, feet). */
 export interface HarvestActorView {
@@ -578,6 +627,8 @@ export interface HarvestView {
   readonly cropBonus: number;
   /** Points lost to aimed shots at workers and piglets. */
   readonly bystanderPenalty: number;
+  /** v1.18 (D-081): Phase 2 (null: not unlocked). */
+  readonly phase2: Phase2View | null;
 }
 
 /** v1.8b (D-062): the map's baboons (null: no troop on this hunt). */

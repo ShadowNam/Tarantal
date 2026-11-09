@@ -1031,6 +1031,16 @@ export function createSim(config: SimConfig): Sim {
             if (f.members.length > 0 && f.state !== 'flush')
               emitTransition(f, forceState(f, 'flush', centroid(f).x, 'event', fParams, flockRng));
         },
+        // v1.18 (D-081): Phase 2.
+        score: () => score,
+        extendBy: (ticks) => {
+          durationTicks += ticks;
+        },
+        endAt: (at) => {
+          durationTicks = at;
+        },
+        phase2Rng: rng.stream('harvestPhase2'),
+        baboonTuning: content.birds.baboons,
       },
     );
     if (harvest !== null) durationTicks += harvest.introTicks + harvest.outroTicks;
@@ -2761,6 +2771,8 @@ export function createSim(config: SimConfig): Sim {
     tells?.shot(shotId, tellHits);
     if (baboonHits.length > 0 || (shot.alertsAllFlocks && radius > 0))
       baboons?.shot(shotId, baboonHits, shot.alertsAllFlocks && radius > 0, aimOn);
+    // v1.18 (D-081): Phase 2's piglets run out from a shot landing near them.
+    harvest?.landed(aimOn);
     if (harvestHits.length > 0)
       harvest?.shot(
         shotId,
