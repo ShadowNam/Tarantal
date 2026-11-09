@@ -3,6 +3,31 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.20.0] — v1.17: Brakkie the companion and real wind (9 Nov 2026)
+
+Decision record D-079. From the product owner's requests of 8 Nov (evening).
+
+- Work in progress.
+
+## [1.19.0] — v1.16: Veld realism (8 Nov 2026)
+
+Decision record D-078. From the product owner's feedback of 8 Nov on the live build.
+
+- **Baboons hide on the koppies and peek out:** the troop keeps behind the ridge; one or two at a
+  time rise to look over the edge (head and shoulders), or a male climbs up to sit as the sentinel,
+  then they duck back. Spread along the ridges, not a row. Raids work as before.
+- **Realistic chacma baboons:** the long dark muzzle, a heavy brow, the broken tail, long arms,
+  shoulders above the hips; new peek and sentinel frames.
+- **The baboons' calls:** the male's echoing "wa-hoo" alarm bark, grunts, a youngster's squeal and
+  a scared raider's scream, from where the troop is, not too often.
+- **Brakkie fetches more:** he picks up most of the birds that fall near him, one at a time, and
+  runs about more between fetches.
+- **A Hilux-style bakkie:** the hunt's and the braai's bakkie are a boxy single-cab 4×4 with a
+  sports bar (no badge or brand).
+- **Animal sizes:** weavers, tell animals and meerkats at their real size next to the guineafowl.
+- Downloads and memory: first download (web) 3,026.5 KB of 3,072; HD texture memory ≤ 256 MB on
+  every hunt (tightest ≈ 247 MB).
+
 ## [1.18.1] — v1.15: Art polish (8 Nov 2026)
 
 Decision record D-077. From the product owner's request of 8 Nov ("increase the graphic quality").
