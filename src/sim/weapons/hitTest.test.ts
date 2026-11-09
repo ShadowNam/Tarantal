@@ -432,3 +432,37 @@ describe('v1.13 (D-075): a pellet passes through a veld cameo', () => {
     expect(r.cameoId).toBe(9);
   });
 });
+
+describe('v1.17b (D-080): a pellet passes through a true-size ostrich', () => {
+  const geo: ShotGeometry = {
+    slices: [
+      { layerId: 'mid', scrollFactor: 1, plane: 'mid', occluders: [] },
+      { layerId: 'far', scrollFactor: 1, plane: 'far', occluders: [] },
+    ],
+    planeScale: { near: 1, mid: 1, far: 1, ver: 1 },
+    assistPx: { near: 0, mid: 0, far: 0, ver: 0 },
+  };
+  const ostrich: HitExtra = {
+    kind: 'ostrich',
+    ostrichId: 5,
+    x: 960,
+    y: 500,
+    shape: { type: 'ellipse', rx: 140, ry: 90 },
+  };
+  it('a far bird behind it takes the pellet', () => {
+    const r = resolvePellet(
+      0,
+      505,
+      960,
+      geo,
+      planes([bird(3, 'far', 960, 500)]),
+      new Map([['mid', [ostrich]]]),
+    );
+    expect(r.birdId).toBe(3);
+    expect(r.ostrichId).toBeUndefined();
+  });
+  it('nothing behind: the ostrich is the result (it hisses and runs; the aimed-at rule decides)', () => {
+    const r = resolvePellet(0, 500, 960, geo, planes([]), new Map([['mid', [ostrich]]]));
+    expect(r.ostrichId).toBe(5);
+  });
+});

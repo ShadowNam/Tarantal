@@ -2,7 +2,8 @@
 // biome, each weekday layout, and each layout with each bonus map). A pair stands on a near or
 // mid plane layer, inside the layer, clear of the meerkat colonies and of the secret parts on its
 // own layer, and standing tall it never covers the bands where birds or secret parts behind it
-// can be (a pellet stops on an ostrich before it reaches them).
+// can be (a pellet stopped on an ostrich before it reached them) — v1.17b (D-080): the
+// true-size pair does cover them, so its pellets pass through instead (hitTest.ts).
 import { resolveMap } from '../sim/maps';
 import { coreWidth } from '../sim/world';
 import { behindIssues } from './colonyChecks';
@@ -14,17 +15,34 @@ const overlaps = (a: readonly [number, number], b: readonly [number, number]): b
 /** Clear space (layer px) a pair keeps from a colony or secret part on its own layer. */
 const CLEAR_PX = 40;
 
+/** v1.17b (D-080): what a true-size pair stands in front of (the bands behind it), per map. */
+export function ostrichBehind(bundle: ContentBundle, base: Biome): string[] {
+  const T = bundle.birds.ostriches;
+  const out: string[] = [];
+  for (const f of base.ostriches ?? []) {
+    const layer = base.layers.find((l) => l.id === f.layer);
+    const plane = layer?.plane;
+    if (layer === undefined || (plane !== 'near' && plane !== 'mid')) continue;
+    const scale = bundle.scoring.planes[plane].scale;
+    const band: [number, number] = [f.y - T.heightPx * T.sizeMul * scale, f.y];
+    out.push(...behindIssues(bundle, base, base, layer.scrollFactor, band));
+  }
+  return out;
+}
+
 export function ostrichIssues(bundle: ContentBundle, base: Biome): string[] {
   const out: string[] = [];
   const T = bundle.birds.ostriches;
   const mk = bundle.birds.meerkats;
   const { planes } = bundle.scoring;
-  const halfW = Math.max(
-    T.hitboxes.stand.body.rx + Math.abs(T.hitboxes.stand.body.ox),
-    T.hitboxes.stand.neck.rx + Math.abs(T.hitboxes.stand.neck.ox),
-    T.hitboxes.sit.body.rx + Math.abs(T.hitboxes.sit.body.ox),
-    T.hitboxes.nest.rx,
-  );
+  // v1.17b (D-080): the birds and the nest at their true size (sizeMul).
+  const halfW =
+    Math.max(
+      T.hitboxes.stand.body.rx + Math.abs(T.hitboxes.stand.body.ox),
+      T.hitboxes.stand.neck.rx + Math.abs(T.hitboxes.stand.neck.ox),
+      T.hitboxes.sit.body.rx + Math.abs(T.hitboxes.sit.body.ox),
+      T.hitboxes.nest.rx,
+    ) * T.sizeMul;
   const maps: { name: string; layout?: string; bonus?: string }[] = [{ name: 'the plain biome' }];
   for (const l of base.layouts) {
     maps.push({ name: `layout "${l.id}"`, layout: l.id });
@@ -61,7 +79,7 @@ export function ostrichIssues(bundle: ContentBundle, base: Biome): string[] {
       const span: [number, number] = [cx - reach, cx + reach];
       if (cx - f.rangePx * scale < 0 || cx + f.rangePx * scale > w)
         key(`runs off its layer (${Math.round(span[0])}…${Math.round(span[1])} of ${w} px)`);
-      const band: [number, number] = [f.y - T.heightPx * scale, f.y];
+      const band: [number, number] = [f.y - T.heightPx * T.sizeMul * scale, f.y];
       if (band[1] > 1080) key('stands below the screen');
       for (const o of spans)
         if (o.layer === f.layer && overlaps(o.span, span)) key(`overlaps pair "${o.id}"`);
@@ -90,7 +108,10 @@ export function ostrichIssues(bundle: ContentBundle, base: Biome): string[] {
             key(`overlaps secret "${p.id}"`);
         }
       }
-      for (const msg of behindIssues(bundle, base, m, layer.scrollFactor, band)) key(msg);
+      // v1.17b (D-080): no "behind" check any more: a pellet passes through an ostrich and its
+      // nest (hitTest.ts, like a cameo), so the birds and parts behind a true-size pair (553 px
+      // tall on the mid plane, in front of the far and Ver bands wherever it stands) still take
+      // it. ostrichBehind() below keeps the check for the record (ostrichChecks.test.ts).
     }
   }
   return out;

@@ -537,7 +537,7 @@
       ],
       "cameraStartU": 0.5,
       "ostriches": [
-        { "id": "nest_pair", "layer": "mid", "u": 0.58, "y": 830, "nest": true, "rangePx": 700 }
+        { "id": "nest_pair", "layer": "mid", "u": 0.61, "y": 830, "nest": true, "rangePx": 700 }
       ],
       "pointsMul": 0.75,
       "planePointsMul": {
@@ -696,7 +696,7 @@
       },
       "cameraStartU": 0.55,
       "ostriches": [
-        { "id": "nest_pair", "layer": "mid", "u": 0.62, "y": 830, "nest": true, "rangePx": 700 }
+        { "id": "nest_pair", "layer": "mid", "u": 0.64, "y": 830, "nest": true, "rangePx": 700 }
       ],
       "pointsMul": 0.75,
       "planePointsMul": {
@@ -845,7 +845,7 @@
       ],
       "cameraStartU": 0.78,
       "ostriches": [
-        { "id": "nest_pair", "layer": "mid", "u": 0.4, "y": 830, "nest": true, "rangePx": 700 }
+        { "id": "nest_pair", "layer": "mid", "u": 0.56, "y": 830, "nest": true, "rangePx": 700 }
       ],
       "pointsMul": 0.75,
       "planePointsMul": {
@@ -855,7 +855,7 @@
         {
           "id": "pan_colony",
           "layer": "mid",
-          "u": 0.556,
+          "u": 0.28,
           "y": 812,
           "burrows": [
             {
@@ -940,7 +940,7 @@
       ],
       "cameraStartU": 0.6,
       "ostriches": [
-        { "id": "nest_pair", "layer": "mid", "u": 0.64, "y": 830, "nest": true, "rangePx": 700 }
+        { "id": "nest_pair", "layer": "mid", "u": 0.65, "y": 830, "nest": true, "rangePx": 700 }
       ],
       "pointsMul": 0.75,
       "planePointsMul": {
@@ -1044,7 +1044,7 @@
       ],
       "cameraStartU": 0.5,
       "ostriches": [
-        { "id": "nest_pair", "layer": "mid", "u": 0.6, "y": 830, "nest": true, "rangePx": 700 }
+        { "id": "nest_pair", "layer": "mid", "u": 0.62, "y": 830, "nest": true, "rangePx": 700 }
       ],
       "planePointsMul": {
         "ver": 0.5
@@ -1111,7 +1111,7 @@
       ],
       "cameraStartU": 0.45,
       "ostriches": [
-        { "id": "nest_pair", "layer": "mid", "u": 0.56, "y": 830, "nest": true, "rangePx": 700 }
+        { "id": "nest_pair", "layer": "mid", "u": 0.59, "y": 830, "nest": true, "rangePx": 700 }
       ],
       "pointsMul": 0.75,
       "planePointsMul": {
