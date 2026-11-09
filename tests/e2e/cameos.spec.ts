@@ -91,7 +91,8 @@ async function freshFrames(page: Page): Promise<void> {
 
 test.use({ serviceWorkers: 'block' });
 
-for (const [biome, kind, box] of [
+// The boxes are the v1.13 drawings' (sizeMul 1); v1.17b (D-080) grows each kind by its sizeMul.
+for (const [biome, kind, box1] of [
   ['bushveld-winter', 'warthogs', { w: 132, h: 90 }],
   ['karoo-autumn', 'tortoise', { w: 110, h: 70 }],
   ['kalahari-summer', 'springbok', { w: 130, h: 116 }],
@@ -102,6 +103,8 @@ for (const [biome, kind, box] of [
   }, info) => {
     test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
     test.setTimeout(600_000);
+    const S = cameos.kinds[kind].sizeMul;
+    const box = { w: box1.w * S, h: box1.h * S };
     await boot(page, `${base(biome, kind)}&birds=0&brakkie=0`);
     await startHunt(page, isTouchProject(info));
     const first = await holdDrawn(page, kind);
@@ -152,11 +155,11 @@ for (const [biome, kind, box] of [
     // Lesson 22: facing either way, its drawn pixels' centre (across) sits on its body's hit shape.
     const body = cameos.kinds[kind].hitboxes.adult[0];
     if (body === undefined) throw new Error('no hitbox');
-    const cx = herd.reduce((a, x) => a + x.x + body.ox * x.facing, 0) / herd.length;
+    const cx = herd.reduce((a, x) => a + x.x + body.ox * S * x.facing, 0) / herd.length;
     expect(
       Math.abs(sx / n - cx),
       `centre ${String(sx / n)} vs body ${String(cx)}`,
-    ).toBeLessThanOrEqual(body.rx);
+    ).toBeLessThanOrEqual(body.rx * S);
     // The near ones keep clear of the HUD (≤ 25 % of the box under any HUD rect, as Brakkie).
     if (kind === 'tortoise') {
       const r = { x: m.x - box.w / 2, y: m.y - box.h, w: box.w, h: box.h };
@@ -206,7 +209,11 @@ test('a shot aimed at a cameo costs 10 with Oupa’s scold; it reacts and stays'
       continue;
     }
     before = (await hook(page)).score;
-    const fired = await fireAt(page, touch, { x: m.x + body.ox * m.facing, y: m.y + body.oy });
+    const k = cameos.kinds.tortoise.sizeMul;
+    const fired = await fireAt(page, touch, {
+      x: m.x + body.ox * k * m.facing,
+      y: m.y + body.oy * k,
+    });
     if (fired === null) {
       await waitTicks(page, 30);
       continue;
