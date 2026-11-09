@@ -15,7 +15,8 @@ import type { NewYearHook } from '../feesdae/NuwejaarView';
 import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
 import { artSummary } from '../assets/artSummary';
-import { fill, t, tOr } from '../../i18n/i18n';
+import { fill, getLanguage, t, tOr } from '../../i18n/i18n';
+import { guideString } from '../ui/guideI18n';
 import { drawButton, Menu, textStyle } from '../ui/menu';
 import { texturesInUse } from '../assets/textureUse';
 import { hdTextureCount } from '../assets/AssetManifest';
@@ -2272,10 +2273,7 @@ export class HuntScene extends Phaser.Scene {
           hd: this.ctx.graphics.hd,
           hooks: this.ctx.hook !== null,
           words: {
-            point: t('hud.brakkie_point'),
-            spring: t('hud.brakkie_spring'),
-            heel: t('hud.brakkie_heel'),
-            seek: t('hud.brakkie_seek'),
+            word: (k) => guideString(getLanguage(), `guide.brakkie.${k}`) ?? '',
             font: FONT,
           },
           reducedMotion: this.ctx.reducedMotion,

@@ -61,6 +61,8 @@ import { BLIKKIESDANS_SECRET } from '../../sim/cans/cans';
 import { MAKALANI_SECRET } from '../../sim/nuts/makalani';
 import { HarvestBars, harvestBarsRects } from '../ui/HarvestBars';
 import { windBars } from '../ui/windMeter';
+import { windChunk } from '../view/wind/windChunk';
+import { brakkieChunk } from '../brakkie/brakkieChunk';
 
 export interface HudControls {
   readonly pause: () => void;
@@ -519,48 +521,43 @@ export class HudScene extends Phaser.Scene {
 
   isOnWhistle(x: number, y: number): boolean {
     const l = this.layoutNow;
-    return l !== null && this.whistleShown(this.lastState) && rectContains(l.whistle, x, y);
+    return l !== null && this.whistleBtn.visible && rectContains(l.whistle, x, y);
   }
 
   /** v1.17 (D-079): a round 72-px button with a whistle on it, dimmed while it would do
    *  nothing (cooldown, carrying, bolting). Redrawn only when that changes. */
   private drawWhistle(s: SimState): void {
     const l = this.layoutNow;
-    const show = this.whistleShown(s);
+    // Drawn by Brakkie's lazy chunk (not the first download): shown once it is in.
+    const chunk = brakkieChunk();
+    const show = this.whistleShown(s) && chunk !== null;
     this.whistleBtn.setVisible(show);
     const d = s.brakkie;
     if (this.ctx.hook)
       this.ctx.hook.whistleButton =
-        show && l !== null ? { ...l.whistle, on: d?.whistle != null } : null;
+        show && l !== null ? { ...l.whistle, on: d !== null && d.whistle !== null } : null;
     if (!show || l === null || d === null) return;
     const on = d.whistle !== null;
     const r = l.whistle;
     const key = `${r.x},${r.y},${on ? 1 : 0}`;
     if (key === this.whistleKey) return;
     this.whistleKey = key;
-    const g = this.whistleBtn.clear();
-    const cx = r.x + r.w / 2;
-    const cy = r.y + r.h / 2;
-    const rad = r.w / 2;
-    g.fillStyle(C.ink, 0.9).fillCircle(cx, cy, rad);
-    g.fillStyle(on ? C.enamel : 0x7a7466, 1).fillCircle(cx, cy, rad - 6);
-    // The whistle: a round chamber with its mouthpiece and the lanyard ring.
-    g.fillStyle(C.ink, 1);
-    g.fillCircle(cx + 6, cy + 4, 15);
-    g.fillRect(cx - 24, cy - 8, 24, 12);
-    g.fillStyle(on ? 0xd8dde4 : 0xa0a0a0, 1);
-    g.fillCircle(cx + 6, cy + 4, 11);
-    g.fillRect(cx - 21, cy - 5, 22, 6);
-    g.fillStyle(C.ink, 1).fillRect(cx - 2, cy - 7, 7, 4);
-    g.lineStyle(3, C.ink, 1).strokeCircle(cx + 18, cy - 12, 5);
+    chunk.drawWhistleButton(this.whistleBtn.clear(), r, on, C.ink, C.enamel);
   }
 
   /** v1.17 (D-079): the pop-up words of Brakkie's bonuses (i18n). */
   private brakkieWord(bonus: string): string | null {
-    if (bonus === 'bring') return t('hud.brakkie_bring');
-    if (bonus === 'bringStreak') return t('hud.brakkie_streak');
-    if (bonus === 'goodPoint') return t('hud.brakkie_good_point');
-    return null;
+    const key =
+      bonus === 'bring'
+        ? 'guide.brakkie.bring'
+        : bonus === 'bringStreak'
+          ? 'guide.brakkie.streak'
+          : bonus === 'goodPoint'
+            ? 'guide.brakkie.good_point'
+            : null;
+    if (key === null) return null;
+    // The guide tables are lazy: until they are in, the pop shows the points alone.
+    return this.lazy(key) || null;
   }
 
   isOnGadget(x: number, y: number): boolean {
@@ -1722,7 +1719,9 @@ export class HudScene extends Phaser.Scene {
    */
   private drawWindMeter(wind: SimState['wind']): void {
     const l = this.layoutNow;
-    const show = l !== null && wind !== null;
+    // Drawn by the lazy wind chunk (not the first download): shown once it is in.
+    const chunk = windChunk();
+    const show = l !== null && wind !== null && chunk !== null;
     this.windMeter.setVisible(show);
     const hook = this.ctx.hook;
     if (!show) {
@@ -1735,25 +1734,7 @@ export class HudScene extends Phaser.Scene {
     const key = `${l.windMeter.x},${l.windMeter.y},${wind.dir},${bars},${gust ? 1 : 0}`;
     if (key === this.windMeterKey) return;
     this.windMeterKey = key;
-    const r = l.windMeter;
-    const g = this.windMeter.clear();
-    // A dark plate keeps it readable on any sky.
-    g.fillStyle(C.ink, 0.45).fillRoundedRect(r.x, r.y, r.w, r.h, 8);
-    // The arrow (left part), pointing downwind.
-    const ax = r.x + 26;
-    const ay = r.y + r.h / 2;
-    const d = wind.dir;
-    g.fillStyle(0xf3ead3, 1);
-    g.fillRect(ax - 14, ay - 2.5, 28, 5);
-    g.fillTriangle(ax + d * 20, ay, ax + d * 8, ay - 8, ax + d * 8, ay + 8);
-    // Five bars rising left to right.
-    for (let i = 0; i < 5; i++) {
-      const h = 6 + i * 3;
-      const x = r.x + 56 + i * 17;
-      const lit = i < bars;
-      g.fillStyle(lit ? (gust ? 0xff8a3d : 0xffd25a) : 0xf3ead3, lit ? 1 : 0.25);
-      g.fillRect(x, r.y + r.h - 3 - h, 12, h);
-    }
+    chunk.drawWindMeter(this.windMeter.clear(), l.windMeter, wind.dir, bars, gust, C.ink);
   }
 
   private showCallout(text: string, color: string): void {

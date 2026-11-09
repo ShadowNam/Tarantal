@@ -9,10 +9,10 @@
 // pointerId each; a miss is decided after ~25 ticks.
 import { expect, test, type Page } from '@playwright/test';
 import brakkie from '../../content/brakkie.json' with { type: 'json' };
-import afT from '../../src/i18n/af.json' with { type: 'json' };
-import deT from '../../src/i18n/de.json' with { type: 'json' };
-import enT from '../../src/i18n/en.json' with { type: 'json' };
-import nlT from '../../src/i18n/nl.json' with { type: 'json' };
+import afT from '../../src/i18n/guide/af.json' with { type: 'json' };
+import deT from '../../src/i18n/guide/de.json' with { type: 'json' };
+import enT from '../../src/i18n/guide/en.json' with { type: 'json' };
+import nlT from '../../src/i18n/guide/nl.json' with { type: 'json' };
 import { decodePng } from '../../tools/assets/image';
 import { fireAt, reloadIfEmpty } from './feesdaeHelpers';
 import { boot, hook, isLandscape, isTouchProject, startHunt, tapAt, waitTicks } from './helpers';
@@ -403,7 +403,7 @@ test('livelier: he trots and runs about between short rests', async ({ page }, i
 
 /** Every language's words (the spec doesn't pin the page's language). */
 const WORDS = (key: 'bring' | 'streak' | 'good_point' | 'spring' | 'heel' | 'seek'): string[] =>
-  [enT, afT, deT, nlT].map((t) => (t as Record<string, string>)[`hud.brakkie_${key}`] ?? '?');
+  [enT, afT, deT, nlT].map((t) => (t as Record<string, string>)[`guide.brakkie.${key}`] ?? '?');
 
 const COMPANION =
   'biome=karoo-autumn&layout=none&seed=42&huntSeconds=120&graphics=standard&baboons=0&reenbui=0&omen=0&faunaIdle=0&brakkie=1';

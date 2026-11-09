@@ -81,3 +81,30 @@ export class WindGrassView {
     this.tufts.length = 0;
   }
 }
+
+/**
+ * v1.17 (D-079): the HUD's wind meter (the HUD calls it once this chunk is in, and only when what
+ * it shows changes): a dark plate, an arrow downwind and five bars rising left to right, lit by
+ * `bars`, warmer during a gust.
+ */
+export function drawWindMeter(
+  g: Phaser.GameObjects.Graphics,
+  r: { readonly x: number; readonly y: number; readonly w: number; readonly h: number },
+  dir: 1 | -1,
+  bars: number,
+  gust: boolean,
+  ink: number,
+): void {
+  g.fillStyle(ink, 0.45).fillRoundedRect(r.x, r.y, r.w, r.h, 8);
+  const ax = r.x + 26;
+  const ay = r.y + r.h / 2;
+  g.fillStyle(0xf3ead3, 1);
+  g.fillRect(ax - 14, ay - 2.5, 28, 5);
+  g.fillTriangle(ax + dir * 20, ay, ax + dir * 8, ay - 8, ax + dir * 8, ay + 8);
+  for (let i = 0; i < 5; i++) {
+    const h = 6 + i * 3;
+    const lit = i < bars;
+    g.fillStyle(lit ? (gust ? 0xff8a3d : 0xffd25a) : 0xf3ead3, lit ? 1 : 0.25);
+    g.fillRect(r.x + 56 + i * 17, r.y + r.h - 3 - h, 12, h);
+  }
+}

@@ -89,7 +89,6 @@ import {
   type ReactionScope,
 } from './flocks/threats';
 import { devilContacts, dustDevilView, tickDustDevil, type DustDevil } from './omen/dustDevil';
-import { createWind, tickWind, windDriftAt, windSpeedMul, windView } from './omen/wind';
 import {
   activate,
   effectsOf,
@@ -1273,9 +1272,11 @@ export function createSim(config: SimConfig): Sim {
   const stoneShots = new Map<number, ShotContext>();
   /** Held fire position (fireHoldStart … fireHoldEnd). */
   let hold: { dx: number; sy: number } | null = null;
+  // v1.17 (D-079): the wind model lives in the lazy sim systems (every wind map has a troop).
+  const windModel = setup.omen && biome.omen.wind !== undefined ? needLazy('wind').wind : null;
   const wind =
-    setup.omen && biome.omen.wind !== undefined
-      ? createWind(biome.omen.wind, omenRng, {
+    windModel !== null && biome.omen.wind !== undefined
+      ? windModel.createWind(biome.omen.wind, omenRng, {
           near: scoring.planes.near.scrollFactor,
           mid: scoring.planes.mid.scrollFactor,
           far: scoring.planes.far.scrollFactor,
@@ -1440,7 +1441,8 @@ export function createSim(config: SimConfig): Sim {
     countdownCfg !== null && countdownActive() ? countdownCfg.mult : 1;
   /** D-065: the points awarded in the countdown (bags and bonuses; the tally's line). */
   let countdownPoints = 0;
-  const airMul = (sign: number): number => windSpeedMul(wind, sign);
+  const airMul = (sign: number): number =>
+    windModel === null ? 1 : windModel.windSpeedMul(wind, sign);
 
   emit({ type: 'huntStarted', tick: 0, durationTicks, stampedeAtTick });
   for (const c of colonies)
@@ -2101,7 +2103,8 @@ export function createSim(config: SimConfig): Sim {
    *  farther (Tech §3.4). */
   function shotDrift(shot: ShotStats): (f: number) => number {
     const sens = shot.windSensitivity * pass.windDriftMul;
-    return (f: number): number => windDriftAt(wind, sens, f < 0 ? 0 : f);
+    return (f: number): number =>
+      windModel === null ? 0 : windModel.windDriftAt(wind, sens, f < 0 ? 0 : f);
   }
 
   /**
@@ -3878,8 +3881,8 @@ export function createSim(config: SimConfig): Sim {
       wasRaining = !wasRaining;
       emit({ type: 'weatherChanged', tick, rain: wasRaining });
     }
-    if (wind !== null) {
-      const w = tickWind(wind, omenRng);
+    if (wind !== null && windModel !== null) {
+      const w = windModel.tickWind(wind, omenRng);
       if (w === 'changed')
         emit({ type: 'windChanged', tick, dir: wind.dir, strength: wind.strength });
       else if (w === 'gust') emit({ type: 'windGust', tick, dir: wind.dir });
@@ -4094,7 +4097,7 @@ export function createSim(config: SimConfig): Sim {
         brakkie: brakkie?.view() ?? null,
         cameos: cameos?.view() ?? null,
         powerups: powerups.map(powerupView),
-        wind: windView(wind),
+        wind: windModel === null ? null : windModel.windView(wind),
         dustDevils: dustDevils.map(dustDevilView),
         glare,
         rain: raining() || stormActive(),

@@ -217,12 +217,10 @@ export interface BrakkieHook {
   whistles: number;
 }
 
-/** v1.17 (D-079): the command words shown over him (i18n, from the scene). */
+/** v1.17 (D-079): the command words shown over him (the lazy guide tables, from the scene: ''
+ *  while they are not in yet — then no word). */
 export interface BrakkieWords {
-  readonly point: string;
-  readonly spring: string;
-  readonly heel: string;
-  readonly seek: string;
+  readonly word: (key: 'point' | 'spring' | 'heel' | 'seek') => string;
   /** The game's font family. */
   readonly font: string;
 }
@@ -657,14 +655,10 @@ export class BrakkieView {
         // v1.17 (D-079): a happy yap as he delivers ("Bring!"); he's off screen at the bakkie,
         // so it comes from the bakkie's side.
         audio.playExtra(BRAKKIE_SOUNDS.yap, 0, () => 0, 1, -4);
-      } else if (e.type === 'brakkiePointed') this.say(this.s.words?.point, e.tick);
+      } else if (e.type === 'brakkiePointed') this.say(this.s.words?.word('point'), e.tick);
       else if (e.type === 'brakkieWhistled') {
         audio.playExtra(BRAKKIE_SOUNDS.whistle, 0, () => 0, 1, -2);
-        const w = this.s.words;
-        this.say(
-          e.action === 'spring' ? w?.spring : e.action === 'heel' ? w?.heel : w?.seek,
-          e.tick,
-        );
+        this.say(this.s.words?.word(e.action), e.tick);
       } else if (e.type === 'brakkieReacted' && e.kind === 'proud') key = BRAKKIE_SOUNDS.bark2;
       else if (e.type === 'brakkieArrived' && this.fetchedHome) {
         this.fetchedHome = false;
@@ -676,7 +670,7 @@ export class BrakkieView {
 
   /** v1.17: a word over him for WORD_TICKS. */
   private say(text: string | undefined, tick: number): void {
-    if (text === undefined) return;
+    if (text === undefined || text === '') return;
     if (text !== this.wordText) this.word.setText(text);
     this.wordText = text;
     this.wordUntil = tick + WORD_TICKS;
@@ -699,6 +693,33 @@ export class BrakkieView {
     releaseBrakkieTexture(this.s.scene.textures);
     this.sheet = null;
   }
+}
+
+// --- the whistle button (v1.17, D-079) ------------------------------------------------------------
+
+/** The HUD's round whistle button (the HUD calls it once this chunk is in, only on a change):
+ *  a round enamel button, dimmed while the whistle would do nothing, with a whistle on it. */
+export function drawWhistleButton(
+  g: Phaser.GameObjects.Graphics,
+  r: { readonly x: number; readonly y: number; readonly w: number; readonly h: number },
+  on: boolean,
+  ink: number,
+  enamel: number,
+): void {
+  const cx = r.x + r.w / 2;
+  const cy = r.y + r.h / 2;
+  const rad = r.w / 2;
+  g.fillStyle(ink, 0.9).fillCircle(cx, cy, rad);
+  g.fillStyle(on ? enamel : 0x7a7466, 1).fillCircle(cx, cy, rad - 6);
+  // The whistle: a round chamber with its mouthpiece and the lanyard ring.
+  g.fillStyle(ink, 1);
+  g.fillCircle(cx + 6, cy + 4, 15);
+  g.fillRect(cx - 24, cy - 8, 24, 12);
+  g.fillStyle(on ? 0xd8dde4 : 0xa0a0a0, 1);
+  g.fillCircle(cx + 6, cy + 4, 11);
+  g.fillRect(cx - 21, cy - 5, 22, 6);
+  g.fillStyle(ink, 1).fillRect(cx - 2, cy - 7, 7, 4);
+  g.lineStyle(3, ink, 1).strokeCircle(cx + 18, cy - 12, 5);
 }
 
 // --- the title's wag -----------------------------------------------------------------------------

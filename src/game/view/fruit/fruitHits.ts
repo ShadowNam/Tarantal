@@ -5,7 +5,7 @@
 // nearer one, or a nearer prop) never reaches it. The sim's own hit test is untouched: fruit only
 // react, they never take a pellet from a bird.
 import { tapToPlane } from '../../../sim/camera';
-import { planeDriftMul } from '../../../sim/omen/wind';
+import { planeDriftMul } from '../../../sim/omen/windCurve';
 import type { WindView } from '../../../sim/types';
 import type { FruitTuning, ShotOnFruit } from './fruitMotion';
 import type { FruitSpot } from './fruitTypes';

@@ -955,7 +955,7 @@ fetching Brakkie (`content/brakkie.json`):
   one per 8 s.
 - **Words:** "Bring!", "Goeie hond!", "Mooi punt!", "Staan!", "Spring!", "Hier!", "Soek!" in
   Afrikaans; English "Fetch!", "Good dog!", "Nice point!", "Point!", "Flush!", "Heel!", "Seek!",
-  with German and Dutch the same way (i18n `hud.brakkie_*`, editable in the Texts & voices page).
+  with German and Dutch the same way (the lazy guide tables `guide.brakkie.*`, editable in the Texts & voices page).
 - **Notaboek:** "Goeie hond: Brakkie's best Bring streak — 5 in a row in one hunt". **Oupa at the
   braai:** "Brakkie brought in {n} in a row. What a good dog!" for a streak of 3 or more.
 - **Balance gate** (Classic, 200 seeds an area vs 1.19.0): a player who works with him (sends him,

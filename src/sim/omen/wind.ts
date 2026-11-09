@@ -6,12 +6,15 @@
 // the shot, a light breeze barely does). Gusts: short peaks on top of the period's strength.
 // Randomness: rng.stream('omen') for the rolls; the gusts come from a stream seeded with the
 // first roll (no extra draws on 'omen', so the showers, the storm and the dust devils keep their
-// sequences). Tech §3.4.
+// sequences). Tech §3.4. v1.17: lives in the lazy sim-systems chunk (LazySystems.wind): every map
+// with wind has a baboon troop, so its hunts load that chunk anyway.
 import type { Biome } from '../../content/schemas';
 import { secondsToTicks } from '../clock';
-import { pow } from '../detmath';
-import { createStream, type RandomStream } from '../rng';
+import type { RandomStream } from '../rng';
 import type { PlaneId, WindView } from '../types';
+import { planeDriftMul, type DriftCurve } from './windCurve';
+
+export { planeDriftMul };
 
 export type WindConfig = NonNullable<Biome['omen']['wind']>;
 
@@ -33,9 +36,9 @@ export interface Wind {
   t: number;
   gust: Gust | null;
   nextGust: number;
-  readonly gustRng: RandomStream | null;
+  readonly gustRng: (() => number) | null;
   /** [scroll factor, drift mul] by factor, highest first (near → Ver). */
-  readonly curve: readonly (readonly [number, number])[];
+  readonly curve: DriftCurve;
 }
 
 function roll(w: Wind, rng: RandomStream): void {
@@ -71,16 +74,36 @@ export function createWind(
   if (cfg.gusts === undefined) return w;
   // Seeded with the first roll's numbers: no extra draw on the omen stream.
   const seed = (w.ticksToChange * 7919 + Math.floor(w.strength * 1e6) + (w.dir > 0 ? 1 : 0)) >>> 0;
-  const g: Wind = { ...w, gustRng: createStream(seed) };
+  const g: Wind = { ...w, gustRng: gustStream(seed) };
   g.nextGust = gapTicks(g);
   return g;
 }
+
+/** The gusts' own little generator (mulberry32: integer arithmetic only, the same everywhere),
+ *  so the wind adds no draws to the omen stream. */
+function gustStream(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const between = (r: () => number, lo: number, hi: number): number => lo + (hi - lo) * r();
 
 function gapTicks(w: Wind): number {
   const r = w.gustRng;
   const g = w.cfg.gusts;
   if (r === null || g === undefined) return Number.MAX_SAFE_INTEGER;
-  return Math.max(1, secondsToTicks(r.range(g.everySeconds[0], g.everySeconds[1])));
+  return Math.max(1, secondsToTicks(between(r, g.everySeconds[0], g.everySeconds[1])));
+}
+
+/** strength ^ exponent for the exponents content allows (1, 1.5, 2): no transcendental math. */
+function shape(s: number, e: 1 | 1.5 | 2): number {
+  if (s <= 0) return 0;
+  return e === 1 ? s : e === 2 ? s * s : s * Math.sqrt(s);
 }
 
 /** Advances one tick; returns 'changed' when the wind was re-rolled, 'gust' when a gust began. */
@@ -90,7 +113,7 @@ export function tickWind(w: Wind, rng: RandomStream): false | 'changed' | 'gust'
   if (w.gust !== null && w.t >= w.gust.start + w.gust.len) w.gust = null;
   const g = w.cfg.gusts;
   if (g !== undefined && w.gustRng !== null && w.gust === null && w.t >= w.nextGust) {
-    const len = Math.max(1, secondsToTicks(w.gustRng.range(g.seconds[0], g.seconds[1])));
+    const len = Math.max(1, secondsToTicks(between(w.gustRng, g.seconds[0], g.seconds[1])));
     w.gust = { start: w.t, len };
     w.nextGust = w.t + len + gapTicks(w);
     out = 'gust';
@@ -123,28 +146,15 @@ export function windSpeedMul(w: Wind | null, sign: number): number {
   return 1 + (mul - 1) * w.strength;
 }
 
-/** The drift multiplier at scroll factor `f`: the planes' driftPlaneMul, linear between them
- *  (a prop layer between two planes), the end values beyond (the sky beyond Ver). */
-export function planeDriftMul(curve: Wind['curve'], f: number): number {
-  const first = curve[0];
-  if (first === undefined) return 0;
-  if (f >= first[0]) return first[1];
-  for (let i = 1; i < curve.length; i++) {
-    const a = curve[i - 1];
-    const b = curve[i];
-    if (a === undefined || b === undefined) break;
-    if (f >= b[0]) return b[1] + ((a[1] - b[1]) * (f - b[0])) / (a[0] - b[0]);
-  }
-  return curve[curve.length - 1]?.[1] ?? 0;
-}
-
 /** Screen-px drift at the far plane for a weapon with this wind sensitivity, now (signed). */
 export function windDriftPx(w: Wind | null, windSensitivity: number): number {
   if (w === null) return 0;
-  const e = w.cfg.strengthExponent ?? 1;
-  const s = strengthNow(w);
-  const shaped = e === 1 ? s : s <= 0 ? 0 : pow(s, e);
-  return w.cfg.driftPxAtFar * shaped * w.dir * windSensitivity;
+  return (
+    w.cfg.driftPxAtFar *
+    shape(strengthNow(w), w.cfg.strengthExponent ?? 1) *
+    w.dir *
+    windSensitivity
+  );
 }
 
 /** The drift of a pellet that reaches scroll factor `f` (screen px, signed). */
@@ -155,13 +165,12 @@ export function windDriftAt(w: Wind | null, windSensitivity: number, f: number):
 
 export function windView(w: Wind | null): WindView | null {
   if (w === null) return null;
-  const e = w.cfg.strengthExponent ?? 1;
   const s = strengthNow(w);
   return {
     dir: w.dir,
     strength: s,
     gust: gustLevel(w),
-    farDriftPx: w.cfg.driftPxAtFar * (e === 1 ? s : s <= 0 ? 0 : pow(s, e)),
+    farDriftPx: w.cfg.driftPxAtFar * shape(s, w.cfg.strengthExponent ?? 1),
     curve: w.curve,
   };
 }

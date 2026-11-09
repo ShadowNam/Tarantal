@@ -1581,7 +1581,7 @@ export const BiomeSchema = obj({
         headwindSpeedMul: pos,
         driftPxAtFar: nonNeg,
         /** v1.17 (D-079): drift grows as strength ^ strengthExponent (1 = linear, the old rule). */
-        strengthExponent: pos.optional(),
+        strengthExponent: z.union([z.literal(1), z.literal(1.5), z.literal(2)]).optional(),
         /** v1.17 (D-079): drift × this on each plane (far = 1 by definition of driftPxAtFar;
          *  linear between planes by scroll factor). Absent: far and Ver 1, near and mid 0. */
         driftPlaneMul: allPlanes(nonNeg).optional(),
