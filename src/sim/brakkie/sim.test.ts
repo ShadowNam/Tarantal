@@ -237,8 +237,9 @@ describe('Brakkie the companion in the hunt (v1.17, D-079)', () => {
   });
 
   it('Bring and Goeie hond pay as event bonuses in a real hunt (× Frenzy × Stampede)', () => {
+    // The companion bot whistles him out, so he delivers (the competent bot rarely leaves a 6-s lull).
     const s = sim({ id: 'classic', biome: 'okavango-spring' }, 5);
-    const bot = createBot('competent', 5, content, 'pointer');
+    const bot = createBot('companion', 5, content, 'pointer');
     const ev: SimEvent[] = [];
     while (!s.isOver()) {
       s.step(bot.next(s.snapshot()));
@@ -246,7 +247,9 @@ describe('Brakkie the companion in the hunt (v1.17, D-079)', () => {
     }
     const brings = ev.filter((e) => e.type === 'bonusAwarded' && e.bonus === 'bring');
     const fetched = ev.filter((e) => e.type === 'brakkieFetched');
+    expect(fetched.length).toBeGreaterThan(2);
     expect(brings.length).toBe(fetched.length);
+    expect(ev.some((e) => e.type === 'bonusAwarded' && e.bonus === 'bringStreak')).toBe(true);
     for (const b of brings)
       if (b.type === 'bonusAwarded') {
         expect(b.base).toBe(B.bring.points);
