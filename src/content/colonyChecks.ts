@@ -87,7 +87,7 @@ export function colonyIssues(bundle: ContentBundle, base: Biome): string[] {
       // mound, and a peeking head rises from a hole on its mound, so the band starts that much
       // higher (review of v1.7).
       const highest = Math.max(...c.burrows.map((b) => b.mound));
-      const band: [number, number] = [c.y - highest + meerkatTop * scale, c.y];
+      const band: [number, number] = [c.y - highest + meerkatTop * scale * mk.sizeMul, c.y];
       if (band[1] > 1080) key('sits below the screen');
       // Its own layer: props and secret parts it would cover (or that would cover it).
       for (const p of m.props) {

@@ -295,6 +295,53 @@ export function withBaboonRaid(b: ContentBundle, action: string): ContentBundle 
   };
 }
 
+/** v1.16 (D-078): the ridge moments `?baboonPeek=` brings on quickly (lesson 10). */
+export const BABOON_PEEKS = ['peek', 'sentinel', 'long'] as const;
+export type BaboonPeek = (typeof BABOON_PEEKS)[number];
+
+/**
+ * v1.16 (D-078) ?baboonPeek=<mode> (e2e and art previews only): every map's troop is there, no
+ * raids, and the members come up within a second or two: `peek` one at a time looking over the
+ * edge for 30 s; `sentinel` one male sitting up on top for 30 s (the others' peeks last 6 s);
+ * `long` up to three at once peeking 10–14 s (the mother test's shots).
+ */
+export function withBaboonPeek(b: ContentBundle, mode: BaboonPeek): ContentBundle {
+  const bb = b.birds.baboons;
+  const t = bb.troop;
+  const troop =
+    mode === 'peek'
+      ? { activities: { peek: 1, sentinel: 0 }, peekSeconds: [30, 30], maxVisible: 1 }
+      : mode === 'sentinel'
+        ? {
+            activities: { peek: 0, sentinel: 1 },
+            // The others' looks last long enough to be seen (and shot) on a slow software-GL
+            // machine, where a frame can span many ticks.
+            peekSeconds: [6, 6],
+            sentinelSeconds: [30, 30],
+            maxVisible: 1,
+          }
+        : { peekSeconds: [10, 14], maxVisible: 3 };
+  return {
+    ...b,
+    birds: {
+      ...b.birds,
+      baboons: {
+        ...bb,
+        troop: { ...t, hideSeconds: [0.5, 2], ...troop } as typeof t,
+        raids: { ...bb.raids, perMinute: 0, firstAfterSeconds: [9999, 9999] },
+      },
+    },
+    biomes: b.biomes.map((x) =>
+      x.baboons === undefined
+        ? x
+        : {
+            ...x,
+            baboons: { ...x.baboons, troops: x.baboons.troops.map((tr) => ({ ...tr, chance: 1 })) },
+          },
+    ),
+  };
+}
+
 /**
  * v1.8b (D-062, review round 2) ?baboons=0 (e2e only): no baboon troop on any map, for the specs
  * that shoot at other things or count the score or Oupa's lines (a stray pellet on a ridge mother

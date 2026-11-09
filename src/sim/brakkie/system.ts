@@ -95,7 +95,9 @@ interface Fetch {
   readonly plane: DogPlane;
   readonly x: number;
   readonly readyTick: number;
-  readonly giveUpTick: number;
+  /** v1.16 (D-078): set when he first looks at it, free to go (its wait runs from then: a bird
+   *  queued behind others waits for its turn). */
+  giveUpTick: number | null;
 }
 
 /** The dog as the system keeps him. */
@@ -114,7 +116,10 @@ interface Dog {
   speed: number;
   carrying: boolean;
   cross: Cross | null;
-  fetch: Fetch | null;
+  /** v1.16 (D-078): the birds he means to fetch, in the order they fell (the first is next). */
+  readonly queue: Fetch[];
+  /** Bolted from a hit: he fetches nothing until he is back. */
+  shy: boolean;
   /** Penalty cooldown (ticks left). */
   cooldown: number;
   barkFlock: number | null;
@@ -172,7 +177,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     speed: 0,
     carrying: false,
     cross: null,
-    fetch: null,
+    queue: [],
+    shy: false,
     cooldown: 0,
     barkFlock: null,
     nextBark: 0,
@@ -290,7 +296,9 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   function roam(): boolean {
     const x = pickSpot();
     if (x === null) return false;
-    const far = Math.abs(x - dog.x) > B.speeds.runBeyondPx * k(dog.plane);
+    // v1.16 (D-078): one draw always (a fixed order in the stream): he runs about now and then.
+    const run = rng.chance(B.roam.runChance);
+    const far = run || Math.abs(x - dog.x) > B.speeds.runBeyondPx * k(dog.plane);
     moveTo('trot', far ? 'run' : 'trot', x, far ? B.speeds.runPx : B.speeds.trotPx);
     return true;
   }
@@ -307,7 +315,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     dog.plane = 'near';
     dog.x = homeX('near');
     dog.carrying = false;
-    dog.fetch = null;
+    dog.shy = false;
     // In by the end he went home by; if no clear way in from there, by the other end.
     let spot = pickSpot();
     if (spot === null) {
@@ -330,7 +338,6 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   }
 
   function startFetch(f: Fetch): void {
-    dog.fetch = null;
     host.emit({
       type: 'brakkieFetchStarted',
       tick: host.tick(),
@@ -349,18 +356,29 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     if (toDx !== fromDx) dog.facing = toDx > fromDx ? 1 : -1;
   }
 
-  /** A pending fetch: go once the spot is clear (checked every checkTicks), else give up. */
+  /** Birds whose spot stayed busy too long are left. */
+  function dropStale(tick: number): void {
+    for (let i = dog.queue.length - 1; i >= 0; i--) {
+      const g = dog.queue[i]?.giveUpTick ?? null;
+      if (g !== null && g < tick) dog.queue.splice(i, 1);
+    }
+  }
+
+  /** The next bird in the queue: go once its spot is clear (checked every checkTicks). A bird
+   *  whose spot stays busy is passed over for the next one that is clear. */
   function tryFetch(tick: number): void {
-    const f = dog.fetch;
-    if (f === null || tick < f.readyTick || !idle()) return;
-    if (tick > f.giveUpTick) {
-      dog.fetch = null;
+    dropStale(tick);
+    if (dog.queue.length === 0 || !idle() || tick < dog.fetchCheck) return;
+    dog.fetchCheck = tick + checkTicks;
+    for (let i = 0; i < dog.queue.length; i++) {
+      const f = dog.queue[i];
+      if (f === undefined || tick < f.readyTick) continue;
+      f.giveUpTick ??= tick + ticks(B.fetch.waitSeconds);
+      if (host.busyNear(f.plane, f.x, B.fetch.clearPx * k(f.plane))) continue;
+      dog.queue.splice(i, 1);
+      startFetch(f);
       return;
     }
-    if (tick < dog.fetchCheck) return;
-    dog.fetchCheck = tick + checkTicks;
-    if (host.busyNear(f.plane, f.x, B.fetch.clearPx * k(f.plane))) return;
-    startFetch(f);
   }
 
   function tryBark(tick: number): void {
@@ -368,7 +386,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     if (
       !idle() ||
       dog.plane !== 'near' ||
-      dog.fetch !== null ||
+      dog.queue.length > 0 ||
       Math.abs(dxOf(dog.plane, dog.x)) > B.roam.viewHalfPx + B.roam.driftPx
     ) {
       dog.nextBark = tick + ticks(B.bark.retrySeconds);
@@ -402,7 +420,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       dog.nextFlush = geo.durationTicks;
       return;
     }
-    if (!idle() || dog.plane !== 'near' || dog.fetch !== null || host.gunUp(holdTicks)) {
+    if (!idle() || dog.plane !== 'near' || dog.queue.length > 0 || host.gunUp(holdTicks)) {
       dog.nextFlush = tick + ticks(B.flush.retrySeconds);
       return;
     }
@@ -438,7 +456,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     if (dog.plane === 'near' && STANDING.has(dog.phase)) {
       // A wide-spread gun came out: off to the bakkie (no yelp, nothing hit him).
       if (host.wideGun()) {
-        dog.fetch = null;
+        dog.queue.length = 0;
         dog.barkFlock = null;
         goHome('bolt', B.speeds.runPx);
         return;
@@ -493,11 +511,17 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
             dog.fetches++;
             host.emit({ type: 'brakkieFetched', tick });
           }
-          const away = dog.phase === 'carry' ? B.fetch.awaySeconds : B.hit.awaySeconds;
+          // More birds waiting: he drops this one and is straight back out for the next.
+          dropStale(tick);
+          const away =
+            dog.phase !== 'carry'
+              ? B.hit.awaySeconds
+              : dog.queue.length > 0
+                ? B.fetch.backSeconds
+                : B.fetch.awaySeconds;
           dog.plane = 'near';
           dog.x = homeX('near');
           dog.carrying = false;
-          dog.fetch = null;
           setPhase('away', 'sit', rangeTicks(away));
           return;
         }
@@ -598,21 +622,24 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       points,
     });
     if (dog.phase === 'yelp' || dog.phase === 'bolt') return;
-    dog.fetch = null;
+    dog.queue.length = 0;
+    dog.shy = true;
     dog.carrying = false;
     dog.barkFlock = null;
     setPhase('yelp', 'yelp', ticks(B.hit.yelpSeconds));
   }
 
+  /** v1.16 (D-078): a bird down in reach joins his queue (whatever he is doing, unless he bolted
+   *  from a hit or a wide-spread gun is out); he fetches them one at a time. */
   function bagged(plane: PlaneId, x: number): void {
     if (plane !== 'near' && plane !== 'mid') return;
-    if (!B.fetch.planes.includes(plane) || !idle() || dog.fetch !== null || dog.carrying) return;
+    if (!B.fetch.planes.includes(plane) || dog.shy || host.wideGun()) return;
+    if (dog.phase === 'yelp' || dog.phase === 'bolt') return;
+    if (dog.queue.length >= B.fetch.queueMax) return;
     if (Math.abs(dxOf(plane, x)) > B.fetch.maxDxPx) return;
     if (!rng.chance(B.fetch.chance)) return;
-    const tick = host.tick();
-    const ready = tick + ticks(B.fetch.delaySeconds);
-    dog.fetch = { plane, x, readyTick: ready, giveUpTick: ready + ticks(B.fetch.waitSeconds) };
-    dog.fetchCheck = ready;
+    const ready = host.tick() + ticks(B.fetch.delaySeconds);
+    dog.queue.push({ plane, x, readyTick: ready, giveUpTick: null });
   }
 
   function view(): BrakkieView {
@@ -648,6 +675,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
               p: dog.dur > 0 ? Math.min(1, dog.t / dog.dur) : 1,
             },
       hits: dog.hits,
+      queued: dog.queue.length,
       fetches: dog.fetches,
       barks: dog.barks,
       flushes: dog.flushes,

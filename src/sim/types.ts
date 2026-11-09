@@ -255,6 +255,8 @@ export interface BrakkieView {
     readonly p: number;
   } | null;
   readonly hits: number;
+  /** v1.16 (D-078): birds waiting in his fetch queue. */
+  readonly queued: number;
   readonly fetches: number;
   readonly barks: number;
   readonly flushes: number;

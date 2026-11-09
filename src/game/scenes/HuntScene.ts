@@ -2582,6 +2582,7 @@ export class HuntScene extends Phaser.Scene {
       hook.namibLife = this.namibLife?.hook() ?? null;
       hook.tells = this.tells?.tells ?? null;
       hook.baboons = this.baboons?.baboons ?? null;
+      hook.baboonCalls = this.baboons?.callCounts ?? null;
       hook.brakkie = this.brakkie?.hook ?? null;
       hook.cameos = this.cameos?.hook ?? null;
       hook.baboonRaid = state.baboons?.raid ?? null;
@@ -2964,7 +2965,15 @@ export class HuntScene extends Phaser.Scene {
     this.farCans.handle(events, this.ctx.audio, width);
     this.makalani?.handle(events, this.ctx.audio, width);
     // v1.8b (D-062): the baboons' barks, screeches and raid sounds.
-    this.baboons?.handle(events, state, this.ctx.audio, width);
+    // v1.16 (D-078): and the troop's calls (a bark when the aim comes near one peeking).
+    const ch = this.weapon.crosshair.root;
+    this.baboons?.handle(
+      events,
+      state,
+      this.ctx.audio,
+      width,
+      ch.visible && ch.alpha > 0 ? ch : null,
+    );
     // v1.12 (D-069): Brakkie's barks, yelp and panting.
     this.brakkie?.handle(events, this.ctx.audio, width);
     // v1.13 (D-075): the cameos' grunts, plop, tok, boom, alarm whistle, snort and trumpet.

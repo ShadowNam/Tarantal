@@ -3,19 +3,19 @@
   "images": {
     "baboons/sheet": {
       "file": {
-        "path": "assets/baboons-hd/img/baboons_sheet.3bf214d5294f.png",
-        "bytes": 278234,
-        "hash": "3bf214d5294f"
+        "path": "assets/baboons-hd/img/baboons_sheet.a8b18e0e1dde.png",
+        "bytes": 278659,
+        "hash": "a8b18e0e1dde"
       },
       "width": 1512,
-      "height": 1820,
+      "height": 1736,
       "scale": 0.5
     },
     "braai/sheet": {
       "file": {
-        "path": "assets/braai-hd/img/braai_sheet.4c1f5f8530c5.png",
-        "bytes": 101139,
-        "hash": "4c1f5f8530c5"
+        "path": "assets/braai-hd/img/braai_sheet.c7793735703b.png",
+        "bytes": 101509,
+        "hash": "c7793735703b"
       },
       "width": 1024,
       "height": 864,
@@ -583,9 +583,9 @@
     },
     "karoo/bakkie": {
       "file": {
-        "path": "assets/karoo-autumn-hd/img/karoo_bakkie.72f338c44882.png",
-        "bytes": 30959,
-        "hash": "72f338c44882"
+        "path": "assets/karoo-autumn-hd/img/karoo_bakkie.72599eb646f4.png",
+        "bytes": 27990,
+        "hash": "72599eb646f4"
       },
       "width": 1000,
       "height": 600,

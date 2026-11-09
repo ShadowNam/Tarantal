@@ -1905,7 +1905,7 @@ export function createSim(config: SimConfig): Sim {
         const kind = shapeOf(m.pose);
         if (kind === null) continue;
         const box = mk.hitboxes[kind];
-        const k = c.scale * (m.pup ? mk.pupScale : 1);
+        const k = c.scale * mk.sizeMul * (m.pup ? mk.pupScale : 1);
         add(c.layerId, {
           kind: 'meerkat',
           meerkatId: m.id,

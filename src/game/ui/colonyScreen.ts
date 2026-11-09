@@ -99,7 +99,7 @@ export function colonyRects(
     const highest = Math.max(...c.burrows.map((x) => x.mound));
     const left = width / 2 + planeToDx(cx, sf, Math.min(...xs) - reach);
     const right = width / 2 + planeToDx(cx, sf, Math.max(...xs) + reach);
-    const top = c.y - highest - standing * k;
+    const top = c.y - highest - standing * k * mk.sizeMul;
     const bottom = c.y + MOUND_HEIGHT * k;
     return { id: c.id, rect: { x: left, y: top, w: right - left, h: bottom - top } };
   });

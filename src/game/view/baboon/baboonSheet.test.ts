@@ -34,7 +34,8 @@ describe('baboon sheet (D-062)', () => {
   });
 
   it('has a frame for every ridge pose and every raid (the mother with her own)', () => {
-    const poses = ['sit', 'groom', 'look', 'play', 'walk', 'bark', 'down', 'up'] as const;
+    // v1.16 (D-078): the poses drawn over the ridge's edge (hide and out are behind it).
+    const poses = ['peek', 'sentinel', 'bark', 'down'] as const;
     for (const role of ['lookout', 'male', 'mother', 'juvenile'] as const)
       for (const pose of poses) {
         const f = ridgeFrame({ id: 1, role, x: 0, y: 0, facing: 1, pose, t: 0, dur: 10 });
@@ -42,9 +43,10 @@ describe('baboon sheet (D-062)', () => {
         if (f !== null) expect(BABOON_FRAMES[f]).toBeDefined();
         if (role === 'mother' && f !== null) expect(f.startsWith('r_mother'), pose).toBe(true);
       }
-    expect(
-      ridgeFrame({ id: 1, role: 'male', x: 0, y: 0, facing: 1, pose: 'out', t: 0, dur: 0 }),
-    ).toBeNull();
+    for (const pose of ['out', 'hide'] as const)
+      expect(
+        ridgeFrame({ id: 1, role: 'male', x: 0, y: 0, facing: 1, pose, t: 0, dur: 0 }),
+      ).toBeNull();
     const raider = (over: Partial<RaiderView>): RaiderView => ({
       id: 1,
       raidId: 1,

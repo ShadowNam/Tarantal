@@ -391,6 +391,11 @@ export const MeerkatsSchema = obj({
   /** Hit shapes from the feet (sim position): standing tall, low (sit, dig, run) and a peeking
    *  head; mirrored by facing like a bird's. */
   hitboxes: obj({ tall: hitboxSchema, low: hitboxSchema, peek: hitboxSchema }),
+  /** v1.16 (D-078): the meerkats' size on top of the plane's scale, so one stands its real
+   *  0.3 m next to the guineafowl. Grows the drawn meerkat (not its mound), its hit shapes and
+   *  the body-sized gaps (spacing, a dash's file, the pup's gap, the photo row); not the forage
+   *  reach or the run speed. */
+  sizeMul: z.number().gt(0).max(2),
   /** A pup's size against an adult's. */
   pupScale: z.number().gt(0).max(1),
   /** Chance a colony has a pup trailing its mother. */
@@ -592,17 +597,28 @@ export const BaboonsSchema = obj({
   /** Mothers (with the baby on the back) and youngsters, as a share of the male's size. */
   motherScale: pos,
   juvenileScale: pos,
-  hitboxes: obj({ sit: baboonBox, walk: baboonBox, stand: baboonBox }),
+  /** v1.16 (D-078) peek: head and shoulders over the ridge's edge. */
+  hitboxes: obj({ sit: baboonBox, walk: baboonBox, stand: baboonBox, peek: baboonBox }),
   troop: obj({
     /** Members, the lookout included (capped by the troop's seats). */
     size: range(z.number().int().min(5).max(10)),
     mothers: range(nonNegInt),
     juveniles: range(nonNegInt),
-    /** Idle activity weights on the ridge (play: youngsters only; walk: to a free seat). */
-    activities: obj({ sit: nonNeg, groom: nonNeg, look: nonNeg, play: nonNeg, walk: nonNeg }),
-    activitySeconds: range(pos),
-    walkPxPerSec: pos,
-    /** Running over the ridge (or climbing back), and how long it stays out of sight. */
+    /** v1.16 (D-078): a hidden member's turn up over the edge: peek (anyone) or sit up on top as
+     *  the sentinel (males; the lookout × lookoutSentinelMul). */
+    activities: obj({ peek: nonNeg, sentinel: nonNeg }),
+    lookoutSentinelMul: nonNeg,
+    /** At most this many over the edge at once (a raid's lookout and raiders aside). */
+    maxVisible: z.number().int().min(1).max(3),
+    /** How long it stays hidden, peeks, sits as the sentinel; rising over (or ducking behind) the
+     *  edge takes riseSeconds. */
+    hideSeconds: range(pos),
+    peekSeconds: range(pos),
+    sentinelSeconds: range(pos),
+    riseSeconds: pos,
+    /** Chance a hidden member creeps to another free seat before its next look. */
+    moveChance: fraction,
+    /** Ducking over the ridge to flee, and how long it stays out of sight. */
     climbSeconds: pos,
     awaySeconds: range(pos),
   }),
@@ -630,6 +646,28 @@ export const BaboonsSchema = obj({
     /** A finished throw or chase threatens the flocks on the spot's plane within this share of
      *  the panorama. */
     alertRadiusU: fraction,
+  }),
+  /** v1.16 (D-078): the troop's calls (view only: never in the sim). A male's echoing "wa-hoo"
+   *  every wahooSeconds while the troop is on the ridge (and with each raid's warning); a bark
+   *  when a member is up over the edge and the aim comes within aimNearPx of it (at most every
+   *  aimBarkSeconds); now and then a grunt (a youngster: a squeal) as one comes up for a look; a
+   *  scream from a raider scared off. Idle calls keep minGapSeconds apart. levelDb mixes them under
+   *  the music; each plane is quieter by planeDb, the far ones dulled by farLowpassHz. */
+  calls: obj({
+    wahooSeconds: range(pos),
+    minGapSeconds: pos,
+    aimBarkSeconds: pos,
+    aimNearPx: pos,
+    gruntChance: fraction,
+    squealChance: fraction,
+    levelDb: z.number().max(0),
+    planeDb: obj({
+      near: z.number().max(0),
+      mid: z.number().max(0),
+      far: z.number().max(0),
+      ver: z.number().max(0),
+    }),
+    farLowpassHz: pos,
   }),
   hit: obj({
     hitsToBag: posInt,
@@ -2130,6 +2168,8 @@ export const BrakkieSchema = obj({
     tries: posInt,
     restSeconds: range(pos),
     restWeights: obj({ sniff: nonNeg, sit: nonNeg, lie: nonNeg }),
+    /** v1.16 (D-078): chance he runs (not trots) to a new spot that is near enough to trot to. */
+    runChance: fraction,
   }),
   clear: obj({
     /** Nothing a player aims at on his layer within this of a spot he stands on. */
@@ -2156,8 +2196,11 @@ export const BrakkieSchema = obj({
     delaySeconds: nonNeg,
     /** He goes only when no live bird is within this of the spot (plane px; mid converts). */
     clearPx: pos,
-    /** He waits this long for that, else gives up. */
+    /** Free to go for a bird (v1.16: from its turn in the queue), he waits this long for its spot
+     *  to clear, else he leaves it. */
     waitSeconds: nonNeg,
+    /** v1.16 (D-078): birds he means to fetch, one at a time in the order they fell. */
+    queueMax: posInt,
     /** Only for a bag this close to the view's centre (screen px). */
     maxDxPx: pos,
     pickupSeconds: pos,
@@ -2165,6 +2208,8 @@ export const BrakkieSchema = obj({
     crossSeconds: pos,
     /** At the bakkie with the bird before he comes back. */
     awaySeconds: range(pos),
+    /** v1.16 (D-078): …or this long when more birds are waiting for him. */
+    backSeconds: range(pos),
   }),
   bark: obj({
     everySeconds: range(pos),

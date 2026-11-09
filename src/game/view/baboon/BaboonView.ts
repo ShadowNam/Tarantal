@@ -13,10 +13,13 @@ import type * as Phaser from 'phaser';
 import type { BaboonTuning } from '../../../content/schemas';
 import type { SimEvent } from '../../../sim/events';
 import type { BaboonView as SimBaboon, PlaneId, RaiderView, SimState } from '../../../sim/types';
-import type { AudioDirector } from '../../audio/AudioDirector';
+import type { AudioDirector, Synth } from '../../audio/AudioDirector';
 import { designSize } from '../../layout';
 import type { ParallaxView } from '../ParallaxView';
+import { riseOf } from '../../../sim/baboons/baboons';
+import { secondsToTicks } from '../../../sim/clock';
 import {
+  BABOON_FRAMES,
   BABOON_SHEET,
   RAIDER_H,
   RIDGE_H,
@@ -24,17 +27,27 @@ import {
   baboonTexelsPerPx,
   type BaboonFrame,
 } from './baboonSheet';
-import { BABOON_SOUNDS, BABOON_SYNTH, RAID_SOUND, type BaboonSound } from './baboonSounds';
+import { BaboonCalls } from './baboonCalls';
+import {
+  BABOON_CALLS,
+  BABOON_SOUNDS,
+  BABOON_SYNTH,
+  RAID_SOUND,
+  type BaboonCall,
+} from './baboonSounds';
 
-/** Ticks per frame: walking, running, the ridge's walk and play, the bark, an action's swap. */
+/** A call with no synth stand-in: silent until its recording arrives. */
+const SILENT: Synth = () => 0;
+
+/** Ticks per frame: walking, running, a peek's look round, the bark, an action's swap. */
 const WALK_TICKS = 8;
 const RUN_TICKS = 5;
-const RIDGE_WALK_TICKS = 9;
-const PLAY_TICKS = 10;
+const LOOK_TICKS = 70;
 const BARK_TICKS = 6;
 const ACT_TICKS = 18;
-/** Climbing over the ridge: how far it slides down (ridge px at a male's size). */
-const CLIMB_DROP = 22;
+/** v1.16 (D-078): a ridge member's feet (a bust's cut) sit this far below the ridge's edge (ridge
+ *  px at a male's size), so no sky shows under it where the skyline dips a little. */
+const EDGE_SINK = 3;
 /** The tumble shows this share of its time, then it lies still and fades. */
 const TUMBLE_SHARE = 0.45;
 /** The thrower's fruit flies for the act's last FLIGHT_TICKS ticks. */
@@ -57,6 +70,9 @@ export interface BaboonHook {
   readonly groundY: number | null;
   readonly visible: boolean;
   readonly alpha: number;
+  /** v1.16 (D-078) a ridge member: how far up over the edge (0 hidden behind it … 1 all the way
+   *  up); 1 for everything else. */
+  readonly rise: number;
 }
 
 interface Slot {
@@ -70,6 +86,8 @@ interface Slot {
   flip: boolean;
   shown: boolean;
   seen: boolean;
+  /** Texture rows shown from the frame's top (-1: not cropped). */
+  crop: number;
   hook: BaboonHook;
 }
 
@@ -83,31 +101,23 @@ const SHEET_POLL_FRAMES = 30;
 
 const alt = (t: number, every: number): boolean => Math.floor(t / every) % 2 === 0;
 
-/** The ridge frame for a member's pose. */
+/** The ridge frame for a member's pose (null: behind the ridge, not drawn). A peek looks round
+ *  (a ↔ b every LOOK_TICKS); a duck shows the bust going down. */
 export function ridgeFrame(m: SimBaboon): BaboonFrame | null {
   const mother = m.role === 'mother';
   switch (m.pose) {
+    case 'hide':
     case 'out':
       return null;
-    case 'walk':
-      if (mother) return alt(m.t, RIDGE_WALK_TICKS) ? 'r_mother_walk_a' : 'r_mother_walk_b';
-      return alt(m.t, RIDGE_WALK_TICKS) ? 'r_walk_a' : 'r_walk_b';
+    case 'peek':
     case 'down':
-      return mother ? 'r_mother_walk_a' : 'r_down';
-    case 'up':
-      return mother ? 'r_mother_walk_b' : 'r_up';
+      if (mother) return 'r_mother_peek';
+      return m.pose === 'peek' && !alt(m.t, LOOK_TICKS) ? 'r_peek_b' : 'r_peek_a';
+    case 'sentinel':
+      return mother ? 'r_mother_peek' : 'r_sentinel';
     case 'bark':
-      if (mother) return 'r_mother_sit';
+      if (mother) return 'r_mother_peek';
       return alt(m.t, BARK_TICKS) ? 'r_bark_a' : 'r_bark_b';
-    case 'play':
-      if (mother) return 'r_mother_sit';
-      return alt(m.t, PLAY_TICKS) ? 'r_play_a' : 'r_play_b';
-    case 'look':
-      return mother ? 'r_mother_sit' : 'r_look';
-    case 'groom':
-      return mother ? 'r_mother_sit' : 'r_groom';
-    case 'sit':
-      return mother ? 'r_mother_sit' : 'r_sit';
   }
 }
 
@@ -157,9 +167,13 @@ export class BaboonView {
   private hookList: BaboonHook[] = [];
   /** Raiders whose action's sound has played (cleared when they go). */
   private readonly actHeard = new Set<number>();
+  /** v1.16 (D-078): each ridge member's pose last frame (a look starting: maybe a grunt). */
+  private readonly lastPose = new Map<number, string>();
+  private readonly calls: BaboonCalls;
   /** Milliseconds the last update took (perf.spec: baboonMs). */
   lastMs = 0;
   private readonly tumbleTicks: number;
+  private readonly riseTicks: number;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -171,6 +185,9 @@ export class BaboonView {
     private readonly hooks = false,
   ) {
     this.tumbleTicks = Math.max(1, Math.round(tuning.hit.tumbleSeconds * 60));
+    this.riseTicks = secondsToTicks(tuning.troop.riseSeconds);
+    // The calls' timing draws: view only (sounds never touch the sim).
+    this.calls = new BaboonCalls(tuning.calls, Math.random);
   }
 
   /** True once the delivered sheet (Standard or its HD twin) is under the key. */
@@ -204,6 +221,8 @@ export class BaboonView {
     for (const s of this.all()) {
       s.img.setTexture(BABOON_SHEET, s.frame);
       s.img.setScale((s.scale * was) / k);
+      // The crop is in texture rows: cut again at the new size.
+      s.crop = -1;
       s.scale = (s.scale * was) / k;
       this.origin(s);
     }
@@ -237,7 +256,18 @@ export class BaboonView {
       flip: false,
       shown: false,
       seen: false,
-      hook: { id, role, frame: null, x: 0, y: 0, groundY: null, visible: false, alpha: 0 },
+      crop: -1,
+      hook: {
+        id,
+        role,
+        frame: null,
+        x: 0,
+        y: 0,
+        groundY: null,
+        visible: false,
+        alpha: 0,
+        rise: 1,
+      },
     };
   }
 
@@ -298,7 +328,14 @@ export class BaboonView {
 
   /** The test hook's entry (only with the hooks on: no allocations otherwise). Its position is
    *  the baboon's place from the snapshot, culled or not (review of v1.8b). */
-  private hookOf(s: Slot, show: boolean, x: number, y: number, groundY: number | null): void {
+  private hookOf(
+    s: Slot,
+    show: boolean,
+    x: number,
+    y: number,
+    groundY: number | null,
+    rise = 1,
+  ): void {
     if (!this.hooks) return;
     const layer = this.parallax.layer(s.layerId);
     if (layer === undefined) return;
@@ -314,9 +351,10 @@ export class BaboonView {
       h.visible !== show ||
       h.frame !== f ||
       h.alpha !== a ||
-      h.groundY !== gy
+      h.groundY !== gy ||
+      h.rise !== rise
     )
-      s.hook = { ...h, x: hx, y: hy, visible: show, frame: f, alpha: a, groundY: gy };
+      s.hook = { ...h, x: hx, y: hy, visible: show, frame: f, alpha: a, groundY: gy, rise };
   }
 
   /** Draws the baboons at this tick. */
@@ -354,26 +392,29 @@ export class BaboonView {
       for (const m of troop.members) {
         let s = this.members.get(m.id);
         if (s === undefined) {
-          const made = this.newSlot(troop.layerId, 'r_sit', m.id, m.role);
+          const made = this.newSlot(troop.layerId, 'r_peek_a', m.id, m.role);
           if (made === null) continue;
           s = made;
           this.members.set(m.id, s);
         }
         s.seen = true;
         const frame = ridgeFrame(m);
-        const k = base * (m.role === 'mother' ? 1 : m.role === 'juvenile' ? T.juvenileScale : 1);
-        const scale = m.role === 'mother' ? base * T.motherScale : k;
-        let y = m.y;
-        let alpha = 1;
-        if ((m.pose === 'down' || m.pose === 'up') && m.dur > 0) {
-          // Over the ridge: sliding down behind it and fading (back up: the reverse).
-          const p = Math.min(1, m.t / m.dur);
-          const away = m.pose === 'down' ? p : 1 - p;
-          y += away * CLIMB_DROP * base;
-          alpha = 1 - away;
+        const scale =
+          base *
+          (m.role === 'mother' ? T.motherScale : m.role === 'juvenile' ? T.juvenileScale : 1);
+        // v1.16 (D-078): over the ridge's edge only as far as it has risen; the rest of it is
+        // below the edge line, behind the ridge (cut off, so the ridge's art shows there).
+        const rise = riseOf(m, this.riseTicks);
+        const box = frame === null ? null : BABOON_FRAMES[frame];
+        const drop = box === null ? 0 : (1 - rise) * box.oy * scale + EDGE_SINK * base;
+        const rows = box === null ? 0 : Math.floor((box.oy * scale - drop) * (this.k / scale));
+        const y = m.y + drop;
+        const show = this.place(s, rows > 0 ? frame : null, m.x, y, scale, m.facing === -1, 1);
+        if (show && box !== null && rows !== s.crop) {
+          s.img.setCrop(0, 0, box.w * this.k, rows);
+          s.crop = rows;
         }
-        const show = this.place(s, frame, m.x, y, scale, m.facing === -1, alpha);
-        this.hookOf(s, show, m.x, y, null);
+        this.hookOf(s, show, m.x, m.y, null, rise);
         if (this.hooks) this.hookList[n++] = s.hook;
       }
     }
@@ -463,45 +504,129 @@ export class BaboonView {
     this.lastMs = this.now() - t0;
   }
 
-  /** The baboons' sounds: the lookout's bark, a hit raider's screech, the raid's own sound when
-   *  a raider gets to work, the thump of a bagged one. */
-  handle(events: readonly SimEvent[], state: SimState, audio: AudioDirector, width: number): void {
+  /** The baboons' sounds: the troop's own calls (v1.16, D-078: baboonCalls.ts, rate-limited —
+   *  the echoing wa-hoo, the aimed bark, grunts and squeals, a scared raider's scream), the raid's
+   *  own sound when a raider gets to work, the thump of a bagged one. `aim`: the crosshair on
+   *  screen (design px), or null when it isn't up. */
+  handle(
+    events: readonly SimEvent[],
+    state: SimState,
+    audio: AudioDirector,
+    width: number,
+    aim: { readonly x: number; readonly y: number } | null = null,
+  ): void {
+    const tick = state.tick;
+    const troops = state.baboons?.troops ?? [];
     for (const e of events) {
-      let sound: BaboonSound | null = null;
-      let plane: PlaneId | null = null;
-      let x = 0;
       if (e.type === 'baboonRaidWarned') {
-        const troop = state.baboons?.troops.find((t) => t.id === e.troopId);
+        const troop = troops.find((t) => t.id === e.troopId);
         const m = troop?.members.find((b) => b.id === e.baboonId);
         if (troop !== undefined && m !== undefined) {
-          sound = 'bark';
-          plane = troop.plane;
-          x = m.x;
+          this.calls.warn(tick);
+          this.call('wahoo', troop.plane, m.x, audio, width);
         }
       } else if (e.type === 'baboonHit') {
-        sound =
-          e.role === 'raider' && e.hitsLeft > 0 ? 'screech' : e.role === 'raider' ? null : 'bark';
-        plane = e.plane;
-        x = e.x;
+        if (e.role === 'raider' && e.hitsLeft > 0) {
+          // Hit once and running for it: the scream.
+          this.calls.scream();
+          this.call('scream', e.plane, e.x, audio, width);
+        } else if (e.role !== 'raider') {
+          this.calls.warn(tick);
+          this.call('wahoo', e.plane, e.x, audio, width);
+        }
       } else if (e.type === 'baboonBagged') {
-        sound = 'thump';
-        plane = e.plane;
-        x = e.x;
+        audio.playExtra(
+          BABOON_SOUNDS.thump,
+          this.pan(e.plane, e.x, width),
+          BABOON_SYNTH.thump,
+          1,
+          this.levelDb(e.plane),
+        );
       } else if (e.type === 'troopFled' && e.cause === 'loud') {
-        sound = 'bark';
-        plane = e.plane;
-        x = e.x;
+        this.calls.warn(tick);
+        this.call('wahoo', e.plane, e.x, audio, width);
       }
-      if (sound !== null && plane !== null)
-        audio.playExtra(BABOON_SOUNDS[sound], this.pan(plane, x, width), BABOON_SYNTH[sound]);
+    }
+    for (const troop of troops) {
+      let caller: SimBaboon | null = null;
+      for (const m of troop.members) {
+        const was = this.lastPose.get(m.id);
+        if (was !== m.pose) this.lastPose.set(m.id, m.pose);
+        const up = m.pose === 'peek' || m.pose === 'sentinel';
+        if (up && was === 'hide') {
+          const c = this.calls.cameUp(tick, m.role === 'juvenile');
+          if (c !== null) this.call(c, troop.plane, m.x, audio, width);
+        }
+        if (caller === null && (m.role === 'lookout' || m.role === 'male')) caller = m;
+        // The aim comes near one looking over the edge: it barks at the gun.
+        if (up && aim !== null && this.nearAim(troop.layerId, m.x, m.y, aim)) {
+          if (this.calls.aimed(tick)) this.call('bark', troop.plane, m.x, audio, width);
+        }
+      }
+      // The idle wa-hoo from behind the ridge (a male's place), while the troop is there.
+      if (caller !== null && this.calls.wahoo(tick, !troop.fled))
+        this.call('wahoo', troop.plane, caller.x, audio, width);
     }
     // A raider getting to work: its action's sound (once per raider).
     for (const r of state.baboons?.raiders ?? [])
       if (r.phase === 'act' && !this.actHeard.has(r.id)) {
         this.actHeard.add(r.id);
         const sound = RAID_SOUND[r.action];
-        audio.playExtra(BABOON_SOUNDS[sound], this.pan(r.plane, r.x, width), BABOON_SYNTH[sound]);
+        audio.playExtra(
+          BABOON_SOUNDS[sound],
+          this.pan(r.plane, r.x, width),
+          BABOON_SYNTH[sound],
+          1,
+          this.levelDb(r.plane),
+        );
       }
+  }
+
+  /** A troop call from layer x on a plane: its recording (else the old synth), at its distance. */
+  private call(
+    c: BaboonCall | 'bark',
+    plane: PlaneId,
+    x: number,
+    audio: AudioDirector,
+    width: number,
+  ): void {
+    const key = c === 'bark' ? BABOON_SOUNDS.bark : BABOON_CALLS[c];
+    const synth = c === 'scream' ? BABOON_SYNTH.screech : BABOON_SYNTH.bark;
+    const far = plane === 'far' || plane === 'ver';
+    audio.playExtra(
+      key,
+      this.pan(plane, x, width),
+      c === 'grunt' || c === 'squeal' ? SILENT : synth,
+      1,
+      this.levelDb(plane),
+      far ? this.tuning.calls.farLowpassHz : 0,
+    );
+  }
+
+  private levelDb(plane: PlaneId): number {
+    return this.tuning.calls.levelDb + this.tuning.calls.planeDb[plane];
+  }
+
+  /** The aim (screen design px) within aimNearPx of a ridge member's head and shoulders. */
+  private nearAim(
+    layerId: string,
+    x: number,
+    y: number,
+    aim: { readonly x: number; readonly y: number },
+  ): boolean {
+    const layer = this.parallax.layer(layerId);
+    if (layer === undefined) return false;
+    const sx = layer.root.x + x * layer.root.scaleX;
+    const sy = layer.root.y + y * layer.root.scaleY;
+    const r = this.tuning.calls.aimNearPx;
+    const dx = aim.x - sx;
+    const dy = aim.y - sy;
+    return dx * dx + dy * dy <= r * r;
+  }
+
+  /** e2e: the troop's calls so far (the rate limit). */
+  get callCounts(): Readonly<BaboonCalls['counts']> {
+    return this.calls.counts;
   }
 
   private pan(plane: PlaneId, x: number, width: number): number {

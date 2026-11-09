@@ -57,6 +57,8 @@ import {
 import { loadFeel, loadSoundscape } from '../testContent';
 import { SOUNDSCAPE_GROUP, soundscapeSounds } from '../../src/game/audio/soundscapeKeys';
 import { RaidActionSchema } from '../../src/content/schemas';
+import { BABOON_GROUP } from '../../src/game/view/baboon/baboonKeys';
+import { BABOON_CALLS } from '../../src/game/view/baboon/baboonSounds';
 import {
   BRAAI_GROUP,
   BRAAI_SHEET,
@@ -240,6 +242,10 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   });
   for (const key of Object.values(BRAKKIE_SOUNDS))
     entries.set(key, { key, kind: 'sound', group: BRAKKIE_GROUP, biomes: everyBiome });
+  // v1.16 (D-078): the baboons' calls (wa-hoo, grunt, squeal, scream) with their sheet, in the
+  // baboons' group (after the first download, loaded with every hunt).
+  for (const key of Object.values(BABOON_CALLS))
+    entries.set(key, { key, kind: 'sound', group: BABOON_GROUP, biomes: everyBiome });
   // v1.13 (D-075): each area's cameo sheet and sounds in a lazy group of its own (its HD twin
   // cameos-<area>-hd), fetched by the cameos' chunk when a hunt on that area starts.
   const biomeOfArea = (area: string): string[] =>

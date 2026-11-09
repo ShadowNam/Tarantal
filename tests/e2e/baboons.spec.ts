@@ -26,6 +26,8 @@ interface Baboon {
   readonly groundY: number | null;
   readonly visible: boolean;
   readonly alpha: number;
+  /** v1.16 (D-078) a ridge member: how far up over the edge (1: all the way up). */
+  readonly rise: number;
 }
 
 interface Raid {
@@ -42,6 +44,7 @@ type Hooked = {
     score: number;
     baboons?: Baboon[] | null;
     baboonRaid?: Raid | null;
+    baboonCalls?: { wahoo: number; grunt: number; squeal: number; bark: number } | null;
     namibLog?: string[];
   };
 };
@@ -207,8 +210,9 @@ test('a hit on a mother costs points; the troop runs over the ridge', async ({ p
       }),
     );
   });
-  // No raid flag: the troop sits on its ridge (the first raid is 12 s off at the earliest).
-  await boot(page, BASE.replace('&baboonRaid=hat', ''));
+  // v1.16 (D-078): no raids, and the troop's looks over the ridge come quickly and last 10–14 s
+  // (?baboonPeek=long): a mother is up over the edge often enough to be shot at.
+  await boot(page, BASE.replace('&baboonRaid=hat', '&baboonPeek=long'));
   await startHunt(page, touch);
   expect((await hook(page)).weapon).toBe('windbuks');
   // The troop is in the hook (drawn or culled off screen): pan to a mother, then see her drawn.
@@ -224,22 +228,23 @@ test('a hit on a mother costs points; the troop runs over the ridge', async ({ p
   await page.waitForFunction(
     () =>
       ((window as unknown as Hooked).__TM__?.baboons ?? []).some(
-        (b) => b.role === 'mother' && b.visible,
+        (b) => b.role === 'mother' && b.visible && b.rise >= 1,
       ),
     null,
-    { timeout: 120_000 },
+    { timeout: 300_000 },
   );
+  // Only all the way up over the edge is she hittable (rising or ducking she is behind it).
   const motherOf = async (): Promise<Baboon | undefined> =>
-    (await baboonsOf(page)).find((b) => b.role === 'mother' && b.visible);
+    (await baboonsOf(page)).find((b) => b.role === 'mother' && b.visible && b.rise >= 1);
   const scale = scoring.planes.far.scale * birds.baboons.motherScale;
-  const body = birds.baboons.hitboxes.sit.body;
+  const body = birds.baboons.hitboxes.peek.body;
   let hit = false;
   let scoreBefore = -1;
   for (let shot = 0; shot < 40 && !hit; shot++) {
     await reloadIfEmpty(page, touch);
     const m = await motherOf();
     if (m === undefined) {
-      // The troop is away over the ridge (a stray hit on another member): wait for it.
+      // She is behind the ridge (or the troop is away after a stray hit): wait for her look.
       await waitTicks(page, 60);
       continue;
     }
@@ -265,7 +270,7 @@ test('a hit on a mother costs points; the troop runs over the ridge', async ({ p
   expect(after.score).toBe(scoreBefore - birds.baboons.hit.penalty);
   const log = await page.evaluate(() => (window as unknown as Hooked).__TM__?.namibLog ?? []);
   expect(log).toContain('bark:guide.baboon.mother');
-  // The troop runs over the ridge: within its climb every member is gone from the ridge.
+  // The troop ducks behind the ridge: within its climb every member is out of sight.
   const climb = Math.ceil(birds.baboons.troop.climbSeconds * 60) + 30;
   await waitTicks(page, climb);
   expect((await baboonsOf(page)).filter((b) => b.role !== 'raider' && b.visible)).toEqual([]);
@@ -291,7 +296,7 @@ test('a hunt waits for the baboon sheet; then the troop is drawn on the canvas',
     await Promise.race([landed, new Promise((r) => setTimeout(r, 100_000))]);
     await route.continue();
   });
-  await boot(page, BASE.replace('&baboonRaid=hat', ''));
+  await boot(page, BASE.replace('&baboonRaid=hat', '&baboonPeek=long'));
   // Start the hunt without startHunt's wait for it: it must not run while the sheet is held.
   await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
     timeout: 120_000,
@@ -303,15 +308,16 @@ test('a hunt waits for the baboon sheet; then the troop is drawn on the canvas',
   release();
   await page.waitForFunction(() => (window.__TM__?.tick ?? 0) > 30, null, { timeout: 300_000 });
   await panCamera(page, troopCameraX());
+  // v1.16 (D-078): the troop hides behind the ridge; wait for one all the way up over the edge.
   await page.waitForFunction(
     () =>
-      ((window as unknown as Hooked).__TM__?.baboons ?? []).filter(
-        (b) => b.role !== 'raider' && b.visible,
-      ).length >= 5,
+      ((window as unknown as Hooked).__TM__?.baboons ?? []).some(
+        (b) => b.role !== 'raider' && b.visible && b.rise >= 1,
+      ),
     null,
     { timeout: 300_000 },
   );
-  // Hold before the first raid (12 s at the earliest) with the troop sitting.
+  // Hold the moment (no raids under ?baboonPeek).
   await page.evaluate(() => {
     const t = (window.__TM__?.tick ?? 0) + 20;
     (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(t);
@@ -330,20 +336,54 @@ test('a hunt waits for the baboon sheet; then the troop is drawn on the canvas',
     return [img.data[i] ?? 0, img.data[i + 1] ?? 0, img.data[i + 2] ?? 0];
   };
   let drawn = 0;
-  const shown = (await baboonsOf(page)).filter((b) => b.role !== 'raider' && b.visible);
+  const all = (await baboonsOf(page)).filter((b) => b.role !== 'raider');
+  const shown = all.filter((b) => b.visible && b.rise >= 1);
+  // Few at once: the rest are hidden behind the ridge (not drawn at all).
+  expect(all.filter((b) => b.visible).length).toBeLessThanOrEqual(3);
+  expect(all.length - all.filter((b) => b.visible).length).toBeGreaterThanOrEqual(2);
   for (const b of shown) {
-    // The sky well above the head, and the body (a sitting male is ~54 design px on the ridge).
+    // The sky well above the head, and the head and shoulders over the edge (a peek's bust is
+    // ~27 design px tall on the far ridge; the hook's y is the ridge's edge).
     const sky = px(b.x, b.y - 80);
     let differs = 0;
-    for (let y = b.y - 30; y < b.y - 6; y += 2)
+    for (let y = b.y - 22; y < b.y - 6; y += 2)
       for (let x = b.x - 8; x <= b.x + 8; x += 2) {
         const c = px(x, y);
         if (Math.abs(c[0] - sky[0]) + Math.abs(c[1] - sky[1]) + Math.abs(c[2] - sky[2]) > 60)
           differs++;
       }
-    if (differs > 20) drawn++;
+    if (differs > 12) drawn++;
   }
-  expect(drawn, `members drawn on the canvas, of ${shown.length}`).toBeGreaterThanOrEqual(
-    Math.min(5, shown.length),
-  );
+  expect(shown.length).toBeGreaterThan(0);
+  expect(drawn, `members drawn on the canvas, of ${shown.length}`).toBe(shown.length);
+});
+
+// v1.16 (D-078): the troop calls — a wa-hoo plays (the hook's counter) while it is on its ridge,
+// and never more often than its limit: one idle wa-hoo per wahooSeconds[0] at most, plus one with
+// each raid's warning or scare. Checked on sim ticks (lesson 2: never on the wall clock).
+test("the troop's wa-hoo plays, never more often than its limit", async ({ page }, info) => {
+  test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
+  test.setTimeout(900_000);
+  const touch = isTouchProject(info);
+  await boot(page, BASE.replace('&baboonRaid=hat', ''));
+  await startHunt(page, touch);
+  const [gapMin = 20, gapMax = 40] = birds.baboons.calls.wahooSeconds;
+  const minTicks = gapMax * 60 + 120;
+  const res = await (
+    await page.waitForFunction(
+      (until): { tick: number; wahoo: number; raids: number } | null => {
+        const tm = (window as unknown as Hooked).__TM__;
+        const c = tm?.baboonCalls;
+        if ((tm?.tick ?? 0) < until || c === null || c === undefined) return null;
+        return { tick: tm?.tick ?? 0, wahoo: c.wahoo, raids: tm?.baboonRaid?.id ?? 0 };
+      },
+      minTicks,
+      { timeout: 600_000 },
+    )
+  ).jsonValue();
+  if (res === null) throw new Error('no calls hook');
+  expect(res.wahoo, 'a wa-hoo within wahooSeconds').toBeGreaterThanOrEqual(1);
+  const idleMax = Math.floor(res.tick / (gapMin * 60)) + 1;
+  // Raids (each warns once) and scares (none here: no shots) add theirs.
+  expect(res.wahoo).toBeLessThanOrEqual(idleMax + res.raids + 1);
 });

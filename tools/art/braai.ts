@@ -12,8 +12,9 @@
 //   stones, glowing coals, the grid, a blue enamel coffee pot at its side), a soft glow, three
 //   spark frames (a few embers rising, so the loop climbs).
 // - The sky: a star tile (wraps at its edges), the Milky Way's band with its dust lanes, the
-//   Southern Cross (Acrux, Mimosa, Gacrux, Delta and Epsilon Crucis). The bakkie: a generic pickup
-//   in silhouette (no brand), a cool rim of sky light on its roof and a warm glint from the fire.
+//   Southern Cross (Acrux, Mimosa, Gacrux, Delta and Epsilon Crucis). The bakkie: a boxy old 4×4
+//   single-cab pickup (no brand, D-078), a cool rim of sky light on its roof and a warm glint
+//   from the fire.
 // Coordinates: design px round each frame's origin; figures are drawn in Oupa units × OUPA_K.
 import {
   BRAAI_SHEET_H,
@@ -1561,24 +1562,29 @@ function southernCross(): string {
   );
 }
 
-/** One of the bakkie's wheels at (x, −18): a treaded tyre, a steel rim with its holes and lug
- *  nuts, the hub; the fire's warm light on the left of the tread, the moon's on top. */
+/** One of the bakkie's wheels at (x, −18): a chunky all-terrain tyre (block tread proud of its
+ *  outline), a steel rim with its holes and lug nuts, the hub; the fire's warm light on the left
+ *  of the tread, the moon's on top. */
 function wheel(x: number): string {
   const cy = -18;
-  const tread: string[] = [];
-  for (let k = 0; k < 28; k++) {
-    const a = (k / 28) * Math.PI * 2;
-    const c = Math.cos(a);
-    const s = Math.sin(a);
-    tread.push(
-      `M${r2(x + c * 22.5)} ${r2(cy + s * 22.5)}L${r2(x + c * 26.5)} ${r2(cy + s * 26.5)}`,
+  const blocks: string[] = [];
+  for (let k = 0; k < 16; k++) {
+    const a = (k / 16) * Math.PI * 2;
+    const b = a + 0.2;
+    const ro = 27.5;
+    const ri = 21;
+    blocks.push(
+      `M${r2(x + Math.cos(a) * ri)} ${r2(cy + Math.sin(a) * ri)}` +
+        `L${r2(x + Math.cos(a) * ro)} ${r2(cy + Math.sin(a) * ro)}` +
+        `L${r2(x + Math.cos(b) * ro)} ${r2(cy + Math.sin(b) * ro)}` +
+        `L${r2(x + Math.cos(b) * ri)} ${r2(cy + Math.sin(b) * ri)}Z`,
     );
   }
   const rim = radial(
     [
-      [0, '#9AA0AA', 1],
-      [0.6, '#5A606A', 1],
-      [1, '#262A32', 1],
+      [0, '#A4AAB4', 1],
+      [0.6, '#646A74', 1],
+      [1, '#2A2E36', 1],
     ],
     0.4,
     0.35,
@@ -1587,21 +1593,21 @@ function wheel(x: number): string {
   const holes: string[] = [];
   for (let k = 0; k < 6; k++) {
     const a = (k / 6) * Math.PI * 2 + 0.3;
-    holes.push(ellipseD(x + Math.cos(a) * 9, cy + Math.sin(a) * 9, 2, 2));
+    holes.push(ellipseD(x + Math.cos(a) * 9.5, cy + Math.sin(a) * 9.5, 2.1, 2.1));
   }
   const lugs: string[] = [];
-  for (let k = 0; k < 5; k++) {
-    const a = (k / 5) * Math.PI * 2;
+  for (let k = 0; k < 6; k++) {
+    const a = (k / 6) * Math.PI * 2;
     lugs.push(ellipseD(x + Math.cos(a) * 4.2, cy + Math.sin(a) * 4.2, 0.9, 0.9));
   }
   return g(
     {},
     defs(rim),
     path(ellipseD(x, cy, 26.5, 26.5), '#08090C'),
-    stroke(tread.join(''), '#1C1E24', 2.4),
-    path(ellipseD(x, cy, 21, 21), '#121318'),
-    stroke(ellipseD(x, cy, 18, 18), '#2A2C34', 1, 0.8),
-    edge(ellipseD(x, cy, 14, 14), rim.url, 1, '#0A0A0E'),
+    path(blocks.join(''), '#22242A'),
+    stroke(ellipseD(x, cy, 20, 20), '#2A2C34', 1, 0.8),
+    edge(ellipseD(x, cy, 15, 15), rim.url, 1, '#0A0A0E'),
+    stroke(ellipseD(x, cy, 12.6, 12.6), '#2A2E36', 0.8, 0.8),
     path(holes.join(''), '#0A0B10'),
     edge(ellipseD(x, cy, 5.6, 5.6), '#B8BEC8', 0.8, '#1A1C22'),
     path(lugs.join(''), '#2A2C34'),
@@ -1627,18 +1633,21 @@ function wheel(x: number): string {
   );
 }
 
-/** The bakkie: a generic single-cab pickup (no badge, no brand), side view, nose to the left,
- *  its wheels on y = 0 at ±104. Faded red paint by night: panels and door lines, a swage line,
- *  wheel arches, side glass with a faint sky reflection, chrome bumpers and a mirror catching the
- *  fire (on the left), the load bay with its tailgate, the red tail light and a dim headlight
- *  glint; the moon's cool rim along every top edge. */
+/** v1.16 (D-078): the bakkie, the same boxy old single-cab 4×4 pickup as the hunt's (the owner:
+ *  "more a Hilux bakkie"; no badge, brand or emblem), side view, nose to the left, its wheels on
+ *  y = 0 at ±104. Farm white by night (moonlit grey, dusty low down): an upright square cab, a
+ *  raked windscreen, a long flat bonnet, the nose turned a little to us (plain barred grille,
+ *  square headlight with a dim glint, amber indicator), chunky black bumpers, black flared boxy
+ *  arches, high clearance with the chassis dark underneath, steel wheels on all-terrain tyres; the
+ *  long load bin with its black sports bar, tie-down hooks, the vertical red tail light and a tow
+ *  hitch. The fire's warmth on the nose, the moon's cool rim along every top edge. */
 function bakkie(): string {
   const paint = linear(
     [
-      [0, '#5E342E'],
-      [0.35, '#40252A'],
-      [0.8, '#24181C'],
-      [1, '#140E12'],
+      [0, '#9AA2B4'],
+      [0.4, '#6C7284'],
+      [0.8, '#383A48'],
+      [1, '#1C1C26'],
     ],
     0,
     1,
@@ -1652,102 +1661,122 @@ function bakkie(): string {
     0.6,
     1,
   );
-  const chrome = linear(
-    [
-      [0, '#D8DEE8'],
-      [0.4, '#7A808C'],
-      [0.6, '#30343C'],
-      [1, '#9AA0AA'],
-    ],
-    0,
-    1,
-  );
   const fireSide = linear(
     [
-      [0, '#FF9A50', 0.45],
+      [0, '#FF9A50', 0.5],
       [0.25, '#FF9A50', 0],
       [1, '#FF9A50', 0],
     ],
     1,
     0,
   );
-  const outline: P[] = [
-    [-150, -36],
-    [-146, -62],
-    [-96, -70],
-    [-66, -104],
-    [6, -106],
-    [16, -72],
-    [150, -72],
-    [154, -30],
-    [150, -20],
-    [-148, -20],
+  const dust = linear(
+    [
+      [0, '#6A5440', 0],
+      [1, '#6A5440', 0.6],
+    ],
+    0,
+    1,
+  );
+  const black = '#101116';
+  const blackHi = '#3A3E4A';
+  const sill = -31;
+  // Boxy arches: straight sides, a flat top just clear of the tyre.
+  const archPts = (cx: number): P[] => [
+    [cx - 33, sill],
+    [cx - 30, -49],
+    [cx - 23, -55],
+    [cx + 23, -55],
+    [cx + 30, -49],
+    [cx + 33, sill],
   ];
-  const bodyD = smoothD(outline, true, 0.25);
-  // Wheel arches: the body cut round each wheel, dark inside.
-  const arch = (x: number): string =>
-    `M${x - 33} -20L${x - 33} -24A33 33 0 0 1 ${x + 33} -24L${x + 33} -20Z`;
+  const archL = (cx: number): string =>
+    archPts(cx)
+      .reverse()
+      .map(([x, y]) => `L${x} ${y}`)
+      .join('');
+  // Clockwise from the nose's top: bonnet, windscreen, roof, cab back, bin rail, tailgate, sill.
+  const bodyD =
+    `M-150 -80L-88 -85L-69 -112Q-67 -115 -63 -115L4 -115Q8 -115 8 -111L11 -81L150 -81` +
+    `L151 ${sill + 2}Q151 ${sill} 148 ${sill}` +
+    archL(104) +
+    archL(-104) +
+    `L-148 ${sill}Q-151 ${sill} -151 ${sill - 3}Z`;
+  const faceD = 'M-150 -81L-155 -78L-156 -32L-150 -31Z';
   return g(
     {},
-    defs(paint, glass, chrome, fireSide),
-    // The ground shadow.
+    defs(paint, glass, fireSide, dust),
+    // The ground shadow, the chassis and the wheel wells dark under the high body.
     path(ellipseD(0, 2, 150, 5), '#000000', { opacity: 0.45 }),
+    path(`M-140 ${sill - 1}L140 ${sill - 1}L140 ${sill + 6}L-140 ${sill + 6}Z`, '#07080B'),
+    edge(`M-10 ${sill}L34 ${sill}L34 ${sill + 9}L-10 ${sill + 9}Z`, '#16171E', 0.8, '#06070A'),
+    path(polyD(archPts(-104)) + polyD(archPts(104)), '#050608'),
     edge(bodyD, paint.url, 1.6, '#06070A'),
     clipped(
       bodyD,
-      path(arch(-104) + arch(104), '#050608'),
       // The fire's warmth on the nose and the cab's front.
-      path('M-160 -110L40 -110L40 0L-160 0Z', fireSide.url),
-      // The swage line along the flank: a lit ridge over a shade line.
-      stroke('M-146 -50L150 -50', '#8A5444', 1.6, 0.7),
-      stroke('M-146 -47L150 -47', '#140C0E', 1.4, 0.7),
-      // Panel gaps: the bonnet's edge, the door, the cab's back, the bin's front, the tailgate.
+      path('M-160 -120L40 -120L40 0L-160 0Z', fireSide.url),
+      // The body crease: a moonlit ridge over a shade line; dust low down.
+      stroke('M-150 -66L152 -66', '#B4BCD0', 1.4, 0.6),
+      stroke('M-150 -63.5L152 -63.5', '#14141C', 1.2, 0.7),
+      path(`M-152 -50L152 -50L152 ${sill}L-152 ${sill}Z`, dust.url),
+      // Panel gaps: the fender seam, the door, the cab's back, the tailgate.
       stroke(
-        'M-96 -70L-92 -24M-62 -98L-62 -24L-2 -24L0 -72M14 -72L16 -24M140 -72L140 -22',
+        `M-138 -80L-138 -56M-87 -84L-85 ${sill + 4}L3 ${sill + 4}L3 -112M10 -80L11 ${sill + 2}M142 -80L142 ${sill + 2}`,
         '#0A0608',
         1.2,
         0.9,
       ),
-      stroke('M-60 -97L-60 -25M16 -71L18 -25M142 -71L142 -23', '#7A4A3E', 0.8, 0.5),
-      // The door handle and keyhole, chrome catching the fire.
-      edge('M-14 -64L-2 -64L-2 -60L-14 -60Z', chrome.url, 0.8, '#0A0A0E'),
-      path(ellipseD(-6, -55, 1, 1), '#0A0A0E'),
-      // The load bin's top rail and its tie-down hooks.
-      stroke('M18 -69L148 -69', '#140C0E', 2, 0.8),
-      stroke('M44 -66l0 4M84 -66l0 4M124 -66l0 4', '#A0A6B0', 1.4, 0.8),
-      // Dust and mud low down.
-      path('M-150 -30L150 -30L150 -20L-150 -20Z', '#2A1E18', { opacity: 0.5 }),
+      stroke(`M5 -110L5 ${sill + 5}M13 -79L13 ${sill + 3}`, '#9AA2B4', 0.8, 0.4),
+      // The door handle and keyhole catching the fire.
+      edge('M-14 -79L-3 -79L-3 -76L-14 -76Z', black, 0.8, '#06070A'),
+      stroke('M-13 -78.4L-4 -78.4', '#FFB070', 0.8, 0.7),
+      // Tie-down hooks along the bin rail.
+      stroke('M60 -79l0 4M96 -79l0 4M128 -79l0 4', '#A0A6B0', 1.4, 0.8),
     ),
-    path(arch(-104) + arch(104), 'none'),
-    stroke('M-137 -24A33 33 0 0 1 -71 -24M71 -24A33 33 0 0 1 137 -24', '#7A4A3E', 1.4, 0.7),
-    // Windows: the side glass and the cab's back glass, a sky streak and a star across them.
-    edge('M-88 -72L-62 -98L-20 -98L-20 -72Z', glass.url, 1, '#06070A'),
-    edge('M-14 -98L2 -98L10 -72L-14 -72Z', glass.url, 1, '#06070A'),
-    path('M-70 -72L-50 -98L-40 -98L-60 -72Z', '#8EA4D0', { opacity: 0.18 }),
-    path('M-44 -72L-26 -96L-22 -96L-40 -72Z', '#8EA4D0', { opacity: 0.12 }),
-    path(ellipseD(-6, -90, 0.9, 0.9), '#E8EEFF', { opacity: 0.9 }),
-    // The mirror on its arm at the windscreen's foot, its chrome edge in firelight.
-    stroke('M-84 -73L-89 -77', '#1A1A20', 2),
-    edge('M-97 -86L-88 -86L-87 -75L-98 -75Z', '#2A2C34', 1, '#06070A'),
-    stroke('M-97 -85L-97.6 -76', '#FFB070', 1.4, 0.85),
-    // Bumpers (chrome), the headlight's dim glint, an amber indicator, the red tail light.
-    edge('M-156 -38L-142 -38L-142 -26L-156 -26Z', chrome.url, 1, '#06070A'),
-    stroke('M-155 -37L-155 -27', '#FFB070', 1.6, 0.9),
-    edge('M146 -36L157 -36L157 -24L146 -24Z', chrome.url, 1, '#06070A'),
-    edge(ellipseD(-147, -54, 3.6, 6), '#3A3A30', 0.8, '#06070A'),
-    path(ellipseD(-148, -55, 2, 3.4), '#FFF0C0', { opacity: 0.55 }),
-    path(ellipseD(-146, -44, 1.6, 2.4), '#D88A2A', { opacity: 0.9 }),
-    edge('M148 -66L154 -66L154 -46L148 -46Z', '#8A140E', 0.8, '#06070A'),
-    path('M149 -64L153 -64L153 -54L149 -54Z', '#FF4A2A', { opacity: 0.8 }),
-    path(ellipseD(153, -56, 4, 10), '#FF3A1A', { opacity: 0.15 }),
+    // The flared arch lips (black, squared).
+    stroke(polyD(archPts(-104), false) + polyD(archPts(104), false), black, 4.4),
+    stroke(polyD(archPts(-104), false) + polyD(archPts(104), false), blackHi, 1, 0.6),
+    // The front face: plain barred grille, square headlight (a dim glint), amber indicator.
+    edge(faceD, '#3A3E4C', 1, '#06070A'),
+    path(faceD, fireSide.url),
+    edge('M-155 -77L-151 -77.5L-151 -69L-155 -68.5Z', '#3A3A30', 0.7, '#06070A'),
+    path('M-154.2 -76L-151.8 -76.4L-151.8 -70.2L-154.2 -69.8Z', '#FFF0C0', { opacity: 0.6 }),
+    edge('M-155.5 -66L-151 -66.5L-151 -51L-155.5 -50.5Z', black, 0.7, '#06070A'),
+    stroke('M-155 -62.5L-151.5 -63M-155 -58.5L-151.5 -59M-155 -54.5L-151.5 -55', '#8A909C', 1, 0.9),
+    path('M-155 -48L-151 -48.4L-151 -44.6L-155 -44.2Z', '#D88A2A', { opacity: 0.9 }),
+    // Windows: the side glass with a sky streak and a star across it, its rubber frame.
+    edge('M2 -109L-62 -109L-80 -88L2 -88Z', glass.url, 1.4, '#06070A'),
+    path('M-48 -88L-32 -108L-24 -108L-40 -88Z', '#8EA4D0', { opacity: 0.18 }),
+    path('M-24 -88L-10 -106L-6 -106L-20 -88Z', '#8EA4D0', { opacity: 0.12 }),
+    path(ellipseD(-8, -100, 0.9, 0.9), '#E8EEFF', { opacity: 0.9 }),
+    stroke('M-69 -112L-88 -85', '#1A1C24', 2.2),
+    // The square black mirror on the door's corner, its edge in firelight.
+    stroke('M-80 -89L-86 -93', black, 1.8),
+    edge('M-93 -101L-84 -101L-84 -91L-93 -91Z', black, 1, '#06070A'),
+    stroke('M-92.5 -100L-92.5 -92', '#FFB070', 1.2, 0.85),
+    // The sports bar behind the cab: its post, the top tube back, the brace to the bin rail.
+    stroke('M23 -81L23 -108', '#06070A', 3.4),
+    stroke('M18 -81L18.5 -106Q19 -110 23 -110L36 -110Q39 -110 41 -107L60 -81', black, 3.6),
+    stroke('M17 -84L17.5 -105M23 -111.2L36 -111.2M42 -105L58 -84', '#8EA4D0', 0.9, 0.55),
+    // Bumpers (chunky black), the tail light, the tow hitch.
+    edge('M-157 -43L-136 -44L-136 -30L-155 -30L-157 -33Z', black, 1, '#06070A'),
+    stroke('M-156 -42L-137 -43', '#FFB070', 1.2, 0.8),
+    edge('M150 -77L155 -77L155 -57L150 -57Z', '#8A140E', 0.8, '#06070A'),
+    path('M151 -75L154 -75L154 -66L151 -66Z', '#FF4A2A', { opacity: 0.8 }),
+    path(ellipseD(154, -67, 4, 10), '#FF3A1A', { opacity: 0.15 }),
+    edge('M140 -42L155 -42L155 -31L140 -31Z', black, 1, '#06070A'),
+    stroke('M141 -41L154 -41', blackHi, 1, 0.8),
+    edge('M146 -30L158 -30L158 -27L146 -27Z', '#1C1E26', 0.6, '#06070A'),
+    edge(ellipseD(155, -32.5, 2.6, 2.6), '#6A707C', 0.6, '#06070A'),
     // Wheels.
     wheel(-104),
     wheel(104),
     // The moon's cool rim along the top edges, the fire's warm one down the nose.
-    stroke('M-146 -62L-96 -70L-66 -104L6 -106L16 -72L150 -72', '#8EA4D0', 1.8, 0.6),
-    stroke('M-65 -103L5 -105', '#C8D4F0', 1, 0.5),
-    stroke('M-149 -38L-146 -60', '#FF9A50', 2, 0.8),
-    stroke('M-95 -70L-67 -102', '#FF9A50', 1.2, 0.5),
+    stroke('M-150 -80L-88 -85L-69 -112M-63 -115L4 -115M11 -81L150 -81', '#8EA4D0', 1.8, 0.6),
+    stroke('M-63 -114L3 -114', '#C8D4F0', 1, 0.5),
+    stroke('M-156 -33L-155 -77', '#FF9A50', 1.6, 0.8),
+    stroke('M-87 -85L-70 -111', '#FF9A50', 1.2, 0.5),
   );
 }
 

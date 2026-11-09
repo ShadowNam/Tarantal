@@ -4,10 +4,11 @@
 // - raider frames, drawn at the mid plane's size (a sitting male 151 px: birds.json
 //   baboons.heightPx × planes.mid.scale): walking on all fours (4), running (2), each raid's
 //   action (2 each), the tumble when bagged and lying still;
-// - ridge frames, drawn at the far plane's size (a sitting male 54 px): sitting, grooming,
-//   looking, the lookout's bark, walking, the youngsters' play, a mother with the baby on her
-//   back (sitting, walking), climbing down and up. Mothers and youngsters are the same frames
-//   drawn smaller (motherScale, juvenileScale) except the mother's own.
+// - ridge frames, drawn at the far plane's size (a sitting male 54 px). v1.16 (D-078): the troop
+//   hides behind the skyline and peeks over it — a male's head and shoulders (a bust cut flat at
+//   the origin, which is the ridge's edge) looking out and looking round, a mother's bust with
+//   the baby's head over her shoulder, the sentinel sitting up on top, the lookout's bark.
+//   Youngsters are the same frames drawn smaller (juvenileScale); mothers use their own.
 // Plus two small things: the fruit a thrower throws and the water from a knocked tap.
 // The delivered file is a 2× master (HD shows it at 2 texels per px; Standard gets the pack's 1×).
 // Pure constants and a frame table: the game, the placeholder and the interim art generator
@@ -49,20 +50,12 @@ export const BABOON_FRAME_NAMES = [
   'moon_a',
   'tumble',
   'down',
-  'r_sit',
-  'r_groom',
-  'r_look',
+  'r_peek_a',
+  'r_peek_b',
+  'r_mother_peek',
+  'r_sentinel',
   'r_bark_a',
   'r_bark_b',
-  'r_walk_a',
-  'r_walk_b',
-  'r_play_a',
-  'r_play_b',
-  'r_mother_sit',
-  'r_mother_walk_a',
-  'r_mother_walk_b',
-  'r_down',
-  'r_up',
   'r_rock',
   'fx_fruit',
   'fx_water',

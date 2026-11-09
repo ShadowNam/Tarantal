@@ -448,6 +448,16 @@ startled yelp, never a cry of pain, ≤ 0.4 s), `sfx/brakkie_pant` (happy pantin
 three lines are voiced per language (`audio/voice/<lang>/guide.brakkie.{scold,fetched,title}.wav`,
 the voice packs; text in `src/i18n/guide/<lang>.json`).
 
+**The baboons' calls (v1.16, D-078; art bible §5.3).** Interim, made in code by
+`tools/audio/baboons.ts` (`npm run audio:interim -- --only baboons`), awaiting recordings: in the
+baboons' group `baboons` (with the sheet: after the first download, loaded with every hunt; never
+the first download): `sfx/baboon_wahoo` (an adult male's two-syllable alarm bark "wa-HOO" with its
+echo off the koppies, ≤ 2.2 s), `sfx/baboon_grunt` (two or three low contact grunts, ~1.1 s),
+`sfx/baboon_squeal` (a youngster's squeal, ≤ 0.8 s), `sfx/baboon_scream` (a short scream, ≤ 1 s).
+The keys are in `BABOON_CALLS` (`src/game/view/baboon/baboonSounds.ts`); the catalog puts them in
+`baboons`. The older `sfx/baboon_*` keys (bark, screech, thump and the raids' sounds) stay synths
+until delivered.
+
 **Veld cameos (v1.13, D-075; art bible §5.7, §10.6).** Interim, awaiting real art and recordings:
 one sheet per area `sprites/cameos/<area>.png` for `bushveld`, `karoo`, `kalahari`, `namibie` (2×
 masters: 512 × 256, 1024 × 512, 512 × 256, 1024 × 512; the pack serves each at 1× and the master as

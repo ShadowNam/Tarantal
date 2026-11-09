@@ -696,6 +696,35 @@ darker belly and far limbs, every limb shaded on its underside and furred along 
 male's mane as pointed tufts inside the outline (never past it); paler grey cheeks; a darker muzzle
 with a lit bridge, side ridges and two nostrils; a heavy lit brow over a shaded socket; eye shine.
 
+**v1.16 (D-078) realism and hiding.** The owner: "they are not realistic enough, and they need to
+hide better between the mountains and peek out and then hide again". Every frame redrawn closer to
+a real chacma: one head profile along a long, deep, dog-like **dark grey-brown muzzle** (darker at
+the nose, which juts past the lips; the barks show the canines), close-set deep eyes with the pale
+lids under a **heavy brow**, a low furred crown; a deep chest and lean tucked waist, thick thighs
+and upper arms with **long slim forearms and shins**, hands and feet flat; on all fours the
+**shoulders stand higher than the hips**; the "broken" tail longer; adult males with a long-haired
+shoulder cape. The front-on face (the moon, `r_peek_b`) has the close-set eyes and the long muzzle
+down between them. **The ridge set is now** `r_peek_a` (a male's head and shoulders over the
+edge, profile, looking out; its flat cut at the origin row = the ridge's edge; head top ~27 px
+above it), `r_peek_b` (the same, looking round toward us), `r_mother_peek` (a female with her
+baby's head over her shoulder), `r_sentinel` (a male sitting up tall on top, tail hanging down
+behind, arms straight down), `r_bark_a/b` (the lookout standing and barking) and `r_rock`; the
+sitting, grooming, playing and walking ridge frames are gone (the troop no longer lounges in view).
+`BaboonView` draws a member only over the edge: as it rises (or ducks) the part below the ridge's
+edge line is cut off (`setCrop`, changed only when it changes), so the ridge's art shows there and
+a hidden one is not drawn at all. The sheet shrinks 756 × 910 → 756 × 868 (1×).
+**Sounds (v1.16):** recordings made in code by `tools/audio/baboons.ts` (lazy group `baboons`):
+`sfx/baboon_wahoo` — an adult male's loud two-syllable alarm bark, a short harsh rising "wa" then a
+longer, louder falling "HOO" through low open-mouth formants, with two late, dull echoes off the
+koppies (2.1 s); `sfx/baboon_grunt` — two or three low breathy contact grunts; `sfx/baboon_squeal`
+— a youngster's high wavering squeal; `sfx/baboon_scream` — a raider's harsh scream when it is hit
+and runs, cracking into noise. Played from the troop's place (panned by screen x), 4 dB under the
+other effects and quieter and duller on the far planes (−7 dB and a 3 kHz low-pass on the far
+ridge), rate-limited (`birds.json baboons.calls`, `baboonCalls.ts`): a wa-hoo every 20–40 s while the
+troop is on its ridge and with each raid's warning, a bark when the aim comes within 140 px of one
+peeking (at most every 10 s), grunts or a squeal now and then as one comes up, idle calls ≥ 4 s
+apart.
+
 ### 5.4 Die Oes: the farm field, warthogs and the farm workers (1.11.0, D-063)
 Interim at the D-035 bar (review round 1: the sheet's figures are semi-realistic, drawn from
 posed skeletons like the baboons, no ink, layered shading and texture, so HD adds detail). **The field** (`oes`): a warm late-summer sky, a
@@ -858,6 +887,20 @@ uniform dark ellipses (they read as tyres). The kettle is chipped blue enamel wi
 wire bail and soot. The bakkie at night: a generic pickup (no badge) with panels, glass with a sky
 streak, chrome catching the fire, treaded tyres on steel rims, a red tail light; the moon's rim on
 its top edges.
+
+**v1.16 (D-078) the Hilux-style bakkie.** The owner: "the car needs to represent more a HILUX
+Bakki". Both bakkies — the hunt's Karoo prop (`karoo/bakkie`, `tools/art/biomes/karoo.ts`) and the
+braai's (`bakkie()` in `tools/art/braai.ts`) — are now the shape of a classic South African
+single-cab 4×4 bakkie: an upright square cab, a flat bonnet, a wide rectangular grille with
+horizontal bars and square headlights (amber indicators), chunky black bumpers, boxy black wheel-arch
+flares, high ground clearance with the chassis dark underneath, steel wheels on chunky block-tread
+all-terrain tyres, a long load bin with a black sports bar behind the cab and tie-down hooks,
+vertical tail lights and a tow hitch, farm dust and a little mud low down. White in the hunt;
+moonlit grey-white at the braai (firelight on the nose, the moon's rim on top, a dim headlight
+glint and the red tail light). **No brand anywhere** (CLAUDE.md): no name, badge or emblem — a
+plain grille; the shape alone reads as the type. Canvas, origin, wheels, footprint, occluder and
+the spare-wheel secret are unchanged; the hunt bakkie's PNG got smaller (Standard 15.6 → 14.2 KB).
+`npm run art:compare-realism` writes BEFORE | AFTER sheets.
 
 ## 7. FX
 Feather bursts (palette-tinted per variant), dust puffs, muzzle flash + smoke, shell ejection,

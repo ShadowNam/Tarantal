@@ -3,7 +3,7 @@
 // the sim (its view-only fruit: the Okavango's sausages), or that misses a secret's part or tell by
 // a little, flies on to the ridge, and a mother there costs 15 (any other member costs nothing). For
 // every map a biome can play (the plain biome, each layout, each layout with each bonus map), the
-// seats mothers can take (the highest ones after the lookout's) with a sitting mother's box are
+// seats mothers can take (the highest ones after the lookout's) with a peeking mother's box are
 // checked against every fruit (the fruit spots), every
 // secret part (a rotor's whole ring) and every tell on a near or mid layer, over the camera sweep: the
 // ridge scrolls slower than the planes in front, so a ridge x lines up with a prop x somewhere in
@@ -51,10 +51,11 @@ export function loadArtData(root: string): { fruit: (biome: string) => readonly 
   };
 }
 
-/** A sitting mother's box round her feet at plane scale k (body and head, her baby inside). */
+/** A mother's box round her feet at plane scale k: since v1.16 (D-078) she only ever peeks over the
+ *  ridge (head and shoulders, the baby's head inside). */
 function motherBox(content: ContentBundle, k: number): { halfW: number; height: number } {
   const b = content.birds.baboons;
-  const sit = b.hitboxes.sit;
+  const sit = b.hitboxes.peek;
   const m = k * b.motherScale;
   let halfW = 0;
   let height = 0;

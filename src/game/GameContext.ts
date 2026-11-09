@@ -560,6 +560,14 @@ export interface TestHook {
    *  raid now (from the snapshot), and the ms their view took (perf.spec: per scenery frame). */
   baboons: readonly BaboonHook[] | null;
   baboonRaid: BaboonsView['raid'];
+  /** v1.16 (D-078): the troop's calls so far (wa-hoo, grunt, squeal, bark, scream). */
+  baboonCalls: {
+    readonly wahoo: number;
+    readonly grunt: number;
+    readonly squeal: number;
+    readonly bark: number;
+    readonly scream: number;
+  } | null;
   baboonMs: number;
   /** v1.12 (D-069): Brakkie as drawn (null: not on this hunt, or his chunk isn't in). */
   brakkie: BrakkieHook | null;

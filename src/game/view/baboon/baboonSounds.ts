@@ -18,6 +18,17 @@ export const BABOON_SOUNDS = {
 } as const;
 export type BaboonSound = keyof typeof BABOON_SOUNDS;
 
+/** v1.16 (D-078): the troop's own calls, recordings made by tools/audio/baboons.ts in the
+ *  baboons' lazy group (silent until they arrive): the male's echoing "wa-hoo" alarm bark, the
+ *  contact grunts, a youngster's squeal, a scared-off raider's scream. */
+export const BABOON_CALLS = {
+  wahoo: 'sfx/baboon_wahoo',
+  grunt: 'sfx/baboon_grunt',
+  squeal: 'sfx/baboon_squeal',
+  scream: 'sfx/baboon_scream',
+} as const;
+export type BaboonCall = keyof typeof BABOON_CALLS;
+
 /** The sound a raid's action makes when the raider gets to it. */
 export const RAID_SOUND: Readonly<Record<RaidAction, BaboonSound>> = {
   hat: 'screech',
