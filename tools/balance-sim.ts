@@ -88,6 +88,12 @@ export interface HuntRow {
   readonly dogBarks?: number;
   readonly dogFlushes?: number;
   readonly dogFetches?: number;
+  /** v1.17 (D-079): what his Bring!, Goeie hond! and Mooi punt! paid, his best Bring streak,
+   *  his good points and the whistles that did something. */
+  readonly dogPoints?: number;
+  readonly dogBestStreak?: number;
+  readonly dogGoodPoints?: number;
+  readonly dogWhistles?: number;
   /** v1.13 (D-075): the cameos — hits aimed (they cost points: −10 outside the cooldown, counted
    *  even on the cooldown) and stray (a pellet that struck one without that), the springbok's
    *  alarms and the visits (0 on a hunt without cameos). */
@@ -199,7 +205,17 @@ export function playRows(job: Job): HuntRow[] {
       nutPops: r.nuts?.pops ?? 0,
       ...(sim.snapshot().brakkie === null
         ? {}
-        : { dogAimed, dogStray, dogBarks, dogFlushes, dogFetches }),
+        : {
+            dogAimed,
+            dogStray,
+            dogBarks,
+            dogFlushes,
+            dogFetches,
+            dogPoints: sim.snapshot().brakkie?.points ?? 0,
+            dogBestStreak: sim.snapshot().brakkie?.bestStreak ?? 0,
+            dogGoodPoints: sim.snapshot().brakkie?.goodPoints ?? 0,
+            dogWhistles: sim.snapshot().brakkie?.whistles ?? 0,
+          }),
       ...(sim.snapshot().cameos === null
         ? {}
         : { cameoAimed, cameoStray, cameoAlarms, cameoVisits }),

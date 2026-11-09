@@ -83,7 +83,7 @@ function rig(seed = 3, homeSide: 1 | -1 = -1): Rig {
       planeScale: { near: 1, mid: 0.42 },
       groundY: { near: B.groundY, mid: 760 },
       homeSide,
-      durationTicks: secondsToTicks(90),
+      durationTicks: secondsToTicks(180),
     },
     createRng(seed).stream('dog'),
     host,
@@ -336,8 +336,8 @@ describe('Brakkie (D-069)', () => {
   });
 
   it('a flush is a point, then one flock of point.size bursts up on the mid plane', () => {
-    const r = rig(10);
-    r.run(60 * 88);
+    const r = rig(3);
+    r.run(60 * 175);
     const flushed = r.events.filter((e) => e.type === 'brakkieFlushed');
     expect(flushed.length).toBe(r.flushes.length);
     expect(r.flushes.length).toBeGreaterThan(0);
@@ -470,8 +470,8 @@ describe('Brakkie the companion (v1.17, D-079)', () => {
   });
 
   it('"Staan!": the flush is a point (marker ahead), then a flock of 5 bursts up there', () => {
-    const r = rig(10);
-    r.until((v) => v.phase === 'point', 60 * 88);
+    const r = rig(3);
+    r.until((v) => v.phase === 'point', 60 * 175);
     const v = r.sys.view();
     expect(v.pose).toBe('point');
     expect(v.point).not.toBeNull();
@@ -488,15 +488,15 @@ describe('Brakkie the companion (v1.17, D-079)', () => {
   });
 
   it('points only when a flock can be there (the flock cap)', () => {
-    const r = rig(10);
+    const r = rig(3);
     r.state.canFlush = false;
-    r.run(60 * 88);
+    r.run(60 * 175);
     expect(r.events.some((e) => e.type === 'brakkiePointed')).toBe(false);
   });
 
   it('"Mooi punt!": 3 of the pointed flock bagged in its flush pay goodPoint once', () => {
-    const r = rig(10);
-    r.until((v) => v.phase === 'point', 60 * 88);
+    const r = rig(3);
+    r.until((v) => v.phase === 'point', 60 * 175);
     r.until((v) => v.phase !== 'point', 60 * 10);
     // The stub host gives every flush flock id 99.
     r.sys.bagged('mid', 0, 99);
@@ -510,8 +510,8 @@ describe('Brakkie the companion (v1.17, D-079)', () => {
   });
 
   it('no Mooi punt for birds of another flock or after the window', () => {
-    const r = rig(10);
-    r.until((v) => v.phase === 'point', 60 * 88);
+    const r = rig(3);
+    r.until((v) => v.phase === 'point', 60 * 175);
     r.until((v) => v.phase !== 'point', 60 * 10);
     for (let i = 0; i < 3; i++) r.sys.bagged('mid', 0, 7);
     r.run(secondsToTicks(B.point.goodPoint.withinSeconds) + 1);
@@ -520,8 +520,8 @@ describe('Brakkie the companion (v1.17, D-079)', () => {
   });
 
   it('"Fluit!": on point the whistle springs the flock now', () => {
-    const r = rig(10);
-    r.until((v) => v.phase === 'point', 60 * 88);
+    const r = rig(3);
+    r.until((v) => v.phase === 'point', 60 * 175);
     expect(r.sys.view().whistle).toBe('spring');
     r.run(5);
     r.sys.whistle();
@@ -614,5 +614,33 @@ describe('Brakkie the companion (v1.17, D-079)', () => {
     const t0 = r.state.tick;
     r.until((v) => v.phase !== 'react', 60 * 5);
     expect(r.state.tick - t0).toBe(secondsToTicks(B.react.seconds));
+  });
+});
+
+describe('Brakkie is sent once the shooting stops (v1.17, D-079)', () => {
+  it('a bird down waits while the gun is busy; he goes in a lull of fetch.quietSeconds', () => {
+    const r = rig(31);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.state.gunUp = true;
+    r.sys.bagged('near', towardCentre(r));
+    r.run(secondsToTicks(B.fetch.delaySeconds) + 60);
+    expect(r.sys.view().queued).toBe(1);
+    expect(r.events.some((e) => e.type === 'brakkieFetchStarted')).toBe(false);
+    r.state.gunUp = false;
+    r.until((v) => v.phase === 'fetch', 60 * 5);
+  });
+
+  it('"Soek!": with a bird waiting the whistle sends him for it at once, gun busy or not', () => {
+    const r = rig(32);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.state.gunUp = true;
+    r.sys.bagged('near', towardCentre(r));
+    expect(r.sys.view().whistle).toBe('heel');
+    r.run(secondsToTicks(B.fetch.delaySeconds) + 2);
+    expect(r.sys.view().whistle).toBe('seek');
+    r.sys.whistle();
+    expect(r.sys.view().phase).toBe('fetch');
+    const w = r.events.find((e) => e.type === 'brakkieWhistled');
+    expect(w?.type === 'brakkieWhistled' && w.action).toBe('seek');
   });
 });

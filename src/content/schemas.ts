@@ -2213,6 +2213,9 @@ export const BrakkieSchema = obj({
     waitSeconds: nonNeg,
     /** v1.16 (D-078): birds he means to fetch, one at a time in the order they fell. */
     queueMax: posInt,
+    /** v1.17 (D-079): like a real gundog he is sent once the shooting stops: he runs out for a
+     *  bird only after the gun has been quiet (no shot, no sight or fire held) this long. */
+    quietSeconds: nonNeg,
     /** Only for a bag this close to the view's centre (screen px). */
     maxDxPx: pos,
     pickupSeconds: pos,

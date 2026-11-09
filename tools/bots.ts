@@ -27,7 +27,9 @@ export type BotKind =
   | 'canHappy'
   | 'apexJuggler'
   | 'nutHappy'
-  | 'baboonHappy';
+  | 'baboonHappy'
+  // v1.17 (D-079): the competent bot working with Brakkie (companionBot).
+  | 'companion';
 export const BOT_KINDS: readonly BotKind[] = [
   'random',
   'aim',
@@ -37,6 +39,7 @@ export const BOT_KINDS: readonly BotKind[] = [
   'apexJuggler',
   'nutHappy',
   'baboonHappy',
+  'companion',
 ];
 
 export interface Bot {
@@ -66,6 +69,11 @@ export function createBot(
     const competent = createHumanBot('competent', seed, content, inputKind);
     const cans = canHappyBot(competent, seed, content, inputKind);
     const bot = nutHappyBot(cans, seed, content, inputKind);
+    return { kind, next: withRifle(bot, content, seed, style).next };
+  }
+  if (kind === 'companion') {
+    const competent = createHumanBot('competent', seed, content, inputKind);
+    const bot = companionBot(competent, content);
     return { kind, next: withRifle(bot, content, seed, style).next };
   }
   if (kind === 'baboonHappy') {
@@ -195,6 +203,46 @@ function harvestHunter(
  * otherwise it hunts like the competent bot. The balance cap: cans stay ≤ ~10 % of its score.
  */
 /** v1.8b (D-062): a raider in view (as seen LAG ticks ago) gets the next shot, at its body. */
+/**
+ * v1.17 (D-079): the competent bot working with Brakkie — it holds fire while a shot would land
+ * within clear.aimPx of him as he carries a bird (keeps the Bring streak), sends him for a bird
+ * that is down with the whistle ("Soek!"), and whistles his point up ("Spring!") as soon as its gun
+ * is full (just reloaded), so the flock bursts while it can shoot. Everything else is the
+ * competent bot.
+ */
+function companionBot(
+  inner: { next(state: SimState): Command[] },
+  content: ContentBundle,
+): { next(state: SimState): Command[] } {
+  const B = content.brakkie;
+  const planes = content.scoring.planes;
+  const box = B.hitboxes.stand.body;
+  return {
+    next(s) {
+      const d = s.brakkie;
+      const w = s.weapon;
+      const full = !w.reloading && (w.shells < 0 || w.shells >= w.magazine);
+      if (d !== null && d.whistle === 'spring' && full) return [{ t: 'whistle' }];
+      // A bird waits for him: send him for it ("Soek!").
+      if (d !== null && d.whistle === 'seek' && d.queued > 0) return [{ t: 'whistle' }];
+      const cmds = inner.next(s);
+      if (d === null || !d.carrying || !d.present) return cmds;
+      const f = planes[d.plane].scrollFactor;
+      const k = d.scale;
+      const hx = planeToDx(s.cameraX, f, d.x + box.ox * k * d.facing);
+      const hy = d.y + box.oy * k;
+      const r = B.clear.aimPx * k;
+      return cmds.filter((c) => {
+        if (c.t !== 'fire' && c.t !== 'aimRelease' && c.t !== 'fireHoldStart') return true;
+        if (c.t === 'aimRelease') return true;
+        const ddx = c.dx - hx;
+        const ddy = c.sy - hy;
+        return ddx * ddx + ddy * ddy > r * r;
+      });
+    },
+  };
+}
+
 function baboonHappyBot(
   inner: { next(state: SimState): Command[] },
   seed: number,

@@ -37,6 +37,7 @@
     "clearPx": 700,
     "waitSeconds": 5,
     "queueMax": 3,
+    "quietSeconds": 3,
     "maxDxPx": 640,
     "pickupSeconds": 0.6,
     "crossSeconds": 1.1,
@@ -45,8 +46,8 @@
   },
   "bark": { "everySeconds": [14, 26], "barkSeconds": 1.4, "threatAtSeconds": 0.5, "maxDxPx": 900, "retrySeconds": 3 },
   "flush": {
-    "firstSeconds": [20, 32],
-    "everySeconds": [35, 55],
+    "firstSeconds": [24, 36],
+    "everySeconds": [50, 70],
     "chance": 0.7,
     "maxDxPx": 450,
     "retrySeconds": 4
