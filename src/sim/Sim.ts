@@ -3895,9 +3895,8 @@ export function createSim(config: SimConfig): Sim {
     }
     if (wind !== null && windModel !== null) {
       const w = windModel.tickWind(wind, omenRng);
-      if (w === 'changed')
-        emit({ type: 'windChanged', tick, dir: wind.dir, strength: wind.strength });
-      else if (w === 'gust') emit({ type: 'windGust', tick, dir: wind.dir });
+      if (w.changed) emit({ type: 'windChanged', tick, dir: wind.dir, strength: wind.strength });
+      if (w.gust) emit({ type: 'windGust', tick, dir: wind.dir });
     }
     for (const s of secrets) {
       const t = tickSecret(s);

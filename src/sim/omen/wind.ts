@@ -109,22 +109,29 @@ function shape(s: number, e: 1 | 1.5 | 2): number {
   return e === 1 ? s : e === 2 ? s * s : s * Math.sqrt(s);
 }
 
-/** Advances one tick; returns 'changed' when the wind was re-rolled, 'gust' when a gust began. */
-export function tickWind(w: Wind, rng: RandomStream): false | 'changed' | 'gust' {
+/** What one tick did: the wind was re-rolled, a gust began — either, both or neither (D-080: a gust
+ *  starting on a re-roll's tick keeps its event). */
+export interface WindTick {
+  readonly changed: boolean;
+  readonly gust: boolean;
+}
+
+/** Advances one tick. */
+export function tickWind(w: Wind, rng: RandomStream): WindTick {
   w.t++;
-  let out: false | 'changed' | 'gust' = false;
+  let gust = false;
   if (w.gust !== null && w.t >= w.gust.start + w.gust.len) w.gust = null;
   const g = w.cfg.gusts;
   if (g !== undefined && w.gustRng !== null && w.gust === null && w.t >= w.nextGust) {
     const len = Math.max(1, secondsToTicks(between(w.gustRng, g.seconds[0], g.seconds[1])));
     w.gust = { start: w.t, len };
     w.nextGust = w.t + len + gapTicks(w);
-    out = 'gust';
+    gust = true;
   }
   w.ticksToChange--;
-  if (w.ticksToChange > 0) return out;
+  if (w.ticksToChange > 0) return { changed: false, gust };
   roll(w, rng);
-  return 'changed';
+  return { changed: true, gust };
 }
 
 /** 0..1: how far into its peak the gust is (a quick rise over `riseShare` of it, then the fall

@@ -125,7 +125,7 @@ describe('gusts (v1.17, D-079)', () => {
     let gusts = 0;
     let above = 0;
     for (let t = 0; t < 60 * 60; t++) {
-      if (tickWind(w, rng) === 'gust') gusts++;
+      if (tickWind(w, rng).gust) gusts++;
       if (strengthNow(w) > w.strength + 1e-9) above++;
     }
     // A minute of wind holds several gusts (every 5–10 s).
@@ -162,5 +162,16 @@ describe('gusts (v1.17, D-079)', () => {
     expect(level(0.3, 65)).toBeCloseTo(0.5, 9);
     expect(level(0.5, 50)).toBeCloseTo(1, 9);
     expect(level(0.5, 25)).toBeCloseTo(0.5, 9);
+  });
+
+  it('a gust that starts on the tick of a re-roll reports both (D-080)', () => {
+    const rng = createStream(42);
+    const w = createWind(cfg, rng, planes);
+    // Line the next re-roll up with the next gust's start (both on the coming tick).
+    w.t = w.nextGust - 1;
+    w.ticksToChange = 1;
+    const r = tickWind(w, rng);
+    expect(r).toEqual({ changed: true, gust: true });
+    expect(w.gust).not.toBeNull();
   });
 });
