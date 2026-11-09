@@ -1,9 +1,9 @@
 {
-  "updated": "2026-11-09T10:35:22Z",
-  "summary": "Live on the test build: v1.17 Brakkie the companion and real wind (1.20.0, merged 12:35 Namibia time on 9 Nov). Strong wind now pushes the shot further (more at long range and in gusts) and a wind meter shows it. Brakkie brings birds back for points (\"Bring!\" +15, \"Goeie hond!\" +30 every third in a row), points at hidden flocks (\"Staan!\", \"Mooi punt!\" +20), comes to the whistle (F, middle click or a phone button) and has more detail. Building now: v1.17b every animal at true size (your answer this morning). Then v1.18 Harvest raid and Phase 2, v1.19 Gun Shed art and special shells, then Oupa's voices.",
+  "updated": "2026-11-09T19:46:54Z",
+  "summary": "Live on the test build: v1.17b Every animal at true size (1.20.1, merged 21:46 Namibia time on 9 Nov). Every animal is its real size next to the guineafowl — the far herds and ostriches, the Namibië ostriches, baboons, Brakkie, the veld cameos and the pygmy falcon, all redrawn sharp; in the Harvest the warthogs, piglets, workers and fence are at true scale. The bakkie and the Harvest mielies stay smaller than life for now (your call). Building now: v1.18 Die Oes raid and Phase 2 (baboons climb down and dash for the mielies, a small fence hole, and a bonus round defending the field). Then v1.19 Gun Shed art and special shells, then Oupa's voices.",
   "current": {
-    "version": "1.20.0",
-    "commit": "2d23df11"
+    "version": "1.20.1",
+    "commit": "b92fcabf"
   },
   "links": [
     {
@@ -34,23 +34,23 @@
   "numbers": [
     {
       "label": "Version on the test build",
-      "value": "1.20.0",
-      "note": "commit 2d23df11, merged 12:35 on 9 Nov"
+      "value": "1.20.1",
+      "note": "commit b92fcabf, merged 21:46 on 9 Nov"
     },
     {
       "label": "Pull requests merged",
-      "value": "120",
-      "note": "#1 to #123"
+      "value": "121",
+      "note": "#1 to #124"
     },
     {
       "label": "Unit tests",
-      "value": "2,276",
+      "value": "2,343",
       "note": "plus the browser test suites on 3 devices"
     },
     {
       "label": "First download",
-      "value": "3.03 MB",
-      "note": "3,027.8 KB of the 3,072 KB budget"
+      "value": "3.02 MB",
+      "note": "3,024.1 KB of the 3,072 KB budget"
     },
     {
       "label": "Hunting areas",
@@ -68,8 +68,8 @@
     },
     {
       "label": "Decisions logged",
-      "value": "79",
-      "note": "D-001 to D-079"
+      "value": "80",
+      "note": "D-001 to D-080"
     }
   ],
   "needsYou": [
@@ -261,6 +261,20 @@
       "status": "answered",
       "detail": "Phase 2 unlocks at about half a good player's score, about 24 animals in 30 s, piglets only scared off, bonuses for crop kept, a perfect field and all of them. The aimed-at rule: baboon mothers, the Harvest's workers and piglets, Brakkie and the veld cameos only cost points when you aim at them.",
       "answer": "Yes, proceed (WhatsApp, 9 Nov 11:45)."
+    },
+    {
+      "id": "bakkie-mielies-scale",
+      "kind": "decision",
+      "title": "The bakkie and the Harvest mielies: smaller than life, or true size too?",
+      "asked": "2026-11-09T20:00:00Z",
+      "status": "open",
+      "detail": "Every animal is now at true size. Two props stay smaller on purpose: the bakkie (at true size it would be as tall as the windpomp) and the Harvest mielies (at true size the front rows would hide the birds feeding in the field), so the Harvest's workers and fence now stand taller than the corn.",
+      "options": [
+        "Keep both smaller (stage props)",
+        "Bakkie true size",
+        "Mielies true size",
+        "Both true size"
+      ]
     }
   ],
   "jobs": {
@@ -1107,16 +1121,16 @@
       "status": "done"
     },
     "v1.17b": {
-      "owner": "Tank builds it (task 4540eb50, started 9 Nov 12:40 Namibia); Claude reviews, shoots and merges",
+      "owner": "Tank built it (task 4540eb50, five rounds); Claude ran an independent review and sent back its finds (ostriches blocking far shots, a warthog taller than a worker, blurry big animals, a soft Brakkie), fixed the screenshot test and a CI test race, split the Pixel 7 perf job under the 45-min limit, ran full CI and merged it (#124)",
       "summary": "Every animal at true size next to the guineafowl: far herds and ostriches, baboons, warthogs, mid ostriches, Brakkie, the veld cameos and the bakkie.",
       "requestedBy": "You, 9 Nov (\"yes make all animals true size\").",
-      "status": "running"
+      "status": "done"
     },
     "v1.18": {
-      "owner": "Next for Tank",
+      "owner": "Tank builds it (task 4f49484d, started 9 Nov 21:48 Namibia); Claude reviews, shoots and merges",
       "summary": "Die Oes: baboons dash for the mielies, a small hole in the fence, and Phase 2 — defend the field.",
       "requestedBy": "You, 8 Nov.",
-      "status": "next"
+      "status": "running"
     },
     "v1.19": {
       "owner": "Next for Tank",
@@ -2332,6 +2346,11 @@
       "at": "2026-11-09T11:09:00Z",
       "kind": "note",
       "text": "WhatsApp: v1.17 live with three screenshots (Brakkie's point, the wind meter, Brakkie before → after). Your \"yes proceed\": Phase 2 defaults stay, the v1.6 item is closed, the aimed-at rule stays."
+    },
+    {
+      "at": "2026-11-09T19:46:54Z",
+      "kind": "merge",
+      "text": "v1.17b Every animal at true size is on the test build (1.20.1, #124): every animal at its real size next to the guineafowl, redrawn sharp; the Harvest's workers and fence at true scale. Full CI green (30 jobs); HD memory at most 245 MB of 256; screenshots on desktop, Pixel 7 and iPhone 14."
     }
   ]
 }
