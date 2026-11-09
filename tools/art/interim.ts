@@ -828,7 +828,7 @@ if (wants('colony') && !hdOnly) {
       png.replace(/\.png$/, '.json'),
       await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
     );
-    putHd(`sprites/${COLONY_SHEET}.png`, renderColonySheet(2), COLONY_COLOURS);
+    // D-080: no HD twin (drawn at COLONY_ART_SCALE: STANDARD_IN_HD_KEYS).
     console.log(`sprites/${COLONY_SHEET}`);
   }
 }

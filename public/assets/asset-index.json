@@ -228,12 +228,12 @@
       "group": "desert",
       "origin": "interim",
       "file": {
-        "path": "assets/desert/img/desert_colony.2b16eaae1075.png",
-        "bytes": 3859,
-        "hash": "2b16eaae1075"
+        "path": "assets/desert/img/desert_colony.a809c4425852.png",
+        "bytes": 14009,
+        "hash": "a809c4425852"
       },
-      "width": 256,
-      "height": 126,
+      "width": 768,
+      "height": 362,
       "originX": 0,
       "originY": 0
     },

@@ -3408,8 +3408,9 @@ export const FeelSchema = obj({
      *  scatterSeconds; they trickle back over trickleSeconds. */
     colony: obj({
       birds: obj({ near: nonNegInt, mid: nonNegInt, far: nonNegInt, ver: nonNegInt }),
-      /** A weaver's drawn wingspan per plane (design px): about 1.3× true size against its tree,
-       *  so they read at the tree's plane scale (review R4). The falcon is falconMul × that. */
+      /** A weaver's drawn wingspan per plane (design px). v1.17b (D-080): its true ~0.22 m beside
+       *  the guineafowl on that plane (tools/sizes.ts; before: about 1.3× true size against its
+       *  stage-scaled tree, review R4). The falcon is falconMul × that. */
       wingspanPx: obj({ near: pos, mid: pos, far: pos, ver: pos }),
       falconMul: pos,
       /** Of the cycles that aren't spent inside: perched on the roof and branches, on the ground;

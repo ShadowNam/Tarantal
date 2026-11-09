@@ -37,7 +37,14 @@ export interface ColonyRect {
   readonly oy: number;
 }
 
-export const COLONY_SHEET_W = 256;
+/**
+ * v1.17b (D-080): the sheet's art is drawn this many times its authored size (COLONY_FRAMES), so
+ * the colony's birds stay crisp at their true size (a weaver's wingspan ~116 px on the near plane;
+ * 32 before). The sheet has no HD twin (STANDARD_IN_HD_KEYS): at 3× it already is one.
+ */
+export const COLONY_ART_SCALE = 3;
+
+export const COLONY_SHEET_W = 256 * COLONY_ART_SCALE;
 const GAP = 2;
 
 export function colonyFrames(): ColonyRect[] {
@@ -45,7 +52,9 @@ export function colonyFrames(): ColonyRect[] {
   let x = GAP;
   let y = GAP;
   let row = 0;
-  for (const f of COLONY_FRAMES) {
+  const s = COLONY_ART_SCALE;
+  for (const f0 of COLONY_FRAMES) {
+    const f = { name: f0.name, w: f0.w * s, h: f0.h * s, ox: f0.ox * s, oy: f0.oy * s };
     if (x + f.w + GAP > COLONY_SHEET_W) {
       x = GAP;
       y += row + GAP;
@@ -70,4 +79,4 @@ export function colonyTexelsPerPx(width: number): number {
 
 /** A flying weaver's drawn wingspan in the sheet (weaver_fly_*, design px at 1×): the view scales
  *  every frame by feel.treeLife.colony.wingspanPx[plane] / this (review R4). */
-export const COLONY_WINGSPAN = 34;
+export const COLONY_WINGSPAN = 34 * COLONY_ART_SCALE;

@@ -7,6 +7,7 @@
 // design px at plane scale 1; light from the upper left.
 import {
   COLONY_SHEET_H,
+  COLONY_ART_SCALE,
   COLONY_SHEET_W,
   colonyFrames,
   type ColonyFrame,
@@ -302,7 +303,12 @@ export function renderColonySheet(k: number): Rgba {
       el('clipPath', { id }, el('rect', { x: f.x, y: f.y, width: f.w, height: f.h })),
       g(
         { 'clip-path': `url(#${id})` },
-        g({ transform: `translate(${r2(f.x + f.ox)} ${r2(f.y + f.oy)})` }, drawFrame(f.name)),
+        g(
+          {
+            transform: `translate(${r2(f.x + f.ox)} ${r2(f.y + f.oy)}) scale(${COLONY_ART_SCALE})`,
+          },
+          drawFrame(f.name),
+        ),
       ),
     );
   });

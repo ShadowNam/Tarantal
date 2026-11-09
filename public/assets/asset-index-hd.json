@@ -161,16 +161,6 @@
       "height": 720,
       "scale": 0.5
     },
-    "desert/colony": {
-      "file": {
-        "path": "assets/desert-hd/img/desert_colony.c3cdc417e37f.png",
-        "bytes": 8510,
-        "hash": "c3cdc417e37f"
-      },
-      "width": 512,
-      "height": 252,
-      "scale": 0.5
-    },
     "fx/bolt": {
       "file": {
         "path": "assets/common-hd/img/fx_bolt.7817d40782d2.png",

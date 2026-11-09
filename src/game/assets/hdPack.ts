@@ -86,8 +86,9 @@ export const HD_NO_GAIN_KEYS: readonly string[] = [
  * herds at true size (3× the area of D-054's 0.57×) stand on the far veld, itself Standard in HD
  * (STANDARD_IN_HD_LAYERS); at 1 texture px per design px they match a phone's screen px (Pixel 7:
  * 1080 design px = 1080 px), and the memory goes to the true-size cameos on the mid plane instead.
+ * The weaver colony's sheet is drawn at 3× (COLONY_ART_SCALE) for its true-size birds: its own HD.
  */
-export const STANDARD_IN_HD_KEYS: readonly string[] = ['fauna/'];
+export const STANDARD_IN_HD_KEYS: readonly string[] = ['fauna/', 'desert/colony'];
 
 /** True when `key` may have an HD version. */
 export function hdAllowed(key: string): boolean {
