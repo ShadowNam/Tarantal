@@ -3,6 +3,10 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.21.0] — v1.18: Die Oes, the raid and Phase 2 (in progress)
+
+Decision record D-081.
+
 ## [1.20.1] — v1.17b: every animal at true size (9 Nov 2026)
 
 Decision record D-080. The owner's answer of 9 Nov: "yes make all animals true size".
