@@ -37,12 +37,15 @@ export const CAMEO_SHEETS: Readonly<Record<CameoSheetArea, string>> = {
   namibie: 'cameos/namibie',
 };
 
-/** Sheet size at 1× (sheet px; frames at half size, drawn ×2). The HD twin is 2×. */
+/** Sheet size at 1× (sheet px; v1.13's frames at half size, drawn ×2; the grown ones at a quarter,
+ *  drawn ×4, D-080). The HD twin is 2×. */
 export const CAMEO_SHEET_SIZE: Readonly<Record<CameoSheetArea, { w: number; h: number }>> = {
-  bushveld: { w: 256, h: 128 },
-  karoo: { w: 512, h: 256 },
-  kalahari: { w: 256, h: 128 },
-  namibie: { w: 512, h: 256 },
+  // v1.17b (D-080): the true-size frames (bushveld 256 × 128, kalahari 256 × 128 and karoo and
+  // namibie 512 × 256 before).
+  bushveld: { w: 256, h: 176 },
+  karoo: { w: 512, h: 304 },
+  kalahari: { w: 512, h: 152 },
+  namibie: { w: 512, h: 424 },
 };
 
 /** Sounds through the AudioDirector (recordings from the area's lazy group; silent until in). */

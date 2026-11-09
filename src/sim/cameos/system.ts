@@ -202,7 +202,8 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
       const n = rng.int(g.count[0], g.count[1]);
       for (let i = 0; i < n; i++) roles.push(g.role);
     }
-    const tail = (roles.length - 1) * w.spacingPx;
+    // v1.17b (D-080): spacing, depth and hit shapes grow with the kind's sizeMul.
+    const tail = (roles.length - 1) * w.spacingPx * w.sizeMul;
     let start: number;
     let goal: number;
     if (preview !== null && asPreview) {
@@ -228,8 +229,8 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
     if (!asPreview && w.enter === 'grass' && !routeClear(plane, start, goal)) return null;
     const members: Member[] = roles.map((role, i) => ({
       role,
-      x: start - facing * i * w.spacingPx,
-      dy: i === 0 || w.depthPx === 0 ? 0 : rng.range(-w.depthPx, w.depthPx),
+      x: start - facing * i * w.spacingPx * w.sizeMul,
+      dy: i === 0 || w.depthPx === 0 ? 0 : rng.range(-w.depthPx, w.depthPx) * w.sizeMul,
       gaitOff: rng.int(0, TPS - 1),
       gaitT: 0,
     }));
@@ -288,7 +289,7 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
     const dir: 1 | -1 = from === null ? v.facing : lead >= from ? 1 : -1;
     const c = centre(v.plane);
     v.facing = dir;
-    v.goal = c + dir * (w.edgeDxPx + v.members.length * w.spacingPx);
+    v.goal = c + dir * (w.edgeDxPx + v.members.length * w.spacingPx * w.sizeMul);
     v.speed = perTick(w.speeds.fleePx);
     setPhase(v, 'flee', 0);
   }
@@ -473,7 +474,13 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
     const boxes =
       m.role === 'young' ? (v.w.hitboxes.young ?? v.w.hitboxes.adult) : v.w.hitboxes.adult;
     const y = geo.groundY[v.plane] + m.dy;
-    return boxes.map((h) => ({ x: m.x + h.ox * v.facing, y: y + h.oy, rx: h.rx, ry: h.ry }));
+    const k = v.w.sizeMul;
+    return boxes.map((h) => ({
+      x: m.x + h.ox * k * v.facing,
+      y: y + h.oy * k,
+      rx: h.rx * k,
+      ry: h.ry * k,
+    }));
   }
 
   function extras(add: (layerId: string, e: HitExtra) => void): void {
@@ -546,7 +553,7 @@ export const createCameoSystem: CameoSystemFactory = (content, geo, rng, host) =
       const near = pts.find((p) =>
         v.members.some((m) => {
           const dx = p.x - m.x;
-          const dy = p.y - (y0 + m.dy + body.oy);
+          const dy = p.y - (y0 + m.dy + body.oy * v.w.sizeMul);
           return dx * dx + dy * dy <= a.radiusPx * a.radiusPx;
         }),
       );

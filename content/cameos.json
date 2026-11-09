@@ -1,5 +1,5 @@
 {
-  "$comment": "v1.13 Veld cameos (GDD §11.3g, D-075): non-target wildlife, sim entities on ONE stream `cameos`; never targets, never hurt, never removed. Px are design px on the cameo's plane as drawn (mid px already at the mid plane's scale), speeds layer px a second, times seconds. hitboxes: from the feet, facing right. A pellet passes THROUGH a cameo; −10 only for a shot aimed at one that hit no target with no live bird within hit.guardPx of the aim point.",
+  "$comment": "v1.13 Veld cameos (GDD §11.3g, D-075): non-target wildlife, sim entities on ONE stream `cameos`; never targets, never hurt, never removed. Px are design px on the cameo's plane as drawn (mid px already at the mid plane's scale), speeds layer px a second, times seconds. hitboxes: from the feet, facing right. A pellet passes THROUGH a cameo; −10 only for a shot aimed at one that hit no target with no live bird within hit.guardPx of the aim point. v1.17b (D-080, the owner: 'yes make all animals true size'): each kind's sizeMul grows it to its true size beside the guineafowl on its plane (tools/sizes.ts) — hit shapes, spacing and depth here are at sizeMul 1; the art's frames carry the same factor (cameoSheet.ts CAMEO_SIZE_MUL). The dung beetle keeps 1: drawn about twice its true size on purpose, so it reads. edgeDxPx 1350 → 1650 (the bigger animals start and end off the widest screen), clear.pathPx 160 → 230 (the tortoise's grown body keeps its room).",
   "version": 1,
   "modes": ["classic", "daily", "seasonHunt"],
   "seasonKinds": ["plain", "omen"],
@@ -15,7 +15,7 @@
   "maxActive": 2,
   "retrySeconds": 3,
   "lastStretchSeconds": 12,
-  "clear": { "pathPx": 160, "pathStepPx": 100 },
+  "clear": { "pathPx": 230, "pathStepPx": 100 },
   "hit": { "penalty": 10, "cooldownSeconds": 2, "guardPx": 120 },
   "kinds": {
     "warthogs": {
@@ -27,6 +27,7 @@
       ],
       "spacingPx": 48,
       "depthPx": 8,
+      "sizeMul": 2.7,
       "hitboxes": {
         "adult": [
           { "ox": -6, "oy": -36, "rx": 46, "ry": 24 },
@@ -35,7 +36,7 @@
         "young": [{ "ox": 0, "oy": -16, "rx": 22, "ry": 12 }]
       },
       "speeds": { "walkPx": 130, "fleePx": 380 },
-      "edgeDxPx": 1350,
+      "edgeDxPx": 1650,
       "pause": { "chance": 0.8, "everyPx": [500, 900], "seconds": [2.5, 4] },
       "reaction": { "kind": "bolt", "seconds": 0.3 },
       "schedule": { "firstSeconds": [8, 18], "everySeconds": [28, 40], "maxVisits": 2 }
@@ -61,6 +62,7 @@
       "group": [{ "role": "adult", "count": [1, 1] }],
       "spacingPx": 0,
       "depthPx": 0,
+      "sizeMul": 2.6,
       "hitboxes": { "adult": [{ "ox": 0, "oy": -24, "rx": 44, "ry": 24 }] },
       "speeds": { "walkPx": 15, "fleePx": 15 },
       "bandPx": 380,
@@ -76,6 +78,7 @@
       "group": [{ "role": "adult", "count": [1, 1] }],
       "spacingPx": 0,
       "depthPx": 0,
+      "sizeMul": 2.76,
       "hitboxes": {
         "adult": [
           { "ox": -6, "oy": -118, "rx": 44, "ry": 34 },
@@ -83,7 +86,7 @@
         ]
       },
       "speeds": { "walkPx": 620, "fleePx": 760 },
-      "edgeDxPx": 1350,
+      "edgeDxPx": 1650,
       "reaction": { "kind": "veer", "seconds": 0.5 },
       "schedule": { "firstSeconds": [18, 34], "everySeconds": [26, 40], "maxVisits": 2 }
     },
@@ -93,6 +96,7 @@
       "group": [{ "role": "adult", "count": [3, 5] }],
       "spacingPx": 72,
       "depthPx": 14,
+      "sizeMul": 2.95,
       "hitboxes": {
         "adult": [
           { "ox": -2, "oy": -56, "rx": 40, "ry": 20 },
@@ -100,7 +104,7 @@
         ]
       },
       "speeds": { "walkPx": 95, "fleePx": 440 },
-      "edgeDxPx": 1350,
+      "edgeDxPx": 1650,
       "pause": { "chance": 0.85, "everyPx": [450, 750], "seconds": [3, 5] },
       "reaction": { "kind": "pronk", "seconds": 0.6 },
       "alarm": { "radiusPx": 220, "maxDxPx": 700, "threatAtSeconds": 0.4 },
@@ -112,6 +116,7 @@
       "group": [{ "role": "adult", "count": [2, 3] }],
       "spacingPx": 96,
       "depthPx": 12,
+      "sizeMul": 3.4,
       "hitboxes": {
         "adult": [
           { "ox": -4, "oy": -80, "rx": 56, "ry": 28 },
@@ -119,7 +124,7 @@
         ]
       },
       "speeds": { "walkPx": 90, "fleePx": 400 },
-      "edgeDxPx": 1350,
+      "edgeDxPx": 1650,
       "pause": { "chance": 0.7, "everyPx": [500, 800], "seconds": [3, 5] },
       "reaction": { "kind": "bolt", "seconds": 0.5 },
       "schedule": { "firstSeconds": [10, 20], "everySeconds": [30, 44], "maxVisits": 2 }

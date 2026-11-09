@@ -2341,6 +2341,10 @@ const cameoWalkerBase = {
    *  depth (px down the screen, 0 = all on the ground line). */
   spacingPx: nonNeg,
   depthPx: nonNeg,
+  /** v1.17b (D-080): grows the kind to its true size beside the guineafowl (tools/sizes.ts): the
+   *  sim's hit shapes, spacing and depth (all px here are at sizeMul 1); the art's frames carry
+   *  the same factor (src/game/cameos/cameoSheet.ts CAMEO_SIZE_MUL, checked equal). */
+  sizeMul: z.number().gt(0).max(5).default(1),
   /** Hit shapes per role (drawn px from the feet, facing right); the first adult shape is the
    *  body (the springbok alarm measures from its centre). */
   hitboxes: obj({ adult: z.array(cameoEllipse).min(1), young: z.array(cameoEllipse).optional() }),

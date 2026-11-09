@@ -61,6 +61,9 @@ export interface CameoFrameSpec {
   readonly oy: number;
   /** Sheet px per design px. */
   readonly res: number;
+  /** v1.17b (D-080): the art's growth over its v1.13 drawing (CAMEO_SIZE_MUL; w, h, ox and oy
+   *  include it). The art tool draws the v1.13 shapes × this. */
+  readonly size: number;
 }
 
 export interface CameoFrameRect extends CameoFrameSpec {
@@ -69,19 +72,65 @@ export interface CameoFrameRect extends CameoFrameSpec {
   readonly y: number;
 }
 
-const f = (name: CameoFrame, w: number, h: number, ox: number, oy: number): CameoFrameSpec => ({
-  name,
-  w,
-  h,
-  ox,
-  oy,
-  res: 0.5,
-});
+/**
+ * v1.17b (D-080, the owner: "yes make all animals true size"): each kind's growth over its v1.13
+ * drawing, to its true size beside the guineafowl on its plane (tools/sizes.ts): a warthog sow
+ * 0.7 m at the back (57 → 154 px on the mid plane), springbok 0.8 m at the shoulder (60 → 177),
+ * gemsbok 1.2 m (78 → 265), the ostrich 2.5 m (200 → 552), the leopard tortoise 0.25 m on the
+ * near plane (50 → 130). The dung beetle stays about twice its true size on purpose (so it reads
+ * at all). Equal to content cameos.json kinds.*.sizeMul (the sim's hit shapes; checked in
+ * cameoSheet.test.ts).
+ */
+export const CAMEO_SIZE_MUL = {
+  warthogs: 2.7,
+  dungBeetle: 1,
+  tortoise: 2.6,
+  ostrich: 2.76,
+  springbok: 2.95,
+  gemsbok: 3.4,
+} as const;
 
-/** Each frame's box with a 6 px margin round the drawing on every side (lesson 12; the art test
- *  checks the fit). Sizes: the true height × the mid plane's scale (0.42) × the far herds' size
- *  factor (D-054: 0.57; the ostrich at Namibië's mid-plane size), the near ones at the near scale
- *  (the beetle drawn about twice its true size so it reads). */
+/** Sheet px per drawn px: v1.13's frames at half size (0.5); a grown frame at 0.25 (HD twice
+ *  that), so the true-size sheets keep within the HD texture budget (D-080). */
+const RES_V113 = 0.5;
+const RES_GROWN = 0.25;
+
+const KIND_OF_PREFIX: Readonly<Record<string, keyof typeof CAMEO_SIZE_MUL>> = {
+  hog: 'warthogs',
+  pig: 'warthogs',
+  beetle: 'dungBeetle',
+  tort: 'tortoise',
+  ost: 'ostrich',
+  dust: 'ostrich',
+  sb: 'springbok',
+  gb: 'gemsbok',
+};
+
+/** The cameo kind a frame draws. */
+export function frameKind(name: CameoFrame): keyof typeof CAMEO_SIZE_MUL {
+  const kind = KIND_OF_PREFIX[name.split('_')[0] ?? ''];
+  // Safe: every frame prefix is in the table (cameoSheet.test.ts).
+  if (kind === undefined) throw new Error(`no cameo kind for frame ${name}`);
+  return kind;
+}
+
+/** A frame from its v1.13 box (drawn px at size 1), grown by its kind's CAMEO_SIZE_MUL. */
+const f = (name: CameoFrame, w: number, h: number, ox: number, oy: number): CameoFrameSpec => {
+  const size = CAMEO_SIZE_MUL[frameKind(name)];
+  return {
+    name,
+    w: w * size,
+    h: h * size,
+    ox: ox * size,
+    oy: oy * size,
+    res: size === 1 ? RES_V113 : RES_GROWN,
+    size,
+  };
+};
+
+/** Each frame's v1.13 box with a 6 px margin round the drawing on every side (lesson 12; the art
+ *  test checks the fit), grown by CAMEO_SIZE_MUL (D-080). v1.13 sizes: the true height × the mid
+ *  plane's scale (0.42) × D-054's 0.57, the near ones at the near scale. */
 const SPECS: Readonly<Record<CameoSheetArea, readonly CameoFrameSpec[]>> = {
   bushveld: [
     f('hog_trot_a', 124, 84, 62, 78),

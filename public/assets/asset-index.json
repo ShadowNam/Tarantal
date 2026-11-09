@@ -154,12 +154,12 @@
       "group": "cameos-bushveld",
       "origin": "interim",
       "file": {
-        "path": "assets/cameos-bushveld/img/cameos_bushveld.8390f840d0b7.png",
-        "bytes": 8017,
-        "hash": "8390f840d0b7"
+        "path": "assets/cameos-bushveld/img/cameos_bushveld.1a3e47477105.png",
+        "bytes": 10429,
+        "hash": "1a3e47477105"
       },
       "width": 256,
-      "height": 128,
+      "height": 176,
       "originX": 0,
       "originY": 0
     },
@@ -167,12 +167,12 @@
       "group": "cameos-kalahari",
       "origin": "interim",
       "file": {
-        "path": "assets/cameos-kalahari/img/cameos_kalahari.5d196d79fe54.png",
-        "bytes": 7163,
-        "hash": "5d196d79fe54"
+        "path": "assets/cameos-kalahari/img/cameos_kalahari.dd4598a9ca87.png",
+        "bytes": 11893,
+        "hash": "dd4598a9ca87"
       },
-      "width": 256,
-      "height": 128,
+      "width": 512,
+      "height": 152,
       "originX": 0,
       "originY": 0
     },
@@ -180,12 +180,12 @@
       "group": "cameos-karoo",
       "origin": "interim",
       "file": {
-        "path": "assets/cameos-karoo/img/cameos_karoo.af3f643b33cb.png",
-        "bytes": 11929,
-        "hash": "af3f643b33cb"
+        "path": "assets/cameos-karoo/img/cameos_karoo.54efdb7fc376.png",
+        "bytes": 18516,
+        "hash": "54efdb7fc376"
       },
       "width": 512,
-      "height": 256,
+      "height": 304,
       "originX": 0,
       "originY": 0
     },
@@ -193,12 +193,12 @@
       "group": "cameos-namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/cameos-namibie/img/cameos_namibie.ee9dd82202cd.png",
-        "bytes": 12061,
-        "hash": "ee9dd82202cd"
+        "path": "assets/cameos-namibie/img/cameos_namibie.18875c007b4d.png",
+        "bytes": 24310,
+        "hash": "18875c007b4d"
       },
       "width": 512,
-      "height": 256,
+      "height": 424,
       "originX": 0,
       "originY": 0
     },
