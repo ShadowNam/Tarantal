@@ -1,9 +1,9 @@
 {
-  "updated": "2026-11-09T03:00:00Z",
-  "summary": "Live on the test build: v1.16 Veld realism (1.19.0, merged 05:00 Namibia time on 9 Nov). The baboons hide behind the koppies and peek out, with their wa-hoo calls and more realistic art; Brakkie runs about and fetches most birds that fall; a Hilux-style bakkie; the small animals at real size next to the guineafowl. Building now: v1.17 Brakkie the companion (Bring!, Staan!, the whistle, reactions, more detail) and wind that pushes the shot. Then v1.18 Harvest Phase 2, v1.19 Gun Shed art and special shells, then Oupa's voices.",
+  "updated": "2026-11-09T10:35:22Z",
+  "summary": "Live on the test build: v1.17 Brakkie the companion and real wind (1.20.0, merged 12:35 Namibia time on 9 Nov). Strong wind now pushes the shot further (more at long range and in gusts) and a wind meter shows it. Brakkie brings birds back for points (\"Bring!\" +15, \"Goeie hond!\" +30 every third in a row), points at hidden flocks (\"Staan!\", \"Mooi punt!\" +20), comes to the whistle (F, middle click or a phone button) and has more detail. Building now: v1.17b every animal at true size (your answer this morning). Then v1.18 Harvest raid and Phase 2, v1.19 Gun Shed art and special shells, then Oupa's voices.",
   "current": {
-    "version": "1.19.0",
-    "commit": "910eabbf"
+    "version": "1.20.0",
+    "commit": "2d23df11"
   },
   "links": [
     {
@@ -34,23 +34,23 @@
   "numbers": [
     {
       "label": "Version on the test build",
-      "value": "1.19.0",
-      "note": "commit 910eabbf, merged 05:00 on 9 Nov"
+      "value": "1.20.0",
+      "note": "commit 2d23df11, merged 12:35 on 9 Nov"
     },
     {
       "label": "Pull requests merged",
-      "value": "119",
-      "note": "#1 to #122"
+      "value": "120",
+      "note": "#1 to #123"
     },
     {
       "label": "Unit tests",
-      "value": "2,230",
+      "value": "2,276",
       "note": "plus the browser test suites on 3 devices"
     },
     {
       "label": "First download",
       "value": "3.03 MB",
-      "note": "3,026.5 KB of the 3,072 KB budget"
+      "note": "3,027.8 KB of the 3,072 KB budget"
     },
     {
       "label": "Hunting areas",
@@ -68,8 +68,8 @@
     },
     {
       "label": "Decisions logged",
-      "value": "78",
-      "note": "D-001 to D-078"
+      "value": "79",
+      "note": "D-001 to D-079"
     }
   ],
   "needsYou": [
@@ -1091,9 +1091,15 @@
       "status": "done"
     },
     "v1.17": {
-      "owner": "Tank builds it (task 0bd88536, started 9 Nov 05:05 Namibia); Claude reviews, shoots and merges",
+      "owner": "Tank built it (task 0bd88536); after its connection dropped, Claude ran the balance (500 hunts a cell), an independent review and its fixes (an invisible phone whistle button from the second hunt, a test that tested nothing, docs vs content), fixed a CI perf test, ran full CI and merged it (#123)",
       "summary": "Brakkie the companion (Bring! bonus, Staan! point, Fluit! whistle, reactions, more detail) and wind drift that grows with distance and strength.",
       "requestedBy": "You, 8 Nov.",
+      "status": "done"
+    },
+    "v1.17b": {
+      "owner": "Tank builds it (task 4540eb50, started 9 Nov 12:40 Namibia); Claude reviews, shoots and merges",
+      "summary": "Every animal at true size next to the guineafowl: far herds and ostriches, baboons, warthogs, mid ostriches, Brakkie, the veld cameos and the bakkie.",
+      "requestedBy": "You, 9 Nov (\"yes make all animals true size\").",
       "status": "running"
     },
     "v1.18": {
@@ -2306,6 +2312,11 @@
       "at": "2026-11-09T03:00:00Z",
       "kind": "merge",
       "text": "v1.16 Veld realism is on the test build (1.19.0, #122): baboons hide behind the koppies and peek out, with their calls; Brakkie fetches more; a Hilux-style bakkie; real-size small animals. Full CI green (29 jobs); screenshots on desktop, Pixel 7 and iPhone 14."
+    },
+    {
+      "at": "2026-11-09T10:35:22Z",
+      "kind": "merge",
+      "text": "v1.17 Brakkie the companion and real wind is on the test build (1.20.0, #123): wind drift that grows with strength and distance, a wind meter, and Brakkie bringing birds back, pointing at flocks and coming to the whistle. Full CI green (29 jobs); HD memory at most 247 MB of 256; screenshots on desktop, Pixel 7 and iPhone 14."
     }
   ]
 }
