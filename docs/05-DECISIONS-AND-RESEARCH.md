@@ -4278,7 +4278,7 @@ sympathetic reactions, never laughing.
 
 **Changed on the way (balance).** With every bird fetched at once a bot that ignores him gained
 +15 % (≈ 19 fetches a hunt). The fix follows the research, not the numbers: he is steady while the
-gun works (`fetch.quietSeconds` 4) and is sent with the whistle ("Soek!" when a bird is down). The
+gun works (`fetch.quietSeconds` 6) and is sent with the whistle ("Soek!" when a bird is down). The
 point came a little less often (flush every 60–80 s, first at 24–36 s) so the bigger flock adds no
 free birds. The +15 / +30 / +20 the brief asked for are kept.
 

@@ -37,7 +37,7 @@
     "clearPx": 700,
     "waitSeconds": 5,
     "queueMax": 2,
-    "quietSeconds": 4,
+    "quietSeconds": 6,
     "maxDxPx": 640,
     "pickupSeconds": 0.6,
     "crossSeconds": 1.1,

@@ -763,7 +763,7 @@ event bonus × Frenzy × Stampede); the system adds `aimed(aimOn, miss)` (every 
 streak breaks for an aim within `clear.aimPx` of his body while he carries; clean misses count for
 the head tilt), `cheer()` (a Whole Flock or Twee Vlieë from `awardBonus`, reaching the top Frenzy
 tier, a Ver bag) and `whistle()` (the `whistle` command). Fetches: no chance draw (the ready rule);
-a queued bird is fetched only once `gunUp(fetch.quietSeconds)` is false, or at once when the whistle
+a queued bird is fetched only once `gunUp(fetch.quietSeconds)` (6 s) is false, or at once when the whistle
 sends him ("Soek!" with a bird down). The flush timer starts a point (`toDig` → `point` at
 `point.seconds`, `startPoint` puts the flock's spot `point.aheadPx` ahead of his nose on the mid
 ground) → `spring` (`point.springSeconds`) → `host.flush(spot, point.size)`; the whistle springs it

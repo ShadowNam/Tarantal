@@ -107,8 +107,9 @@ describe('Brakkie in the hunt (D-069)', () => {
     // The decision the fetch e2e no longer drives by shooting (it was timing-bound on CI): bots
     // bag birds through the real hit test; he starts a fetch, picks the bird up and brings it
     // home at least once a hunt (the balance doc's 0.6–2.6 fetches a hunt).
+    // v1.17 (D-079): he goes in a lull or when sent: the companion bot sends him ("Soek!").
     const s = sim({ id: 'classic', biome: 'karoo-autumn' }, 42);
-    const bot = createBot('competent', 42, content, 'pointer');
+    const bot = createBot('companion', 42, content, 'pointer');
     const types: string[] = [];
     while (!s.isOver()) {
       s.step(bot.next(s.snapshot()));

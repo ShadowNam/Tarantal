@@ -930,7 +930,7 @@ fetching Brakkie (`content/brakkie.json`):
   The **ready rule** (no chance roll; the same for every Daily player): once he is back, he fetches
   the next bird down in reach (near or mid, within 640 screen px of the centre, its spot clear of
   live birds), one at a time from a queue of up to 3. **Sent when the shooting stops:** he runs out
-  only after the gun has been quiet `fetch.quietSeconds` (4 s), or at once when **sent with the
+  only after the gun has been quiet `fetch.quietSeconds` (6 s), or at once when **sent with the
   whistle ("Soek!")**.
 - **"Staan!" (the point):** instead of the plain dig, he freezes in a classic point (body low and
   level, the near front paw lifted, tail straight up, quivering) at a hidden flock; a small marker
