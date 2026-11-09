@@ -756,6 +756,10 @@ export const HarvestMapSchema = obj({
     .min(2),
   /** Feeding spots in the field for the flocks that come in through the gap (u along the plane). */
   flockSpots: z.array(obj({ plane: z.enum(['mid', 'far']), u: fraction })).min(1),
+  /** v1.18 (D-081): a second, small hole low in the fence on the gap's layer (u, its half-width
+   *  and the fence's ground line): young warthogs and piglets squeeze through it now and then.
+   *  The layer art draws it there (tools/art/biomes/oes.ts HOLE_U). */
+  hole: obj({ u: fraction, halfWidthPx: pos, y: z.number() }).optional(),
 });
 export type HarvestMap = z.infer<typeof HarvestMapSchema>;
 
@@ -1914,6 +1918,21 @@ const harvestSchema = modeSetupSchema.extend({
     penalty: posInt,
     cooldownSeconds: pos,
     duckSeconds: pos,
+  }),
+  /** v1.18 (D-081): the small hole (the map's harvest.hole): young warthogs (yearlings: drawn
+   *  youngScale of an adult, youngHitsToBag hits, youngPointsMul × a guineafowl's base) come
+   *  through it at youngPerMin over the rush, a share with a piglet behind (pigletChance); in the
+   *  hole they squeeze (squeezeMul × their trot, until squeezePx past the fence line). The
+   *  workers patch it at patchAt of the rush: none come through after. */
+  hole: obj({
+    youngPerMin: nonNeg,
+    patchAt: fraction,
+    youngScale: z.number().gt(0).max(1),
+    youngHitsToBag: posInt,
+    youngPointsMul: pos,
+    pigletChance: fraction,
+    squeezeMul: z.number().gt(0).max(1),
+    squeezePx: pos,
   }),
   /** v1.17b (D-080): the field's fence on the gap's plane: a post's height above the ground
    *  (plane scale 1; 631 = a true 1.2 m beside the guineafowl, 265 px on the mid plane). The

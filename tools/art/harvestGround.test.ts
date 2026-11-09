@@ -8,6 +8,7 @@ import { PNG } from 'pngjs';
 import { describe, expect, it } from 'vitest';
 import { LAYER_BLEED_PX, coreWidth } from '../../src/sim/world';
 import { loadContent } from '../testContent';
+import { HOLE_HALF, HOLE_U } from './biomes/oes';
 
 const content = loadContent();
 const biome = content.biomes.find((b) => b.id === content.modes.modes.harvest.biome);
@@ -42,6 +43,11 @@ function onGround(layer: string, x: number, y: number): boolean {
 }
 
 describe('nothing floats on the Harvest map (D-063)', () => {
+  it('the art draws the small hole where the content puts it (v1.18, D-081)', () => {
+    expect(biome?.harvest?.hole?.u).toBe(HOLE_U);
+    expect(biome?.harvest?.hole?.halfWidthPx).toBe(HOLE_HALF);
+  });
+
   it('every stand point has drawn ground under its feet', () => {
     const h = biome?.harvest;
     if (biome === undefined || h === undefined) throw new Error('no Harvest map');
@@ -76,10 +82,32 @@ describe('nothing floats on the Harvest map (D-063)', () => {
         x: (s.u ?? 0) * w(s.layer) + s.ox,
         y: s.y,
       })),
+      // v1.18 (D-081): the small hole's floor, the raid's way down (the koppie's foot either side
+      // of the troop) and its run across the veld.
+      ...(h.hole === undefined
+        ? []
+        : [{ what: 'small hole', layer: h.gap.layer, x: h.hole.u * w(h.gap.layer), y: h.hole.y }]),
+      ...descentPoints(),
       ...biome.props
         .filter((p) => p.id === 'farmhouse' || p.id === 'tractor')
         .map((p) => ({ what: p.id, layer: p.layer, x: p.u * w(p.layer), y: p.y })),
     ];
+    function descentPoints(): { what: string; layer: string; x: number; y: number }[] {
+      const d = biome?.baboons?.descent;
+      const troop = biome?.baboons?.troops[0];
+      if (d === undefined || troop === undefined) return [];
+      const cx = troop.u * w(troop.layer);
+      const out = [-1, 1].map((side) => ({
+        what: `koppie foot ${String(side)}`,
+        layer: troop.layer,
+        x: cx + side * d.footDx,
+        y: d.footY,
+      }));
+      for (const u of [0.05, 0.3, 0.6, 0.95])
+        for (const y of d.veldY)
+          out.push({ what: `veld u ${String(u)}`, layer: d.veldLayer, x: u * w(d.veldLayer), y });
+      return out;
+    }
     const floating = points.filter((p) => !onGround(p.layer, p.x, p.y)).map((p) => p.what);
     expect(floating).toEqual([]);
   });

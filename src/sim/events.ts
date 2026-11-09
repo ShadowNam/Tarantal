@@ -869,7 +869,11 @@ export type SimEvent =
       readonly warthogId: number;
       readonly plane: PlaneId;
       readonly piglets: number;
+      /** v1.18 (D-081): a yearling through the small hole. */
+      readonly young: boolean;
     }
+  /** v1.18 (D-081): the workers patched the fence's small hole. */
+  | { readonly type: 'harvestHolePatched'; readonly tick: number }
   /** v1.8c (D-063): a shot hit a warthog; hitsLeft 0 = bagged (warthogBagged follows). */
   | {
       readonly type: 'warthogHit';

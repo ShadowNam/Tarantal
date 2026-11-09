@@ -530,10 +530,16 @@ export interface HarvestActorView {
 export interface WarthogView extends HarvestActorView {
   readonly phase: WarthogPhase;
   readonly hits: number;
+  /** v1.18 (D-081): a yearling (through the small hole; drawn at scale, smaller). */
+  readonly young: boolean;
+  /** v1.18 (D-081): squeezing through the small hole now (drawn low). */
+  readonly squeeze: boolean;
 }
 export interface PigletView extends HarvestActorView {
   readonly motherId: number;
   readonly running: boolean;
+  /** v1.18 (D-081): squeezing through the small hole now. */
+  readonly squeeze: boolean;
 }
 export interface WorkerView extends HarvestActorView {
   /** Which of the workers (0..2): the view's look (people vary). */
@@ -561,6 +567,8 @@ export interface HarvestView {
     readonly y: number;
     readonly halfWidth: number;
   };
+  /** v1.18 (D-081): the small hole in the fence (null: the map has none); patched: mended. */
+  readonly hole: { readonly x: number; readonly y: number; readonly patched: boolean } | null;
   readonly warthogs: readonly WarthogView[];
   readonly piglets: readonly PigletView[];
   readonly workers: readonly WorkerView[];

@@ -107,6 +107,30 @@ export function harvestTargets(content: ContentBundle, biome: Biome): LofBox[] {
       );
     }
   }
+  // v1.18 (D-081): the yearlings through the small hole, from the hole to every gap-side spot on
+  // the gap's layer (the ones they go for), at a yearling's size and an adult's (a superset).
+  if (h.hole !== undefined && gl !== undefined) {
+    const hx = h.hole.u * coreWidth(gl.scrollFactor);
+    const hy = h.hole.y - 4;
+    for (const d of h.digSpots) {
+      const x = d.u * coreWidth(gl.scrollFactor);
+      if (d.layer !== h.gap.layer || x >= gapX) continue;
+      const k = planes[d.plane].scale;
+      for (let i = 0; i <= 20; i++) {
+        const f = i / 20;
+        out.push(
+          shapesBox(
+            hog,
+            hx + (x - hx) * f,
+            hy + (d.y - hy) * f,
+            k,
+            gl.scrollFactor,
+            `yearling from the hole to ${d.layer} u ${String(d.u)}`,
+          ),
+        );
+      }
+    }
+  }
   // Baboon raiders at their spots and on the way (approachPx from the side they come from).
   const bb = content.birds.baboons;
   const ape = [

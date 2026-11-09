@@ -331,7 +331,13 @@
         "plane": "mid",
         "u": 0.72
       }
-    ]
+    ],
+    "hole": {
+      "$comment": "v1.18 (D-081): the small hole low in the fence, a bay left of the gap (away from the workers); the layer art draws it (tools/art/biomes/oes.ts HOLE_U).",
+      "u": 0.238,
+      "halfWidthPx": 50,
+      "y": 700
+    }
   },
   "baboons": {
     "$comment": "The troop on the koppie behind the farm; raiders come down for the mielies at the field's ends, early and often (the 30-s rush).",

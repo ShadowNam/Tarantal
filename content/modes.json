@@ -280,6 +280,16 @@
         "cooldownSeconds": 2,
         "duckSeconds": 1
       },
+      "hole": {
+        "youngPerMin": 5,
+        "patchAt": 0.8,
+        "youngScale": 0.7,
+        "youngHitsToBag": 1,
+        "youngPointsMul": 2,
+        "pigletChance": 0.45,
+        "squeezeMul": 0.35,
+        "squeezePx": 40
+      },
       "fence": { "postPx": 631 }
     }
   }
