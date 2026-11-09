@@ -134,7 +134,7 @@ import { AMMO_SPRITES } from './ammo';
 import { SIGHT_SPRITES } from './sights';
 import { RANGE_SPRITES } from './rangeArt';
 import { biomeSheets, flyerSheet, spriteSheet } from './scenerySheets';
-import { FLYER_FRAMES, FLYER_GROUPS, FLYERS, renderFlyerFrame } from './flyers';
+import { FLYER_BOX_SHRINK, FLYER_FRAMES, FLYER_GROUPS, FLYERS, renderFlyerFrame } from './flyers';
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(name);
@@ -973,6 +973,7 @@ if (wants('flyers')) {
       }
     }
     const group = FLYER_GROUPS[creature];
+    const shrink = FLYER_BOX_SHRINK[creature];
     put(
       join(dir, 'rig.json'),
       await json({
@@ -980,6 +981,8 @@ if (wants('flyers')) {
         x2: false,
         encode: 'png8',
         ...(group === undefined ? {} : { group }),
+        // D-083: drawn at 1/boxShrink of its size in the bird box (its wings would not fit).
+        ...(shrink === undefined ? {} : { boxShrink: shrink }),
         planeClips: planes,
       }),
     );

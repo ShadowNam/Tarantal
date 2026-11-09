@@ -94,7 +94,10 @@ ink, fewer and larger dots on the far plane).
 set: the game draws @1x at 1 texture px per canvas px on every tier, D-029 §4), `"encode":
 "png8"` (palette PNG pages, about 3–4× smaller; fine for flat-fill art) and `"origin":
 "interim"` (only for stand-in art; leave it out), `"planeRes": { "mid": 0.75 }` (pack a plane
-below its display size; the game draws it scaled up) and `"group": "late"` (download after the
+below its display size; the game draws it scaled up), `"boxShrink": 3` (D-083: the frames draw
+the bird at 1/3 of its size in the bird box, for wings too long for the box at full size —
+deliver masters 3× the box's size; the tool packs them 3× larger and the game shows them 3×
+larger, so they keep the plane's texture density) and `"group": "late"` (download after the
 first download settles, while the title is up: rare variants, bosses; until then the placeholder
 shows).
 
