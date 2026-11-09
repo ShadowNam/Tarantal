@@ -134,7 +134,7 @@
    "kind": "check",
    "title": "Look at v1.6 on the test build",
    "asked": "2026-10-25T16:57:00Z",
-   "status": "open",
+   "status": "answered",
    "detail": "Hard-refresh first. New: trees, fruit and far animals on every map, the windmill, the dassie, the Kalahari dead tree, clouds, a version stamp on every map, and the Fresh load button in the Skietbaan. Tell me anything that still looks rough (the Namibië grass you flagged is already in v1.7c).",
    "links": [
     {
@@ -159,7 +159,8 @@
      "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dassie.jpg",
      "caption": "The dassie, before | after"
     }
-   ]
+   ],
+   "answer": "Closed on 9 Nov (\"yes proceed\" on WhatsApp): the v1.6 look was followed by many later art passes."
   },
   {
    "id": "voice-sample",
@@ -253,6 +254,15 @@
     "3. Real people: you or a friend with a good Afrikaans/South African accent record the English and Afrikaans lines on a phone from my script; German from option 1 or 2"
    ],
    "answer": "27 Oct: first finish building the game so all the text is known; then one voice job. Likely an OpenRouter API key (stored as an environment secret, never in chat): speech generation plus an automatic speech-to-text check of every clip, after a short Afrikaans sample test."
+  },
+  {
+   "id": "phase2-aimed",
+   "kind": "decision",
+   "title": "Harvest Phase 2 defaults and the aimed-at rule",
+   "asked": "2026-11-09T05:39:58Z",
+   "status": "answered",
+   "detail": "Phase 2 unlocks at about half a good player's score, about 24 animals in 30 s, piglets only scared off, bonuses for crop kept, a perfect field and all of them. The aimed-at rule: baboon mothers, the Harvest's workers and piglets, Brakkie and the veld cameos only cost points when you aim at them.",
+   "answer": "Yes, proceed (WhatsApp, 9 Nov 11:45)."
   }
  ],
  "jobs": [
@@ -2892,6 +2902,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-11-09T11:09:00Z",
+   "kind": "note",
+   "text": "WhatsApp: v1.17 live with three screenshots (Brakkie's point, the wind meter, Brakkie before → after). Your \"yes proceed\": Phase 2 defaults stay, the v1.6 item is closed, the aimed-at rule stays."
+  },
   {
    "at": "2026-11-09T10:35:22Z",
    "kind": "merge",
