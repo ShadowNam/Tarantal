@@ -929,7 +929,7 @@ fetching Brakkie (`content/brakkie.json`):
   shot is aimed within `clear.aimPx` (340 px) of him while he carries a bird (hold fire round him).
   The **ready rule** (no chance roll; the same for every Daily player): once he is back, he fetches
   the next bird down in reach (near or mid, within 640 screen px of the centre, its spot clear of
-  live birds), one at a time from a queue of up to 3. **Sent when the shooting stops:** he runs out
+  live birds), one at a time from a queue of up to `fetch.queueMax` (2). **Sent when the shooting stops:** he runs out
   only after the gun has been quiet `fetch.quietSeconds` (6 s), or at once when **sent with the
   whistle ("Soek!")**.
 - **"Staan!" (the point):** instead of the plain dig, he freezes in a classic point (body low and
@@ -938,7 +938,7 @@ fetching Brakkie (`content/brakkie.json`):
   nose. After 2.5 s he springs in and the flock bursts up flushing — or the player springs it sooner
   with the whistle. The pointed flock is **5 birds** (the Whole Flock is possible); bagging **3 of
   its birds** within 8 s of the burst pays **"Mooi punt!" +20**. It comes from the flush timer
-  (first 24–36 s in, then every 60–80 s, chance 0.7) and only when the map has room for a flock.
+  (first 24–36 s in, then every 60–80 s, chance 0.5) and only when the map has room for a flock.
   Stray pellets only make him yelp (never points: the aimed-at rule stands); his top stays below
   the mid ground.
 - **"Fluit!" (the whistle):** a recorded command (`whistle`, so replays and the Daily stay exact).

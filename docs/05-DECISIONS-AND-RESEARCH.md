@@ -4267,7 +4267,7 @@ sympathetic reactions, never laughing.
 - **Brakkie** (`content/brakkie.json` `bring`, `point`, `whistle`, `react`, `fetch.quietSeconds`,
   `hitboxes.point`): Bring +15 (event bonus × Frenzy × Stampede at delivery), Goeie hond +30 every
   3rd in a row, the streak broken by a hit or an aim within `clear.aimPx` while he carries; the
-  ready rule (no chance draw); he runs out only after the gun is quiet 4 s, or when sent with the
+  ready rule (no chance draw); he runs out only after the gun is quiet 6 s (`fetch.quietSeconds`), or when sent with the
   whistle; the point (2.5 s, a flock of 5 a marker shows, Mooi punt +20 for 3 of its birds within
   8 s); the whistle as a recorded command (`whistle`: F, the middle button, a 72-px phone button);
   reactions (0.8 s, from idle, ≤ 1 per 8 s). Words in i18n (af/en/de/nl). Notaboek
@@ -4282,9 +4282,17 @@ gun works (`fetch.quietSeconds` 6) and is sent with the whistle ("Soek!" when a 
 point came a little less often (flush every 60–80 s, first at 24–36 s) so the bigger flock adds no
 free birds. The +15 / +30 / +20 the brief asked for are kept.
 
-**Balance.** BALANCE_D079
+**Balance.** `docs/balance/v1.17-companion.md`. Every area (`balance-sim`, 200 seeds, main →
+branch; the bots never whistle): every bot within −1.5 … +3.2 % (Namibië the most, +2.2 … +3.2 %);
+all gates pass (Okavango's competent mean 4,498 at 500 seeds; 4,525 at 200 was noise near the
+4,500 cap). Brakkie (`tools/companion-sweep.ts`, 500 hunts a cell): a player who works with him
++5.3 … +7.5 % (Bushveld ½ point over the +7 % aim, within noise — kept, the owner wants him to pay);
+one who ignores him +0.1 … +2.1 %; accidental hits ≤ 0.016 a hunt.
 
-**Budgets.** BUDGETS_D079
+**Budgets.** First download 3,026.5 → 3,027.8 KB gzip (≤ 3,072; the wind meter, grass, the
+whistle button and Brakkie's pop-ups ride in his lazy chunk `BrakkieView` 6.0 KB gz). Brakkie's
+sheet 512 × 256 → 512 × 448 (HD 1024 × 512 → 1024 × 896: +1.5 MiB of texture memory while he is
+out); the `brakkie-hd` download is now 114.5 KB. `npm run size -- --strict`: OK.
 
 **Tests.** Unit: wind drift by plane and strength (monotonic, deterministic, gusts never draw on
 `omen`, the old rule without the new fields), the wind meter's bars, the grass lean; the whistle
