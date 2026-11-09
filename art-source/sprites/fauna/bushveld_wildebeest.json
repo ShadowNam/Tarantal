@@ -3,18 +3,19 @@
   "encode": "png8",
   "originX": 0,
   "originY": 0,
+  "group": "fauna-bushveld-winter",
   "frames": {
-    "wildebeest.graze.m.body": [75, 0, 75, 70, 37, 65, 0, 0],
-    "wildebeest.graze.m.tail": [0, 71, 15, 54, 11.607, 3.891, -32.393, -49.109],
-    "wildebeest.graze.m.head": [223, 0, 54, 65, 12.155, 13.631, 21.155, -50.369],
-    "wildebeest.alert.m.body": [0, 0, 75, 71, 37, 66, 0, 0],
-    "wildebeest.alert.m.tail": [15, 71, 15, 54, 11.607, 3.891, -32.393, -49.109],
-    "wildebeest.alert.m.head": [44, 71, 63, 49, 12.155, 31.631, 21.155, -50.369],
-    "wildebeest.graze.y.body": [167, 71, 41, 42, 20, 39, 0, 0],
-    "wildebeest.graze.y.tail": [244, 71, 9, 25, 6.091, 2.517, -16.909, -28.483],
-    "wildebeest.graze.y.head": [208, 71, 36, 40, 7.043, 8.786, 11.043, -29.214],
-    "wildebeest.walk.f.body": [150, 0, 73, 68, 36, 63, 0, 0],
-    "wildebeest.walk.f.tail": [30, 71, 14, 52, 10.902, 3.855, -31.098, -47.145],
-    "wildebeest.walk.f.head": [107, 71, 60, 47, 11.309, 22.646, 20.309, -48.354]
+    "wildebeest.graze.m.body": [0, 121, 128, 120, 63, 113, 0, 0],
+    "wildebeest.graze.m.tail": [93, 357, 23, 92, 19.2, 5.8, -56.8, -86.2],
+    "wildebeest.graze.m.head": [0, 357, 93, 112, 20.1, 22.6, 37.1, -88.4],
+    "wildebeest.alert.m.body": [0, 0, 128, 121, 63, 114, 0, 0],
+    "wildebeest.alert.m.tail": [116, 357, 23, 92, 19.2, 5.8, -56.8, -86.2],
+    "wildebeest.alert.m.head": [22, 469, 107, 84, 20.1, 54.6, 37.1, -88.4],
+    "wildebeest.graze.y.body": [0, 637, 70, 71, 34, 66, 0, 0],
+    "wildebeest.graze.y.tail": [130, 637, 12, 42, 9.3, 3, -29.7, -50],
+    "wildebeest.graze.y.head": [70, 637, 60, 67, 11.4, 13.7, 19.4, -51.3],
+    "wildebeest.walk.f.body": [0, 241, 127, 116, 63, 109, 0, 0],
+    "wildebeest.walk.f.tail": [0, 469, 22, 88, 18.4, 5.3, -54.6, -82.7],
+    "wildebeest.walk.f.head": [0, 557, 104, 80, 19.6, 39.2, 35.6, -84.8]
   }
 }

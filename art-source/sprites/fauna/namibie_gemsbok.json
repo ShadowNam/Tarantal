@@ -3,18 +3,19 @@
   "encode": "png8",
   "originX": 0,
   "originY": 0,
+  "group": "fauna-namibie",
   "frames": {
-    "gemsbok.graze.m.body": [0, 74, 68, 60, 34, 56, 0, 0],
-    "gemsbok.graze.m.tail": [125, 74, 12, 43, 9.383, 3.351, -29.617, -49.649],
-    "gemsbok.graze.m.head": [0, 0, 41, 74, 11.342, 29.827, 19.342, -43.173],
-    "gemsbok.alert.m.body": [171, 0, 67, 61, 34, 57, 0, 0],
-    "gemsbok.alert.m.tail": [137, 74, 12, 43, 9.383, 3.351, -29.617, -49.649],
-    "gemsbok.alert.m.head": [41, 0, 59, 64, 17.342, 56.827, 19.342, -43.173],
-    "gemsbok.graze.y.body": [161, 74, 39, 38, 19, 35, 0, 0],
-    "gemsbok.graze.y.tail": [228, 74, 7, 21, 5.007, 2.211, -15.993, -29.789],
-    "gemsbok.graze.y.head": [200, 74, 28, 36, 6.444, 8.096, 10.444, -25.904],
-    "gemsbok.walk.m.body": [100, 0, 71, 61, 36, 57, 0, 0],
-    "gemsbok.walk.m.tail": [149, 74, 12, 43, 9.383, 3.351, -29.617, -49.649],
-    "gemsbok.walk.m.head": [68, 74, 57, 59, 11.342, 51.827, 19.342, -43.173]
+    "gemsbok.graze.m.body": [0, 127, 116, 103, 58, 97, 0, 0],
+    "gemsbok.graze.m.tail": [214, 127, 20, 74, 16, 4.9, -52, -87.1],
+    "gemsbok.graze.m.head": [0, 0, 70, 127, 18.9, 50.3, 33.9, -75.7],
+    "gemsbok.alert.m.body": [293, 0, 116, 104, 58, 98, 0, 0],
+    "gemsbok.alert.m.tail": [234, 127, 20, 74, 16, 4.9, -52, -87.1],
+    "gemsbok.alert.m.head": [70, 0, 102, 111, 29.9, 99.3, 33.9, -75.7],
+    "gemsbok.graze.y.body": [274, 127, 65, 63, 32, 59, 0, 0],
+    "gemsbok.graze.y.tail": [385, 127, 11, 35, 7.9, 2.7, -28.1, -52.3],
+    "gemsbok.graze.y.head": [339, 127, 46, 59, 10.3, 12.6, 18.3, -45.4],
+    "gemsbok.walk.m.body": [172, 0, 121, 104, 62, 98, 0, 0],
+    "gemsbok.walk.m.tail": [254, 127, 20, 74, 16, 4.9, -52, -87.1],
+    "gemsbok.walk.m.head": [116, 127, 98, 102, 18.9, 90.3, 33.9, -75.7]
   }
 }

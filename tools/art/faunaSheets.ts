@@ -202,7 +202,9 @@ export function buildFaunaSheet(
   const img = blank(p.w, p.h);
   const frames: Record<string, FaunaFrame> = {};
   const m = FAUNA_MASTER;
-  const r3 = (n: number): number => Math.round(n * 1000) / 1000;
+  // D-080: pivots to 0.1 master px (0.05 design px, below a screen px): the bigger true-size
+  // sheets' frame tables keep the asset index (the first download) from growing.
+  const r1 = (n: number): number => Math.round(n * 10) / 10;
   for (const c of cells) {
     const at = p.at.get(c.name);
     if (at === undefined) continue;
@@ -212,10 +214,10 @@ export function buildFaunaSheet(
       at[1] / m,
       c.img.width / m,
       c.img.height / m,
-      r3(c.pivot[0] - c.x0),
-      r3(c.pivot[1] - c.y0),
-      r3(c.pivot[0]),
-      r3(c.pivot[1]),
+      r1(c.pivot[0] - c.x0),
+      r1(c.pivot[1] - c.y0),
+      r1(c.pivot[0]),
+      r1(c.pivot[1]),
     ];
   }
   return {

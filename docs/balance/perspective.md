@@ -37,6 +37,12 @@ for a far plane about 0.03 scale, and the birds at 0.22.
   springbok 36, lechwe 45 at the shoulder, ostrich 89 to the head; the Ver waterhole the same way
   (giraffe 105, zebra 28, gemsbok 25, springbok 17, ostrich 41). One line to tune, then
   `npm run art:interim -- --only fauna` and `npm run assets:pack`.
+- **D-080 (v1.17b, 9 Nov):** the owner, asked whether the rest should go to true size too: "yes
+  make all animals true size". `fauna.sizeMul` is **1 for every species** (D-054's 0.57 and the
+  ostrich's 0.45 are superseded): far elephant 253 px at the shoulder, giraffe 395 to the head,
+  zebra 107, wildebeest 111, gemsbok 95, springbok 63, lechwe 79, ostrich 197 to the head. The
+  herd sheets are Standard in HD (texture memory). Every other animal too: `tools/sizes.ts`, the
+  art bible's scale table.
 - **The Ver waterhole** (Namibië): its animals are **re-drawn 5× taller in the same spots**
   (`tools/art/faunaSheets.ts`, `WATERHOLE_HEIGHT_MUL`); scaling the whole sprite would have spread
   them off the water. It sits in its lazy group, never the first download.
@@ -89,12 +95,12 @@ Layouts: mon, tue, wed, thu, fri, sat, sun — near, mid and far on all; the Ver
 
 | Plane | Object | Real (m) | Drawn px before → after | Bird px before → after | Bird oversize before → after | Target px | Change |
 |---|---|---|---|---|---|---|---|
-| far | giraffe ×2 + 1 young (bushveld_giraffes_a) | 5 head | 174.0 → 224.9 | 57.9 → 39.4 | 2.3× → 1.8× | 394.5 | redrawn at 0.57 × the target (D-054) |
-| far | giraffe ×1 + 1 young (bushveld_giraffes_b) | 5 head | 168.0 → 224.9 | 57.9 → 39.4 | 2.3× → 1.8× | 394.5 | redrawn at 0.57 × the target (D-054) |
-| far | zebra ×4 + 1 young (bushveld_zebra) | 1.35 shoulder | 45.0 → 60.7 | 57.9 → 39.4 | 2.4× → 1.8× | 106.5 | redrawn at 0.57 × the target (D-054) |
-| far | wildebeest ×3 + 1 young (bushveld_wildebeest) | 1.4 shoulder | 45.0 → 63.0 | 57.9 → 39.4 | 2.5× → 1.8× | 110.5 | redrawn at 0.57 × the target (D-054) |
-| far | elephant ×2 + 1 young (bushveld_elephants) | 3.2 shoulder | 72.0 → 143.9 | 57.9 → 39.4 | 3.5× → 1.8× | 252.5 | redrawn at 0.57 × the target (D-054) |
-| mid | baobab (prop) | 15 | 637.0 → 637.0 | 131.5 → 110.5 | 6.2× → 5.2× | 3313.7 | kept (stage-set scale, see below) |
+| far | giraffe ×2 + 1 young (bushveld_giraffes_a) | 5 head | 174.0 → 394.5 | 57.9 → 39.4 | 2.3× → 1.0× | 394.5 | redrawn at the target (D-054) |
+| far | giraffe ×1 + 1 young (bushveld_giraffes_b) | 5 head | 168.0 → 394.5 | 57.9 → 39.4 | 2.3× → 1.0× | 394.5 | redrawn at the target (D-054) |
+| far | zebra ×4 + 1 young (bushveld_zebra) | 1.35 shoulder | 45.0 → 106.5 | 57.9 → 39.4 | 2.4× → 1.0× | 106.5 | redrawn at the target (D-054) |
+| far | wildebeest ×3 + 1 young (bushveld_wildebeest) | 1.4 shoulder | 45.0 → 110.5 | 57.9 → 39.4 | 2.5× → 1.0× | 110.5 | redrawn at the target (D-054) |
+| far | elephant ×2 + 1 young (bushveld_elephants) | 3.2 shoulder | 72.0 → 252.5 | 57.9 → 39.4 | 3.5× → 1.0× | 252.5 | redrawn at the target (D-054) |
+| mid | baobab (prop) | 15 | 621.0 → 621.0 | 131.5 → 110.5 | 6.4× → 5.3× | 3313.7 | kept (stage-set scale, see below) |
 
 ### kalahari-summer
 
@@ -102,10 +108,10 @@ Layouts: mon, tue, wed, thu, fri, sat, sun — near, mid and far on all; the Ver
 
 | Plane | Object | Real (m) | Drawn px before → after | Bird px before → after | Bird oversize before → after | Target px | Change |
 |---|---|---|---|---|---|---|---|
-| far | springbok ×6 + 1 young (kalahari_springbok) | 0.8 shoulder | 36.0 → 36.0 | 57.9 → 39.4 | 1.8× → 1.8× | 63.1 | redrawn at 0.57 × the target (D-054) |
-| far | ostrich ×2 (kalahari_ostrich) | 2.5 head | 72.0 → 88.8 | 57.9 → 39.4 | 2.7× → 2.2× | 197.2 | redrawn at 0.45 × the target (D-054) |
-| far | wildebeest ×3 + 1 young (kalahari_wildebeest) | 1.4 shoulder | 45.0 → 63.0 | 57.9 → 39.4 | 2.5× → 1.8× | 110.5 | redrawn at 0.57 × the target (D-054) |
-| mid | weaver_camelthorn (prop) | 9 | 558.5 → 558.5 | 131.5 → 110.5 | 4.2× → 3.6× | 1988.2 | kept (stage-set scale, see below) |
+| far | springbok ×6 + 1 young (kalahari_springbok) | 0.8 shoulder | 36.0 → 63.1 | 57.9 → 39.4 | 1.8× → 1.0× | 63.1 | redrawn at the target (D-054) |
+| far | ostrich ×2 (kalahari_ostrich) | 2.5 head | 72.0 → 197.2 | 57.9 → 39.4 | 2.7× → 1.0× | 197.2 | redrawn at the target (D-054) |
+| far | wildebeest ×3 + 1 young (kalahari_wildebeest) | 1.4 shoulder | 45.0 → 110.5 | 57.9 → 39.4 | 2.5× → 1.0× | 110.5 | redrawn at the target (D-054) |
+| mid | weaver_camelthorn (prop) | 9 | 559.0 → 559.0 | 131.5 → 110.5 | 4.2× → 3.6× | 1988.2 | kept (stage-set scale, see below) |
 | mid | windpomp_sign (prop) | 9 | 319.5 → 319.5 | 131.5 → 110.5 | 7.4× → 6.2× | 1988.2 | kept (stage-set scale, see below) |
 | mid | dead_camelthorn (prop) | 6 | 468.0 → 468.0 | 131.5 → 110.5 | 3.4× → 2.8× | 1325.5 | kept (stage-set scale, see below) |
 
@@ -115,12 +121,12 @@ Layouts: mon, tue, wed, thu, fri, sat, sun — near, mid and far on all; the Ver
 
 | Plane | Object | Real (m) | Drawn px before → after | Bird px before → after | Bird oversize before → after | Target px | Change |
 |---|---|---|---|---|---|---|---|
-| far | springbok ×6 + 2 young (karoo_springbok_a) | 0.8 shoulder | 36.0 → 36.0 | 57.9 → 39.4 | 1.8× → 1.8× | 63.1 | redrawn at 0.57 × the target (D-054) |
-| far | springbok ×3 + 1 young (karoo_springbok_b) | 0.8 shoulder | 36.0 → 36.0 | 57.9 → 39.4 | 1.8× → 1.8× | 63.1 | redrawn at 0.57 × the target (D-054) |
-| far | ostrich ×3 (karoo_ostrich) | 2.5 head | 72.0 → 88.8 | 57.9 → 39.4 | 2.7× → 2.2× | 197.2 | redrawn at 0.45 × the target (D-054) |
+| far | springbok ×6 + 2 young (karoo_springbok_a) | 0.8 shoulder | 36.0 → 63.1 | 57.9 → 39.4 | 1.8× → 1.0× | 63.1 | redrawn at the target (D-054) |
+| far | springbok ×3 + 1 young (karoo_springbok_b) | 0.8 shoulder | 36.0 → 63.1 | 57.9 → 39.4 | 1.8× → 1.0× | 63.1 | redrawn at the target (D-054) |
+| far | ostrich ×3 (karoo_ostrich) | 2.5 head | 72.0 → 197.2 | 57.9 → 39.4 | 2.7× → 1.0× | 197.2 | redrawn at the target (D-054) |
 | mid | windpomp (prop) | 9 | 395.5 → 395.5 | 131.5 → 110.5 | 6.0× → 5.0× | 1988.2 | kept (stage-set scale, see below) |
 | mid | reservoir (prop) | 1.5 | 133.0 → 133.0 | 131.5 → 110.5 | 3.0× → 2.5× | 331.4 | kept (stage-set scale, see below) |
-| mid | bakkie (prop) | 1.8 | 208.0 → 208.0 | 131.5 → 110.5 | 2.3× → 1.9× | 397.6 | kept (stage-set scale, see below) |
+| mid | bakkie (prop) | 1.8 | 210.0 → 210.0 | 131.5 → 110.5 | 2.3× → 1.9× | 397.6 | kept (stage-set scale, see below) |
 | near | potjie (prop) | 0.4 | 235.0 → 235.0 | 263.0 → 263.0 | 0.9× → 0.9× | 210.4 | kept (stage-set scale, see below) |
 | mid | fence_bell (prop) | 1.3 | 169.0 → 169.0 | 131.5 → 110.5 | 2.0× → 1.7× | 287.2 | kept (stage-set scale, see below) |
 
@@ -130,20 +136,27 @@ Layouts: mon, tue, wed, thu, fri, sat, sun — near, mid and far on all; the Ver
 
 | Plane | Object | Real (m) | Drawn px before → after | Bird px before → after | Bird oversize before → after | Target px | Change |
 |---|---|---|---|---|---|---|---|
-| ver | giraffe ×2 (namibie_waterhole) | 5 head | 65.0 → 104.9 | 26.3 → 18.4 | 2.8× → 1.8× | 184.1 | redrawn at 0.57 × the target (D-054) |
-| ver | springbok ×2 + 1 young (namibie_waterhole) | 0.8 shoulder | 19.0 → 16.8 | 26.3 → 18.4 | 1.6× → 1.8× | 29.5 | redrawn at 0.57 × the target (D-054) |
-| ver | zebra ×2 (namibie_waterhole) | 1.35 shoulder | 21.0 → 28.3 | 26.3 → 18.4 | 2.4× → 1.8× | 49.7 | redrawn at 0.57 × the target (D-054) |
-| ver | gemsbok ×2 (namibie_waterhole) | 1.2 shoulder | 22.0 → 25.2 | 26.3 → 18.4 | 2.0× → 1.8× | 44.2 | redrawn at 0.57 × the target (D-054) |
-| ver | ostrich ×2 (namibie_waterhole) | 2.5 head | 35.0 → 41.4 | 26.3 → 18.4 | 2.6× → 2.2× | 92.0 | redrawn at 0.45 × the target (D-054) |
-| far | gemsbok ×3 + 1 young (namibie_gemsbok) | 1.2 shoulder | 45.0 → 54.0 | 57.9 → 39.4 | 2.1× → 1.8× | 94.7 | redrawn at 0.57 × the target (D-054) |
-| far | ostrich ×2 (namibie_ostrich) | 2.5 head | 72.0 → 88.8 | 57.9 → 39.4 | 2.7× → 2.2× | 197.2 | redrawn at 0.45 × the target (D-054) |
-| far | zebra ×3 + 1 young (namibie_zebra) | 1.35 shoulder | 45.0 → 60.7 | 57.9 → 39.4 | 2.4× → 1.8× | 106.5 | redrawn at 0.57 × the target (D-054) |
+| ver | giraffe ×2 (namibie_waterhole) | 5 head | 65.0 → 184.1 | 26.3 → 18.4 | 2.8× → 1.0× | 184.1 | redrawn at the target (D-054) |
+| ver | springbok ×2 + 1 young (namibie_waterhole) | 0.8 shoulder | 19.0 → 29.5 | 26.3 → 18.4 | 1.6× → 1.0× | 29.5 | redrawn at the target (D-054) |
+| ver | zebra ×2 (namibie_waterhole) | 1.35 shoulder | 21.0 → 49.7 | 26.3 → 18.4 | 2.4× → 1.0× | 49.7 | redrawn at the target (D-054) |
+| ver | gemsbok ×2 (namibie_waterhole) | 1.2 shoulder | 22.0 → 44.2 | 26.3 → 18.4 | 2.0× → 1.0× | 44.2 | redrawn at the target (D-054) |
+| ver | ostrich ×2 (namibie_waterhole) | 2.5 head | 35.0 → 92.0 | 26.3 → 18.4 | 2.6× → 1.0× | 92.0 | redrawn at the target (D-054) |
+| far | gemsbok ×3 + 1 young (namibie_gemsbok) | 1.2 shoulder | 45.0 → 94.7 | 57.9 → 39.4 | 2.1× → 1.0× | 94.7 | redrawn at the target (D-054) |
+| far | ostrich ×2 (namibie_ostrich) | 2.5 head | 72.0 → 197.2 | 57.9 → 39.4 | 2.7× → 1.0× | 197.2 | redrawn at the target (D-054) |
+| far | zebra ×3 + 1 young (namibie_zebra) | 1.35 shoulder | 45.0 → 106.5 | 57.9 → 39.4 | 2.4× → 1.0× | 106.5 | redrawn at the target (D-054) |
 | near | nest_camelthorn (prop) | 9 | 1016.0 → 1016.0 | 263.0 → 263.0 | 4.7× → 4.7× | 4733.9 | kept (stage-set scale, see below) |
-| mid | camelthorn_mature (prop) | 8 | 236.5 → 236.5 | 131.5 → 110.5 | 8.9× → 7.5× | 1767.3 | kept (stage-set scale, see below) |
+| mid | camelthorn_mature (prop) | 8 | 236.0 → 236.0 | 131.5 → 110.5 | 8.9× → 7.5× | 1767.3 | kept (stage-set scale, see below) |
 | mid | camelthorn_old (prop) | 9 | 238.0 → 238.0 | 131.5 → 110.5 | 9.9× → 8.4× | 1988.2 | kept (stage-set scale, see below) |
-| mid | camelthorn_young (prop) | 3 | 181.0 → 181.0 | 131.5 → 110.5 | 4.4× → 3.7× | 662.7 | kept (stage-set scale, see below) |
+| mid | camelthorn_young (prop) | 3 | 180.0 → 180.0 | 131.5 → 110.5 | 4.4× → 3.7× | 662.7 | kept (stage-set scale, see below) |
 | mid | quiver_tree (prop) | 5 | 220.0 → 220.0 | 131.5 → 110.5 | 6.0× → 5.0× | 1104.6 | kept (stage-set scale, see below) |
-| mid | quiver_egg (prop) | 5 | 211.5 → 211.5 | 131.5 → 110.5 | 6.2× → 5.2× | 1104.6 | kept (stage-set scale, see below) |
+| mid | quiver_egg (prop) | 5 | 212.0 → 212.0 | 131.5 → 110.5 | 6.2× → 5.2× | 1104.6 | kept (stage-set scale, see below) |
+
+### oes
+
+Layouts: mon, tue, wed, thu, fri, sat, sun — near, mid and far on all; the Ver plane on Nog Verder and Die Verste (bonus maps). Layouts only move props (u), so one table per biome.
+
+| Plane | Object | Real (m) | Drawn px before → after | Bird px before → after | Bird oversize before → after | Target px | Change |
+|---|---|---|---|---|---|---|---|
 
 ### okavango-spring
 
@@ -151,14 +164,14 @@ Layouts: mon, tue, wed, thu, fri, sat, sun — near, mid and far on all; the Ver
 
 | Plane | Object | Real (m) | Drawn px before → after | Bird px before → after | Bird oversize before → after | Target px | Change |
 |---|---|---|---|---|---|---|---|
-| far | elephant ×2 + 1 young (okavango_elephants) | 3.2 shoulder | 72.0 → 143.9 | 57.9 → 39.4 | 3.5× → 1.8× | 252.5 | redrawn at 0.57 × the target (D-054) |
-| far | lechwe ×6 + 2 young (okavango_lechwe) | 1 shoulder | 36.0 → 45.0 | 57.9 → 39.4 | 2.2× → 1.8× | 78.9 | redrawn at 0.57 × the target (D-054) |
-| far | zebra ×3 + 1 young (okavango_zebra) | 1.35 shoulder | 45.0 → 60.7 | 57.9 → 39.4 | 2.4× → 1.8× | 106.5 | redrawn at 0.57 × the target (D-054) |
-| far | wildebeest ×2 + 1 young (okavango_wildebeest) | 1.4 shoulder | 45.0 → 63.0 | 57.9 → 39.4 | 2.5× → 1.8× | 110.5 | redrawn at 0.57 × the target (D-054) |
+| far | elephant ×2 + 1 young (okavango_elephants) | 3.2 shoulder | 72.0 → 252.5 | 57.9 → 39.4 | 3.5× → 1.0× | 252.5 | redrawn at the target (D-054) |
+| far | lechwe ×6 + 2 young (okavango_lechwe) | 1 shoulder | 36.0 → 78.9 | 57.9 → 39.4 | 2.2× → 1.0× | 78.9 | redrawn at the target (D-054) |
+| far | zebra ×3 + 1 young (okavango_zebra) | 1.35 shoulder | 45.0 → 106.5 | 57.9 → 39.4 | 2.4× → 1.0× | 106.5 | redrawn at the target (D-054) |
+| far | wildebeest ×2 + 1 young (okavango_wildebeest) | 1.4 shoulder | 45.0 → 110.5 | 57.9 → 39.4 | 2.5× → 1.0× | 110.5 | redrawn at the target (D-054) |
 | mid | reeds_a (prop) | 2.5 | 295.0 → 295.0 | 131.5 → 110.5 | 2.2× → 1.9× | 552.3 | kept (stage-set scale, see below) |
 | mid | mokoro_pole (prop) | 3 | 284.0 → 284.0 | 131.5 → 110.5 | 2.8× → 2.3× | 662.7 | kept (stage-set scale, see below) |
 | mid | reeds_b (prop) | 2.5 | 285.0 → 285.0 | 131.5 → 110.5 | 2.3× → 1.9× | 552.3 | kept (stage-set scale, see below) |
-| mid | sausage_tree (prop) | 12 | 564.0 → 564.0 | 131.5 → 110.5 | 5.6× → 4.7× | 2651.0 | kept (stage-set scale, see below) |
+| mid | sausage_tree (prop) | 12 | 587.0 → 587.0 | 131.5 → 110.5 | 5.4× → 4.5× | 2651.0 | kept (stage-set scale, see below) |
 | mid | hippo (prop) | 1 | 96.0 → 96.0 | 131.5 → 110.5 | 2.7× → 2.3× | 220.9 | kept (stage-set scale, see below) |
 | mid | reeds_c (prop) | 2.5 | 295.0 → 295.0 | 131.5 → 110.5 | 2.2× → 1.9× | 552.3 | kept (stage-set scale, see below) |
 | mid | reeds_d (prop) | 2.5 | 285.0 → 285.0 | 131.5 → 110.5 | 2.3× → 1.9× | 552.3 | kept (stage-set scale, see below) |

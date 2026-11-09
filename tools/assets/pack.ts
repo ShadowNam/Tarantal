@@ -30,7 +30,7 @@ import {
   hdGroupOf,
   HD_GUNS,
   HD_RES,
-  STANDARD_IN_HD_LAYERS,
+  standardInHdLayer,
   HD_SOURCE_DIR,
 } from '../../src/game/assets/hdPack';
 import {
@@ -131,7 +131,11 @@ const sidecarOrigin = z
      *  v1.7b (D-046): or the late group (the power-up icons, after the first download; v1.7c,
      *  D-047: the Karoo's and Kalahari's fruit sheets); v1.8b (D-062): or the baboons' own group
      *  (loaded with every hunt, before it starts). */
-    group: z.enum([VER_GROUP, LATE_GROUP, BABOON_GROUP]),
+    group: z.union([
+      z.enum([VER_GROUP, LATE_GROUP, BABOON_GROUP]),
+      // v1.17b (D-080): an area's far herds, `fauna-<biome>` (assetIndex.ts faunaGroupOf).
+      z.string().regex(/^fauna-[a-z-]+$/),
+    ]),
     /** D-053: false = no HD version in the HD pack (default: one when a 2× source exists). */
     hd: z.boolean(),
     /** D-054: a far-animal sheet's frames (src/game/view/faunaHerds.ts FaunaFrame, design px). */
@@ -573,7 +577,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
     // D-053: the HD tiles from art-source/hd/layers/<biome>/<layer>.png (2× wide and tall).
     let hd: AssetIndex['layers'][string]['hd'];
     const hdPath = join(o.src, HD_SOURCE_DIR, 'layers', biome, `${layerId}.png`);
-    if (side.hd !== false && !STANDARD_IN_HD_LAYERS.includes(layerId) && existsSync(hdPath)) {
+    if (side.hd !== false && !standardInHdLayer(biome, layerId) && existsSync(hdPath)) {
       const big = readPng(hdPath);
       if (big.width !== img.width * HD_RES || big.height !== img.height * HD_RES)
         errors.push(

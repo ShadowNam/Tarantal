@@ -102,7 +102,8 @@ jobs:
             {"project":"pixel7-landscape","browser":"chromium","shard":"4/5","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
             {"project":"pixel7-landscape","browser":"chromium","shard":"5/5","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
             {"project":"pixel7-landscape","browser":"chromium","shard":"season","only":"**/season-*.spec.ts","workers":1},
-            {"project":"pixel7-landscape","browser":"chromium","shard":"perf","only":"**/perf.spec.ts","workers":1},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"perf","only":"**/perf.spec.ts","workers":1,"part":"1/2"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"perf2","only":"**/perf.spec.ts","workers":1,"part":"2/2"},
             {"project":"iphone14-landscape","browser":"webkit","shard":"1/1"},
             {"project":"pixel7-portrait","browser":"chromium","shard":"1/1"},
             {"project":"iphone14-portrait","browser":"webkit","shard":"1/1"},
@@ -186,7 +187,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run test:e2e -- --project=${{ matrix.project }} ${{ matrix.only && format('--workers={0}', matrix.workers) || format('--shard={0}', matrix.shard) }}
+      # A job alone on its runner may still split one long spec in parts (`part`, Playwright's
+      # --shard; fullyParallel spreads its tests): the Pixel 7 perf spec outgrew the 45-min job
+      # limit in v1.17b (D-080), and each half still runs with one worker, alone on its runner.
+      - run: npm run test:e2e -- --project=${{ matrix.project }} ${{ matrix.only && format('--workers={0}', matrix.workers) || format('--shard={0}', matrix.shard) }} ${{ matrix.part && format('--shard={0}', matrix.part) || '' }}
         env:
           E2E_ONLY: ${{ matrix.only }}
           E2E_SKIP: ${{ matrix.skip }}

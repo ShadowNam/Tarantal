@@ -259,6 +259,9 @@ test('HD draws every sampled image at Standard’s on-screen size', async ({ pag
   });
 });
 
+/** The Bushveld's far herds (D-080: a background group, drawn a while after the hunt starts). */
+const BUSHVELD_HERDS = (FAUNA_HERDS['bushveld-winter'] ?? []).map((h) => h.key);
+
 test('a lazy area (Bushveld): HD layers and props at the same pan sit where Standard’s do', async ({
   page,
 }, info) => {
@@ -281,19 +284,22 @@ test('a lazy area (Bushveld): HD layers and props at the same pan sit where Stan
     // Read the camera and the boxes in the same callback that sees the Bushveld layers (in HD:
     // drawing HD files: the home Karoo's HD alone must not satisfy this test).
     const handle = await page.waitForFunction(
-      (wantHd) => {
+      ([wantHd, herds]) => {
         const tm = window.__TM__;
         const b = tm?.graphics.bounds ?? [];
         const mid = b.find((x) => x.key === 'layer:bushveld/mid');
         if (mid === undefined || !b.some((x) => x.key === 'layer:bushveld/far_veld')) return null;
         if (mid.hd !== wantHd) return null;
+        // D-080: the far herds arrive in their own background group (`fauna-<area>`): sample
+        // only once all of them are drawn, in both modes.
+        if (!herds.every((k) => b.some((x) => x.key === k))) return null;
         return {
           cameraX: tm?.cameraX ?? NaN,
           bounds: [...b].sort((p, q) => (p.key < q.key ? -1 : 1)),
         };
       },
-      mode === 'hd',
-      { timeout: 120_000 },
+      [mode === 'hd', BUSHVELD_HERDS] as const,
+      { timeout: 240_000 },
     );
     return (await handle.jsonValue()) as {
       cameraX: number;

@@ -16,6 +16,7 @@
 // Pure: frame → SVG.
 import {
   FENCE_GAP_W,
+  FENCE_K,
   FENCE_POST_H,
   HARVEST_SHEET_H,
   HARVEST_SHEET_W,
@@ -1693,14 +1694,18 @@ const PEN: Pen = { ink: '#2A1E16', w: 2 };
 const OLD = tone('#8B5A2B', 0.3, 0.22);
 const FRESH = tone('#B08A58', 0.3, 0.22);
 const WIRE_PEN: Pen = { ink: shade('#9AA3A8', -0.3), w: 1 };
-const STRANDS = [-26, -44, -62];
+// D-080: the true-size fence's strands (the v1.8c heights × FENCE_K).
+const STRANDS = [-26, -44, -62].map((y) => y * FENCE_K);
 const HALF = FENCE_GAP_W / 2;
 const INNER = [-HALF / 3, HALF / 3];
 
 /** A post standing at x (its foot on the ground line), optionally knocked over by `angle`. */
 function gapPost(x: number, angle: number, t: Tone): string {
-  const art = post(0, 2, FENCE_POST_H, 7, t, PEN);
-  return g({ transform: `translate(${r2(x)} 0) rotate(${r2(angle)})` }, art);
+  const art = post(0, 2, FENCE_POST_H, 17, t, PEN);
+  // A knocked-over post lies on the ground: its rotated foot corner stays on the ground line
+  // (D-080: the true-size post is 17 px thick).
+  const lift = angle === 0 ? 0 : -8.5 * Math.abs(Math.sin((angle * Math.PI) / 180));
+  return g({ transform: `translate(${r2(x)} ${r2(lift)}) rotate(${r2(angle)})` }, art);
 }
 
 /** A snapped wire end curling from (x, y) toward `dir`. */

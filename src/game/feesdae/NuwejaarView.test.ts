@@ -121,7 +121,7 @@ function stubParallax(statics = 0, herds = 0): GroundStub {
         },
       };
     });
-    return { id, base: 0xd8a080, images: () => imgs, fauna };
+    return { id, base: 0xd8a080, images: () => imgs, fauna: () => fauna };
   });
   const dimmer = new LayerDimmer(layers);
   (g as { parallax: ParallaxView }).parallax = {

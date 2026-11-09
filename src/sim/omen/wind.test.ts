@@ -5,6 +5,7 @@ import { loadContent } from '../../../tools/testContent';
 import { createStream } from '../rng';
 import {
   createWind,
+  gustLevel,
   planeDriftMul,
   strengthNow,
   tickWind,
@@ -124,7 +125,7 @@ describe('gusts (v1.17, D-079)', () => {
     let gusts = 0;
     let above = 0;
     for (let t = 0; t < 60 * 60; t++) {
-      if (tickWind(w, rng) === 'gust') gusts++;
+      if (tickWind(w, rng).gust) gusts++;
       if (strengthNow(w) > w.strength + 1e-9) above++;
     }
     // A minute of wind holds several gusts (every 5–10 s).
@@ -143,5 +144,34 @@ describe('gusts (v1.17, D-079)', () => {
       return [rng.u32(), rng.u32(), rng.u32()];
     };
     expect(draws(true)).toEqual(draws(false));
+  });
+
+  it('rise over riseShare of the gust from content, then fall (D-080)', () => {
+    expect(cfg.gusts?.riseShare).toBe(0.3);
+    const level = (riseShare: number, at: number): number => {
+      const gusts = cfg.gusts;
+      if (gusts === undefined) throw new Error('the Karoo has gusts');
+      const w = createWind({ ...cfg, gusts: { ...gusts, riseShare } }, createStream(1), planes);
+      w.gust = { start: 0, len: 100 };
+      w.t = at;
+      return gustLevel(w);
+    };
+    // Today's shape: the peak at 30 % of the gust, the fall over the other 70 %.
+    expect(level(0.3, 30)).toBeCloseTo(1, 9);
+    expect(level(0.3, 15)).toBeCloseTo(0.5, 9);
+    expect(level(0.3, 65)).toBeCloseTo(0.5, 9);
+    expect(level(0.5, 50)).toBeCloseTo(1, 9);
+    expect(level(0.5, 25)).toBeCloseTo(0.5, 9);
+  });
+
+  it('a gust that starts on the tick of a re-roll reports both (D-080)', () => {
+    const rng = createStream(42);
+    const w = createWind(cfg, rng, planes);
+    // Line the next re-roll up with the next gust's start (both on the coming tick).
+    w.t = w.nextGust - 1;
+    w.ticksToChange = 1;
+    const r = tickWind(w, rng);
+    expect(r).toEqual({ changed: true, gust: true });
+    expect(w.gust).not.toBeNull();
   });
 });

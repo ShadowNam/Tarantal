@@ -583,7 +583,7 @@
         "id": "throw",
         "action": "throw",
         "layer": "mid",
-        "u": 0.3,
+        "u": 0.4,
         "ox": 0,
         "y": 750,
         "from": -1

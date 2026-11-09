@@ -44,6 +44,10 @@ export interface OstrichFamilyState {
   readonly plane: PlaneId;
   readonly scrollFactor: number;
   readonly scale: number;
+  /** v1.17b (D-080): the birds' (and nest's) drawn size: the plane's scale × ostriches.sizeMul
+   *  (their true 2.5 m beside the guineafowl). Hit shapes and the drawing use it; the walks, the
+   *  wander and the runs keep the plane's scale. */
+  readonly size: number;
   readonly ground: number;
   /** The nest scrape (layer px), or null for a pair without one. */
   readonly nest: { readonly x: number; readonly eggs: number; readonly id: number } | null;
@@ -116,6 +120,7 @@ export function createFamily(
     plane: layer.plane,
     scrollFactor: layer.scrollFactor,
     scale,
+    size: scale * T.sizeMul,
     ground: def.y,
     nest,
     left,
@@ -289,9 +294,9 @@ export function nestShape(
   if (f.nest === null) return null;
   const n = T.hitboxes.nest;
   return {
-    x: f.nest.x + n.ox * f.scale,
-    y: f.ground + n.oy * f.scale,
-    rx: n.rx * f.scale,
-    ry: n.ry * f.scale,
+    x: f.nest.x + n.ox * f.size,
+    y: f.ground + n.oy * f.size,
+    rx: n.rx * f.size,
+    ry: n.ry * f.size,
   };
 }

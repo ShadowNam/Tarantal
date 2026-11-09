@@ -17,6 +17,10 @@ import { decodePng } from '../../tools/assets/image';
 import { fireAt, reloadIfEmpty } from './feesdaeHelpers';
 import { boot, hook, isLandscape, isTouchProject, startHunt, tapAt, waitTicks } from './helpers';
 
+/** v1.17b (D-080): his size on top of the plane's (brakkie.json sizeMul): hit shapes and the
+ *  drawing; every px about his body below is × this. */
+const S = brakkie.sizeMul;
+
 const BASE =
   'biome=karoo-autumn&layout=mon&seed=42&huntSeconds=300&graphics=standard&baboons=0&faunaIdle=0';
 
@@ -145,8 +149,8 @@ test('a fetch drawn on the canvas: he carries a bird home on the near plane', as
   let n = 0;
   let sx = 0;
   let sy = 0;
-  for (let y = d.y - 190; y <= d.y + 6; y += 2)
-    for (let x = d.x - 220; x <= d.x + 260; x += 2) {
+  for (let y = d.y - 190 * S; y <= d.y + 6; y += 2)
+    for (let x = d.x - 220 * S; x <= d.x + 260 * S; x += 2) {
       if (changed(noBird, none, x, y)) {
         n++;
         sx += x;
@@ -162,10 +166,10 @@ test('a fetch drawn on the canvas: he carries a bird home on the near plane', as
   // pixels only (the carried bird hidden: it hangs 116 px ahead and pulled the centroid to 78.8 px
   // on 404d9aa). Not the extent's ends: the foreground grass hides some of him (c1ca190's Pixel 7).
   const body = brakkie.hitboxes.stand.body;
-  const cx = d.x + body.ox * d.facing;
-  const cy = d.y + body.oy;
-  const nx = (sx / n - cx) / body.rx;
-  const ny = (sy / n - cy) / body.ry;
+  const cx = d.x + body.ox * S * d.facing;
+  const cy = d.y + body.oy * S;
+  const nx = (sx / n - cx) / (body.rx * S);
+  const ny = (sy / n - cy) / (body.ry * S);
   expect(
     nx * nx + ny * ny,
     `centroid ${String(sx / n)}, ${String(sy / n)} vs body ${String(cx)}, ${String(cy)}`,
@@ -193,7 +197,10 @@ test('a shot aimed at him costs 25 with Oupa’s scold; he yelps, bolts and come
       continue;
     }
     before = (await hook(page)).score;
-    const fired = await fireAt(page, touch, { x: d.x + body.ox * d.facing, y: d.y + body.oy });
+    const fired = await fireAt(page, touch, {
+      x: d.x + body.ox * S * d.facing,
+      y: d.y + body.oy * S,
+    });
     if (fired === null) {
       await waitTicks(page, 30);
       continue;
@@ -315,11 +322,16 @@ test('he is clearly visible in play: at most a quarter of him under the HUD', as
   }
   const samples: Sample[] = [];
   for (let i = 0; i < 40; i++) {
-    const r = await page.evaluate(() => {
+    const r = await page.evaluate((s) => {
       const tm = window.__TM__;
       const d = (window as unknown as Hooked).__TM__?.brakkie;
       if (tm === undefined || d == null || !d.visible || d.plane !== 'near') return null;
-      const box = { x: d.x - (d.facing > 0 ? 100 : 130), y: d.y - 142, w: 230, h: 142 };
+      const box = {
+        x: d.x - (d.facing > 0 ? 100 : 130) * s,
+        y: d.y - 142 * s,
+        w: 230 * s,
+        h: 142 * s,
+      };
       const rects = Object.entries(tm.rects);
       let inside = 0;
       let all = 0;
@@ -335,7 +347,7 @@ test('he is clearly visible in play: at most a quarter of him under the HUD', as
         }
       const top = [...by.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
       return { share: inside / all, phase: d.phase, pose: d.pose, x: d.x, rect: top };
-    });
+    }, S);
     if (r !== null) samples.push(r);
     await waitTicks(page, 30);
   }

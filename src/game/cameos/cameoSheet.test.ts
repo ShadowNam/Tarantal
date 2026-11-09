@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { CAMEO_SHEETS, CAMEO_SHEET_AREAS, CAMEO_SHEET_SIZE, cameoSheetKey } from './cameoKeys';
-import { GPU_BYTES_CAP, cameoFrames, cameoSheetHeight, cellSize } from './cameoSheet';
+import { loadContent } from '../../../tools/testContent';
+import {
+  CAMEO_SIZE_MUL,
+  GPU_BYTES_CAP,
+  cameoFrames,
+  cameoSheetHeight,
+  cellSize,
+  frameKind,
+} from './cameoSheet';
 
 describe('cameo sheets (D-075)', () => {
   for (const area of CAMEO_SHEET_AREAS) {
@@ -33,4 +41,21 @@ describe('cameo sheets (D-075)', () => {
       expect(CAMEO_SHEETS[area]).toBe(cameoSheetKey(area));
     });
   }
+});
+
+describe('the cameos at true size (D-080)', () => {
+  it("the art's growth is content's sizeMul for every kind (the drawing and the hit shapes)", () => {
+    const kinds = loadContent().cameos.kinds;
+    for (const [kind, mul] of Object.entries(CAMEO_SIZE_MUL))
+      expect(kinds[kind as keyof typeof CAMEO_SIZE_MUL].sizeMul, kind).toBe(mul);
+  });
+
+  it('every frame belongs to a kind and is drawn at its size', () => {
+    for (const area of CAMEO_SHEET_AREAS)
+      for (const f of cameoFrames(area)) expect(f.size).toBe(CAMEO_SIZE_MUL[frameKind(f.name)]);
+  });
+
+  it('the dung beetle stays as it was: bigger than life on purpose', () => {
+    expect(CAMEO_SIZE_MUL.dungBeetle).toBe(1);
+  });
 });

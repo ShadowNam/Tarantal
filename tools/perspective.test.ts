@@ -5,11 +5,10 @@ import { birdUnits } from './birdUnits';
 import { loadContent, loadFeel } from './testContent';
 
 describe('perspective audit (D-049, D-054)', () => {
-  it('the product owner (27 Oct): every far animal at 0.57 × true size, the ostrich at 0.45', () => {
+  it('the product owner (9 Nov, D-080): every far animal at true size, the ostrich too', () => {
     const mul = loadFeel().fauna.sizeMul;
     const far = pxPerMetre(birdUnits('alert') * loadContent().scoring.planes.far.scale);
-    // 20:10 elephants and giraffes, 20:15 zebras and wildebeest, so every species (one
-    // proportion on shared maps); 22:45 another 5 % and the ostriches smaller still.
+    // "yes make all animals true size" (superseding D-054's 0.57 and the ostrich's 0.45).
     for (const sp of [
       'elephant',
       'giraffe',
@@ -18,14 +17,14 @@ describe('perspective audit (D-049, D-054)', () => {
       'gemsbok',
       'springbok',
       'lechwe',
+      'ostrich',
     ] as const)
-      expect(mul[sp], sp).toBe(0.57);
-    expect(mul.ostrich).toBe(0.45);
-    expect(lookHeight('elephant', 'm', far, mul.elephant)).toBeCloseTo(143.9, 0);
-    expect(lookHeight('giraffe', 'm', far, mul.giraffe)).toBeCloseTo(224.9, 0);
-    expect(lookHeight('zebra', 'm', far, mul.zebra)).toBeCloseTo(60.7, 0);
-    expect(lookHeight('springbok', 'm', far, mul.springbok)).toBeCloseTo(36.0, 0);
-    expect(lookHeight('ostrich', 'm', far, mul.ostrich)).toBeCloseTo(88.7, 0);
+      expect(mul[sp], sp).toBe(1);
+    expect(lookHeight('elephant', 'm', far, mul.elephant)).toBeCloseTo(252.5, 0);
+    expect(lookHeight('giraffe', 'm', far, mul.giraffe)).toBeCloseTo(394.6, 0);
+    expect(lookHeight('zebra', 'm', far, mul.zebra)).toBeCloseTo(106.5, 0);
+    expect(lookHeight('springbok', 'm', far, mul.springbok)).toBeCloseTo(63.1, 0);
+    expect(lookHeight('ostrich', 'm', far, mul.ostrich)).toBeCloseTo(197.2, 0);
   });
 
   it('true proportions give an oversize of 1', () => {

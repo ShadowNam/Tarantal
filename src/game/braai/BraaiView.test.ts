@@ -205,3 +205,16 @@ describe('captions fit the bubble (review: a skip used to join every line)', () 
     expect(captionScale(all, slot, fontPx)).toBeLessThan(0.5);
   });
 });
+
+describe("Oupa's pose change (D-080, perf)", () => {
+  it('sets the frame without its own origin update (his origin is set once after it)', () => {
+    const seen: (boolean | undefined)[][] = [];
+    const oupa: AnimSprite = {
+      ...stub(),
+      setFrame: (_f: string, size?: boolean, origin?: boolean) => (seen.push([size, origin]), oupa),
+    };
+    const opts = { reducedMotion: false, reduceFlashes: false, danceFrom: 0 };
+    applyAnim(null, animState(0, tuning, opts), { ...targets, oupa });
+    expect(seen).toEqual([[true, false]]);
+  });
+});

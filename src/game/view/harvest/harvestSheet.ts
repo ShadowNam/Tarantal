@@ -21,15 +21,20 @@ export { HARVEST_GROUP, HARVEST_SHEET, HARVEST_SHEET_H, HARVEST_SHEET_W } from '
  *  to the hat's top. The view scales each to its plane. */
 export const WARTHOG_H = 200;
 export const PIGLET_H = 90;
-/** Drawn larger than shown on the mid plane (modes.json harvest.workers.heightPx × 0.42 ≈ 113
- *  px), so the 2× master keeps its detail in HD. */
+/** v1.17b (D-080): shown at a true 1.7 m (modes.json harvest.workers.heightPx 894 × 0.42 ≈ 375 px
+ *  on the mid plane); drawn at 180 so the sheet stays inside the texture budget (the 2× master's
+ *  360 texels keep HD about 1:1; Standard is upscaled). */
 export const WORKER_H = 180;
 /** The gap panel: as wide as the gap (2 × its half-width 170) at the mid layer's px, and tall. */
 export const FENCE_GAP_W = 340;
-export const FENCE_H = 90;
 /** v1.8c (review round 1): the mid layer's fence post, drawn height above its ground line (design
- *  px; tools/art/biomes/oes.ts draws them, the gap panel matches). A worker stands ~1.6× it. */
-export const FENCE_POST_H = 70;
+ *  px; tools/art/biomes/oes.ts draws them, the gap panel matches). v1.17b (D-080): a true 1.2 m
+ *  beside the guineafowl (modes.json harvest.fence.postPx 631 × the mid plane's 0.42; 70
+ *  before): a worker stands ~1.4× it, a warthog's back ~0.6×. */
+export const FENCE_POST_H = 265;
+/** The fence's posts' and wires' size against the v1.8c fence (70 px posts). */
+export const FENCE_K = FENCE_POST_H / 70;
+export const FENCE_H = FENCE_POST_H + 20;
 
 interface Box {
   readonly w: number;

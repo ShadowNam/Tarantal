@@ -18,7 +18,12 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { format, resolveConfig } from 'prettier';
-import { LATE_GROUP, VER_GROUP, type BirdClip } from '../../src/game/assets/assetIndex';
+import {
+  LATE_GROUP,
+  VER_GROUP,
+  faunaGroupOf,
+  type BirdClip,
+} from '../../src/game/assets/assetIndex';
 import { fruitSheetKey } from '../../src/game/view/fruit/fruitTypes';
 import { collectFruit } from './fruitSink';
 import { fruitSheet, type FruitOwner } from './fruitArt';
@@ -109,24 +114,16 @@ import { CAN_MASTER, renderCanSheet } from './blikkies';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
 import { hatAnchors } from './hatAnchors';
 import { HD_PARTS, hdKeyOf } from '../../src/game/assets/hdProps';
-import {
-  hdAllowed,
-  HD_RES,
-  STANDARD_IN_HD_LAYERS,
-  HD_SOURCE_DIR,
-} from '../../src/game/assets/hdPack';
+import { hdAllowed, HD_RES, standardInHdLayer, HD_SOURCE_DIR } from '../../src/game/assets/hdPack';
 
 /** v1.7 (D-044): palette size of the meerkat sheet (look round: 48 keeps the shading and lets
  *  the Kalahari chunk plus the desert chunk fit 1.5 MB). */
 const MEERKAT_COLOURS = 32;
 import { FAUNA_MASTER, sheetHerds } from '../../src/game/view/faunaHerds';
 
-/** D-054: palette sizes of the far animals' sheets (Standard, HD): no visible change, far fewer
- *  bytes (the biome chunks are nearly full). */
+/** D-054: palette size of the far animals' sheets: no visible change, far fewer bytes (the biome
+ *  chunks are nearly full). D-080: no HD twin (Standard in HD). */
 const FAUNA_COLOURS = 48;
-const FAUNA_HD_COLOURS = 96;
-/** D-054: biomes whose herds load with the late group (the Karoo is the first download). */
-const FAUNA_LATE: ReadonlySet<string> = new Set(['karoo-autumn']);
 /** D-054: dust on the elephants (the Bushveld's red earth, the delta's grey mud). */
 const FAUNA_DUST: Readonly<Record<string, string>> = {
   'bushveld-winter': '#A07E62',
@@ -161,6 +158,9 @@ const hdSrc = join(src, HD_SOURCE_DIR);
 
 /** D-053: writes one 2× source into art-source/hd/ (palette PNG unless `full`). */
 function putHd(rel: string, img: Rgba, colours?: number, full = false): void {
+  // D-080: a sprite key the HD pack leaves out (hdPack.ts) gets no 2× source.
+  const sprite = /^sprites\/(.+)\.png$/.exec(rel)?.[1];
+  if (sprite !== undefined && !hdAllowed(sprite)) return;
   put(join(hdSrc, rel), full ? encodePng(img) : encodePng8(img, colours));
   console.log(`hd/${rel}`);
 }
@@ -360,7 +360,7 @@ if (wants('scenery')) {
     if (hdOnly) {
       // D-053: the same drawings at 2×; fruit stay sprites (collected and dropped here).
       for (const layer of biome.layers) {
-        if (STANDARD_IN_HD_LAYERS.includes(layer.id)) continue;
+        if (standardInHdLayer(biome.id, layer.id)) continue;
         if (!oursFile(join(src, 'layers', biome.id, `${layer.id}.png`))) continue;
         const lp = plan.layers[layer.id];
         const draw = (): Rgba => renderLayer(cfg, plan, layer, HD_RES);
@@ -509,7 +509,8 @@ if (wants('fauna')) {
           biomePalette(cfg, biome.id)(n),
         ),
       );
-      putHd(`sprites/${herd.key}.png`, sheet.img, FAUNA_HD_COLOURS);
+      // D-080: no HD twin (STANDARD_IN_HD_KEYS: the herds are Standard in HD); the 2× master is
+      // averaged down to the 1× file.
       if (hdOnly) continue;
       const std = resize(
         sheet.img,
@@ -524,13 +525,10 @@ if (wants('fauna')) {
           encode: 'png8',
           originX: 0,
           originY: 0,
-          // The Karoo's herds load after the first download (D-054: it may not grow); the
-          // waterhole with the Ver strips.
-          ...(herd.layer === 'ver_veld'
-            ? { group: VER_GROUP }
-            : FAUNA_LATE.has(biome.id)
-              ? { group: LATE_GROUP }
-              : {}),
+          // D-080: every area's herds in their own background group `fauna-<biome>` (at true
+          // size they would push the area's chunk over 1.5 MB; the Karoo's never in the first
+          // download); the waterhole with the Ver strips.
+          ...(herd.layer === 'ver_veld' ? { group: VER_GROUP } : { group: faunaGroupOf(biome.id) }),
           frames: sheet.frames,
         }),
       );
@@ -792,7 +790,7 @@ if (wants('blikkies')) {
   }
 }
 if (wants('namiblife') && !hdOnly) {
-  // v1.7d (D-059): the ostriches' sheet at 1.5× (Namibië's group), one sheet for Standard and HD.
+  // v1.7d (D-059): the ostriches' sheet (Namibië's group); D-080: 1.4× and a 2.8× HD twin.
   const png = join(src, 'sprites', `${OSTRICH_SHEET}.png`);
   if (!oursFile(png)) console.warn(`skip sprites/${OSTRICH_SHEET}: a human delivery is there`);
   else {
@@ -801,8 +799,8 @@ if (wants('namiblife') && !hdOnly) {
       png.replace(/\.png$/, '.json'),
       await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
     );
-    // No 2× twin: a 2× sheet would take Namibië's HD texture memory past its target (D-059).
-    rmSync(join(hdSrc, 'sprites', `${OSTRICH_SHEET}.png`), { force: true });
+    // D-080: the HD twin at 2× the Standard file (1.0 texture px per drawn px at the true size).
+    putHd(`sprites/${OSTRICH_SHEET}.png`, renderOstrichSheet(OSTRICH_MASTER * 2), OSTRICH_COLOURS);
     console.log(`sprites/${OSTRICH_SHEET}`);
   }
   // The hot-air balloons' sheet at 1× and its 2× twin.
@@ -828,7 +826,7 @@ if (wants('colony') && !hdOnly) {
       png.replace(/\.png$/, '.json'),
       await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
     );
-    putHd(`sprites/${COLONY_SHEET}.png`, renderColonySheet(2), COLONY_COLOURS);
+    // D-080: no HD twin (drawn at COLONY_ART_SCALE: STANDARD_IN_HD_KEYS).
     console.log(`sprites/${COLONY_SHEET}`);
   }
 }

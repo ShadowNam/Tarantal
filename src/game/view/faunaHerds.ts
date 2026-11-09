@@ -147,10 +147,10 @@ const herd = (
 
 const FAR = 'far_veld';
 
-/** The authored spacing below was laid out for animals at true size; with every species drawn at
- *  0.6 (feel.json fauna.sizeMul) the herds close up by this much, and spaceHerd() still keeps
- *  every head clear of the others. */
-export const HERD_SPREAD = 0.65;
+/** The authored spacing below was laid out for animals at true size, which they are again (D-080:
+ *  feel.json fauna.sizeMul 1; D-054 had them at 0.57 and closed the herds up to 0.65); spaceHerd()
+ *  still keeps every head clear of the others. */
+export const HERD_SPREAD = 1;
 
 /**
  * The herds per biome (positions as in v1.6; loose groups, both facings, young ones). Feet on

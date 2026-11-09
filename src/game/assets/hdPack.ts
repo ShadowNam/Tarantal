@@ -31,7 +31,15 @@ export const STANDARD_IN_HD_LAYERS: readonly string[] = [
   'far_ridge',
   'far_veld',
   'ver_veld',
+  // D-080 (review 5): one area's layer by `<biome>/<layer>`. Namibië's near layer differs from its
+  // 1× file upscaled by 1.02/255 on average (D-053's no-gain bar is 1.5) and was 22.7 MiB in HD:
+  // its 1× tiles (5.7 MiB) make room for the true-size Brakkie's and gemsbok's HD sheets.
+  'namibie/near',
 ];
+
+/** True when a biome's layer is Standard in HD (by its id, or `<biome>/<layer>`). */
+export const standardInHdLayer = (biome: string, layerId: string): boolean =>
+  STANDARD_IN_HD_LAYERS.includes(layerId) || STANDARD_IN_HD_LAYERS.includes(`${biome}/${layerId}`);
 
 /**
  * Texture keys (prefixes) without an HD version: images that are cropped and drawn without a view
@@ -79,11 +87,39 @@ export const HD_NO_GAIN_KEYS: readonly string[] = [
   'sight/iron_rear',
   'sight/peep',
   'omen/glare',
+  // D-080 review 4 (measured 9 Nov: 1.53/255 and 2.20/255 from the 1× file upscaled; −3.3 MiB in
+  // every HD hunt, for the true-size animals' HD sheets).
+  'omen/rainbow',
+  'fx/dust_devil',
+];
+
+/**
+ * D-080 (texture memory): sprite keys (prefixes) drawn from their Standard file in HD too. The far
+ * herds at true size (3× the area of D-054's 0.57×) stand on the far veld, itself Standard in HD
+ * (STANDARD_IN_HD_LAYERS); at 1 texture px per design px they match a phone's screen px (Pixel 7:
+ * 1080 design px = 1080 px), and the memory goes to the true-size cameos on the mid plane instead.
+ * The weaver colony's sheet is drawn at 3× (COLONY_ART_SCALE) for its true-size birds: its own HD.
+ */
+export const STANDARD_IN_HD_KEYS: readonly string[] = [
+  'fauna/',
+  'desert/colony',
+  // D-080 review 4: room in Namibië's HD hunt for the true-size ostriches' and gemsbok's HD
+  // sheets (1.0 texture px per drawn px: +29 MiB) — its plant props draw their 1× files (1
+  // texture px per design px, a phone's own px; −19.5 MiB: the weaver-nest camelthorn alone
+  // was 16.6 MiB in HD).
+  'namibie/nest_camelthorn',
+  'namibie/camelthorn_',
+  'namibie/quiver_',
+  'namibie/pan_grass_',
 ];
 
 /** True when `key` may have an HD version. */
 export function hdAllowed(key: string): boolean {
-  return !HD_SKIP_KEYS.some((p) => key.startsWith(p)) && !HD_NO_GAIN_KEYS.includes(key);
+  return (
+    !HD_SKIP_KEYS.some((p) => key.startsWith(p)) &&
+    !STANDARD_IN_HD_KEYS.some((p) => key.startsWith(p)) &&
+    !HD_NO_GAIN_KEYS.includes(key)
+  );
 }
 
 /** The HD twin of a group. */

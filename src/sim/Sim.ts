@@ -59,6 +59,7 @@ import type { HarvestSystem } from './harvest/system';
 import { sanitiseCommand } from './commands';
 import { msToTicks, secondsToTicks } from './clock';
 import { createDirector, type DirectorContext } from './director/SpawnDirector';
+import { flushRoom } from './director/flushRoom';
 import {
   FLYOVER_EVENTS,
   mergeSchedules,
@@ -1093,6 +1094,18 @@ export function createSim(config: SimConfig): Sim {
         if (e.kind !== 'dog' && e.kind !== 'cameo') consider(e.x);
       return best;
     };
+    // v1.17b (D-080): a point's flock needs room under both caps (the map's flocks and its birds:
+    // `size` more) — canFlush() and flush() ask the same, so a shown marker always gets its flock.
+    const dogCanFlush = (size: number): boolean =>
+      flushRoom(
+        {
+          liveFlocks: flocks.filter((f) => f.members.length > 0).length,
+          maxFlocks: biome.pacing.maxFlocks,
+          aliveBirds: birds.length,
+          maxBirds: biome.pacing.maxBirdsOnScreen,
+        },
+        size,
+      );
     brakkie = needLazy('Brakkie').brakkie(
       content,
       {
@@ -1137,11 +1150,10 @@ export function createSim(config: SimConfig): Sim {
           emit({ type: 'flockThreatened', tick, flockId: f.id, source: 'dog' });
           emitTransition(f, applyThreat(f, fromX, fParams, dogRng));
         },
-        canFlush: () => flocks.filter((f) => f.members.length > 0).length < biome.pacing.maxFlocks,
+        canFlush: (size) => dogCanFlush(size),
         bonus: (id, base) => awardBonus(id, base),
         flush: (x, size) => {
-          if (flocks.filter((f) => f.members.length > 0).length >= biome.pacing.maxFlocks)
-            return null;
+          if (!dogCanFlush(size)) return null;
           const f = director.spawnFlockAt(
             { ...directorContext(), flocks, nextFlockId: () => nextFlockId++ },
             'mid',
@@ -1990,11 +2002,11 @@ export function createSim(config: SimConfig): Sim {
     }
   }
 
-  /** v1.13 (D-075): a live bird, or anything else a player aims at, within the cameos'
-   *  hit.guardPx of the screen point (dx, sy) for camera centre cx: a shot there is never charged
-   *  to a cameo (the benefit of the doubt). */
-  function cameoTargetNearAim(cx: number, dx: number, sy: number): boolean {
-    const guard2 = content.cameos.hit.guardPx * content.cameos.hit.guardPx;
+  /** v1.13 (D-075): a live bird, or anything else a player aims at, within `guardPx` (the cameos'
+   *  or, v1.17b D-080, the ostriches' hit.guardPx) of the screen point (dx, sy) for camera centre
+   *  cx: a shot there is never charged to a non-target (the benefit of the doubt). */
+  function targetNearAim(cx: number, dx: number, sy: number, guardPx: number): boolean {
+    const guard2 = guardPx * guardPx;
     const near = (sdx: number, ssy: number): boolean =>
       (sdx - dx) * (sdx - dx) + (ssy - sy) * (ssy - sy) <= guard2;
     for (const b of birds) {
@@ -2713,19 +2725,48 @@ export function createSim(config: SimConfig): Sim {
     const radius =
       shot.alertRadiusPx * pass.alertRadiusMul * (miss ? pass.missAlertMul : 1) * rainMul;
     shotAtColonies(shotId, meerkatHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
-    ostriches?.shot(shotId, ostrichHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
+    // The aim point on a layer, and whether the shot hit something a player aims at (then it
+    // wasn't aimed at a non-target: the cameos, D-075; the ostriches, D-080). Evaluated where used.
+    const aimOn = (layerId: string): { x: number; y: number } =>
+      tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy);
+    const hitTarget = (): boolean =>
+      damage.outcomes.length > 0 ||
+      partHits.length > 0 ||
+      crateHits.length > 0 ||
+      spookHits.length > 0 ||
+      canHits.size > 0 ||
+      baboonHits.some((id) => baboons?.isRaider(id) === true);
+    // v1.17b (D-080): the true-size ostriches keep the aimed-at rule.
+    if (ostriches !== null)
+      ostriches.shot(
+        shotId,
+        ostrichHits,
+        impacts,
+        shotCx,
+        radius > 0,
+        shot.alertsAllFlocks,
+        ostrichHits.length === 0
+          ? undefined
+          : {
+              hitTarget: hitTarget(),
+              targetNearAim: targetNearAim(
+                shotCx,
+                ctx.aim.dx,
+                ctx.aim.sy,
+                content.birds.ostriches.hit.guardPx,
+              ),
+              aimOn,
+            },
+      );
     tells?.shot(shotId, tellHits);
     if (baboonHits.length > 0 || (shot.alertsAllFlocks && radius > 0))
-      baboons?.shot(shotId, baboonHits, shot.alertsAllFlocks && radius > 0, (layerId) =>
-        tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
-      );
+      baboons?.shot(shotId, baboonHits, shot.alertsAllFlocks && radius > 0, aimOn);
     if (harvestHits.length > 0)
       harvest?.shot(
         shotId,
         harvestHits,
         damage.outcomes.length > 0 || baboonHits.some((id) => baboons?.isRaider(id) === true),
-        (layerId) =>
-          tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
+        aimOn,
       );
     // v1.12 (D-069): Brakkie yelps and bolts; −25 only if the shot was aimed at him and hit no
     // target elsewhere (D-062/D-063's rule).
@@ -2738,15 +2779,10 @@ export function createSim(config: SimConfig): Sim {
           spookHits.length > 0 ||
           [...canHits.keys()].length > 0 ||
           baboonHits.some((id) => baboons?.isRaider(id) === true),
-        (layerId) =>
-          tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
+        aimOn,
       );
     // v1.17 (D-079): every shot's aim (the Bring streak, the head tilt after clean misses).
-    brakkie?.aimed(
-      (layerId) =>
-        tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
-      miss,
-    );
+    brakkie?.aimed(aimOn, miss);
     // v1.13 (D-075): the cameos react to a pellet (and the springbok to a shot close by); −10
     // only for a shot aimed at one that hit no target with nothing aimed at near the aim point.
     if (cameos !== null) {
@@ -2754,15 +2790,11 @@ export function createSim(config: SimConfig): Sim {
       cameos.shot({
         shotId,
         hitVisits: cameoHits,
-        hitTarget:
-          damage.outcomes.length > 0 ||
-          partHits.length > 0 ||
-          crateHits.length > 0 ||
-          spookHits.length > 0 ||
-          canHits.size > 0 ||
-          baboonHits.some((id) => baboons?.isRaider(id) === true),
-        targetNearAim: cameoHits.length > 0 && cameoTargetNearAim(shotCx, ctx.aim.dx, ctx.aim.sy),
-        aimOn: (layerId) => tapToPlane(shotCx, sfOf(layerId), ctx.aim.dx, ctx.aim.sy),
+        hitTarget: hitTarget(),
+        targetNearAim:
+          cameoHits.length > 0 &&
+          targetNearAim(shotCx, ctx.aim.dx, ctx.aim.sy, content.cameos.hit.guardPx),
+        aimOn,
         impactsOn: (layerId) => impacts.map((p) => tapToPlane(shotCx, sfOf(layerId), p.dx, p.sy)),
       });
     }
@@ -3883,9 +3915,8 @@ export function createSim(config: SimConfig): Sim {
     }
     if (wind !== null && windModel !== null) {
       const w = windModel.tickWind(wind, omenRng);
-      if (w === 'changed')
-        emit({ type: 'windChanged', tick, dir: wind.dir, strength: wind.strength });
-      else if (w === 'gust') emit({ type: 'windGust', tick, dir: wind.dir });
+      if (w.changed) emit({ type: 'windChanged', tick, dir: wind.dir, strength: wind.strength });
+      if (w.gust) emit({ type: 'windGust', tick, dir: wind.dir });
     }
     for (const s of secrets) {
       const t = tickSecret(s);

@@ -197,7 +197,10 @@ for (const biome of AREAS)
           tm?.biome === want &&
           tm.graphics.hdTextures > 0 &&
           fauna.length > 0 &&
-          fauna.every((b) => b.hd) &&
+          // D-080: the far herds are Standard in HD (STANDARD_IN_HD_KEYS): the area's HD art is
+          // in once its props draw HD, the herds from their Standard files.
+          tm.graphics.bounds.some((b) => b.hd) &&
+          fauna.every((b) => !b.hd) &&
           (want === 'okavango-spring' || tm.cameos?.sheet != null)
         );
       },
@@ -207,7 +210,7 @@ for (const biome of AREAS)
     // v1.7d (D-059, CI run 40842297447): the HD layers go in, and the Karoo title's HD layers
     // are purged, in refreshHd, which runs every 30 RENDERED frames, not on a clock. On CI's
     // software GL a heavy area's 30 frames took longer than a fixed 4 s, so the sample caught
-    // both areas' layers on the GPU. Wait (bounded) for two refreshes after the fauna went HD
+    // both areas' layers on the GPU. Wait (bounded) for two refreshes after the HD pack was in (D-080: the fauna stays Standard)
     // and for no other area's HD layers in the sample; the assertions below still judge it.
     const area = biome.split('-')[0] ?? biome;
     const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
@@ -245,7 +248,10 @@ for (const biome of AREAS)
     expect(others, "another area's HD layers on the GPU").toEqual([]);
     // Nor HD tiles of the layers D-054 keeps in Standard in HD.
     const standardOnly = h.textureTop.filter((t) =>
-      STANDARD_IN_HD_LAYERS.some((id) => t.key.includes(`layer/${area}/${id}/hd/`)),
+      STANDARD_IN_HD_LAYERS.some((id) =>
+        // D-080: an entry may name one area's layer (`namibie/near`).
+        t.key.includes(id.includes('/') ? `layer/${id}/hd/` : `layer/${area}/${id}/hd/`),
+      ),
     );
     expect(standardOnly, 'HD tiles of a Standard-in-HD layer').toEqual([]);
     expect(h.cameoTexture, "the area's cameo sheet in this hunt").toBe(biome !== 'okavango-spring');
@@ -339,7 +345,9 @@ test('HD texture memory, a Christmas hunt on its heaviest map (okavango)', async
         tm.spook?.final === true &&
         tm.graphics.hdTextures > 0 &&
         fauna.length > 0 &&
-        fauna.every((b) => b.hd)
+        // D-080: the herds are Standard in HD; the area's props draw HD.
+        tm.graphics.bounds.some((b) => b.hd) &&
+        fauna.every((b) => !b.hd)
       );
     },
     null,
@@ -498,7 +506,9 @@ test('HD texture memory, a New Year hunt on its heaviest map (okavango)', async 
         tm.spook?.final === true &&
         tm.graphics.hdTextures > 0 &&
         fauna.length > 0 &&
-        fauna.every((b) => b.hd)
+        // D-080: the herds are Standard in HD; the area's props draw HD.
+        tm.graphics.bounds.some((b) => b.hd) &&
+        fauna.every((b) => !b.hd)
       );
     },
     null,
@@ -653,7 +663,9 @@ test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async 
         tm.brakkie?.sheet != null &&
         tm.graphics.hdTextures > 0 &&
         fauna.length > 0 &&
-        fauna.every((b) => b.hd)
+        // D-080: the herds are Standard in HD; the area's props draw HD.
+        tm.graphics.bounds.some((b) => b.hd) &&
+        fauna.every((b) => !b.hd)
       );
     },
     null,
@@ -1657,6 +1669,10 @@ for (const [biome, kinds] of [
 // v1.11 (D-068): the braai tally on the Pixel 7 profile at 4× CPU throttle, medium tier, Oupa's
 // story told and his dance (?braaiDance=1): the braai view on its own timer (braaiMs per frame)
 // ≤ 0.3 ms — baked frames set on change, nothing built per frame.
+/** D-080: the braai frames run before the tally's measure starts, and the frames measured. */
+const BRAAI_WARMUP_FRAMES = 30;
+const BRAAI_MEASURED_FRAMES = 120;
+
 test('perf: the braai tally at 4× CPU throttle (Pixel 7)', async ({ page, browserName }, info) => {
   test.skip(
     info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
@@ -1690,18 +1706,27 @@ test('perf: the braai tally at 4× CPU throttle (Pixel 7)', async ({ page, brows
   await page.waitForFunction(() => window.__TM__?.braai != null, null, { timeout: 120_000 });
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  // D-080: measured after a warm-up as the game runs it — the tally's first frames carry the
+  // braai's build (its sheet's upload, the garbage of building it, cold code), which a player sees
+  // once behind the count-up; a single slow first frame decided the mean of 64 (0.305 ms once in
+  // CI, anim 0.234 vs 0.096–0.150 on the other runs). Bounded: at most 120 polls.
+  for (let i = 0; i < 120; i++) {
+    if ((await hook(page)).braaiFrames >= BRAAI_WARMUP_FRAMES) break;
+    await page.waitForTimeout(100);
+  }
   const first = await hook(page);
+  expect(first.braaiFrames).toBeGreaterThanOrEqual(BRAAI_WARMUP_FRAMES);
   let danced = false;
   let calls = 0;
-  // v1.12 (polish e): at least 60 frames measured, so one GC pause can't decide the mean (the
-  // failing CI sample had 28 frames: anim 0.193 ms vs 0.075 on its retry).
-  for (let i = 0; i < 200; i++) {
+  // v1.12 (polish e): enough frames measured that one GC pause can't decide the mean (the
+  // failing CI sample had 28 frames: anim 0.193 ms vs 0.075 on its retry); D-080: 120.
+  for (let i = 0; i < 240; i++) {
     await page.waitForTimeout(250);
     const h = await hook(page);
     danced ||= h.braai?.dancing === true;
     calls = Math.max(calls, h.braai?.calls ?? 0);
     const told = (h.braai?.story.shown ?? 0) >= (h.braai?.story.lines.length ?? 9);
-    if (told && danced && h.braaiFrames - first.braaiFrames >= 60) break;
+    if (told && danced && h.braaiFrames - first.braaiFrames >= BRAAI_MEASURED_FRAMES) break;
   }
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
   const h = await hook(page);
@@ -1724,7 +1749,7 @@ test('perf: the braai tally at 4× CPU throttle (Pixel 7)', async ({ page, brows
   };
   console.log(`[perf] ${JSON.stringify(report)}`);
   writeFileSync(info.outputPath('perf-braai.json'), JSON.stringify(report, null, 2));
-  expect(frames).toBeGreaterThanOrEqual(60);
+  expect(frames).toBeGreaterThanOrEqual(BRAAI_MEASURED_FRAMES);
   expect(report.maxCallsPerFrame).toBeLessThanOrEqual(40);
   expect(report.braaiMsPerFrame, 'braai view ms per frame, 4× throttle').toBeLessThanOrEqual(0.3);
   expect(errors).toEqual([]);

@@ -98,6 +98,16 @@ guineafowl is never taller than an ostrich or a springbok beside it (far herds s
 Waterhole's animals are drawn 5× taller). Flock spacing and speeds shrink with the plane. Small
 birds stay shootable: a far body is hit within at least 18 px, a Ver body within 10 px, with mouse
 or touch. Per-species target heights: `docs/balance/perspective.md`.
+
+**Every animal at true size (v1.17b, D-080; the owner: "yes make all animals true size").** Every
+animal beside the guineafowl on its plane is its real size (±15 %, `tools/sizes.ts`): the far
+herds and far ostriches (no longer D-054's 0.57× / 0.45×), the ostrich pair, the baboons, the
+Harvest's warthogs and piglets, Brakkie, the cameos and the weaver colony; their hit and penalty
+areas grow with them (never smaller than the drawn body); Die Oes's farm workers and fence stand
+on the same true scale as its warthogs. Left off true size: the dung beetle (bigger on purpose so
+it reads), the bakkie (a stage-set prop) and the Harvest's mielies (true, they would hide the
+flocks in the rows): the owner decides. Props keep
+their stage-set scale. Table: art bible §4.1 "Every animal at true size".
 The Ver plane (D-036) sits behind the far plane (scroll factor 0.22, between the far ridge and the
 far veld); a rifle's zoom is how you see and hit it (§10.6).
 
@@ -758,7 +768,13 @@ Namibian carvers turn into key rings and ornaments (sources: D-056).
   come back after a few seconds.
 - **Don't shoot them:** an ostrich or the nest costs **10** (once per 2 s, like the meerkats); never
   hurt — feathers or sand puff, the bird hisses and runs: "Leave my eggs alone!" (`bark.ostrich`).
-  A shot that hits one is not a miss.
+  A shot that hits one is not a miss. **Since v1.17b (D-080), at their true 2.5 m, only a shot
+  aimed at one costs it** — the cameos' form of the aimed-at rule: the aim point on a bird or the
+  nest, the shot hit no target, and no target within `ostriches.hit.guardPx` (260 px) of the aim
+  point; a stray pellet makes them hiss and run, free. And a pellet passes through them (and the
+  nest) like a cameo: a bird behind takes it. (The other aimed-at rules differ: a baboon mother
+  costs the penalty only with the aim point on her; Brakkie, with the aim point on him and no
+  target hit; the Harvest's workers and piglets, with no target and no warthog hit.)
 - **One pair per map:** a second pair stood in the mid flocks' ground band and drew about one
   accidental −10 per hunt from the competent bot; one pair draws 0.1–0.2
   (`docs/balance/v1.7d-namibie-life.md`). A pair on the near plane would stand ~470 px tall and

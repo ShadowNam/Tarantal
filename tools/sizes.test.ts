@@ -1,5 +1,7 @@
 // v1.16 (D-078): the animals brought to real size stay within ±15 % of it next to the guineafowl
-// on their plane; the ones left for the owner are listed, each with its reason.
+// on their plane; the ones left for the owner are listed, each with its reason. v1.17b (D-080):
+// every animal ("yes make all animals true size"): only the guineafowl, the dung beetle and the
+// bakkie are left.
 import { describe, expect, it } from 'vitest';
 import { TELL_BOXES } from '../src/game/view/tell/tellSheet';
 import { NOT_FIXED, offBy, sizeTable, TELL_DRAWN_PX, TELL_REAL_M } from './sizes';
@@ -7,7 +9,7 @@ import { loadContent, loadFeel } from './testContent';
 
 const TOLERANCE = 0.15;
 
-describe('real animal sizes next to the guineafowl (D-078)', () => {
+describe('real animal sizes next to the guineafowl (D-078, D-080)', () => {
   const content = loadContent();
   const rows = sizeTable(content, loadFeel());
 
@@ -16,6 +18,53 @@ describe('real animal sizes next to the guineafowl (D-078)', () => {
     expect(ids).toContain('sociable_weaver');
     expect(ids).toContain('meerkat_mid');
     for (const sp of content.birds.tells.species) expect(ids).toContain(sp.id);
+  });
+
+  it('D-080: covers every other animal too', () => {
+    const ids = new Set(rows.map((r) => r.id));
+    for (const id of [
+      'far_elephant',
+      'far_giraffe',
+      'far_zebra',
+      'far_wildebeest',
+      'far_gemsbok',
+      'far_springbok',
+      'far_lechwe',
+      'far_ostrich',
+      'mid_ostrich',
+      'baboon_raider',
+      'baboon_ridge',
+      'baboon_mother',
+      'harvest_warthog_mid',
+      'harvest_warthog_near',
+      'harvest_piglet_mid',
+      'brakkie_near',
+      'brakkie_mid',
+      'cameo_warthogs',
+      'cameo_springbok',
+      'cameo_gemsbok',
+      'cameo_ostrich',
+      'cameo_tortoise',
+      'colony_weaver_near',
+      'colony_weaver_mid',
+      'colony_weaver_far',
+      'colony_weaver_ver',
+      'colony_falcon_near',
+      'colony_lovebird_near',
+    ])
+      expect(ids.has(id), id).toBe(true);
+  });
+
+  it('D-080: only the yardstick, the dung beetle, the stage-set props and the mielies are left, each with its reason', () => {
+    expect(Object.keys(NOT_FIXED).sort()).toEqual([
+      'bakkie',
+      'bushveld_dassie',
+      'cameo_dung_beetle',
+      'guineafowl',
+      'harvest_mielies',
+      'okavango_hippo',
+      'okavango_lily_frog',
+    ]);
   });
 
   for (const r of rows)

@@ -106,30 +106,41 @@ function shape(s: number, e: 1 | 1.5 | 2): number {
   return e === 1 ? s : e === 2 ? s * s : s * Math.sqrt(s);
 }
 
-/** Advances one tick; returns 'changed' when the wind was re-rolled, 'gust' when a gust began. */
-export function tickWind(w: Wind, rng: RandomStream): false | 'changed' | 'gust' {
+/** What one tick did: the wind was re-rolled, a gust began — either, both or neither (D-080: a gust
+ *  starting on a re-roll's tick keeps its event). */
+export interface WindTick {
+  readonly changed: boolean;
+  readonly gust: boolean;
+}
+
+/** Advances one tick. */
+export function tickWind(w: Wind, rng: RandomStream): WindTick {
   w.t++;
-  let out: false | 'changed' | 'gust' = false;
+  let gust = false;
   if (w.gust !== null && w.t >= w.gust.start + w.gust.len) w.gust = null;
   const g = w.cfg.gusts;
   if (g !== undefined && w.gustRng !== null && w.gust === null && w.t >= w.nextGust) {
     const len = Math.max(1, secondsToTicks(between(w.gustRng, g.seconds[0], g.seconds[1])));
     w.gust = { start: w.t, len };
     w.nextGust = w.t + len + gapTicks(w);
-    out = 'gust';
+    gust = true;
   }
   w.ticksToChange--;
-  if (w.ticksToChange > 0) return out;
+  if (w.ticksToChange > 0) return { changed: false, gust };
   roll(w, rng);
-  return 'changed';
+  return { changed: true, gust };
 }
 
-/** 0..1: how far into its peak the gust is (a quick rise, a slower fall), 0 without one. */
+/** 0..1: how far into its peak the gust is (a quick rise over `riseShare` of it, then the fall
+ *  over the rest — omen.wind.gusts.riseShare, D-080), 0 without one. */
 export function gustLevel(w: Wind): number {
   if (w.gust === null) return 0;
   const p = (w.t - w.gust.start) / w.gust.len;
   if (p < 0 || p >= 1) return 0;
-  return p < 0.3 ? p / 0.3 : (1 - p) / 0.7;
+  // A gust exists only with content's gusts (createWind): their riseShare (the schema's default).
+  const rise = w.cfg.gusts?.riseShare;
+  if (rise === undefined) return 0;
+  return p < rise ? p / rise : (1 - p) / (1 - rise);
 }
 
 /** The strength now: the period's plus the gust's (never above 1). */

@@ -23,6 +23,7 @@ import {
   HARVEST_SHEET,
   PIGLET_H,
   WARTHOG_H,
+  FENCE_K,
   WORKER_H,
   harvestFrames,
   harvestTexelsPerPx,
@@ -490,14 +491,15 @@ export class HarvestView {
             : SIGN_SWING *
               Math.pow(SIGN_DECAY, since) *
               Math.cos((since / SIGN_PERIOD) * Math.PI * 2);
-      // The sign hangs from the gap's top wire (a little above the fence's middle).
-      const sy = h.gap.y - 70;
+      // The sign hangs from the gap's top wire (a little above the fence's middle); D-080: the
+      // true-size fence's, and the sign twice its v1.8c size with it (~0.6 m).
+      const sy = h.gap.y - 62 * FENCE_K - 8;
       const shown = this.place(
         this.sign,
         'sign_oes',
         h.gap.x,
         sy,
-        1,
+        2,
         false,
         1,
         Math.round(swing * 100) / 100,

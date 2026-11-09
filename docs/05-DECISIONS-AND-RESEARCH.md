@@ -4307,6 +4307,193 @@ cooldown); reactions (from idle, the rate limit, 0.8 s, the tilt after misses); 
 companion at 4× throttle ≤ 0.3 ms a frame). Screenshots: `art-preview-companion.spec.ts`
 (`v117-companion-*`). Golden replays re-recorded with each sim change (reasons in the commits).
 
+### D-080 — v1.17b Every animal at true size (9 Nov 2026)
+
+**The owner's answer (9 Nov).** D-078 (v1.16) put the small animals (the tells, the angry weavers,
+the meerkats) at their real size beside the guineafowl and listed the rest for him
+(`tools/sizes.ts NOT_FIXED`). Asked whether those should go to true size too: **"yes make all
+animals true size".** This supersedes **D-054's 0.57× for the far herds and 0.45× for the far
+ostriches**, and the stage-scale sizing of the cameos (D-075), the Harvest's warthogs (D-063, "about
+the fence post's height"), Brakkie (D-069) and the weaver colony (D-057, "about 1.3× true against
+the tree").
+
+**Rule.** Every animal is drawn at its real size beside the guineafowl standing on its plane (the
+yardstick: 0.5 m; 263 / 110 / 39 / 18 px near / mid / far / Ver; its size and hit boxes never
+change), within ±15 % (`tools/sizes.ts`, held by `tools/sizes.test.ts`). Hit and penalty areas
+grow with the drawing, never smaller than the drawn body. Props keep their stage-set scale.
+
+**Sizes (design px at 1080; v1.17 → v1.17b).**
+
+| animal | measure | real (m) | plane | px v1.17 → v1.17b | how |
+|---|---|---|---|---|---|
+| far elephant | shoulder | 3.2 | far | 144 → 253 | `feel fauna.sizeMul` 0.57 → 1, sheets redrawn |
+| far giraffe | head top | 5.0 | far | 225 → 395 | 〃 |
+| far zebra | shoulder | 1.35 | far | 61 → 107 | 〃 |
+| far wildebeest | shoulder | 1.4 | far | 63 → 111 | 〃 |
+| far gemsbok (and the mirage's oryx) | shoulder | 1.2 | far | 54 → 95 | 〃 |
+| far springbok | shoulder | 0.8 | far | 36 → 63 | 〃 |
+| far lechwe | shoulder | 1.0 | far | 45 → 79 | 〃 |
+| far ostrich | head top | 2.5 | far | 89 → 197 | 0.45 → 1 |
+| mid ostrich (Namibië's pair) | head top | 2.5 | mid | 197 → 552 | `ostriches.sizeMul` 2.8 |
+| baboon, sitting male (raider · ridge) | crown | 0.8 | mid · far | 151 · 54 → 176 · 63 | `baboons.heightPx` 360 → 420, hit boxes ×7/6 |
+| baboon, sitting mother | crown | 0.65 | far | 44 → 52 | 〃 (× motherScale 0.82) |
+| Harvest warthog | back | 0.7 | mid · near | 74 · 175 → 155 · 368 | `warthogs.heightPx` 175 → 368, hit boxes ×2.1 |
+| Harvest piglet | back | 0.3 | mid · near | 33 · 79 → 70 · 166 | × pigletScale 0.45 |
+| Harvest farm worker (a person) | hat top | 1.7 | mid | 113 → 375 | `workers.heightPx` 270 → 894, hit boxes ×3.31 |
+| Harvest fence post (a prop) | post top | 1.2 | mid | 70 → 265 | `harvest.fence.postPx` 631; wires and gap panel with it |
+| Brakkie | shoulder | 0.3 | near · mid | 110 · 46 → 149 · 62 | `brakkie.sizeMul` 1.35 (0.28 m) |
+| cameo warthog sow (and young) | back | 0.7 | mid | 57 → 154 | `cameos.kinds.*.sizeMul` 2.7, redrawn |
+| cameo springbok | shoulder | 0.8 | mid | 60 → 177 | 2.95 |
+| cameo gemsbok | shoulder | 1.2 | mid | 78 → 265 | 3.4 |
+| cameo ostrich | head top | 2.5 | mid | 200 → 552 | 2.76 |
+| cameo leopard tortoise | shell top | 0.25 | near | 50 → 130 | 2.6 |
+| colony weaver | wingspan | 0.22 | near · mid · far · Ver | 32 · 22 · 12 · 8 → 116 · 49 · 17 · 8 | `treeLife.colony.wingspanPx`, sheet at 3× |
+
+Every row within −5.9 … +4.9 % of its target. **Left off true size:** the guineafowl (the
+yardstick); the **dung beetle** (drawn about twice its true size on purpose, so it reads at all);
+the **bakkie** — at its true 1.8 m on the mid plane it would be 398 px tall and ~1 050 long, as
+tall as the 9 m windpomp (drawn 395 px) and three times the 1.5 m reservoir (133 px): every prop
+in the scene is on a stage-set scale, so a true bakkie breaks the set. **The owner decides** (true
+size means re-scaling the windpomp and the reservoir, or the whole yard). Also left: the Okavango's
+hippo (a prop, 96 px for ~1 m, 0.43×).
+
+**The Harvest at true scale (the owner, review: no warthog taller than a person).** A first pass
+left the farm workers at 270 px (≈ 0.5 m beside the guineafowl) and the fence posts at 70 px: a
+true warthog stood a third taller than a worker and 2.2× a post. The workers (1.7 m: 113 → 375
+px on the mid plane) and the fence (1.2 m posts: 70 → 265 px, the wires and the gap's panel with
+them; the mid layer is drawn from y 400 to hold them; the "OES" sign ×2) are now on the same true
+scale: a warthog is 0.41× a worker and 0.58× a post, a worker 1.42× a post
+(`harvestSheet.test.ts` asserts 0.35–0.5, 0.5–0.75 and 1.3–1.8 from content). The workers stay
+out of the line of fire at their size (`tools/art/harvestLineOfFire.ts`): they stand at dx 240 /
+380 / 520 from the gap (200 / 290 / 380), the Harvest's mid fly-over band is y 130–280 (160–360)
+and the right feeding stretch u 0.83–0.88 (0.80–0.86). **Not at true scale: the mielies.** True
+(2.2–2.5 m) they would be 490–550 px on the mid plane (120–215 now): the front rows (feet at y 880)
+would reach y ≈ 330 and hide the flocks feeding in the rows (feet at y 715–775, 110 px tall) and
+the gap; they stay stage-scale, shorter than the workers and the fence. **The owner decides**
+(true mielies means the flocks feed in a stubble field or on the track). The workers' texture is
+drawn at 180 px (the sheet stays inside the HD budget): about 1:1 in HD, upscaled ~2× in
+Standard.
+
+**Changed on the way.**
+- *The ostriches' aimed-at rule.* At 2.8× (7.9× the area) every stray pellet on one cost −10
+  (D-059 had no aimed-at rule): Namibië's penalties more than doubled (competent 2.69 → 6.46 a
+  hunt, mean −7.5 %). The ostriches now keep the rule of D-062/D-063/D-069/D-075
+  (`src/sim/ostriches/system.ts`, always on): −10 only for a shot aimed at a bird or the nest (the aim point on
+  its hit shape, no target hit, none within `hit.guardPx` of the aim point); a stray pellet makes
+  them hiss and run, free.
+- *The benefit of the doubt grows with the animals* (`hit.guardPx` 120 → 260, the cameos and the
+  ostriches): the bigger cameos walking in from the screen's edges caught the competent bot's lead
+  shots at birds leaving it (a bird 120–260 px from the aim point).
+- *Layout:* the Bushveld's and the Okavango's "throw" raid spots move (u 0.55 → 0.53, 0.3 → 0.4)
+  so the bigger raiders keep clear of the dassie's tell and the mokoro pole's flag; the Harvest's
+  near dig spots move 30 px down so a trotting warthog stays out of the workers' line of fire;
+  the cameos start and end further out (`edgeDxPx` 1350 → 1650) and the tortoise keeps a wider
+  room (`clear.pathPx` 160 → 230); Brakkie's rooms (`clear.aimPx`, `pathPx`, `fencePx`) grow by
+  the ~30 px his body grew; `HERD_SPREAD` 0.65 → 1 (the herds' authored true-size spacing).
+- *Brakkie 1.4 → 1.35×.* At 1.4× his back reached into the pellets of shots at mid-plane birds
+  on their ground line (his head top ~786 px, the mid ground birds' aim ~750): accidental hits
+  0.016 → 0.098–0.100 a hunt in the companion sweep (the gate is < 0.1). At 1.35× (149 px, ~0.28
+  m) they fell to 0.03 on the Okavango (100 hunts). Keeping him from under mid birds instead cost
+  his points (he could never settle near the view's middle, where the flocks are). His
+  gun-stripe check and the no-spot fallback now use his grown head offset.
+- *Chunks:* the true-size herd sheets pushed the Bushveld, the Okavango and Namibië + desert over
+  the 1.5 MB lazy-chunk cap (1.51–1.52 MB): each area's herds are in their own background group
+  `fauna-<area>` (22–98 KB), fetched after the hunt starts like the late group.
+
+**Why `hit.guardPx` 120 → 260 (the cameos and the ostriches).** The benefit of the doubt: a
+shot with a target within guardPx of its aim point is never charged to a non-target. At 120 the
+competent bot (bird-only) still paid for cameos and ostriches it never aimed at: lead shots at
+birds leaving the screen's edges (aim dx ±860) landing on a 3× cameo walking in, the nearest bird
+120–260 px from the aim point (14 cases logged). Competent bot, penalty events a hunt (60 hunts;
+main → guardPx 120 → 260): cameo hits Bushveld 0.02 → 0.07 → 0.00, Kalahari 0.03 → 0.07 → 0.02,
+Namibië 0 → 0.07 → 0.02; ostrich hits Namibië 0.30 → 0.25 → 0.13. A shot truly aimed at one (the
+aim point on its body, no bird within 260 px) still costs −10.
+
+**Texture memory (HD ≤ 256 MB on every hunt).** The far herds at true size would add ~6 MB to the
+Okavango's HD hunt (3.1 → 9.1 MB) and ~3.5 MB to Namibië's: they are **Standard in HD**
+(`hdPack.ts STANDARD_IN_HD_KEYS`; they stand on the far veld, itself Standard in HD since D-054,
+and 1 texture px per design px is a phone's screen px). The weaver colony's sheet is drawn at 3×
+(768 × 362, 1.1 MB) with no HD twin (0.5 MB before). The baboons and the warthogs draw their
+existing sheets larger (each ≥ 0.85 texture px per drawn px in Standard). **Brakkie (review 5):**
+at 1.35× his v1.17 sheet was stretched (soft beside the crisp guineafowl and gun); his own frames
+are now drawn for his true size at 0.5 sheet px per drawn px (HD 1.0), the bird he carries and the
+point's marker at their own size: 672 × 573, 1.47 MiB (HD 1,344 × 1,146, 5.88 MiB; v1.17 0.88 /
+3.5), downloads 84 / 197 KB.
+
+**Crisp true-size cameos and ostriches (review 4).** The first pass drew the cameos at 0.25 sheet
+px per drawn px (HD 0.5) and showed the ostriches' 1.5× sheet 2.8× larger (0.54): in the
+screenshots the ostrich pair was smeared, the Karoo's sprinting ostrich a blur, the gemsbok soft.
+Every cameo and the ostrich pair (and its nest) are now **drawn from their vector shapes at the
+true size at ≥ 0.5 texture px per drawn px in Standard and 1.0 in the HD twin**
+(`animalDensity.test.ts` holds it). Sheets (Standard → HD, MiB on the GPU; first pass in
+brackets): cameos Bushveld 528 × 257, 0.52 → 2.07 (0.69 HD); Karoo 608 × 751, 1.74 → 6.97 (2.38);
+Kalahari 560 × 332, 0.71 → 2.84 (1.19); Namibië 928 × 605, 2.14 → 8.57 (3.31); the ostriches
+1,440 × 1,478, 8.12 → 2,880 × 2,956, 32.48 (one 9.24 MiB sheet for both). Downloads: the cameo
+groups 24 / 49 / 28 / 57 KB (HD 57 / 118 / 66 / 133 KB); the ostrich sheet 136 KB in Namibië's
+chunk (HD 375 KB). **Room in Namibië's HD hunt** for its +34.5 MiB: its plant props (the
+weaver-nest camelthorn — 16.6 MiB alone — the camelthorns, the quiver trees, the pan grass) are
+Standard in HD (−19.5 MiB; their 1× files, 1 texture px per design px: a phone's own px, softer
+only on a 1440p+ desktop), and the rainbow and the dust devil join `HD_NO_GAIN_KEYS` (1.53 and
+2.20/255 from their 1× files upscaled, at D-053's bar; −3.3 MiB in every hunt). Review 5: Brakkie's
+HD twin (+2.38 MiB in every hunt he is on) would have taken Namibië to ~256.3 — and the gemsbok's
+and Brakkie's views load their HD twins only under 256 − 6 MiB (`feel.json`), so they would have
+stayed Standard there; **Namibië's near layer is Standard in HD** (`STANDARD_IN_HD_LAYERS`
+`namibie/near`: 1.02/255 from its 1× tiles upscaled, under D-053's bar; 22.7 → 5.7 MiB, −17.0).
+Estimated from the textures that changed, CI's v1.17 numbers → v1.17b: **Namibië 246.7 → ~239.3
+MB**, Okavango + Reënbui 244.4 → ~242.7, Christmas (Okavango) 243.3 → ~241.6, New Year (Okavango)
+244.5 → ~242.8, **the Harvest 232.7 → ~244.9** (no Brakkie there; its sheet 21.5 → 27.5 MB for the
+taller gap panel, its mid layer +9.5 MB for the true-size fence), Karoo 221.1 → ~225.1, Bushveld
+227.8 → ~227.4, Kalahari 227.0 → ~228.8; CI's `perf.spec.ts` measures them (its HD waits look for
+the area's HD layers, not HD herds). The tightest is now the Harvest (~11 MiB under 256). The far herds in HD draw their 1×
+Standard sheets: on a Pixel 7 that is the screen's own px; on a 1440p+ desktop they are a little
+softer than the HD props (the screenshot spec's `herd-namibie-std-hd` pair shows it).
+
+**First download** (web, gzip): 3,027.8 → 3,024.1 KB (≤ 3,072): the bigger art is all lazy;
+the far herds' view and tables (the placeholder factory takes their literal keys from
+`faunaKeys.ts`, so `faunaHerds.ts` leaves the entry), the test-only ruler hook and the herds' frame
+tables (pivots to 0.1 px) moved out of or shrank in the entry. `npm run size -- --strict`: OK;
+lazy chunks Bushveld 1,457 KB, Okavango 1,477, Namibië + desert 1,511, the Harvest 1,229, late
+1,490, `fauna-*` 22–98, the cameo groups 39 / 66 / 36 / 63 KB (Bushveld, Karoo, Kalahari,
+Namibië; HD 56 / 117 / 65 / 132).
+
+**Balance** (`docs/balance/v1.17b-sizes.md`; 200 seeds per area, main 2d23df11 → branch). Every
+mean within −5.6 … +5.7 % (Namibië's competent +5.7 %, 4,483, after the ostrich pair became
+pass-through; −5.5 % while it still stopped pellets to the birds behind it); all gates pass.
+Penalties a hunt, bird-only bots (plinker · competent) before → after: Karoo 0.06 · 0.06 → 0.11 ·
+0.11, Kalahari 0.47 · 1.02 → 0.48 · 0.94, Namibië 1.94 · 2.69 → 1.17 · 2.65, Bushveld 0.06 · 0.06 →
+0.14 · 0.06, Okavango 0.07 · 0.07 → 0.09 · 0.06. The random bot, which fires at random points,
+hits the bigger bodies more often (+0.2 … +0.8 a hunt): shots aimed at them. **The Harvest**
+(main → branch, workers and fence at true scale): plinker 1,560 → 1,551 (−0.6 %), competent 1,842
+→ 1,878 (+2.0 %); worker hits 0 → 0.04 / 0.01 a hunt. The random bot 122 → −17: its random shots
+land on the 3.3× workers 1.75 times a hunt (−100 each); it is a floor, not a player.
+**Brakkie the companion** (`tools/companion-sweep.ts --tag t080b`, 500 hunts a cell; v1.17 →
+v1.17b): a player who works with him +5.3 … +7.5 % → +3.5 … +7.8 % (the Karoo 0.8 point over the
++7 % aim, within one standard error; Namibië +3.5 %); one who ignores him +0.1 … +2.1 % → −0.4 …
++1.8 %; accidental hits ≤ 0.016 → ≤ 0.062 a hunt (< 0.1).
+
+**Also in this release (the v1.17 review).** Brakkie's `canFlush()` asks the same caps as
+`flush()` (the flock cap and room for the point's 5 under the bird cap: `src/sim/director/
+flushRoom.ts`), so a shown point always gets its flock; a gust's rise share is content
+(`omen.wind.gusts.riseShare`, 0.3); a gust that starts on a wind re-roll's tick keeps its
+`windGust` event (`tickWind` → `{ changed, gust }`); the braai tally's perf case measures after a
+30-frame warm-up over ≥ 120 frames (CI's one 0.305 ms sample was the first frames' anim part,
+0.234 vs 0.096–0.150 on other runs; the budget stays 0.3 ms), and Oupa's pose change updates his
+origin once.
+
+**CI.** The Pixel 7 perf job outgrew the 45-min job limit (the herds' background group the HD
+cases wait for, the braai case's warm-up): it ran out on its last test with the 28 before it green.
+It is now two jobs, `perf` and `perf2` (`.github/workflows/ci.yml` `part`: Playwright's `--shard`
+within the one spec, one worker each, each alone on its runner, ~20 min). The limit is unchanged.
+
+**Tests.** Unit: `tools/sizes.test.ts` (every animal within ±15 %, NOT_FIXED only the guineafowl,
+the dung beetle and the bakkie), the cameos' art sizes equal content's (`cameoSheet.test.ts`), the
+ostriches' aimed-at rule (`src/sim/ostriches/aimed.test.ts`), `flushRoom`, the gust shape and the
+re-roll gust; the far herds at sizeMul 1 (`tools/perspective.test.ts`). e2e: `brakkie.spec`,
+`cameos.spec` and `namibie-life.spec` measure at the new sizes; `perf.spec`'s HD memory cases.
+Screenshots: `tests/e2e/art-preview-sizes.spec.ts` (prefix `v117b-sizes`; a test-build hook
+`__TM_RULERS__` draws standing guineafowl as yardsticks beside each subject, view only). Golden
+replays re-recorded (hit areas moved; the v3 fixture classic-11 1,243 → 1,198).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

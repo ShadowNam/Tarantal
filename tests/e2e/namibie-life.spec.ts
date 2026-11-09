@@ -86,8 +86,9 @@ async function fire(
       let x: number;
       let y: number;
       if (w === 'sand') {
-        // Just right of the pair, low on the sand: close enough to scare them, hitting nothing.
-        x = Math.min(g.designWidth * 0.85, Math.max(...os.map((o) => o.x)) + 120);
+        // Just right of the pair, low on the sand: close enough to scare them (scare.radiusPx 700
+        // × 0.42 = 294 px), hitting nothing (D-080: the true-size nest reaches 200 px out).
+        x = Math.min(g.designWidth * 0.85, Math.max(...os.map((o) => o.x)) + 260);
         y = Math.max(...os.map((o) => o.y)) - 4;
       } else {
         // A standing bird's body (about 60 % up from its feet), inside the screen's middle.

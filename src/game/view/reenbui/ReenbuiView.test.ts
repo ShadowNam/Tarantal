@@ -75,7 +75,7 @@ function makeView(
           return this;
         },
       })),
-    fauna: [],
+    fauna: () => [],
   }));
   const dimmer = new LayerDimmer(dimLayers);
   const parallax = {

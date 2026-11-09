@@ -254,8 +254,11 @@ export interface BrakkieView {
   readonly x: number;
   readonly y: number;
   readonly facing: 1 | -1;
-  /** His size against the near plane's (mid: the mid plane's scale / the near plane's). */
+  /** His drawn size against the near plane's art (mid: the mid plane's scale / the near
+   *  plane's), × brakkie.sizeMul (v1.17b, D-080). */
   readonly scale: number;
+  /** v1.17b (D-080): brakkie.sizeMul (the bird in his mouth keeps its own size: scale / this). */
+  readonly sizeMul: number;
   /** Ticks into the phase, and its length (0 for a moving phase). */
   readonly t: number;
   readonly dur: number;
@@ -572,6 +575,8 @@ export interface OstrichFamilyView {
   readonly layerId: string;
   readonly plane: PlaneId;
   readonly scale: number;
+  /** v1.17b (D-080): the drawn size (scale × ostriches.sizeMul). */
+  readonly size: number;
   readonly ground: number;
   readonly nest: { readonly id: number; readonly x: number; readonly eggs: number } | null;
   /** Sorted by id (the male first). */

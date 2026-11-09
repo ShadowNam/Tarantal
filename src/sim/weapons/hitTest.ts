@@ -213,7 +213,8 @@ export type HitExtra =
       readonly y: number;
       readonly shape: OccluderShape;
     }
-  /** v1.7d (D-059): an ostrich's body or neck, or its nest (a non-target: points off). */
+  /** v1.7d (D-059): an ostrich's body or neck, or its nest (a non-target: points off). v1.17b
+   *  (D-080): pass-through like a cameo (anything behind it takes the pellet). */
   | {
       readonly kind: 'ostrich';
       readonly ostrichId: number;
@@ -312,7 +313,9 @@ export function resolvePellet(
    *  only a plain prop occluder, or nothing, leaves it to the nut. */
   let nut: PelletResult | null = null;
   /** v1.13 (D-075): the first cameo the pellet passed: a cameo never hides anything behind it
-   *  (a target); only when the pellet meets no target is the cameo its result. */
+   *  (a target); only when the pellet meets no target is the cameo its result. v1.17b (D-080):
+   *  the true-size ostriches and their nest pass the pellet on the same way (553 px tall on the
+   *  mid plane, they would hide the far and Ver birds behind them). */
   let cameo: PelletResult | null = null;
   let nutF = -1;
   let cameoF = -1;
@@ -355,16 +358,18 @@ export function resolvePellet(
         continue;
       }
       if (!pointInOccluder(p.x, p.y, { propId: '', x: e.x, y: e.y, shape: e.shape })) continue;
-      if (e.kind === 'cameo') {
+      if (e.kind === 'cameo' || e.kind === 'ostrich') {
         if (cameo === null) {
-          cameo = { ...NOTHING, cameoId: e.cameoId };
+          cameo =
+            e.kind === 'cameo'
+              ? { ...NOTHING, cameoId: e.cameoId }
+              : { ...NOTHING, ostrichId: e.ostrichId };
           cameoF = atF;
         }
         continue;
       }
       if (e.kind === 'paper') return after({ ...NOTHING, paperId: e.paperId });
       if (e.kind === 'meerkat') return after({ ...NOTHING, meerkatId: e.meerkatId });
-      if (e.kind === 'ostrich') return after({ ...NOTHING, ostrichId: e.ostrichId });
       if (e.kind === 'spook') return after({ ...NOTHING, spookId: e.spookId });
       if (e.kind === 'tell') return after({ ...NOTHING, tellId: e.tellId });
       if (e.kind === 'baboon') return after({ ...NOTHING, baboonId: e.baboonId });
@@ -476,6 +481,7 @@ export function resolvePattern(
   const pellets = at(0, 0);
   if (assisted === null) return pellets;
   // A crate, secret part, meerkat or Spookjag hit is a hit too: never thrown away for a snap.
+  // (Not a cameo's or, D-080, an ostrich's: they pass the pellet on, and a snap may find a bird.)
   // 1.9.3 (D-056, review M6): a makalani nut is not — nuts hang where birds fly, so a touch shot
   // that clips a nut may still snap onto a bird; the nut keeps the pellets only without a snap.
   const hit = pellets.some(
@@ -484,7 +490,6 @@ export function resolvePattern(
       p.r.crateId !== null ||
       p.r.partId !== null ||
       p.r.meerkatId !== undefined ||
-      p.r.ostrichId !== undefined ||
       p.r.spookId !== undefined ||
       p.r.baboonId !== undefined ||
       p.r.harvestId !== undefined ||

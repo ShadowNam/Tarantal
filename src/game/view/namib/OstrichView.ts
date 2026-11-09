@@ -244,7 +244,7 @@ export class OstrichView {
   private build(f: OstrichFamilyView): Built | null {
     const layer = this.parallax.layer(f.layerId);
     if (layer === undefined) return null;
-    const k = f.scale / OSTRICH_ART_SCALE / this.tk;
+    const k = f.size / OSTRICH_ART_SCALE / this.tk;
     const clutch = f.nest === null ? null : this.makeClutch(f.nest.x, f.ground);
     if (clutch !== null) {
       clutch.img.setScale(k);
@@ -312,7 +312,7 @@ export class OstrichView {
             pf = x;
             break;
           }
-      const k = f.scale / OSTRICH_ART_SCALE / this.tk;
+      const k = f.size / OSTRICH_ART_SCALE / this.tk;
       if (f.nest !== null && b.clutch !== null) {
         this.bakeClutch(b, f.nest.eggs);
         if (b.clutch.img.scaleX !== k) b.clutch.img.setScale(k);
@@ -391,9 +391,9 @@ export class OstrichView {
           layer,
           e.tick,
           e.x,
-          e.nest ? e.y - 4 * f.scale : e.y - 300 * f.scale,
+          e.nest ? e.y - 4 * f.size : e.y - 300 * f.size,
           e.nest,
-          f.scale,
+          f.size,
         );
         audio.playExtra(OSTRICH_SOUNDS.hiss, this.pan(e.plane, e.x, width), OSTRICH_SYNTH.hiss);
       } else if (e.type === 'ostrichesRan') {

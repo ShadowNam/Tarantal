@@ -23,12 +23,12 @@
     },
     "brakkie/sheet": {
       "file": {
-        "path": "assets/brakkie-hd/img/brakkie_sheet.92a22731f174.png",
-        "bytes": 117755,
-        "hash": "92a22731f174"
+        "path": "assets/brakkie-hd/img/brakkie_sheet.b840a8c77a30.png",
+        "bytes": 201964,
+        "hash": "b840a8c77a30"
       },
-      "width": 1024,
-      "height": 896,
+      "width": 1344,
+      "height": 1146,
       "scale": 0.5
     },
     "bushveld/aloe_a": {
@@ -103,42 +103,42 @@
     },
     "cameos/bushveld": {
       "file": {
-        "path": "assets/cameos-bushveld-hd/img/cameos_bushveld.b52c13255164.png",
-        "bytes": 21998,
-        "hash": "b52c13255164"
+        "path": "assets/cameos-bushveld-hd/img/cameos_bushveld.868de42a5e97.png",
+        "bytes": 57892,
+        "hash": "868de42a5e97"
       },
-      "width": 512,
-      "height": 256,
+      "width": 1056,
+      "height": 514,
       "scale": 0.5
     },
     "cameos/kalahari": {
       "file": {
-        "path": "assets/cameos-kalahari-hd/img/cameos_kalahari.58f39cd819f1.png",
-        "bytes": 17760,
-        "hash": "58f39cd819f1"
+        "path": "assets/cameos-kalahari-hd/img/cameos_kalahari.689e4e8b6662.png",
+        "bytes": 67235,
+        "hash": "689e4e8b6662"
       },
-      "width": 512,
-      "height": 256,
+      "width": 1120,
+      "height": 664,
       "scale": 0.5
     },
     "cameos/karoo": {
       "file": {
-        "path": "assets/cameos-karoo-hd/img/cameos_karoo.5c71afd1ac52.png",
-        "bytes": 29742,
-        "hash": "5c71afd1ac52"
+        "path": "assets/cameos-karoo-hd/img/cameos_karoo.8778041c6248.png",
+        "bytes": 120759,
+        "hash": "8778041c6248"
       },
-      "width": 1024,
-      "height": 512,
+      "width": 1216,
+      "height": 1502,
       "scale": 0.5
     },
     "cameos/namibie": {
       "file": {
-        "path": "assets/cameos-namibie-hd/img/cameos_namibie.db46e1db37bb.png",
-        "bytes": 28428,
-        "hash": "db46e1db37bb"
+        "path": "assets/cameos-namibie-hd/img/cameos_namibie.f972ccc6cbf9.png",
+        "bytes": 136524,
+        "hash": "f972ccc6cbf9"
       },
-      "width": 1024,
-      "height": 512,
+      "width": 1856,
+      "height": 1210,
       "scale": 0.5
     },
     "crate/box": {
@@ -159,196 +159,6 @@
       },
       "width": 520,
       "height": 720,
-      "scale": 0.5
-    },
-    "desert/colony": {
-      "file": {
-        "path": "assets/desert-hd/img/desert_colony.c3cdc417e37f.png",
-        "bytes": 8510,
-        "hash": "c3cdc417e37f"
-      },
-      "width": 512,
-      "height": 252,
-      "scale": 0.5
-    },
-    "fauna/bushveld_elephants": {
-      "file": {
-        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_elephants.b827abdf1754.png",
-        "bytes": 42736,
-        "hash": "b827abdf1754"
-      },
-      "width": 452,
-      "height": 962,
-      "scale": 0.5
-    },
-    "fauna/bushveld_giraffes_a": {
-      "file": {
-        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_giraffes_a.7646146f4435.png",
-        "bytes": 43170,
-        "hash": "7646146f4435"
-      },
-      "width": 468,
-      "height": 738,
-      "scale": 0.5
-    },
-    "fauna/bushveld_wildebeest": {
-      "file": {
-        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_wildebeest.00ab55e8030a.png",
-        "bytes": 22212,
-        "hash": "00ab55e8030a"
-      },
-      "width": 554,
-      "height": 250,
-      "scale": 0.5
-    },
-    "fauna/bushveld_zebra": {
-      "file": {
-        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_zebra.a6c7aebf0516.png",
-        "bytes": 33929,
-        "hash": "a6c7aebf0516"
-      },
-      "width": 470,
-      "height": 360,
-      "scale": 0.5
-    },
-    "fauna/kalahari_ostrich": {
-      "file": {
-        "path": "assets/kalahari-summer-hd/img/fauna_kalahari_ostrich.029e900f95ed.png",
-        "bytes": 6548,
-        "hash": "029e900f95ed"
-      },
-      "width": 312,
-      "height": 136,
-      "scale": 0.5
-    },
-    "fauna/kalahari_springbok": {
-      "file": {
-        "path": "assets/kalahari-summer-hd/img/fauna_kalahari_springbok.e1c9b91c8fe6.png",
-        "bytes": 12949,
-        "hash": "e1c9b91c8fe6"
-      },
-      "width": 188,
-      "height": 378,
-      "scale": 0.5
-    },
-    "fauna/kalahari_wildebeest": {
-      "file": {
-        "path": "assets/kalahari-summer-hd/img/fauna_kalahari_wildebeest.d87692814124.png",
-        "bytes": 22158,
-        "hash": "d87692814124"
-      },
-      "width": 554,
-      "height": 250,
-      "scale": 0.5
-    },
-    "fauna/karoo_ostrich": {
-      "file": {
-        "path": "assets/late-hd/img/fauna_karoo_ostrich.97a282185e22.png",
-        "bytes": 8889,
-        "hash": "97a282185e22"
-      },
-      "width": 244,
-      "height": 250,
-      "scale": 0.5
-    },
-    "fauna/karoo_springbok_a": {
-      "file": {
-        "path": "assets/late-hd/img/fauna_karoo_springbok_a.86558b434434.png",
-        "bytes": 12231,
-        "hash": "86558b434434"
-      },
-      "width": 180,
-      "height": 360,
-      "scale": 0.5
-    },
-    "fauna/karoo_springbok_b": {
-      "file": {
-        "path": "assets/late-hd/img/fauna_karoo_springbok_b.1bca70398eff.png",
-        "bytes": 9269,
-        "hash": "1bca70398eff"
-      },
-      "width": 94,
-      "height": 472,
-      "scale": 0.5
-    },
-    "fauna/namibie_gemsbok": {
-      "file": {
-        "path": "assets/namibie-hd/img/fauna_namibie_gemsbok.dd9f21687ce5.png",
-        "bytes": 17781,
-        "hash": "dd9f21687ce5"
-      },
-      "width": 476,
-      "height": 268,
-      "scale": 0.5
-    },
-    "fauna/namibie_ostrich": {
-      "file": {
-        "path": "assets/namibie-hd/img/fauna_namibie_ostrich.ef9ef4f13afb.png",
-        "bytes": 6550,
-        "hash": "ef9ef4f13afb"
-      },
-      "width": 312,
-      "height": 136,
-      "scale": 0.5
-    },
-    "fauna/namibie_waterhole": {
-      "file": {
-        "path": "assets/ver-hd/img/fauna_namibie_waterhole.786dfe4f5698.png",
-        "bytes": 26900,
-        "hash": "786dfe4f5698"
-      },
-      "width": 246,
-      "height": 552,
-      "scale": 0.5
-    },
-    "fauna/namibie_zebra": {
-      "file": {
-        "path": "assets/namibie-hd/img/fauna_namibie_zebra.7690f6dd8021.png",
-        "bytes": 29799,
-        "hash": "7690f6dd8021"
-      },
-      "width": 564,
-      "height": 232,
-      "scale": 0.5
-    },
-    "fauna/okavango_elephants": {
-      "file": {
-        "path": "assets/okavango-spring-hd/img/fauna_okavango_elephants.2ba93c9429e6.png",
-        "bytes": 44702,
-        "hash": "2ba93c9429e6"
-      },
-      "width": 452,
-      "height": 962,
-      "scale": 0.5
-    },
-    "fauna/okavango_lechwe": {
-      "file": {
-        "path": "assets/okavango-spring-hd/img/fauna_okavango_lechwe.019b6abde520.png",
-        "bytes": 19407,
-        "hash": "019b6abde520"
-      },
-      "width": 298,
-      "height": 478,
-      "scale": 0.5
-    },
-    "fauna/okavango_wildebeest": {
-      "file": {
-        "path": "assets/okavango-spring-hd/img/fauna_okavango_wildebeest.247df1fbe10b.png",
-        "bytes": 17389,
-        "hash": "247df1fbe10b"
-      },
-      "width": 398,
-      "height": 250,
-      "scale": 0.5
-    },
-    "fauna/okavango_zebra": {
-      "file": {
-        "path": "assets/okavango-spring-hd/img/fauna_okavango_zebra.7c371d320519.png",
-        "bytes": 29915,
-        "hash": "7c371d320519"
-      },
-      "width": 564,
-      "height": 232,
       "scale": 0.5
     },
     "fx/bolt": {
@@ -379,16 +189,6 @@
       },
       "width": 80,
       "height": 80,
-      "scale": 0.5
-    },
-    "fx/dust_devil": {
-      "file": {
-        "path": "assets/common-hd/img/fx_dust_devil.97aa7fb4f8b6.png",
-        "bytes": 19311,
-        "hash": "97aa7fb4f8b6"
-      },
-      "width": 600,
-      "height": 1040,
       "scale": 0.5
     },
     "fx/feather": {
@@ -631,84 +431,14 @@
       "height": 232,
       "scale": 0.5
     },
-    "namibie/camelthorn_mature": {
+    "namibie/ostriches": {
       "file": {
-        "path": "assets/namibie-hd/img/namibie_camelthorn_mature.c2beafc51569.png",
-        "bytes": 93935,
-        "hash": "c2beafc51569"
+        "path": "assets/namibie-hd/img/namibie_ostriches.ab191dfcdbb4.png",
+        "bytes": 384171,
+        "hash": "ab191dfcdbb4"
       },
-      "width": 800,
-      "height": 592,
-      "scale": 0.5
-    },
-    "namibie/camelthorn_old": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_camelthorn_old.ef80a365e187.png",
-        "bytes": 72161,
-        "hash": "ef80a365e187"
-      },
-      "width": 780,
-      "height": 592,
-      "scale": 0.5
-    },
-    "namibie/camelthorn_young": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_camelthorn_young.48734e427e01.png",
-        "bytes": 34300,
-        "hash": "48734e427e01"
-      },
-      "width": 460,
-      "height": 544,
-      "scale": 0.5
-    },
-    "namibie/nest_camelthorn": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_nest_camelthorn.7458881c600d.png",
-        "bytes": 519951,
-        "hash": "7458881c600d"
-      },
-      "width": 2088,
-      "height": 2088,
-      "scale": 0.5
-    },
-    "namibie/pan_grass_a": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_pan_grass_a.60014821c9f5.png",
-        "bytes": 54581,
-        "hash": "60014821c9f5"
-      },
-      "width": 720,
-      "height": 524,
-      "scale": 0.5
-    },
-    "namibie/pan_grass_b": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_pan_grass_b.036420edd167.png",
-        "bytes": 58565,
-        "hash": "036420edd167"
-      },
-      "width": 760,
-      "height": 524,
-      "scale": 0.5
-    },
-    "namibie/quiver_egg": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_quiver_egg.46cb111f524e.png",
-        "bytes": 30863,
-        "hash": "46cb111f524e"
-      },
-      "width": 480,
-      "height": 508,
-      "scale": 0.5
-    },
-    "namibie/quiver_tree": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_quiver_tree.a7aff04c29ef.png",
-        "bytes": 30859,
-        "hash": "a7aff04c29ef"
-      },
-      "width": 480,
-      "height": 524,
+      "width": 2880,
+      "height": 2956,
       "scale": 0.5
     },
     "oes/farmhouse": {
@@ -723,12 +453,12 @@
     },
     "oes/harvest": {
       "file": {
-        "path": "assets/oes-hd/img/oes_harvest.38295a0b9c9d.png",
-        "bytes": 335126,
-        "hash": "38295a0b9c9d"
+        "path": "assets/oes-hd/img/oes_harvest.7556311c80fe.png",
+        "bytes": 341206,
+        "hash": "7556311c80fe"
       },
       "width": 3072,
-      "height": 1836,
+      "height": 2346,
       "scale": 0.5
     },
     "oes/sunflowers_a": {
@@ -879,16 +609,6 @@
       },
       "width": 12,
       "height": 80,
-      "scale": 0.5
-    },
-    "omen/rainbow": {
-      "file": {
-        "path": "assets/common-hd/img/omen_rainbow.d21fc24c67dd.png",
-        "bytes": 17131,
-        "hash": "d21fc24c67dd"
-      },
-      "width": 1024,
-      "height": 512,
       "scale": 0.5
     },
     "secret/mark": {
@@ -1469,42 +1189,6 @@
       "tileWidth": 1024,
       "scale": 0.5
     },
-    "namibie/near": {
-      "tiles": [
-        {
-          "path": "assets/namibie-hd/layers/near-0.4852f58c0243.png",
-          "bytes": 76539,
-          "hash": "4852f58c0243"
-        },
-        {
-          "path": "assets/namibie-hd/layers/near-1.eb9371ffa668.png",
-          "bytes": 79424,
-          "hash": "eb9371ffa668"
-        },
-        {
-          "path": "assets/namibie-hd/layers/near-2.72bc4fe7813f.png",
-          "bytes": 78036,
-          "hash": "72bc4fe7813f"
-        },
-        {
-          "path": "assets/namibie-hd/layers/near-3.b218538062f1.png",
-          "bytes": 97973,
-          "hash": "b218538062f1"
-        },
-        {
-          "path": "assets/namibie-hd/layers/near-4.80f404683000.png",
-          "bytes": 81043,
-          "hash": "80f404683000"
-        },
-        {
-          "path": "assets/namibie-hd/layers/near-5.2f48a2ef9061.png",
-          "bytes": 62017,
-          "hash": "2f48a2ef9061"
-        }
-      ],
-      "tileWidth": 1024,
-      "scale": 0.5
-    },
     "oes/foreground": {
       "tiles": [
         {
@@ -1549,29 +1233,29 @@
     "oes/mid": {
       "tiles": [
         {
-          "path": "assets/oes-hd/layers/mid-0.ece9cbc3e78f.png",
-          "bytes": 241180,
-          "hash": "ece9cbc3e78f"
+          "path": "assets/oes-hd/layers/mid-0.faa3e73343ad.png",
+          "bytes": 249010,
+          "hash": "faa3e73343ad"
         },
         {
-          "path": "assets/oes-hd/layers/mid-1.9df396008c31.png",
-          "bytes": 240901,
-          "hash": "9df396008c31"
+          "path": "assets/oes-hd/layers/mid-1.5eba7718e342.png",
+          "bytes": 248435,
+          "hash": "5eba7718e342"
         },
         {
-          "path": "assets/oes-hd/layers/mid-2.f3502fb4db9e.png",
-          "bytes": 121033,
-          "hash": "f3502fb4db9e"
+          "path": "assets/oes-hd/layers/mid-2.ca7c7cf3ca0e.png",
+          "bytes": 127495,
+          "hash": "ca7c7cf3ca0e"
         },
         {
-          "path": "assets/oes-hd/layers/mid-3.0d9dfaf4c2c7.png",
-          "bytes": 239100,
-          "hash": "0d9dfaf4c2c7"
+          "path": "assets/oes-hd/layers/mid-3.07b8aec72ee9.png",
+          "bytes": 247072,
+          "hash": "07b8aec72ee9"
         },
         {
-          "path": "assets/oes-hd/layers/mid-4.d1352b3515ec.png",
-          "bytes": 75898,
-          "hash": "d1352b3515ec"
+          "path": "assets/oes-hd/layers/mid-4.cce77e7d0535.png",
+          "bytes": 79016,
+          "hash": "cce77e7d0535"
         }
       ],
       "tileWidth": 1024,

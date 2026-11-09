@@ -2,7 +2,8 @@
 // facing right with the origin at his feet — trotting (2), running (2), sitting, the title's wag
 // (2), lying, sniffing, barking, digging, the startled yelp — and the guineafowl he carries (its
 // own small frame, held at the running frames' mouth). Every frame is authored at half size and
-// drawn ×2 (`res` 0.5), so the 1× sheet stays inside GPU_BYTES_CAP (lessons 29, 38). Packed in a
+// drawn ×2 (`res` 0.5; his own frames 0.675 since D-080, for his true size), so the 1× sheet stays
+// inside GPU_BYTES_CAP (lessons 29, 38). Packed in a
 // skyline, tallest first, 2 px apart. Pure: the game, the art generator and the tests read it.
 import { BRAKKIE_SHEET_H, BRAKKIE_SHEET_W } from './brakkieKeys';
 
@@ -53,30 +54,39 @@ export interface BrakkieFrameRect extends FrameSpec {
   readonly y: number;
 }
 
+/**
+ * v1.17b (D-080): his frames are shown at brakkie.json sizeMul (1.35, a true Jack Russell), so they
+ * are drawn at 0.5 × that sheet px per design px of the box — 0.5 per drawn px in Standard, 1.0 in
+ * the HD twin (animalDensity.test.ts). Redrawn from the vector shapes, never scaled up. The bird he
+ * carries and the point's marker keep their size (0.5).
+ */
+export const BRAKKIE_DRAWN_MUL = 1.35;
+const DOG_RES = 0.5 * BRAKKIE_DRAWN_MUL;
+
 /** Each frame's box, fitted to its drawing with a 6 px margin on every side (lesson 12; the art
  *  test checks the fit). */
 const SPECS: readonly FrameSpec[] = [
-  { name: 'trot_a', w: 222, h: 167, ox: 88, oy: 155, res: 0.5 },
-  { name: 'trot_b', w: 225, h: 169, ox: 91, oy: 157, res: 0.5 },
-  { name: 'run_a', w: 266, h: 134, ox: 126, oy: 128, res: 0.5 },
-  { name: 'run_b', w: 235, h: 141, ox: 99, oy: 131, res: 0.5 },
-  { name: 'trot_c', w: 220, h: 169, ox: 86, oy: 158, res: 0.5 },
-  { name: 'trot_d', w: 227, h: 169, ox: 93, oy: 158, res: 0.5 },
-  { name: 'run_c', w: 245, h: 146, ox: 105, oy: 137, res: 0.5 },
-  { name: 'run_d', w: 241, h: 142, ox: 103, oy: 133, res: 0.5 },
-  { name: 'sit', w: 150, h: 185, ox: 70, oy: 173, res: 0.5 },
-  { name: 'wag_a', w: 157, h: 185, ox: 77, oy: 173, res: 0.5 },
-  { name: 'lie', w: 233, h: 100, ox: 111, oy: 89, res: 0.5 },
-  { name: 'sniff', w: 209, h: 144, ox: 86, oy: 132, res: 0.5 },
-  { name: 'bark', w: 220, h: 182, ox: 87, oy: 171, res: 0.5 },
-  { name: 'dig', w: 201, h: 153, ox: 89, oy: 141, res: 0.5 },
-  { name: 'yelp', w: 206, h: 157, ox: 87, oy: 145, res: 0.5 },
+  { name: 'trot_a', w: 222, h: 167, ox: 88, oy: 155, res: DOG_RES },
+  { name: 'trot_b', w: 225, h: 169, ox: 91, oy: 157, res: DOG_RES },
+  { name: 'run_a', w: 266, h: 134, ox: 126, oy: 128, res: DOG_RES },
+  { name: 'run_b', w: 235, h: 141, ox: 99, oy: 131, res: DOG_RES },
+  { name: 'trot_c', w: 220, h: 169, ox: 86, oy: 158, res: DOG_RES },
+  { name: 'trot_d', w: 227, h: 169, ox: 93, oy: 158, res: DOG_RES },
+  { name: 'run_c', w: 245, h: 146, ox: 105, oy: 137, res: DOG_RES },
+  { name: 'run_d', w: 241, h: 142, ox: 103, oy: 133, res: DOG_RES },
+  { name: 'sit', w: 150, h: 185, ox: 70, oy: 173, res: DOG_RES },
+  { name: 'wag_a', w: 157, h: 185, ox: 77, oy: 173, res: DOG_RES },
+  { name: 'lie', w: 233, h: 100, ox: 111, oy: 89, res: DOG_RES },
+  { name: 'sniff', w: 209, h: 144, ox: 86, oy: 132, res: DOG_RES },
+  { name: 'bark', w: 220, h: 182, ox: 87, oy: 171, res: DOG_RES },
+  { name: 'dig', w: 201, h: 153, ox: 89, oy: 141, res: DOG_RES },
+  { name: 'yelp', w: 206, h: 157, ox: 87, oy: 145, res: DOG_RES },
   { name: 'bird', w: 94, h: 68, ox: 14, oy: 6, res: 0.5 },
-  { name: 'point_a', w: 226, h: 131, ox: 88, oy: 119, res: 0.5 },
-  { name: 'point_b', w: 226, h: 132, ox: 88, oy: 120, res: 0.5 },
-  { name: 'proud_a', w: 235, h: 157, ox: 100, oy: 145, res: 0.5 },
-  { name: 'proud_b', w: 212, h: 201, ox: 97, oy: 190, res: 0.5 },
-  { name: 'tilt', w: 148, h: 177, ox: 70, oy: 165, res: 0.5 },
+  { name: 'point_a', w: 226, h: 131, ox: 88, oy: 119, res: DOG_RES },
+  { name: 'point_b', w: 226, h: 132, ox: 88, oy: 120, res: DOG_RES },
+  { name: 'proud_a', w: 235, h: 157, ox: 100, oy: 145, res: DOG_RES },
+  { name: 'proud_b', w: 212, h: 201, ox: 97, oy: 190, res: DOG_RES },
+  { name: 'tilt', w: 148, h: 177, ox: 70, oy: 165, res: DOG_RES },
   { name: 'marker', w: 76, h: 93, ox: 35, oy: 84, res: 0.5 },
 ];
 
@@ -100,16 +110,16 @@ const GAP = 2;
 
 /** Skyline packing, tallest first (ties keep the table's order): each frame goes where it sits
  *  highest (then leftmost), GAP px from its neighbours and the sheet's edges. */
-function pack(): BrakkieFrameRect[] {
+function pack(W = BRAKKIE_SHEET_W): BrakkieFrameRect[] {
   const order = SPECS.map((s, i) => ({ s, i })).sort(
     (a, b) => cellSize(b.s).h - cellSize(a.s).h || a.i - b.i,
   );
-  const sky = new Array<number>(BRAKKIE_SHEET_W).fill(GAP);
+  const sky = new Array<number>(W).fill(GAP);
   const out: BrakkieFrameRect[] = [];
   for (const { s } of order) {
     const c = cellSize(s);
     let best: { x: number; y: number } | null = null;
-    for (let x = GAP; x + c.w + GAP <= BRAKKIE_SHEET_W; x++) {
+    for (let x = GAP; x + c.w + GAP <= W; x++) {
       let y = 0;
       for (let k = x - GAP; k < x + c.w + GAP; k++) y = Math.max(y, sky[k] ?? 0);
       if (best === null || y < best.y) best = { x, y };
@@ -119,6 +129,11 @@ function pack(): BrakkieFrameRect[] {
     out.push({ ...s, x: best.x, y: best.y });
   }
   return out;
+}
+
+/** The packed height on a sheet `w` wide (tools: choosing BRAKKIE_SHEET_W/H). */
+export function brakkiePackHeight(w: number): number {
+  return Math.max(...pack(w).map((f) => f.y + cellSize(f).h)) + GAP;
 }
 
 const FRAMES = pack();
@@ -144,9 +159,10 @@ export function brakkieSheetHeight(): number {
   return Math.max(...FRAMES.map((f) => f.y + cellSize(f).h));
 }
 
-/** The sheet's GPU cost cap at 1× (bytes, RGBA): v1.17 0.875 MiB (was 0.5), inside the Okavango Reënbui HD hunt's
- *  headroom (254.8 + 0.5 = 255.3 of 256 MB, D-069). */
-export const GPU_BYTES_CAP = 512 * 448 * 4;
+/** The sheet's GPU cost cap at 1× (bytes, RGBA; the HD twin is 4×): v1.17 0.875 MiB; v1.17b
+ *  (D-080) 1.5 MiB for his true-size frames (1.47 MiB; HD 5.88, with room made in Namibië's HD
+ *  hunt; his HD twin also loads only under feel.brakkie.hd's budget). */
+export const GPU_BYTES_CAP = 1.5 * 1024 * 1024;
 
 /** Texture px per sheet px of a file `width` px wide (1 for the Standard sheet, 2 for HD). */
 export function brakkieTexelsPerPx(width: number): number {

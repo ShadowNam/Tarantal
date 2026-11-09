@@ -3,6 +3,33 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.20.1] — v1.17b: every animal at true size (9 Nov 2026)
+
+Decision record D-080. The owner's answer of 9 Nov: "yes make all animals true size".
+
+- **Every animal at its real size beside the guineafowl** (within 15 %): the far herds and far
+  ostriches (no longer 0.57× / 0.45×: a far elephant 144 → 253 px, a giraffe 225 → 395, an
+  ostrich 89 → 197), Namibië's ostrich pair (197 → 552 px tall), the baboons (a sitting male
+  151 → 176 px on the mid plane), the Harvest's warthogs (0.33 → 0.7 m at the back) and
+  piglets, Brakkie (a true Jack Russell, 110 → 149 px at the shoulder), the veld cameos (the
+  warthog family, springbok, gemsbok, the ostrich sprint and the leopard tortoise, 2.6–3.4×
+  bigger, redrawn) and the weaver colony's birds. Hit and penalty areas grow with them.
+- **Die Oes at true scale:** the farm workers (1.7 m) and the fence (1.2 m posts) now stand true
+  beside the warthogs; the workers moved a little along the fence so they stay out of the line of
+  fire.
+- **Kept on purpose:** the dung beetle (bigger than life so you can see it), the bakkie (a stage
+  prop: at true size it would be as tall as the windpomp) and the Harvest's mielies (true, they
+  would hide the birds in the rows); the owner decides.
+- **Fairer penalties:** an ostrich or its nest costs −10 only for a shot aimed at it, like the
+  baboons, Brakkie and the cameos; and a shot with a bird within 260 px of the aim point (once
+  120) is never charged to a cameo or an ostrich.
+- **Brakkie's points** only show when the flock can burst up (the bird cap too).
+- **Gusts:** the rise of a gust is a tuning value; a gust that starts as the wind turns is no
+  longer lost.
+- **Behind the scenes:** the far herds and the weaver colony have no separate HD art (HD texture
+  memory stays under 256 MB); the far herds load in the background, so the game's first download
+  is a little smaller; the braai tally's frame time is measured after a short warm-up.
+
 ## [1.20.0] — v1.17: Brakkie the companion and real wind (9 Nov 2026)
 
 Decision record D-079. From the product owner's requests of 8 Nov (evening): "when the wind is

@@ -19,8 +19,9 @@ export interface DimLayer {
   readonly base: number;
   /** The layer's art and props now (the HD refresh may swap them). */
   images(): readonly DimTarget[];
-  /** Its far animals (FaunaView.setTint skips an unchanged tint itself). */
-  readonly fauna: readonly { setTint(tint: number): void }[];
+  /** Its far animals now (FaunaView.setTint skips an unchanged tint itself; D-080: they may
+   *  come after the dimmer is made). */
+  fauna(): readonly { setTint(tint: number): void }[];
 }
 
 export class LayerDimmer {
@@ -48,6 +49,13 @@ export class LayerDimmer {
       (n, _l, i) => n + (this.target[i] !== this.applied[i] ? 1 : 0),
       0,
     );
+  }
+
+  /** D-080: the tint a layer is going to (its herds join late: they take this at once), or
+   *  undefined for a layer the dimmer doesn't know. */
+  tintOf(id: string): number | undefined {
+    const i = this.layers.findIndex((l) => l.id === id);
+    return i < 0 ? undefined : this.target[i];
   }
 
   /** Whether a layer still waits for its new tint. */
@@ -82,7 +90,7 @@ export class LayerDimmer {
         return calls;
       }
       // The layer's images are done: its herds, then the next layer.
-      for (const f of layer.fauna) {
+      for (const f of layer.fauna()) {
         f.setTint(tint);
         calls++;
       }

@@ -14,7 +14,14 @@ import type {
   HdImage,
   ImageEntry,
 } from './assetIndex';
-import { COMMON_GROUP, LATE_GROUP, VER_GROUP, sharedTileKeys } from './assetIndex';
+import {
+  COMMON_GROUP,
+  LATE_GROUP,
+  VER_GROUP,
+  faunaGroupOf,
+  isFaunaGroup,
+  sharedTileKeys,
+} from './assetIndex';
 import type { FaunaFrames } from '../view/faunaHerds';
 import { DESERT_GROUP } from './desertAssets';
 import { BABOON_GROUP, BABOON_SHEET } from '../view/baboon/baboonKeys';
@@ -121,13 +128,17 @@ export function groupForBiome(group: string, biome: string | undefined): boolean
     group === DESERT_GROUP ||
     // v1.8b (D-062): the baboon sheet, loaded with every hunt (every area has a troop).
     group === BABOON_GROUP ||
+    // v1.17b (D-080): the area's far herds.
+    group === faunaGroupOf(biome) ||
     group === biome
   );
 }
 
 /** D-053: late and Ver groups load after the hunt can start (in the background). */
 export function backgroundGroup(group: string): boolean {
-  return group === LATE_GROUP || group === VER_GROUP || group === BABOON_GROUP;
+  return (
+    group === LATE_GROUP || group === VER_GROUP || group === BABOON_GROUP || isFaunaGroup(group)
+  );
 }
 
 /**
@@ -488,12 +499,13 @@ export class AssetManifest {
         // v1.7 (D-044): only a desert map's manifest lists the desert keys (others skip them).
         group !== DESERT_GROUP &&
         group !== BABOON_GROUP &&
+        group !== faunaGroupOf(o.biome) &&
         group !== o.biome
       )
         return;
       // v1.3: the Ver strips aren't needed to start a hunt either (only bonus maps show them).
       // v1.8b (D-062): the baboon sheet too (a hunt with a troop waits for that one file).
-      if (group === LATE_GROUP || group === VER_GROUP || group === BABOON_GROUP) {
+      if (backgroundGroup(group)) {
         (group === BABOON_GROUP ? lateFirst : late).push(job);
         if (need !== undefined) expectLate.push({ ...need, group });
       } else {

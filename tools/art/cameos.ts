@@ -45,7 +45,7 @@ export function cameoSheetSvg(area: CameoSheetArea, k = 1): string {
           { 'clip-path': `url(#${id})` },
           g(
             {
-              transform: `translate(${r2(f.x + f.ox * f.res)} ${r2(f.y + f.oy * f.res)}) scale(${f.res})`,
+              transform: `translate(${r2(f.x + f.ox * f.res)} ${r2(f.y + f.oy * f.res)}) scale(${f.res * f.size})`,
             },
             art.body,
           ),
@@ -71,6 +71,6 @@ export function cameoFrameSvg(area: CameoSheetArea, name: CameoFrame, k = 1): st
     f.h * k,
     [0, 0, f.w, f.h],
     art.defs,
-    g({ transform: `translate(${r2(f.ox)} ${r2(f.oy)})` }, art.body),
+    g({ transform: `translate(${r2(f.ox)} ${r2(f.oy)}) scale(${f.size})` }, art.body),
   );
 }

@@ -44,8 +44,8 @@ export interface BrakkieHost {
   /** A hidden flock of `size` bursts up flushing at layer x of the mid plane (every draw from
    *  the dog's stream); its id, or null: no room (the map's flock or bird caps). */
   flush(x: number, size: number): number | null;
-  /** v1.17 (D-079): a flock could burst up now (the map's flock cap has room). */
-  canFlush(): boolean;
+  /** v1.17 (D-079): a flock of `size` could burst up now — the same caps flush() checks (D-080). */
+  canFlush(size: number): boolean;
   /** v1.17 (D-079): an event bonus (× Frenzy × Stampede); the points paid. */
   bonus(id: 'bring' | 'bringStreak' | 'goodPoint', base: number): number;
 }
@@ -199,8 +199,10 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   /** v1.17: set while the whistle sends him (tryFetch skips the lull). */
   let sent = false;
   const cooldownTicks = ticks(B.hit.cooldownSeconds);
-  /** His size on a plane (hitbox px are at the near plane's scale). */
+  /** A plane's px against the near plane's (his speeds, rooms and roaming px are near-plane px). */
   const k = (plane: DogPlane): number => geo.planeScale[plane] / geo.planeScale.near;
+  /** v1.17b (D-080): his body's size on a plane (hit box px are near-plane px at sizeMul 1). */
+  const size = (plane: DogPlane): number => k(plane) * B.sizeMul;
   /** px a tick on a plane for a near-plane px/s speed. */
   const perTick = (pxPerSecond: number, plane: DogPlane): number => (pxPerSecond * k(plane)) / 60;
   /** The end of the panorama he goes home by this time (the bakkie's side when its way is clear,
@@ -276,7 +278,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
         : LOW_POSES.has(dog.pose)
           ? B.hitboxes.low
           : B.hitboxes.stand;
-    const s = k(dog.plane);
+    const s = size(dog.plane);
     const y = geo.groundY[dog.plane];
     return [
       {
@@ -353,7 +355,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
    *  hand's stripe; the near plane only: on the mid plane he is above the gun). */
   function underGun(x: number, facing: 1 | -1): boolean {
     if (dog.plane !== 'near') return false;
-    const hd = Math.abs(dxOf('near', x) + B.hitboxes.stand.head.ox * facing);
+    const hd = Math.abs(dxOf('near', x) + B.hitboxes.stand.head.ox * B.sizeMul * facing);
     return hd >= B.roam.gunStripePx[0] && hd <= B.roam.gunStripePx[1];
   }
 
@@ -404,7 +406,12 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     } else {
       // Nowhere clear in view: in to the view's edge on his side and look round.
       const sf = geo.layers.near.scrollFactor;
-      const edge = planeCentreX(host.cameraX(), sf) + side * B.roam.viewHalfPx;
+      // D-080: far enough out that his true-size head (facing in) stays outside the gun's stripe.
+      const out = Math.max(
+        B.roam.viewHalfPx,
+        B.roam.gunStripePx[1] + B.hitboxes.stand.head.ox * B.sizeMul + B.roam.stripeMarginPx,
+      );
+      const edge = planeCentreX(host.cameraX(), sf) + side * out;
       moveTo('trot', 'run', edge, B.speeds.runPx);
     }
   }
@@ -500,8 +507,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     }
     dog.nextFlush = tick + rangeTicks(B.flush.everySeconds);
     if (!rng.chance(B.flush.chance)) return;
-    // v1.17 (D-079): only at a flock that can be there (the map's flock cap has room).
-    if (!host.canFlush()) return;
+    // v1.17 (D-079): only at a flock that can be there (room under the flock and bird caps, D-080).
+    if (!host.canFlush(B.point.size)) return;
     // He points from where he is if that's near the view's centre, else from a clear spot that is.
     const near = Math.abs(dxOf(dog.plane, dog.x)) <= B.flush.maxDxPx;
     const x = near ? dog.x : pickSpot();
@@ -893,7 +900,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       x: dog.x,
       y: geo.groundY[dog.plane],
       facing: dog.facing,
-      scale: k(dog.plane),
+      scale: size(dog.plane),
+      sizeMul: B.sizeMul,
       t: dog.t,
       dur: dog.dur,
       carrying: dog.carrying,
@@ -906,12 +914,12 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
               fromLayerId: geo.layers[c.from].id,
               fromX: c.fromX,
               fromY: geo.groundY[c.from],
-              fromScale: k(c.from),
+              fromScale: size(c.from),
               to: c.to,
               toLayerId: geo.layers[c.to].id,
               toX: c.toX,
               toY: geo.groundY[c.to],
-              toScale: k(c.to),
+              toScale: size(c.to),
               p: dog.dur > 0 ? Math.min(1, dog.t / dog.dur) : 1,
             },
       hits: dog.hits,
@@ -949,11 +957,11 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     } else dog.misses = 0;
     if (!dog.carrying || !present()) return;
     const a = aimOn(geo.layers[dog.plane].id);
-    const s = k(dog.plane);
+    const s = size(dog.plane);
     const box = B.hitboxes.stand.body;
     const dx = a.x - (dog.x + box.ox * s * dog.facing);
     const dy = a.y - (geo.groundY[dog.plane] + box.oy * s);
-    const r = B.clear.aimPx * s;
+    const r = B.clear.aimPx * k(dog.plane);
     if (dx * dx + dy * dy <= r * r) breakStreak('aim');
   }
 

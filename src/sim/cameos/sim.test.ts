@@ -73,7 +73,9 @@ function aimAt(s: Sim, v: CameoVisitView): { t: 'fire'; dx: number; sy: number }
   if (m === undefined || h === undefined) throw new Error('no member');
   const sf = content.scoring.planes[v.plane].scrollFactor;
   const centre = (st.cameraX - 960) * sf + 960;
-  return { t: 'fire', dx: m.x + h.ox * v.facing - centre, sy: m.y + h.oy };
+  // D-080: the shapes grow with the kind's sizeMul.
+  const k = w.sizeMul;
+  return { t: 'fire', dx: m.x + h.ox * k * v.facing - centre, sy: m.y + h.oy * k };
 }
 
 describe('the veld cameos in the hunt (D-075)', () => {
@@ -266,6 +268,12 @@ describe('the veld cameos through the real hit test (D-075, review)', () => {
   function birdless(biome: string, kinds: ContentBundle['cameos']['areas'][number]['cameos']) {
     const c = quiet(biome) as unknown as { -readonly [K in keyof ContentBundle]: ContentBundle[K] };
     c.cameos = { ...C, preview: { atSeconds: 0.5, kinds, ...CAMEO_PREVIEW_SPOT } };
+    // D-080: the ostriches' guard set far apart from the cameos', so a cameo shot judged by the
+    // wrong one (any target on the map is within 100 000 px) would come out free.
+    c.birds = {
+      ...c.birds,
+      ostriches: { ...c.birds.ostriches, hit: { ...c.birds.ostriches.hit, guardPx: 100_000 } },
+    };
     return c as ContentBundle;
   }
 
@@ -283,8 +291,10 @@ describe('the veld cameos through the real hit test (D-075, review)', () => {
       const v = s.snapshot().cameos?.visits[0];
       if (v === undefined) continue;
       const f = aimAt(s, v);
-      // Just above the sow's back: off her shapes, inside the pellets' spread.
-      s.step([{ ...f, sy: f.sy - 45 }]);
+      // Just above the sow's back: off her shapes, inside the pellets' spread (D-080: her body's
+      // half-height grew with her sizeMul).
+      const body = C.kinds.warthogs.hitboxes.adult[0]?.ry ?? 24;
+      s.step([{ ...f, sy: f.sy - body * C.kinds.warthogs.sizeMul - 20 }]);
       const h = s.drainEvents().find((e) => e.type === 'cameoHit');
       if (h?.type !== 'cameoHit') continue;
       expect(h.aimed).toBe(false);

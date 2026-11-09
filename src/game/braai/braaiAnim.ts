@@ -112,7 +112,8 @@ export function animState(ms: number, t: Tuning, o: AnimOptions): AnimState {
 
 /** What applyAnim sets (a Phaser image, or a stub in the tests). */
 export interface AnimSprite {
-  setFrame(frame: string): unknown;
+  /** Phaser's setFrame(frame, updateSize, updateOrigin). */
+  setFrame(frame: string, updateSize?: boolean, updateOrigin?: boolean): unknown;
   setOrigin(x: number, y: number): unknown;
   setAlpha(a: number): unknown;
   setVisible(v: boolean): unknown;
@@ -152,7 +153,9 @@ export function applyAnim(p: AnimState | null, st: AnimState, t: AnimTargets): n
   if (oupa !== null && (p?.pose !== st.pose || p.flip !== st.flip || p.hop !== st.hop)) {
     const f = braaiFrame(st.pose);
     if (p?.pose !== st.pose && f !== undefined) {
-      oupa.setFrame(st.pose);
+      // D-080 (perf): the frame's size, then its own origin once (setFrame's own origin update
+      // would be overwritten at once).
+      oupa.setFrame(st.pose, true, false);
       oupa.setOrigin(f.ox / f.w, f.oy / f.h);
       n += 2;
     }

@@ -524,8 +524,12 @@ export type TellTuning = z.infer<typeof TellsSchema>;
  * times in seconds. Where the families stand is in the biome file (ostriches, per layout).
  */
 export const OstrichesSchema = obj({
-  /** Standing height to the top of the head (plane scale 1): the view draws to it. */
+  /** Standing height to the top of the head (plane scale 1, before sizeMul). */
   heightPx: pos,
+  /** v1.17b (D-080): grows the birds and their nest (the drawing, the hit shapes, heightPx) so a
+   *  standing one is its true 2.5 m beside the guineafowl (tools/sizes.ts); the walks, the wander
+   *  and the scare radius keep plane-scale px. */
+  sizeMul: z.number().gt(0).max(4).default(1),
   hitboxes: obj({
     stand: obj({ body: ellipseBox, neck: ellipseBox }),
     sit: obj({ body: ellipseBox, neck: ellipseBox }),
@@ -559,6 +563,11 @@ export const OstrichesSchema = obj({
     cooldownSeconds: pos,
     hissSeconds: pos,
     barkKey: i18nKey,
+    /** v1.17b (D-080): the aimed-at rule — only a shot aimed at a bird or the nest (the aim
+     *  point on its hit shape, no target hit, none within guardPx of the aim point) costs the
+     *  penalty; a stray pellet is free (they still hiss and run). A target this close to the
+     *  aim point (screen px) gives the benefit of the doubt. */
+    guardPx: pos.default(120),
   }),
 });
 export type OstrichTuning = z.infer<typeof OstrichesSchema>;
@@ -1586,8 +1595,14 @@ export const BiomeSchema = obj({
          *  linear between planes by scroll factor). Absent: far and Ver 1, near and mid 0. */
         driftPlaneMul: allPlanes(nonNeg).optional(),
         /** v1.17 (D-079): gusts — every everySeconds (gap) one lasting `seconds`, adding up to
-         *  `add` to the strength at its peak (never above 1). Drift and visuals only. */
-        gusts: obj({ everySeconds: range(pos), seconds: range(pos), add: nonNeg }).optional(),
+         *  `add` to the strength at its peak (never above 1). Drift and visuals only. D-080:
+         *  `riseShare` — the share of a gust spent rising to its peak (the rest is its fall). */
+        gusts: obj({
+          everySeconds: range(pos),
+          seconds: range(pos),
+          add: nonNeg,
+          riseShare: z.number().gt(0).lt(1).default(0.3),
+        }).optional(),
       })
       .optional(),
     /** M8 Okavango sun-showers: a shower every `everySeconds` (gap) for `lastSeconds`, drawn from
@@ -1837,7 +1852,8 @@ const harvestSchema = modeSetupSchema.extend({
     nearShare: fraction,
   }),
   warthogs: obj({
-    /** An adult's height (feet to the top of the back/head, plane scale 1). */
+    /** An adult's height (feet to the top of the back/head, plane scale 1). v1.17b (D-080): 368,
+     *  its true 0.7 m beside the guineafowl (175 before); the hit boxes grew with it. */
     heightPx: pos,
     hitboxes: obj({ trot: harvestBox, dig: harvestBox }),
     trotPxPerSec: pos,
@@ -1868,7 +1884,8 @@ const harvestSchema = modeSetupSchema.extend({
     bonusPerPercent: nonNeg,
   }),
   workers: obj({
-    /** A worker's height (feet to the hat's top, plane scale 1). */
+    /** A worker's height (feet to the hat's top, plane scale 1). v1.17b (D-080): 894, a true
+     *  1.7 m beside the guineafowl (270 before, sized to the stage-scaled fence). */
     heightPx: pos,
     hitboxes: obj({ work: harvestBox, duck: harvestBox }),
     runPxPerSec: pos,
@@ -1877,6 +1894,11 @@ const harvestSchema = modeSetupSchema.extend({
     cooldownSeconds: pos,
     duckSeconds: pos,
   }),
+  /** v1.17b (D-080): the field's fence on the gap's plane: a post's height above the ground
+   *  (plane scale 1; 631 = a true 1.2 m beside the guineafowl, 265 px on the mid plane). The
+   *  layer art (tools/art/biomes/oes.ts) and the gap panel are drawn to it
+   *  (harvestSheet.ts FENCE_POST_H = this × the mid plane's scale). */
+  fence: obj({ postPx: pos }),
 });
 export type HarvestSetup = z.infer<typeof harvestSchema>;
 
@@ -2150,6 +2172,10 @@ export const BrakkieSchema = obj({
   groundY: pos,
   /** Home: this far past the panorama's end (off every screen, LAYER_BLEED_PX + the widest view). */
   homeOffPx: pos,
+  /** v1.17b (D-080): his size on top of the plane's (the drawing and the hit shapes; not his
+   *  speeds or roaming px), so he is a true Jack Russell (~0.3 m at the shoulder) beside the
+   *  guineafowl (tools/sizes.ts). The clear.* rooms are kept from his body's edge. */
+  sizeMul: z.number().gt(0).max(3).default(1),
   /** Standing (trot, run, sniff, sit, bark, carry, yelp) and lying (lie, dig). */
   hitboxes: obj({
     stand: dogHitbox,
@@ -2175,6 +2201,9 @@ export const BrakkieSchema = obj({
      *  on 16:9–21:9 for aims within ±500 px of the centre, and the left-handed mirror); a pan
      *  that leaves his head in it gets him up. */
     gunStripePx: range(nonNeg),
+    /** v1.17b (D-080): with no clear spot he waits at the view's edge, this far past where his
+     *  head (facing in) leaves the gun's stripe. */
+    stripeMarginPx: nonNeg.default(4),
     /** And this far from where he stands. */
     stepPx: range(pos),
     /** Spots tried before he rests where he is. */
@@ -2320,6 +2349,10 @@ const cameoWalkerBase = {
    *  depth (px down the screen, 0 = all on the ground line). */
   spacingPx: nonNeg,
   depthPx: nonNeg,
+  /** v1.17b (D-080): grows the kind to its true size beside the guineafowl (tools/sizes.ts): the
+   *  sim's hit shapes, spacing and depth (all px here are at sizeMul 1); the art's frames carry
+   *  the same factor (src/game/cameos/cameoSheet.ts CAMEO_SIZE_MUL, checked equal). */
+  sizeMul: z.number().gt(0).max(5).default(1),
   /** Hit shapes per role (drawn px from the feet, facing right); the first adult shape is the
    *  body (the springbok alarm measures from its centre). */
   hitboxes: obj({ adult: z.array(cameoEllipse).min(1), young: z.array(cameoEllipse).optional() }),
@@ -3383,8 +3416,9 @@ export const FeelSchema = obj({
      *  scatterSeconds; they trickle back over trickleSeconds. */
     colony: obj({
       birds: obj({ near: nonNegInt, mid: nonNegInt, far: nonNegInt, ver: nonNegInt }),
-      /** A weaver's drawn wingspan per plane (design px): about 1.3× true size against its tree,
-       *  so they read at the tree's plane scale (review R4). The falcon is falconMul × that. */
+      /** A weaver's drawn wingspan per plane (design px). v1.17b (D-080): its true ~0.22 m beside
+       *  the guineafowl on that plane (tools/sizes.ts; before: about 1.3× true size against its
+       *  stage-scaled tree, review R4). The falcon is falconMul × that. */
       wingspanPx: obj({ near: pos, mid: pos, far: pos, ver: pos }),
       falconMul: pos,
       /** Of the cycles that aren't spent inside: perched on the roof and branches, on the ground;
