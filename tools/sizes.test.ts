@@ -4,7 +4,8 @@
 // bakkie are left. v1.20.2 (D-082, an audit of D-080): rows measured from the delivered art
 // (MEASURED_ART, re-read from the PNGs by sizesArt.test.ts), the ostrich hen, the baobab's
 // residents; the boss birds (fantasy) and the residents a stage-set baobab cannot hold at true
-// size are listed with their reasons.
+// size are listed with their reasons. v1.20.3 (D-083): the fly-overs and the kwêvoël (sizeMul),
+// measured in their bird frames.
 import { describe, expect, it } from 'vitest';
 import { TELL_BOXES } from '../src/game/view/tell/tellSheet';
 import {
@@ -16,6 +17,7 @@ import {
   TELL_DRAWN_PX,
   TELL_REAL_M,
 } from './sizes';
+import { sizeMulOf } from '../src/sim/birds/size';
 import { loadContent, loadFeel } from './testContent';
 
 const TOLERANCE = 0.15;
@@ -109,6 +111,23 @@ describe('real animal sizes next to the guineafowl (D-078, D-080)', () => {
     if (hen === undefined) throw new Error('no hen row');
     expect(hen.drawnPx / per).toBeGreaterThanOrEqual(1.7);
     expect(hen.drawnPx / per).toBeLessThanOrEqual(2.0);
+  });
+
+  it('D-083: every bird drawn at a sizeMul is measured in its art on every plane it flies', () => {
+    for (const c of content.birds.creatures) {
+      if (sizeMulOf(c) === 1) continue;
+      for (const plane of c.planes) {
+        const measured = MEASURED_ART.filter(
+          (m) => m.source.kind === 'flyer' && m.source.creature === c.id && m.plane === plane,
+        );
+        expect(measured.length, `${c.id} ${plane}`).toBeGreaterThan(0);
+      }
+    }
+    // The fish eagle: its body and, separately, its wings.
+    const eagle = MEASURED_ART.filter(
+      (m) => m.source.kind === 'flyer' && m.source.creature === 'visarend',
+    );
+    expect(eagle.map((m) => m.id).sort()).toEqual(['visarend_body', 'visarend_wing']);
   });
 
   for (const r of rows)
