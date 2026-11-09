@@ -7,6 +7,7 @@
 // size are listed with their reasons.
 import { describe, expect, it } from 'vitest';
 import { TELL_BOXES } from '../src/game/view/tell/tellSheet';
+import { FAUNA_HERDS } from '../src/game/view/faunaHerds';
 import {
   GUINEAFOWL_STANDING_PX,
   MEASURED_ART,
@@ -89,6 +90,22 @@ describe('real animal sizes next to the guineafowl (D-078, D-080)', () => {
     const bosses = content.birds.creatures.filter((c) => c.kind === 'boss').map((c) => c.id);
     expect(bosses.sort()).toEqual(['generaal', 'kuifkop_koning', 'ou_grys', 'stormvoel']);
     for (const id of bosses) expect(NOT_FIXED[id], id).toMatch(/fantasy/);
+  });
+
+  it("D-082: a far herd row is drawn at that animal's own herd scale", () => {
+    for (const m of MEASURED_ART) {
+      if (m.source.kind !== 'fauna') continue;
+      const { sheet, look } = m.source;
+      const s = m.source.s ?? 1;
+      const drawn = Object.values(FAUNA_HERDS)
+        .flat()
+        .filter((h) => (h.sheet ?? h.key) === `fauna/${sheet}`)
+        .flatMap((h) => h.animals)
+        .filter((a) => `${a.species}.${a.pose}.${a.variant}` === look)
+        .map((a) => a.s);
+      expect(drawn.length, m.id).toBeGreaterThan(0);
+      expect(drawn, m.id).toContain(s);
+    }
   });
 
   it('D-082: covers the measured art, the ostrich hen and the baobab residents', () => {

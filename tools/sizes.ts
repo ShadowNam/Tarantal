@@ -5,7 +5,7 @@
 // Pure: the drawn sizes come from content values and frame-box constants measured once from the
 // delivered (interim) art, so the tests need no PNG decoding. tools/sizes.test.ts holds the fixed
 // species to ±15 % and lists the ones left for the owner, each with its reason. v1.20.2 (D-082,
-// an audit of D-080): MEASURED_ART adds rows read from the delivered art's opaque bounds (not
+// an audit of D-080): MEASURED_ART adds rows read from the art sources' opaque bounds (not
 // computed from the metres the art was drawn to), and tools/sizesArt.test.ts re-measures the PNGs
 // against them, so the table fails when the art drifts.
 import type { ContentBundle, Feel } from '../src/content/schemas';
@@ -161,6 +161,8 @@ export type ArtSource =
       readonly sheet: string;
       readonly look: string;
       readonly part: 'body' | 'all';
+      /** The drawn animal's display scale in its herd (HerdAnimal.s; 1 when not given). */
+      readonly s?: number;
     }
   | {
       readonly kind: 'ostrich' | 'brakkie' | 'harvest' | 'resident' | `cameo:${CameoSheetArea}`;
@@ -188,13 +190,14 @@ const fauna = (
   realM: number,
   artPx: number,
   measure: string,
+  s = 1,
 ): MeasuredArt => ({
   id,
   realM,
   measure,
   plane,
   artPx,
-  source: { kind: 'fauna', sheet, look, part },
+  source: { kind: 'fauna', sheet, look, part, ...(s === 1 ? {} : { s }) },
 });
 
 /**
@@ -213,6 +216,7 @@ export const MEASURED_ART: readonly MeasuredArt[] = [
     3.2,
     254,
     'shoulder (bull, alert)',
+    0.95,
   ),
   fauna(
     'far_giraffe',
@@ -233,6 +237,7 @@ export const MEASURED_ART: readonly MeasuredArt[] = [
     1.35,
     109,
     'shoulder (alert)',
+    0.96,
   ),
   fauna(
     'far_wildebeest',
@@ -253,6 +258,7 @@ export const MEASURED_ART: readonly MeasuredArt[] = [
     1.2,
     97,
     'shoulder (alert)',
+    0.96,
   ),
   fauna(
     'far_springbok',
@@ -263,6 +269,7 @@ export const MEASURED_ART: readonly MeasuredArt[] = [
     0.8,
     65,
     'shoulder (ram, alert)',
+    0.95,
   ),
   fauna(
     'far_lechwe',
@@ -273,6 +280,7 @@ export const MEASURED_ART: readonly MeasuredArt[] = [
     1.0,
     85,
     'shoulder (ram, alert)',
+    0.96,
   ),
   fauna(
     'far_ostrich_cock',
@@ -292,7 +300,8 @@ export const MEASURED_ART: readonly MeasuredArt[] = [
     'all',
     1.9,
     140,
-    'head top (hen, walking)',
+    'head top (hen, walking; drawn at her herd scale 0.96)',
+    0.96,
   ),
   fauna(
     'ver_giraffe',
@@ -497,6 +506,8 @@ export function drawnPerArtPx(content: ContentBundle, s: ArtSource): number {
       const w = content.modes.modes.harvest.workers;
       return (w.heightPx * content.scoring.planes.mid.scale) / WORKER_H;
     }
+    case 'fauna':
+      return s.s ?? 1;
     default:
       return 1;
   }

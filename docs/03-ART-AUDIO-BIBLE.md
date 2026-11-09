@@ -409,11 +409,11 @@ size". Every animal is drawn at its real size beside the guineafowl on its plane
 | tells, meerkats, angry weavers | — | — | — | true since D-078 |
 
 **v1.20.2 (D-082), an audit of D-080:** the rows above were mostly computed from the metres the
-art was drawn to; `tools/sizes.ts MEASURED_ART` now reads 32 of them from the delivered art's
-opaque bounds (the far herds, the Ver waterhole, the cameos, both mid ostriches, Brakkie and his
+art was drawn to; `tools/sizes.ts MEASURED_ART` now reads 32 of them from the art sources'
+opaque bounds (`art-source/sprites`) (the far herds, the Ver waterhole, the cameos, both mid ostriches, Brakkie and his
 bird, the Harvest's workers and post, the baobab's owl and hornbill), and
 `tools/sizesArt.test.ts` re-measures the PNGs (±3 %), so the ±15 % table fails if the art
-drifts. All measured rows are within −6.6 … +9.2 % of real.
+drifts. All measured rows are within −10.3 … +9.2 % of real (each far herd animal at its herd scale).
 
 Kept off true size, each for a reason: the **dung beetle** (drawn about twice its true size on
 purpose, so it reads at all), the **bakkie** (a stage-set prop: true, it would be 398 px tall and

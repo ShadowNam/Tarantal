@@ -4520,7 +4520,7 @@ drawn to (a row could not fail when the drawing was wrong):
 |---|---|---|---|---|---|
 | Namibië ostrich hen | head top, standing | 1.7–2.0 (1.9) | mid | 587 (2.66 m) → 431 (1.94 m) | +2.7 % |
 | Namibië ostrich cock | head top, standing | 2.1–2.8 (2.5) | mid | 587 (2.66 m), unchanged | +6.3 % |
-| far / Ver ostrich hen | head top | 1.9 | far · Ver | 0.84 → 0.76 of the cock (alert 79 → 71 on the Ver plane) | −6.6 % (far, walking) · +1.5 % (Ver) |
+| far / Ver ostrich hen | head top | 1.9 | far · Ver | 0.84 → 0.76 of the cock (alert 79 → 71 on the Ver plane) | −10.3 % (far, walking, at her herd scale 0.96) · +1.5 % (Ver) |
 | the guineafowl Brakkie carries | tail tip to bill, as it hangs | 0.55 | near | 82 → 271 across (~300 along its body) | −6.3 % |
 | baobab barn owl, flying off | wingspan | 0.8–0.95 (0.87) | mid | 69 → 193 | +0.4 % |
 | baobab yellow-billed hornbill | bill to tail | 0.48–0.6 (0.54) | mid | 56.5 → 130 flying; 49 → 112.5 clinging | +9.0 % · −5.7 % |
@@ -4530,8 +4530,9 @@ drawn to (a row could not fail when the drawing was wrong):
   (`tools/art/ostrich.ts`), in boxes 0.73× the cock's; her hit shapes and her height in the scare
   band are the cock's × content `birds.json ostriches.henScale` 0.73 (Zod-typed, tested equal to
   the sheet; `src/sim/ostriches` `birdSize()`); the nest keeps the pair's size; her hit puff
-  starts from her body. `hen.test.ts`: her shapes, the nest's, and a shot aimed where a cock's
-  neck would be (above her) is not aimed at her. The pair passes `ostrichChecks.ts` (sized by the
+  starts from her body. `hen.test.ts`: her shapes, the nest's; with her standing, a shot aimed
+  just above her body (inside a cock-sized body) is not aimed at her, and is at henScale 1; her
+  scare band (`scareBands`) is her own height, the cock's and the nest's the pair's. The pair passes `ostrichChecks.ts` (sized by the
   cock) and the aimed-at and guard tests unchanged. The far herds' `FEMALE_SHARE.ostrich` 0.84 →
   0.76 (the Karoo's, the Kalahari's and Namibië's herds and the Ver waterhole redrawn).
 - *Brakkie's bird:* redrawn from vector shapes at its true size (`tools/art/brakkie.ts bird()`),
@@ -4545,13 +4546,14 @@ drawn to (a row could not fail when the drawing was wrong):
   and its flights land and leave at its body's place on the bark; the bushbaby's head is drawn at
   1.07 (was 1.6) of D-057's head — its hole, a prop, is now about twice its head.
 
-**Measured rows.** `tools/sizes.ts MEASURED_ART`: 32 sizes read from the delivered art's opaque
-bounds (alpha ≥ 64) — the far herds and the Ver waterhole (the `body` part's top for a shoulder,
+**Measured rows.** `tools/sizes.ts MEASURED_ART`: 32 sizes read from the art sources' opaque
+bounds in `art-source/sprites`, which the shipped PNGs are built from (alpha ≥ 64): the far herds and the Ver waterhole (the `body` part's top for a shoulder,
 all parts for a head top), the cameos (the back over a band of columns where a head or horns rise
 higher), the Namibië cock and hen, Brakkie's withers and his bird, the Harvest's three workers and
 its fence post, the baobab's flying owl and hornbill. `tools/sizesArt.test.ts` re-reads every one
 from the PNGs (±3 %) and `tools/sizes.test.ts` holds each to ±15 % of real: all within
-−6.6 … +9.2 % (the far giraffe +9.0 %, the Ver giraffe +9.2 %, the flying hornbill +9.0 %, the
+−10.3 … +9.2 %, each far herd animal at its own herd scale `s` (the walking Karoo hen −10.3 % at
+0.96; the far giraffe +9.0 %, the Ver giraffe +9.2 %, the flying hornbill +9.0 %, the
 far lechwe +7.7 %; the Harvest workers −5.9 … −1.7 %, the post −0.0 %). `OSTRICH_STAND_MID_PX` 197
 → 209.7 (measured); the computed mid ostrich row reads +6.3 % (2.66 m, inside a cock's 2.1–2.8).
 
