@@ -8,10 +8,10 @@ import { HOLLOWS, type Hollow } from '../../src/game/view/tree/baobabShape';
 import {
   RESIDENT_SHEET_H,
   RESIDENT_SHEET_W,
-  RESIDENT_TRUE_MUL,
   residentFrames,
   type ResidentFrame,
 } from '../../src/game/view/tree/residentSheet';
+import { RESIDENT_TRUE_MUL } from '../../src/game/view/tree/residentTrueSize';
 import type { Rgba } from '../assets/image';
 import { renderSvg } from './raster';
 import { mix, nextId, shade } from './scenery';

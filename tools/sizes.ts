@@ -12,7 +12,7 @@ import type { ContentBundle, Feel } from '../src/content/schemas';
 import type { CameoSheetArea } from '../src/game/cameos/cameoKeys';
 import { CAMEO_SIZE_MUL } from '../src/game/cameos/cameoSheet';
 import { WORKER_H } from '../src/game/view/harvest/harvestSheet';
-import { RESIDENT_TRUE_MUL } from '../src/game/view/tree/residentSheet';
+import { RESIDENT_TRUE_MUL } from '../src/game/view/tree/residentTrueSize';
 import { FAUNA_HERDS, lookHeight, type FaunaSpecies } from '../src/game/view/faunaHerds';
 import type { PlaneId } from '../src/sim/types';
 import { ANIMAL_M, GUINEAFOWL_M, targetPx } from './perspective';

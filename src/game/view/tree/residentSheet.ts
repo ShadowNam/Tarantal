@@ -9,49 +9,22 @@
 /** The sheet's texture key (Bushveld group: only the Bushveld manifest lists it). */
 export const RESIDENT_SHEET = 'bushveld/baobab_life';
 
-/**
- * v1.20.2 (D-082): the residents brought to their true size beside the mid guineafowl (110.5 px
- * standing, 221 px a metre), where they fit the stage-set baobab: the flying barn owl (wingspan
- * 69 → 193 px, 0.87 m; a real one 0.8–0.95 m), the yellow-billed hornbill (×2.3: flying 56.5 →
- * 130 px bill to tail, 0.59 m; clinging 49 → 113 px, 0.51 m; a real one 0.48–0.6 m) and the
- * bushbaby (its head 1.6 → 1.07 of the D-057 drawing: 20 → 13 px wide, 0.06 m). Each drawn
- * from its shapes at that size (tools/art/baobabLife.ts), never scaled up. The owl in its cavity
- * (head and shoulders through a 38 × 50 px hole) and the buffalo weaver at its 46 × 30 px stick
- * nest stay: a true whole owl or a true weaver would not fit the stage-set tree's hole or nest
- * (tools/sizes.ts NOT_FIXED).
- */
-export const RESIDENT_TRUE_MUL = { owlFly: 2.8, hornbill: 2.3, galago: 1.07 / 1.6 } as const;
-
-/** A frame box (and its origin) grown by `k` from its D-057 size, rounded out. */
-const grown = (
-  w: number,
-  h: number,
-  ox: number,
-  oy: number,
-  k: number,
-): { w: number; h: number; ox: number; oy: number } => ({
-  w: Math.ceil(w * k),
-  h: Math.ceil(h * k),
-  ox: Math.round(ox * k),
-  oy: Math.round(oy * k),
-});
-const OWL_K = RESIDENT_TRUE_MUL.owlFly;
-const HB_K = RESIDENT_TRUE_MUL.hornbill;
-
 /** The frames, in the order they are packed in rows (D-082: the true-size flying owl beside a
  *  clinging hornbill, twice, then the flying hornbill, then the small animals: 336 × 447, a 2×
- *  sheet of 2.29 MiB; in D-057's order it would be 256 × 697, 2.72 MiB). */
+ *  sheet of 2.29 MiB; in D-057's order it would be 256 × 697, 2.72 MiB). The owl's and the
+ *  hornbill's boxes are D-057's × residentTrueSize.ts RESIDENT_TRUE_MUL, rounded out
+ *  (residentSheet.test.ts). */
 export const RESIDENT_FRAMES = [
   // Barn owl flying off (origin: its body); yellow-billed hornbill clinging beside the slit
   // (origin: its feet on the bark) and feeding (beak at the slit).
-  { name: 'owl_fly_a', ...grown(74, 40, 37, 20, OWL_K) },
-  { name: 'hornbill_cling', ...grown(50, 54, 16, 40, HB_K) },
-  { name: 'owl_fly_b', ...grown(74, 40, 37, 20, OWL_K) },
-  { name: 'hornbill_feed', ...grown(50, 54, 16, 40, HB_K) },
+  { name: 'owl_fly_a', w: 208, h: 112, ox: 104, oy: 56 },
+  { name: 'hornbill_cling', w: 115, h: 125, ox: 37, oy: 92 },
+  { name: 'owl_fly_b', w: 208, h: 112, ox: 104, oy: 56 },
+  { name: 'hornbill_feed', w: 115, h: 125, ox: 37, oy: 92 },
   // The hornbill flying (origin: its body); the female's beak tip in the slit (origin: the
   // slit's centre).
-  { name: 'hornbill_fly_a', ...grown(64, 34, 30, 17, HB_K) },
-  { name: 'hornbill_fly_b', ...grown(64, 34, 30, 17, HB_K) },
+  { name: 'hornbill_fly_a', w: 148, h: 79, ox: 69, oy: 39 },
+  { name: 'hornbill_fly_b', w: 148, h: 79, ox: 69, oy: 39 },
   { name: 'beak_tip', w: 10, h: 14, ox: 5, oy: 7 },
   // A bee (an amber dot with a dark band and a glint of wing).
   { name: 'bee', w: 6, h: 6, ox: 3, oy: 3 },

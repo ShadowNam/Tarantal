@@ -6,7 +6,8 @@
 import type { Feel } from '../../../content/schemas';
 import { TICKS_PER_SECOND } from '../../../sim/clock';
 import { HOLLOWS, STICK_NESTS, squirrelPath, type BPt } from './baobabShape';
-import { RESIDENT_TRUE_MUL, type ResidentFrame } from './residentSheet';
+import type { ResidentFrame } from './residentSheet';
+import { RESIDENT_TRUE_MUL } from './residentTrueSize';
 
 export type TreeLifeTuning = Feel['treeLife'];
 export type ResidentId = Exclude<keyof TreeLifeTuning['residents'], '$comment'>;

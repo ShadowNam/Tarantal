@@ -532,7 +532,7 @@ export const OstrichesSchema = obj({
   sizeMul: z.number().gt(0).max(4).default(1),
   /** v1.20.2 (D-082): the hen's size as a share of the cock's — her drawing, her hit shapes and
    *  her heightPx (a hen stands 1.7–2.0 m, a cock 2.1–2.8 m); the nest keeps the pair's size. */
-  henScale: z.number().gt(0).max(1).default(1),
+  henScale: pos.max(1).default(1),
   hitboxes: obj({
     stand: obj({ body: ellipseBox, neck: ellipseBox }),
     sit: obj({ body: ellipseBox, neck: ellipseBox }),
