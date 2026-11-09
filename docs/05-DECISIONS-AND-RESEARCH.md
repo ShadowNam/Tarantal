@@ -4480,6 +4480,11 @@ flushRoom.ts`), so a shown point always gets its flock; a gust's rise share is c
 0.234 vs 0.096–0.150 on other runs; the budget stays 0.3 ms), and Oupa's pose change updates his
 origin once.
 
+**CI.** The Pixel 7 perf job outgrew the 45-min job limit (the herds' background group the HD
+cases wait for, the braai case's warm-up): it ran out on its last test with the 28 before it green.
+It is now two jobs, `perf` and `perf2` (`.github/workflows/ci.yml` `part`: Playwright's `--shard`
+within the one spec, one worker each, each alone on its runner, ~20 min). The limit is unchanged.
+
 **Tests.** Unit: `tools/sizes.test.ts` (every animal within ±15 %, NOT_FIXED only the guineafowl,
 the dung beetle and the bakkie), the cameos' art sizes equal content's (`cameoSheet.test.ts`), the
 ostriches' aimed-at rule (`src/sim/ostriches/aimed.test.ts`), `flushRoom`, the gust shape and the
