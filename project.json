@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-11-08T17:14:00Z",
+ "updated": "2026-11-09T03:00:00Z",
  "by": "Claude",
- "summary": "Live on the test build: v1.15 Art polish (1.18.1, merged 19:14 Namibia time on 8 Nov). Oupa's braai has real fieldstones, logs, an enamel kettle and a brighter fire; Oupa and his camp chair have proper detail; the bakkie at night is a detailed pickup; the guineafowl has shaded, spotted plumage; Brakkie has smooth legs and a shaded coat; the baboons have lit backs and manes. Same sizes and hit boxes. Earlier today: v1.14 Texts & voices (admin → Texts & voices). Next: Oupa's new voices once you say the texts are final.",
+ "summary": "Live on the test build: v1.16 Veld realism (1.19.0, merged 05:00 Namibia time on 9 Nov). The baboons hide behind the koppies and peek out, with their wa-hoo calls and more realistic art; Brakkie runs about and fetches most birds that fall; a Hilux-style bakkie; the small animals at real size next to the guineafowl. Building now: v1.17 Brakkie the companion (Bring!, Staan!, the whistle, reactions, more detail) and wind that pushes the shot. Then v1.18 Harvest Phase 2, v1.19 Gun Shed art and special shells, then Oupa's voices.",
  "current": {
-  "version": "1.18.1",
-  "commit": "e674855"
+  "version": "1.19.0",
+  "commit": "910eabb"
  },
  "links": [
   {
@@ -36,23 +36,23 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.18.1",
-   "note": "commit e674855, merged 8 Nov, 19:13 Namibia time (the test build deploys a few minutes after)"
+   "value": "1.19.0",
+   "note": "commit 910eabb, merged 9 Nov, 05:00 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "118",
-   "note": "#1 to #121"
+   "value": "119",
+   "note": "#1 to #122"
   },
   {
    "label": "Unit tests",
-   "value": "2,201",
+   "value": "2,230",
    "note": "plus the browser test suites on 3 devices"
   },
   {
    "label": "First download",
    "value": "3.03 MB",
-   "note": "3,026.8 KB of the 3,072 KB budget"
+   "note": "3,026.5 KB of the 3,072 KB budget"
   },
   {
    "label": "Hunting areas",
@@ -2279,12 +2279,67 @@
    "version": "1.15.0"
   },
   {
+   "id": "v1.16",
+   "title": "v1.16: Veld realism — the baboons hide behind the koppies and peek out (with their wa-hoo calls and more realistic art), Brakkie runs about and fetches most birds that fall, a Hilux-style bakkie, and the small animals at their real size next to the guineafowl; version 1.19.0",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-11-08T20:59:30Z",
+   "end": "2026-11-09T03:00:07Z",
+   "estimate": false,
+   "prs": [
+    122
+   ],
+   "version": "1.16.0",
+   "summary": "Veld realism: baboons hide and peek with their calls, realistic chacma art, Brakkie fetches more, a Hilux-style bakkie, real-size small animals.",
+   "owner": "Tank built it (task 8a024a67, finished in 886ca099 and by Claude after connection drops); Claude fixed the screenshot and seat tests, ran the screenshots on desktop, Pixel 7 and iPhone 14 and full CI, and merged it (#122)",
+   "requestedBy": "You, 8 Nov."
+  },
+  {
+   "id": "v1.17",
+   "title": "v1.17: Brakkie the companion and real wind — \"Bring!\" retrieve bonus and streak, \"Staan!\" he points at hidden flocks, a \"Fluit!\" whistle button, proud/puzzled reactions, more detail on the dog; stronger wind pushes the shot more (by distance and strength) with a wind indicator (your requests, 8 Nov)",
+   "phase": "Version 1.x",
+   "status": "running",
+   "start": "2026-11-09T03:00:00Z",
+   "end": "2026-11-09T11:00:00Z",
+   "estimate": true,
+   "version": "1.17.0",
+   "summary": "Brakkie the companion (Bring! bonus, Staan! point, Fluit! whistle, reactions, more detail) and wind drift that grows with distance and strength.",
+   "owner": "Tank builds it (task 0bd88536, started 9 Nov 05:05 Namibia); Claude reviews, shoots and merges",
+   "requestedBy": "You, 8 Nov."
+  },
+  {
+   "id": "v1.18",
+   "title": "v1.18: Die Oes raid and Phase 2 — baboons climb down the koppie and dash for the mielies, a small second hole in the fence for piglets, and a bonus Phase 2: the fence is whole and warthogs, piglets and baboons come over it from all sides; keep them off the field before the timer runs out (your requests, 8 Nov)",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-11-09T11:00:00Z",
+   "end": "2026-11-09T20:00:00Z",
+   "estimate": true,
+   "version": "1.18.0",
+   "summary": "Die Oes: baboons dash for the mielies, a small hole in the fence, and Phase 2 — defend the field.",
+   "owner": "Next for Tank",
+   "requestedBy": "You, 8 Nov."
+  },
+  {
+   "id": "v1.19",
+   "title": "v1.19: The Gun Shed and special shells — real side-view art for every gun in the shed and more detail on the guns in the hunt, better meerkats, and two shotgun power-ups: Dragon's Breath (a big cone of fire) and the Slug (one long-range heavy shot) (your requests, 8 Nov)",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-11-09T20:00:00Z",
+   "end": "2026-11-10T04:00:00Z",
+   "estimate": true,
+   "version": "1.19.0",
+   "summary": "Gun Shed art for every gun, more detail on the guns in the hunt, better meerkats, Dragon's Breath and Slug shells.",
+   "owner": "Next for Tank",
+   "requestedBy": "You, 8 Nov."
+  },
+  {
    "id": "oupa-s-new-voices-once-all-the-text-is-f",
    "title": "Oupa's new voices, once all the text is final: English, Afrikaans and German generated through one voice API key (OpenRouter), each clip checked automatically by speech-to-text and redone if wrong; a short sample test first (your plan, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-11-08T20:00:00Z",
-   "end": "2026-11-09T01:00:00Z",
+   "start": "2026-11-10T04:00:00Z",
+   "end": "2026-11-10T09:00:00Z",
    "estimate": true,
    "summary": "needs your corrected texts + the OpenRouter key"
   }
@@ -2821,6 +2876,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-11-09T03:00:00Z",
+   "kind": "merge",
+   "text": "v1.16 Veld realism is on the test build (1.19.0, #122): baboons hide behind the koppies and peek out, with their calls; Brakkie fetches more; a Hilux-style bakkie; real-size small animals. Full CI green (29 jobs); screenshots on desktop, Pixel 7 and iPhone 14."
+  },
   {
    "at": "2026-11-08T17:14:00Z",
    "kind": "merge",

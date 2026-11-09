@@ -1,9 +1,9 @@
 {
-  "updated": "2026-11-08T17:14:00Z",
-  "summary": "Live on the test build: v1.15 Art polish (1.18.1, merged 19:14 Namibia time on 8 Nov). Oupa's braai has real fieldstones, logs, an enamel kettle and a brighter fire; Oupa and his camp chair have proper detail; the bakkie at night is a detailed pickup; the guineafowl has shaded, spotted plumage; Brakkie has smooth legs and a shaded coat; the baboons have lit backs and manes. Same sizes and hit boxes. Earlier today: v1.14 Texts & voices (admin → Texts & voices). Next: Oupa's new voices once you say the texts are final.",
+  "updated": "2026-11-09T03:00:00Z",
+  "summary": "Live on the test build: v1.16 Veld realism (1.19.0, merged 05:00 Namibia time on 9 Nov). The baboons hide behind the koppies and peek out, with their wa-hoo calls and more realistic art; Brakkie runs about and fetches most birds that fall; a Hilux-style bakkie; the small animals at real size next to the guineafowl. Building now: v1.17 Brakkie the companion (Bring!, Staan!, the whistle, reactions, more detail) and wind that pushes the shot. Then v1.18 Harvest Phase 2, v1.19 Gun Shed art and special shells, then Oupa's voices.",
   "current": {
-    "version": "1.18.1",
-    "commit": "e6748555"
+    "version": "1.19.0",
+    "commit": "910eabbf"
   },
   "links": [
     {
@@ -34,23 +34,23 @@
   "numbers": [
     {
       "label": "Version on the test build",
-      "value": "1.18.1",
-      "note": "commit e6748555, merged 19:14 on 8 Nov"
+      "value": "1.19.0",
+      "note": "commit 910eabbf, merged 05:00 on 9 Nov"
     },
     {
       "label": "Pull requests merged",
-      "value": "118",
-      "note": "#1 to #121"
+      "value": "119",
+      "note": "#1 to #122"
     },
     {
       "label": "Unit tests",
-      "value": "2,201",
+      "value": "2,230",
       "note": "plus the browser test suites on 3 devices"
     },
     {
       "label": "First download",
       "value": "3.03 MB",
-      "note": "3,026.8 KB of the 3,072 KB budget"
+      "note": "3,026.5 KB of the 3,072 KB budget"
     },
     {
       "label": "Hunting areas",
@@ -68,8 +68,8 @@
     },
     {
       "label": "Decisions logged",
-      "value": "77",
-      "note": "D-001 to D-077"
+      "value": "78",
+      "note": "D-001 to D-078"
     }
   ],
   "needsYou": [
@@ -1083,6 +1083,30 @@
       "summary": "Better art for Oupa's braai (Oupa, chair, fire, kettle, real stones), the bakkie at night, Brakkie's coat, the guineafowl's spotted plumage and the baboons' fur.",
       "requestedBy": "You, 8 Nov.",
       "status": "done"
+    },
+    "v1.16": {
+      "owner": "Tank built it (task 8a024a67, finished in 886ca099 and by Claude after connection drops); Claude fixed the screenshot and seat tests, ran the screenshots on desktop, Pixel 7 and iPhone 14 and full CI, and merged it (#122)",
+      "summary": "Veld realism: baboons hide and peek with their calls, realistic chacma art, Brakkie fetches more, a Hilux-style bakkie, real-size small animals.",
+      "requestedBy": "You, 8 Nov.",
+      "status": "done"
+    },
+    "v1.17": {
+      "owner": "Tank builds it (task 0bd88536, started 9 Nov 05:05 Namibia); Claude reviews, shoots and merges",
+      "summary": "Brakkie the companion (Bring! bonus, Staan! point, Fluit! whistle, reactions, more detail) and wind drift that grows with distance and strength.",
+      "requestedBy": "You, 8 Nov.",
+      "status": "running"
+    },
+    "v1.18": {
+      "owner": "Next for Tank",
+      "summary": "Die Oes: baboons dash for the mielies, a small hole in the fence, and Phase 2 — defend the field.",
+      "requestedBy": "You, 8 Nov.",
+      "status": "next"
+    },
+    "v1.19": {
+      "owner": "Next for Tank",
+      "summary": "Gun Shed art for every gun, more detail on the guns in the hunt, better meerkats, Dragon's Breath and Slug shells.",
+      "requestedBy": "You, 8 Nov.",
+      "status": "next"
     }
   },
   "suggestions": [
@@ -2277,6 +2301,11 @@
       "at": "2026-11-08T17:14:00Z",
       "kind": "merge",
       "text": "v1.15 Art polish is on the test build (1.18.1, #120): Oupa's braai, the bakkie at night, Brakkie, the guineafowl and the baboons, all redrawn with shading and texture; same sizes and hit boxes. Also merged today: #121 (Claude now reads your WhatsApp replies). Full CI green (29 jobs); screenshots on desktop, Pixel 7 and iPhone 14."
+    },
+    {
+      "at": "2026-11-09T03:00:00Z",
+      "kind": "merge",
+      "text": "v1.16 Veld realism is on the test build (1.19.0, #122): baboons hide behind the koppies and peek out, with their calls; Brakkie fetches more; a Hilux-style bakkie; real-size small animals. Full CI green (29 jobs); screenshots on desktop, Pixel 7 and iPhone 14."
     }
   ]
 }
