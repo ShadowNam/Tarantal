@@ -1,12 +1,15 @@
 // v1.16 (D-078): the animals' sizes next to the helmeted guineafowl, the fixed yardstick (its size
-// and hit boxes never change). Each animal is compared with the guineafowl standing on its own
+// and hit boxes never change). v1.17b (D-080, the owner: "yes make all animals true size"): every
+// animal, not only the small ones. Each animal is compared with the guineafowl standing on its own
 // plane: real metres × (that bird's standing px / GUINEAFOWL_M) is the size real proportions give.
 // Pure: the drawn sizes come from content values and frame-box constants measured once from the
 // delivered (interim) art, so the tests need no PNG decoding. tools/sizes.test.ts holds the fixed
 // species to ±15 % and lists the ones left for the owner, each with its reason.
 import type { ContentBundle, Feel } from '../src/content/schemas';
+import { CAMEO_SIZE_MUL } from '../src/game/cameos/cameoSheet';
+import { FAUNA_HERDS, lookHeight, type FaunaSpecies } from '../src/game/view/faunaHerds';
 import type { PlaneId } from '../src/sim/types';
-import { GUINEAFOWL_M, targetPx } from './perspective';
+import { ANIMAL_M, GUINEAFOWL_M, targetPx } from './perspective';
 
 /**
  * The guineafowl's standing (alert) height in design px at plane scale 1: birdUnits('alert')
@@ -75,6 +78,51 @@ export const WEAVER_REAL_M = 0.14;
 export const MEERKAT_STAND_PX = 122.5;
 /** A meerkat standing up as a sentinel (m). */
 export const MEERKAT_REAL_M = 0.3;
+
+/** v1.17b (D-080): a standing mid-plane ostrich (head top above its feet) in the Namibië sheet,
+ *  drawn at the mid plane's scale (tools/art/ostrich.ts OSTRICH_H; OSTRICH_ART_SCALE 0.42). */
+export const OSTRICH_STAND_MID_PX = 197;
+/** The mid plane's scale the ostrich sheet is drawn at (src/game/view/namib/ostrichSheet.ts). */
+export const OSTRICH_ART_SCALE = 0.42;
+
+/** v1.17b (D-080): Brakkie's shoulder (the top of his standing body) above his feet, near-plane px
+ *  at sizeMul 1 (tools/art/brakkie.ts STAND_BODY: y −78, ry 32). */
+export const BRAKKIE_SHOULDER_PX = 110;
+/** A Jack Russell at the shoulder (m). */
+export const BRAKKIE_REAL_M = 0.3;
+
+/** v1.17b (D-080): real sizes (m) of the true-size targets and non-targets. */
+export const REAL_M = {
+  /** A sitting adult male chacma, feet to crown. */
+  baboonMale: 0.8,
+  /** A sitting adult female, feet to crown. */
+  baboonFemale: 0.65,
+  /** A warthog at the back (an adult sow or boar). */
+  warthog: 0.7,
+  /** A warthog piglet a few months old, at the back. */
+  piglet: 0.3,
+  /** A sociable weaver's wingspan. */
+  weaverWingspan: 0.22,
+} as const;
+
+/**
+ * v1.17b (D-080): each cameo's height as drawn in v1.13 (at sizeMul 1; design px on its plane),
+ * measured from the art (tools/art/cameosHoofed.ts HOG.k, SB.S, GB.S; the ostrich's standing
+ * height; the tortoise's shell top from its rendered walking frame), the measure, the real size
+ * and the plane.
+ */
+export const CAMEO_V113: Readonly<
+  Record<
+    Exclude<keyof typeof CAMEO_SIZE_MUL, 'dungBeetle'>,
+    { px: number; realM: number; measure: string; plane: 'mid' | 'near' }
+  >
+> = {
+  warthogs: { px: 57, realM: 0.7, measure: 'the sow at the back', plane: 'mid' },
+  springbok: { px: 60, realM: 0.8, measure: 'shoulder', plane: 'mid' },
+  gemsbok: { px: 78, realM: 1.2, measure: 'shoulder', plane: 'mid' },
+  ostrich: { px: 200, realM: 2.5, measure: 'head top (standing)', plane: 'mid' },
+  tortoise: { px: 50, realM: 0.25, measure: 'shell top', plane: 'near' },
+};
 
 export interface SizeRow {
   readonly id: string;
@@ -155,30 +203,123 @@ export function sizeTable(content: ContentBundle, feel: Feel): SizeRow[] {
         MEERKAT_STAND_PX * content.scoring.planes[plane].scale * mk.sizeMul,
       ),
     );
+  rows.push(...trueSizeRows(content, feel, row));
+  return rows;
+}
+
+type RowFn = (
+  id: string,
+  realM: number,
+  measure: string,
+  plane: PlaneId,
+  drawnPx: number,
+) => SizeRow;
+
+/** v1.17b (D-080): the far herds, the mid ostriches, the baboons, the Harvest warthogs, Brakkie,
+ *  the cameos and the weaver colony's birds. */
+function trueSizeRows(content: ContentBundle, feel: Feel, row: RowFn): SizeRow[] {
+  const rows: SizeRow[] = [];
+  const scale = (p: PlaneId): number => content.scoring.planes[p].scale;
+  // The far herds: drawn (the art is drawn at lookHeight, tools/art/faunaSheets.ts) against the
+  // species' real height, on the far plane (the Ver plane's waterhole the same, smaller).
+  const species = new Set<FaunaSpecies>();
+  for (const herds of Object.values(FAUNA_HERDS))
+    for (const h of herds) for (const a of h.animals) species.add(a.species);
+  for (const sp of [...species].sort()) {
+    const ppm = birdStandingPx(content, 'far') / GUINEAFOWL_M;
+    const real = ANIMAL_M[sp];
+    rows.push(
+      row(
+        `far_${sp}`,
+        real,
+        sp === 'giraffe' || sp === 'ostrich' ? 'head top' : 'shoulder',
+        'far',
+        lookHeight(sp, 'm', ppm, feel.fauna.sizeMul[sp]),
+      ),
+    );
+  }
+  // The mid ostriches (Namibië's pair): the sheet's standing bird at the mid plane's scale.
+  const os = content.birds.ostriches;
+  rows.push(
+    row(
+      'mid_ostrich',
+      ANIMAL_M.ostrich,
+      'head top (standing)',
+      'mid',
+      (OSTRICH_STAND_MID_PX / OSTRICH_ART_SCALE) * scale('mid') * os.sizeMul,
+    ),
+  );
+  // The baboons: a sitting male drawn to heightPx (the raiders on the mid plane, the troop on the
+  // far ridge), a mother × motherScale.
+  const bb = content.birds.baboons;
+  rows.push(
+    row('baboon_raider', REAL_M.baboonMale, 'sitting male', 'mid', bb.heightPx * scale('mid')),
+  );
+  rows.push(
+    row('baboon_ridge', REAL_M.baboonMale, 'sitting male', 'far', bb.heightPx * scale('far')),
+  );
+  rows.push(
+    row(
+      'baboon_mother',
+      REAL_M.baboonFemale,
+      'sitting female',
+      'far',
+      bb.heightPx * bb.motherScale * scale('far'),
+    ),
+  );
+  // The Harvest's warthogs (mid and near) and piglets.
+  const wh = content.modes.modes.harvest.warthogs;
+  for (const p of ['mid', 'near'] as const) {
+    rows.push(
+      row(`harvest_warthog_${p}`, REAL_M.warthog, 'at the back', p, wh.heightPx * scale(p)),
+    );
+    rows.push(
+      row(
+        `harvest_piglet_${p}`,
+        REAL_M.piglet,
+        'at the back',
+        p,
+        wh.heightPx * wh.pigletScale * scale(p),
+      ),
+    );
+  }
+  // Brakkie on the near plane and, fetching, the mid plane.
+  for (const p of ['near', 'mid'] as const)
+    rows.push(
+      row(
+        `brakkie_${p}`,
+        BRAKKIE_REAL_M,
+        'shoulder',
+        p,
+        // His art is in near-plane px at scale 1; on a plane × that plane's scale (system.ts k).
+        BRAKKIE_SHOULDER_PX * content.brakkie.sizeMul * (scale(p) / scale('near')),
+      ),
+    );
+  // The cameos: their v1.13 size × sizeMul (drawn px on their plane already).
+  for (const [kind, c] of Object.entries(CAMEO_V113))
+    rows.push(
+      row(
+        `cameo_${kind}`,
+        c.realM,
+        c.measure,
+        c.plane,
+        c.px * content.cameos.kinds[kind as keyof typeof CAMEO_V113].sizeMul,
+      ),
+    );
+  // The weaver colony's birds: their drawn wingspan on each plane.
+  const ws = feel.treeLife.colony.wingspanPx;
+  for (const p of ['near', 'mid', 'far', 'ver'] as const)
+    rows.push(row(`colony_weaver_${p}`, REAL_M.weaverWingspan, 'wingspan', p, ws[p]));
   return rows;
 }
 
 /**
- * Animals NOT brought to real size in D-078: each needs the owner's decision (a gameplay, art or
- * earlier-decision change), so it is listed here with the reason instead.
+ * Animals NOT brought to true size (D-080: the owner asked for every animal; these stay, each with
+ * its reason for the owner).
  */
 export const NOT_FIXED: Readonly<Record<string, string>> = {
-  far_herds:
-    'D-054: the owner asked for the far animals at 0.57 × true size (elephant, giraffe, zebra, wildebeest, gemsbok, springbok, lechwe)',
-  far_ostriches: 'D-054: the owner asked for the far ostriches smaller still (0.45 × true size)',
-  baboons: 'D-062/D-078: the raiders are targets (their size is their hit area and their points)',
-  brakkie:
-    "D-069: the dog's line-of-fire geometry (where he may run and fetch) is built on his size",
-  cameo_warthog: 'the cameo textures are drawn at their size: bigger needs redrawn, bigger art',
-  cameo_springbok: 'the cameo textures are drawn at their size: bigger needs redrawn, bigger art',
-  cameo_gemsbok: 'the cameo textures are drawn at their size: bigger needs redrawn, bigger art',
-  cameo_tortoise: 'the cameo textures are drawn at their size: bigger needs redrawn, bigger art',
-  cameo_dung_beetle: 'drawn bigger than life on purpose, so a player can see it at all',
-  mid_ostriches: 'D-059: penalty animals: their size is their hit (penalty) area',
-  harvest_warthogs: 'D-063: Harvest targets: their size is their hit area and their points',
-  colony_weavers:
-    "D-057: the weaver colony's ambient birds (feel.treeLife.colony.wingspanPx) are their own sheet and tuning, left as they were",
+  cameo_dung_beetle: 'drawn about twice its true size on purpose, so a player can see it at all',
   bakkie:
-    'a stage-set prop: its scale is set against the windpomp and the reservoir, not the birds',
+    "a stage-set prop: at its true 1.8 m beside the mid guineafowl (208 → 398 px tall, ~1 050 px long) it would stand as tall as the 9 m windpomp (drawn 395 px) and 3× the reservoir (133 px) — the scene's props are all on a stage-set scale (docs/balance/perspective.md); the owner decides",
   guineafowl: `the yardstick (${GUINEAFOWL_M} m): its size and hit boxes never change`,
 };
