@@ -252,10 +252,10 @@
       "originY": 0
     },
     "fauna/bushveld_elephants": {
-      "group": "bushveld-winter",
+      "group": "fauna-bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fauna_bushveld_elephants.337b3cd20e50.png",
+        "path": "assets/fauna-bushveld-winter/img/fauna_bushveld_elephants.337b3cd20e50.png",
         "bytes": 28610,
         "hash": "337b3cd20e50"
       },
@@ -387,10 +387,10 @@
       }
     },
     "fauna/bushveld_giraffes_a": {
-      "group": "bushveld-winter",
+      "group": "fauna-bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fauna_bushveld_giraffes_a.d48e16ed6fcf.png",
+        "path": "assets/fauna-bushveld-winter/img/fauna_bushveld_giraffes_a.d48e16ed6fcf.png",
         "bytes": 31909,
         "hash": "d48e16ed6fcf"
       },
@@ -492,10 +492,10 @@
       }
     },
     "fauna/bushveld_wildebeest": {
-      "group": "bushveld-winter",
+      "group": "fauna-bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fauna_bushveld_wildebeest.229a5c6351a2.png",
+        "path": "assets/fauna-bushveld-winter/img/fauna_bushveld_wildebeest.229a5c6351a2.png",
         "bytes": 15085,
         "hash": "229a5c6351a2"
       },
@@ -627,10 +627,10 @@
       }
     },
     "fauna/bushveld_zebra": {
-      "group": "bushveld-winter",
+      "group": "fauna-bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fauna_bushveld_zebra.dae8822557b9.png",
+        "path": "assets/fauna-bushveld-winter/img/fauna_bushveld_zebra.dae8822557b9.png",
         "bytes": 24119,
         "hash": "dae8822557b9"
       },
@@ -792,10 +792,10 @@
       }
     },
     "fauna/kalahari_ostrich": {
-      "group": "kalahari-summer",
+      "group": "fauna-kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/fauna_kalahari_ostrich.fabbecc60578.png",
+        "path": "assets/fauna-kalahari-summer/img/fauna_kalahari_ostrich.fabbecc60578.png",
         "bytes": 5635,
         "hash": "fabbecc60578"
       },
@@ -847,10 +847,10 @@
       }
     },
     "fauna/kalahari_springbok": {
-      "group": "kalahari-summer",
+      "group": "fauna-kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/fauna_kalahari_springbok.55e6c41041f6.png",
+        "path": "assets/fauna-kalahari-summer/img/fauna_kalahari_springbok.55e6c41041f6.png",
         "bytes": 8589,
         "hash": "55e6c41041f6"
       },
@@ -1042,10 +1042,10 @@
       }
     },
     "fauna/kalahari_wildebeest": {
-      "group": "kalahari-summer",
+      "group": "fauna-kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/fauna_kalahari_wildebeest.8d25967cd788.png",
+        "path": "assets/fauna-kalahari-summer/img/fauna_kalahari_wildebeest.8d25967cd788.png",
         "bytes": 15062,
         "hash": "8d25967cd788"
       },
@@ -1177,10 +1177,10 @@
       }
     },
     "fauna/karoo_ostrich": {
-      "group": "late",
+      "group": "fauna-karoo-autumn",
       "origin": "interim",
       "file": {
-        "path": "assets/late/img/fauna_karoo_ostrich.9cddca740efb.png",
+        "path": "assets/fauna-karoo-autumn/img/fauna_karoo_ostrich.9cddca740efb.png",
         "bytes": 7895,
         "hash": "9cddca740efb"
       },
@@ -1252,10 +1252,10 @@
       }
     },
     "fauna/karoo_springbok_a": {
-      "group": "late",
+      "group": "fauna-karoo-autumn",
       "origin": "interim",
       "file": {
-        "path": "assets/late/img/fauna_karoo_springbok_a.6d8810e16405.png",
+        "path": "assets/fauna-karoo-autumn/img/fauna_karoo_springbok_a.6d8810e16405.png",
         "bytes": 8199,
         "hash": "6d8810e16405"
       },
@@ -1447,10 +1447,10 @@
       }
     },
     "fauna/karoo_springbok_b": {
-      "group": "late",
+      "group": "fauna-karoo-autumn",
       "origin": "interim",
       "file": {
-        "path": "assets/late/img/fauna_karoo_springbok_b.f9296fdcf117.png",
+        "path": "assets/fauna-karoo-autumn/img/fauna_karoo_springbok_b.f9296fdcf117.png",
         "bytes": 6155,
         "hash": "f9296fdcf117"
       },
@@ -1582,10 +1582,10 @@
       }
     },
     "fauna/namibie_gemsbok": {
-      "group": "namibie",
+      "group": "fauna-namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/fauna_namibie_gemsbok.1ab7dcf79598.png",
+        "path": "assets/fauna-namibie/img/fauna_namibie_gemsbok.1ab7dcf79598.png",
         "bytes": 12502,
         "hash": "1ab7dcf79598"
       },
@@ -1717,10 +1717,10 @@
       }
     },
     "fauna/namibie_ostrich": {
-      "group": "namibie",
+      "group": "fauna-namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/fauna_namibie_ostrich.62a5b319dafd.png",
+        "path": "assets/fauna-namibie/img/fauna_namibie_ostrich.62a5b319dafd.png",
         "bytes": 5671,
         "hash": "62a5b319dafd"
       },
@@ -2097,10 +2097,10 @@
       }
     },
     "fauna/namibie_zebra": {
-      "group": "namibie",
+      "group": "fauna-namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/fauna_namibie_zebra.1dd54ed279af.png",
+        "path": "assets/fauna-namibie/img/fauna_namibie_zebra.1dd54ed279af.png",
         "bytes": 20881,
         "hash": "1dd54ed279af"
       },
@@ -2232,10 +2232,10 @@
       }
     },
     "fauna/okavango_elephants": {
-      "group": "okavango-spring",
+      "group": "fauna-okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/fauna_okavango_elephants.544eb726d841.png",
+        "path": "assets/fauna-okavango-spring/img/fauna_okavango_elephants.544eb726d841.png",
         "bytes": 29801,
         "hash": "544eb726d841"
       },
@@ -2367,10 +2367,10 @@
       }
     },
     "fauna/okavango_lechwe": {
-      "group": "okavango-spring",
+      "group": "fauna-okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/fauna_okavango_lechwe.6ef6197b0553.png",
+        "path": "assets/fauna-okavango-spring/img/fauna_okavango_lechwe.6ef6197b0553.png",
         "bytes": 13194,
         "hash": "6ef6197b0553"
       },
@@ -2592,10 +2592,10 @@
       }
     },
     "fauna/okavango_wildebeest": {
-      "group": "okavango-spring",
+      "group": "fauna-okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/fauna_okavango_wildebeest.8a7190930b67.png",
+        "path": "assets/fauna-okavango-spring/img/fauna_okavango_wildebeest.8a7190930b67.png",
         "bytes": 11677,
         "hash": "8a7190930b67"
       },
@@ -2697,10 +2697,10 @@
       }
     },
     "fauna/okavango_zebra": {
-      "group": "okavango-spring",
+      "group": "fauna-okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/fauna_okavango_zebra.7c66fc68b297.png",
+        "path": "assets/fauna-okavango-spring/img/fauna_okavango_zebra.7c66fc68b297.png",
         "bytes": 21099,
         "hash": "7c66fc68b297"
       },
@@ -3538,12 +3538,12 @@
       "group": "oes",
       "origin": "interim",
       "file": {
-        "path": "assets/oes/img/oes_harvest.a5f35ecd8329.png",
-        "bytes": 145879,
-        "hash": "a5f35ecd8329"
+        "path": "assets/oes/img/oes_harvest.a450135aa991.png",
+        "bytes": 149885,
+        "hash": "a450135aa991"
       },
       "width": 1536,
-      "height": 918,
+      "height": 1173,
       "originX": 0,
       "originY": 0
     },
@@ -6786,99 +6786,99 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/oes/layers/mid-0.f3e223187179.png",
-          "bytes": 202026,
-          "hash": "f3e223187179"
+          "path": "assets/oes/layers/mid-0.3e8cfa2a5b2b.png",
+          "bytes": 206534,
+          "hash": "3e8cfa2a5b2b"
         },
         {
-          "path": "assets/oes/layers/mid-1.d493e85144b2.png",
-          "bytes": 153825,
-          "hash": "d493e85144b2"
+          "path": "assets/oes/layers/mid-1.4a3ab67e3994.png",
+          "bytes": 157415,
+          "hash": "4a3ab67e3994"
         },
         {
-          "path": "assets/oes/layers/mid-2.91fdc07b834a.png",
-          "bytes": 33083,
-          "hash": "91fdc07b834a"
+          "path": "assets/oes/layers/mid-2.d62e29a8398b.png",
+          "bytes": 33965,
+          "hash": "d62e29a8398b"
         }
       ],
       "tileWidth": 2048,
       "left": -300,
-      "top": 540,
-      "height": 380,
+      "top": 400,
+      "height": 520,
       "solid": {
         "bucket": 256,
         "rows": [
           [
-            312,
-            380
+            481,
+            520
           ],
           [
-            314,
-            380
+            482,
+            520
           ],
           [
-            304,
-            380
+            444,
+            520
           ],
           [
-            325,
-            380
+            478,
+            520
           ],
           [
-            313,
-            380
+            480,
+            520
           ],
           [
-            316,
-            380
+            470,
+            520
           ],
           [
-            267,
-            380
+            484,
+            520
           ],
           [
-            298,
-            380
+            439,
+            520
           ],
           [
-            269,
-            380
+            406,
+            520
           ],
           [
-            302,
-            380
+            483,
+            520
           ],
           [
-            312,
-            380
+            483,
+            520
           ],
           [
-            311,
-            380
+            464,
+            520
           ],
           [
-            305,
-            380
+            483,
+            520
           ],
           [
-            315,
-            380
+            481,
+            520
           ],
           [
-            311,
-            380
+            481,
+            520
           ],
           [
-            309,
-            380
+            445,
+            520
           ],
           [
-            301,
-            380
+            467,
+            520
           ],
           [
-            295,
-            380
+            443,
+            520
           ]
         ]
       }

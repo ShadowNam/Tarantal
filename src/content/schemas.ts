@@ -565,9 +565,8 @@ export const OstrichesSchema = obj({
     barkKey: i18nKey,
     /** v1.17b (D-080): the aimed-at rule — only a shot aimed at a bird or the nest (the aim
      *  point on its hit shape, no target hit, none within guardPx of the aim point) costs the
-     *  penalty; a stray pellet is free (they still hiss and run). False: every hit costs it. */
-    aimedOnly: z.boolean().default(false),
-    /** A target this close to the aim point (screen px) gives the benefit of the doubt. */
+     *  penalty; a stray pellet is free (they still hiss and run). A target this close to the
+     *  aim point (screen px) gives the benefit of the doubt. */
     guardPx: pos.default(120),
   }),
 });
@@ -1885,7 +1884,8 @@ const harvestSchema = modeSetupSchema.extend({
     bonusPerPercent: nonNeg,
   }),
   workers: obj({
-    /** A worker's height (feet to the hat's top, plane scale 1). */
+    /** A worker's height (feet to the hat's top, plane scale 1). v1.17b (D-080): 894, a true
+     *  1.7 m beside the guineafowl (270 before, sized to the stage-scaled fence). */
     heightPx: pos,
     hitboxes: obj({ work: harvestBox, duck: harvestBox }),
     runPxPerSec: pos,
@@ -1894,6 +1894,11 @@ const harvestSchema = modeSetupSchema.extend({
     cooldownSeconds: pos,
     duckSeconds: pos,
   }),
+  /** v1.17b (D-080): the field's fence on the gap's plane: a post's height above the ground
+   *  (plane scale 1; 631 = a true 1.2 m beside the guineafowl, 265 px on the mid plane). The
+   *  layer art (tools/art/biomes/oes.ts) and the gap panel are drawn to it
+   *  (harvestSheet.ts FENCE_POST_H = this × the mid plane's scale). */
+  fence: obj({ postPx: pos }),
 });
 export type HarvestSetup = z.infer<typeof harvestSchema>;
 

@@ -264,22 +264,23 @@
         "bonusPerPercent": 5
       },
       "workers": {
-        "heightPx": 270,
+        "heightPx": 894,
         "hitboxes": {
           "work": {
-            "body": { "rx": 32, "ry": 113, "ox": 5, "oy": -113 },
-            "head": { "rx": 22, "ry": 24, "ox": 8, "oy": -243 }
+            "body": { "rx": 106, "ry": 374, "ox": 17, "oy": -374 },
+            "head": { "rx": 73, "ry": 79, "ox": 26, "oy": -805 }
           },
           "duck": {
-            "body": { "rx": 46, "ry": 73, "ox": 14, "oy": -73 },
-            "head": { "rx": 24, "ry": 24, "ox": 38, "oy": -162 }
+            "body": { "rx": 152, "ry": 242, "ox": 46, "oy": -242 },
+            "head": { "rx": 79, "ry": 79, "ox": 126, "oy": -536 }
           }
         },
         "runPxPerSec": 700,
         "penalty": 100,
         "cooldownSeconds": 2,
         "duckSeconds": 1
-      }
+      },
+      "fence": { "postPx": 631 }
     }
   }
 }

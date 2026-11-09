@@ -11,6 +11,7 @@ import { flat, groundD, line, mix, post, shade, tone, treeBlob, wire, yAt } from
 import type { Pen, Rnd, Tone } from '../scenery';
 import { el, ellipseD, g, inked, polyD, smoothD } from '../svg';
 import { mountain, rockColours } from '../mountains';
+import { FENCE_K, FENCE_POST_H } from '../../../src/game/view/harvest/harvestSheet';
 import { groundBand, softSky } from './karoo';
 import { foregroundClumps } from './common';
 
@@ -428,7 +429,8 @@ function mid(ctx: LayerCtx): string {
     const posts: number[] = [];
     for (let x = a; x <= b; x += 110) posts.push(Math.min(x, b));
     if (posts.at(-1) !== b) posts.push(b);
-    for (const h of [62, 44, 26])
+    // D-080: a true 1.2 m fence beside the guineafowl (FENCE_POST_H 265 px; 70 before).
+    for (const h of [62, 44, 26].map((v) => v * FENCE_K))
       fence.push(
         wire(
           posts.map((x) => [x, FENCE_Y - h] as [number, number]),
@@ -438,7 +440,7 @@ function mid(ctx: LayerCtx): string {
         ),
       );
     for (const x of posts)
-      fence.push(post(x, FENCE_Y + 2, 70, x === a || x === b ? 9 : 7, postTone, pen));
+      fence.push(post(x, FENCE_Y + 2, FENCE_POST_H, x === a || x === b ? 22 : 17, postTone, pen));
   }
   parts.push(...fence);
   // Mielie rows (back to front) and sunflower patches, clear of the gap and the workers' stretch.
@@ -770,7 +772,8 @@ export const OES_PLAN: BiomeArtPlan = {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 420, height: 250, colours: 96, draw: farRidge },
     far_veld: { top: 440, height: 300, colours: 112, draw: farVeld },
-    mid: { top: 540, height: 380, colours: 128, draw: mid },
+    // D-080: from 400 (540 before) for the true-size fence (its posts' tops at 435).
+    mid: { top: 400, height: 520, colours: 128, draw: mid },
     near: { top: 820, height: 260, colours: 112, draw: near },
     foreground: { top: 880, height: 200, fadeTop: 28, colours: 96, draw: foreground },
   },

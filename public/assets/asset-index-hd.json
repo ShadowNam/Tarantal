@@ -533,12 +533,12 @@
     },
     "oes/harvest": {
       "file": {
-        "path": "assets/oes-hd/img/oes_harvest.38295a0b9c9d.png",
-        "bytes": 335126,
-        "hash": "38295a0b9c9d"
+        "path": "assets/oes-hd/img/oes_harvest.7556311c80fe.png",
+        "bytes": 341206,
+        "hash": "7556311c80fe"
       },
       "width": 3072,
-      "height": 1836,
+      "height": 2346,
       "scale": 0.5
     },
     "oes/sunflowers_a": {
@@ -1359,29 +1359,29 @@
     "oes/mid": {
       "tiles": [
         {
-          "path": "assets/oes-hd/layers/mid-0.ece9cbc3e78f.png",
-          "bytes": 241180,
-          "hash": "ece9cbc3e78f"
+          "path": "assets/oes-hd/layers/mid-0.faa3e73343ad.png",
+          "bytes": 249010,
+          "hash": "faa3e73343ad"
         },
         {
-          "path": "assets/oes-hd/layers/mid-1.9df396008c31.png",
-          "bytes": 240901,
-          "hash": "9df396008c31"
+          "path": "assets/oes-hd/layers/mid-1.5eba7718e342.png",
+          "bytes": 248435,
+          "hash": "5eba7718e342"
         },
         {
-          "path": "assets/oes-hd/layers/mid-2.f3502fb4db9e.png",
-          "bytes": 121033,
-          "hash": "f3502fb4db9e"
+          "path": "assets/oes-hd/layers/mid-2.ca7c7cf3ca0e.png",
+          "bytes": 127495,
+          "hash": "ca7c7cf3ca0e"
         },
         {
-          "path": "assets/oes-hd/layers/mid-3.0d9dfaf4c2c7.png",
-          "bytes": 239100,
-          "hash": "0d9dfaf4c2c7"
+          "path": "assets/oes-hd/layers/mid-3.07b8aec72ee9.png",
+          "bytes": 247072,
+          "hash": "07b8aec72ee9"
         },
         {
-          "path": "assets/oes-hd/layers/mid-4.d1352b3515ec.png",
-          "bytes": 75898,
-          "hash": "d1352b3515ec"
+          "path": "assets/oes-hd/layers/mid-4.cce77e7d0535.png",
+          "bytes": 79016,
+          "hash": "cce77e7d0535"
         }
       ],
       "tileWidth": 1024,
