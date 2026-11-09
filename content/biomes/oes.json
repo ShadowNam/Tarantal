@@ -367,9 +367,25 @@
     ],
     "raidsMul": 4,
     "firstAfterSeconds": [
-      4,
-      7
-    ]
+      2,
+      4
+    ],
+    "descent": {
+      "$comment": "v1.18 (D-081): the raiders scramble down the koppie's field side (far_ridge px: the foot at the veld's horizon), run across the veld (far_veld px) and dash into the rows.",
+      "footDx": 380,
+      "footY": 590,
+      "legs": 4,
+      "swayPx": 36,
+      "climbSeconds": 2.4,
+      "veldLayer": "far_veld",
+      "veldY": [
+        606,
+        660
+      ],
+      "veldPxPerSec": 380,
+      "dashMul": 1.6,
+      "pairLag": 0.15
+    }
   },
   "layouts": [
     {

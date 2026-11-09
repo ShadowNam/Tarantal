@@ -57,6 +57,8 @@ export const BABOON_FRAME_NAMES = [
   'r_bark_a',
   'r_bark_b',
   'r_rock',
+  'r_climb_a',
+  'r_climb_b',
   'fx_fruit',
   'fx_water',
 ] as const;

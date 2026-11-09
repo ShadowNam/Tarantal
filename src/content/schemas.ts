@@ -767,8 +767,29 @@ export const BaboonMapSchema = obj({
   /** v1.8c (D-063): when the first raid comes (seconds; absent = baboons.raids.firstAfterSeconds).
    *  The Harvest's 30-s rush needs its raiders early. */
   firstAfterSeconds: range(nonNeg).optional(),
+  /**
+   * v1.18 (D-081): the raid comes down where you can see it (the Harvest). The raiders scramble
+   * down the koppie on the troop's layer (a zig-zag of `legs` legs, `swayPx` either side, from
+   * their seat to the foot: the troop's centre ± footDx on the spot's side, footY), cross the
+   * open veld on `veldLayer` (y from veldY[0] to veldY[1], at veldPxPerSec, from the foot's u to
+   * the u where the spot's approach starts), then dash in at the raiders' run × dashMul. Layer
+   * px; a second raider follows pairLag of the way behind. Not targets until the spot's plane.
+   */
+  descent: obj({
+    footDx: pos,
+    footY: z.number(),
+    legs: posInt,
+    swayPx: nonNeg,
+    climbSeconds: pos,
+    veldLayer: id,
+    veldY: range(z.number()),
+    veldPxPerSec: pos,
+    dashMul: pos,
+    pairLag: z.number().min(0).max(0.5),
+  }).optional(),
 });
 export type BaboonMap = z.infer<typeof BaboonMapSchema>;
+export type BaboonDescent = NonNullable<BaboonMap['descent']>;
 
 export const BirdsSchema = obj({
   version,

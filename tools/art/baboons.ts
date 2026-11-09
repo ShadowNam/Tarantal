@@ -315,6 +315,9 @@ export const POSES: Readonly<
   walk_d: walkPose((3 * Math.PI) / 2),
   run_a: walkPose(0.4, true),
   run_b: walkPose(0.4 + Math.PI, true),
+  // v1.18 (D-081): scrambling down the koppie at the ridge's size (drawFrame tips it head-down).
+  r_climb_a: walkPose(0.9),
+  r_climb_b: walkPose(0.9 + Math.PI),
   // Oupa's hat: on its head, scratching under it.
   hat_a: sitPose({
     hatOn: true,
@@ -1560,6 +1563,9 @@ function rockArt(): string {
   );
 }
 
+/** v1.18 (D-081): how far a climbing-down raider tips forward (degrees). */
+const CLIMB_TIP_DEG = 26;
+
 /** One frame's drawing in design px (feet at 0). */
 export function drawFrame(frame: BaboonFrame, seed: number): string {
   if (frame === 'r_rock') return rockArt();
@@ -1587,7 +1593,13 @@ export function drawFrame(frame: BaboonFrame, seed: number): string {
   }
   const ridge = frame.startsWith('r_');
   const k = ridge ? RIDGE_H : RAIDER_H;
-  return g({ transform: `scale(${k})` }, drawBaboon(POSES[frame], coatOf(frame), ridge, seed));
+  // v1.18 (D-081): on the way down the slope the body tips forward, head first, round the feet.
+  // The origin sits between the hind and the front feet (on the slope under it).
+  const tip = frame.startsWith('r_climb') ? ` translate(0 -0.09) rotate(${CLIMB_TIP_DEG})` : '';
+  return g(
+    { transform: `scale(${k})${tip}` },
+    drawBaboon(POSES[frame], coatOf(frame), ridge, seed),
+  );
 }
 
 /** A frame's fur seed (stable whatever the packing order). */

@@ -8,6 +8,7 @@
 // A raider is a target: `hitsToBag` hits bag it. Pure and deterministic: every random draw comes
 // from the hunt's 'baboons' stream in a fixed order; every number from birds.json `baboons`.
 import type {
+  BaboonDescent,
   BaboonMap,
   BaboonTuning,
   Biome,
@@ -77,6 +78,8 @@ export interface PlacedSpot {
   readonly x: number;
   readonly y: number;
   readonly from: 1 | -1;
+  /** v1.18 (D-081): its layer's core width (for u). */
+  readonly layerW: number;
 }
 
 /** warn (the lookout barks) · climb (the raiders climb down) · travel · on (raiders at the spot). */
@@ -94,6 +97,8 @@ export interface Raid {
   raiders: Raider[];
   /** The mischief got done (the first raider finished its act). */
   completed: boolean;
+  /** v1.18 (D-081): the map's raids come down in sight (`descent`): the raiders dash in. */
+  readonly dash: boolean;
 }
 
 export interface TroopState {
@@ -126,6 +131,24 @@ export interface BaboonsState {
   readonly returning: { id: number; troopId: string; left: number }[];
   /** Raids so far (the next raid's id). */
   raids: number;
+  /** v1.18 (D-081): the raids come down in sight (null: they climb down out of sight). */
+  readonly descent: PlacedDescent | null;
+}
+
+/** v1.18 (D-081): the map's descent with its layers' widths. */
+export interface PlacedDescent {
+  readonly cfg: BaboonDescent;
+  readonly veldLayerId: string;
+  readonly veldW: number;
+}
+
+/** v1.18 (D-081): a raider on its way down: on the troop's layer (climb) or the veld (run). */
+export interface DescentPose {
+  readonly layerId: string;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: 1 | -1;
+  readonly pose: 'climb' | 'run';
 }
 
 /** Things the module reports; Sim.ts turns them into SimEvents. */
@@ -178,6 +201,7 @@ export function placeSpots(
       x: p.x,
       y: p.y,
       from: s.from,
+      layerW: coreWidth(layer.scrollFactor),
     });
   }
   return out;
@@ -300,6 +324,101 @@ export function createBaboons(
     nextRaidIn: ticks(ctx.rng, map.firstAfterSeconds ?? T.raids.firstAfterSeconds),
     returning: [],
     raids: 0,
+    descent: placeDescent(biome, map),
+  };
+}
+
+function placeDescent(biome: Biome, map: BaboonMap): PlacedDescent | null {
+  const cfg = map.descent;
+  if (cfg === undefined) return null;
+  const veld = biome.layers.find((l) => l.id === cfg.veldLayer);
+  if (veld === undefined) return null;
+  return { cfg, veldLayerId: veld.id, veldW: coreWidth(veld.scrollFactor) };
+}
+
+/** v1.18 (D-081): the side of the troop the raid's spot is on (+1: right). */
+function descentSide(troop: TroopState, spot: PlacedSpot): 1 | -1 {
+  return spot.x / spot.layerW >= troop.cx / coreWidth(troop.scrollFactor) ? 1 : -1;
+}
+
+/**
+ * v1.18 (D-081): a point on the zig-zag down the koppie at f (0 the seat, 1 the foot): `legs`
+ * straight legs between turning points that swing swayPx either side of the line from the seat
+ * to the foot (the ends on it). Pure arithmetic (no trig): the same on every engine.
+ */
+export function zigzag(
+  from: { readonly x: number; readonly y: number },
+  to: { readonly x: number; readonly y: number },
+  legs: number,
+  swayPx: number,
+  f: number,
+): { x: number; y: number; dx: number } {
+  const k = Math.max(0, Math.min(1, f)) * legs;
+  const i = Math.min(legs - 1, Math.floor(k));
+  const turn = (j: number): { x: number; y: number } => {
+    const g = j / legs;
+    const off = j === 0 || j === legs ? 0 : j % 2 === 1 ? swayPx : -swayPx;
+    return { x: from.x + (to.x - from.x) * g + off, y: from.y + (to.y - from.y) * g };
+  };
+  const a = turn(i);
+  const b = turn(i + 1);
+  const u = k - i;
+  return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u, dx: b.x - a.x };
+}
+
+/** v1.18 (D-081): the u where a raid's approach on its spot starts. */
+function approachU(spot: PlacedSpot, T: BaboonTuning): number {
+  return (spot.x + spot.from * T.raids.approachPx * spot.scale) / spot.layerW;
+}
+
+/** v1.18 (D-081): ticks a raid's veld crossing takes (at least a second). */
+function veldTicks(d: PlacedDescent, troop: TroopState, spot: PlacedSpot, T: BaboonTuning): number {
+  const side = descentSide(troop, spot);
+  const footU = (troop.cx + side * d.cfg.footDx) / coreWidth(troop.scrollFactor);
+  const dist = Math.abs(approachU(spot, T) - footU) * d.veldW;
+  return Math.max(60, secondsToTicks(dist / d.cfg.veldPxPerSec));
+}
+
+/**
+ * v1.18 (D-081): where raider `index` of a raid that comes down in sight is now (null: not on
+ * its way down: before the climb, or at the spot). The second one is pairLag of the way behind.
+ */
+export function descentPose(
+  s: BaboonsState,
+  raid: Raid,
+  index: number,
+  T: BaboonTuning,
+): DescentPose | null {
+  const d = s.descent;
+  if (d === null || (raid.phase !== 'climb' && raid.phase !== 'travel')) return null;
+  const troop = s.troops.find((t) => t.id === raid.troopId);
+  const id = raid.memberIds[index];
+  const m = troop?.members.find((x) => x.id === id);
+  if (troop === undefined || m === undefined) return null;
+  const lag = index * d.cfg.pairLag;
+  const raw = raid.dur > 0 ? raid.t / raid.dur : 1;
+  const f = Math.max(0, Math.min(1, (raw - lag) / (1 - lag)));
+  const side = descentSide(troop, raid.spot);
+  const foot = { x: troop.cx + side * d.cfg.footDx, y: d.cfg.footY };
+  if (raid.phase === 'climb') {
+    const seat = troop.seats[m.seat] ?? { x: m.x, y: m.y };
+    const p = zigzag(seat, foot, d.cfg.legs, d.cfg.swayPx, f);
+    return {
+      layerId: troop.layerId,
+      x: p.x,
+      y: p.y,
+      facing: p.dx === 0 ? side : p.dx > 0 ? 1 : -1,
+      pose: 'climb',
+    };
+  }
+  const x0 = (foot.x / coreWidth(troop.scrollFactor)) * d.veldW;
+  const x1 = approachU(raid.spot, T) * d.veldW;
+  return {
+    layerId: d.veldLayerId,
+    x: x0 + (x1 - x0) * f,
+    y: d.cfg.veldY[0] + (d.cfg.veldY[1] - d.cfg.veldY[0]) * f,
+    facing: x1 >= x0 ? 1 : -1,
+    pose: 'run',
   };
 }
 
@@ -486,6 +605,7 @@ function startRaid(s: BaboonsState, ctx: BaboonCtx): BaboonNote | null {
     dur: Math.max(1, secondsToTicks(T.raids.warnSeconds)),
     raiders: [],
     completed: false,
+    dash: s.descent !== null,
   };
   s.raid = raid;
   // The raiders come up over the edge to look down at the spot.
@@ -514,19 +634,24 @@ function stepRaid(s: BaboonsState, raid: Raid, ctx: BaboonCtx, notes: BaboonNote
   if (raid.phase !== 'on') {
     if (raid.t < raid.dur) return;
     raid.t = 0;
+    const d = s.descent;
     if (raid.phase === 'warn') {
       raid.phase = 'climb';
-      raid.dur = Math.max(1, secondsToTicks(T.raids.climbSeconds));
+      raid.dur = Math.max(1, secondsToTicks(d?.cfg.climbSeconds ?? T.raids.climbSeconds));
       for (const m of troop?.members ?? []) {
         if (m.role === 'lookout' && m.pose === 'bark')
           setPose(m, 'peek', ticks(ctx.rng, T.troop.peekSeconds));
         if (!raid.memberIds.includes(m.id)) continue;
         m.facing = m.x >= (troop?.cx ?? m.x) ? 1 : -1;
-        setPose(m, 'down', raid.dur);
+        // v1.18 (D-081): coming down in sight, the raider leaves its seat (descentPose draws it).
+        setPose(m, d === null ? 'down' : 'out', d === null ? raid.dur : 0);
       }
     } else if (raid.phase === 'climb') {
       raid.phase = 'travel';
-      raid.dur = ticks(ctx.rng, T.raids.travelSeconds);
+      raid.dur =
+        d !== null && troop !== undefined
+          ? veldTicks(d, troop, raid.spot, T)
+          : ticks(ctx.rng, T.raids.travelSeconds);
       for (const m of troop?.members ?? []) if (raid.memberIds.includes(m.id)) setPose(m, 'out', 0);
     } else {
       raid.phase = 'on';
@@ -576,7 +701,12 @@ function stepRaid(s: BaboonsState, raid: Raid, ctx: BaboonCtx, notes: BaboonNote
       continue;
     }
     const run = r.phase === 'flee' || r.phase === 'leave';
-    const step = ((run ? T.raids.runPxPerSec : T.raids.walkPxPerSec) * sp.scale) / 60;
+    // v1.18 (D-081): a raid that came down in sight dashes in for the rows.
+    const dash = r.phase === 'approach' && raid.dash ? (s.descent?.cfg.dashMul ?? 1) : 0;
+    const step =
+      ((dash > 0 ? T.raids.runPxPerSec * dash : run ? T.raids.runPxPerSec : T.raids.walkPxPerSec) *
+        sp.scale) /
+      60;
     const d = r.goalX - r.x;
     if (Math.abs(d) > step) {
       r.x += d > 0 ? step : -step;

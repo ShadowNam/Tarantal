@@ -488,6 +488,24 @@ export interface RaiderView {
   readonly t: number;
   readonly dur: number;
   readonly hits: number;
+  /** v1.18 (D-081): the raid came down in sight: an approach is a dash (run frames). */
+  readonly dash: boolean;
+}
+
+/** v1.18 (D-081): a raider on its way down in sight (the Harvest): scrambling down the koppie on
+ *  its troop's layer, then running across the veld. Not a target. */
+export interface DescenderView {
+  readonly id: number;
+  readonly raidId: number;
+  readonly layerId: string;
+  readonly plane: PlaneId;
+  readonly scale: number;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: 1 | -1;
+  readonly pose: 'climb' | 'run';
+  /** Ticks into this leg (animation on sim time). */
+  readonly t: number;
 }
 
 /** v1.8c (D-063): the Harvest's phase: the intro, the 30-s rush, the outro (the gap closes). */
@@ -558,6 +576,8 @@ export interface HarvestView {
 export interface BaboonsView {
   readonly troops: readonly TroopView[];
   readonly raiders: readonly RaiderView[];
+  /** v1.18 (D-081): raiders on their way down in sight (empty without a map descent). */
+  readonly descenders: readonly DescenderView[];
   /** The raid building up or on (null: none), for the view's cues and the test hooks. */
   readonly raid: {
     readonly id: number;
