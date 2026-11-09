@@ -654,13 +654,15 @@ const duckParam = testHooks ? Number(params.get('harvestDuck') ?? NaN) : NaN;
 const rushParam = testHooks && params.get('harvestRush') === '1';
 // v1.18 (D-081): ?harvestPhase2=1 (Phase 2 from the start), ?harvestPhase2Seconds=<s>.
 const phase2Param = testHooks && params.get('harvestPhase2') === '1';
+const shotsParam = testHooks && params.get('harvestShots') === '1';
 const phase2Secs = testHooks ? Number(params.get('harvestPhase2Seconds') ?? NaN) : NaN;
 const devBundle =
-  (Number.isFinite(duckParam) && duckParam > 0) || rushParam || phase2Param
+  (Number.isFinite(duckParam) && duckParam > 0) || rushParam || phase2Param || shotsParam
     ? withHarvestPreview(withRain, {
         ...(Number.isFinite(duckParam) && duckParam > 0 ? { duckSeconds: duckParam } : {}),
         rush: rushParam,
         phase2: phase2Param,
+        shots: shotsParam,
         ...(Number.isFinite(phase2Secs) && phase2Secs > 0 ? { phase2Seconds: phase2Secs } : {}),
       })
     : withRain;

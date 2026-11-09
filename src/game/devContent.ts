@@ -378,12 +378,32 @@ export function withHarvestPreview(
      *  ?harvestPhase2Seconds=<s> its clock is that long (e2e: the clock ends it quickly). */
     readonly phase2?: boolean;
     readonly phase2Seconds?: number;
+    /** v1.18 (D-081): ?harvestShots=1 — the screenshot spec's moments last: the first raid comes
+     *  at once and its raiders take 30 s down the koppie; yearlings with a piglet come through
+     *  the small hole every few seconds and squeeze through slowly; the hole stays open. */
+    readonly shots?: boolean;
   },
 ): ContentBundle {
   const h = b.modes.modes.harvest;
   const peak = h.rush.keyframes.at(-1)?.warthogsPerMin ?? 20;
+  const biomes =
+    opts.shots === true
+      ? b.biomes.map((x) => {
+          const bb = x.baboons;
+          if (x.id !== h.biome || bb?.descent === undefined) return x;
+          return {
+            ...x,
+            baboons: {
+              ...bb,
+              firstAfterSeconds: [0.5, 0.5] as [number, number],
+              descent: { ...bb.descent, climbSeconds: 30 },
+            },
+          };
+        })
+      : b.biomes;
   return {
     ...b,
+    biomes,
     modes: {
       ...b.modes,
       modes: {
@@ -399,6 +419,10 @@ export function withHarvestPreview(
             ...(opts.phase2 === true ? { direct: true } : {}),
             ...(opts.phase2Seconds === undefined ? {} : { seconds: opts.phase2Seconds }),
           },
+          hole:
+            opts.shots === true
+              ? { ...h.hole, youngPerMin: 30, pigletChance: 1, squeezeMul: 0.08, patchAt: 0.98 }
+              : h.hole,
           rush:
             opts.rush === true
               ? {
