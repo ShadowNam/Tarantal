@@ -24,7 +24,7 @@ async function editorReady(page: Page): Promise<void> {
   await page.waitForFunction(
     (hold) =>
       window.__TM__?.sizes?.view === 'editor' &&
-      (window.__TM__.tick ?? 0) >= hold &&
+      window.__TM__.tick >= hold &&
       window.__TM__.sizes.spots['cameo_ostrich'] !== undefined,
     HOLD,
     { timeout: 120_000 },
@@ -56,7 +56,8 @@ async function grab(
       }),
   );
   await page.waitForTimeout(400);
-  return decodePng(await page.screenshot({ clip }));
+  // CSS px (a phone's screenshot is otherwise in device px).
+  return decodePng(await page.screenshot({ clip, scale: 'css' }));
 }
 
 /** The highest row (px from the clip's top) where a and b differ in at least 2 pixels. */
@@ -99,7 +100,9 @@ test.describe('admin Sizes', () => {
     await expect(page.locator('#tm-admin [data-area=karoo] [data-knob=cameo_ostrich]')).toHaveCount(
       1,
     );
-    await expect(page.locator('#tm-admin [data-area=oes] [data-knob=harvest_worker]')).toHaveCount(1);
+    await expect(page.locator('#tm-admin [data-area=oes] [data-knob=harvest_worker]')).toHaveCount(
+      1,
+    );
 
     // Open in game: the Karoo, every sized animal out, held still.
     await press(page, touch, '#tm-admin [data-action=sizes-open-karoo]');
