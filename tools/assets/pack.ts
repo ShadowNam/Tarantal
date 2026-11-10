@@ -205,6 +205,8 @@ const gunRigSchema = z
     ),
     origin: provenance,
     encode: encoding,
+    /** v1.19 (D-084): the png8 palette size (default 256): fewer colours, fewer bytes. */
+    colours: z.number().int().min(16).max(256),
     x2: z.boolean(),
     group: z.string(),
     /** D-053: false = no HD version in the HD pack (default: one when a 2× source exists). */
@@ -327,7 +329,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
     base: string,
     group: string,
     sub: string,
-    rig: { encode?: 'png' | 'png8' | undefined },
+    rig: { encode?: 'png' | 'png8' | undefined; colours?: number | undefined },
     res = 1,
     /** Reuse the @1x set's merges for the @2x set, so both name the same frames. */
     given?: ReadonlyMap<string, string>,
@@ -412,7 +414,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         };
       }
       const name = `${base}@${k}x-${pi}`;
-      const bytes = rig.encode === 'png8' ? encodePng8(page) : encodePng(page);
+      const bytes = rig.encode === 'png8' ? encodePng8(page, rig.colours) : encodePng(page);
       const image = emit(group, sub, name, 'png', bytes);
       const data = {
         frames,

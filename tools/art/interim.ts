@@ -348,6 +348,9 @@ if (only === undefined || only === 'guns') {
         // v1.3 (D-036): the .22 lives in the long-range chunk (the late one is nearly full).
         // v1.4 (D-038): so does the Langloop.
         ...(id === 'twee_twee' || id === 'langloop' ? { group: VER_GROUP } : {}),
+        // v1.19 (D-084): the start gun is in the first download: 128 colours keep its richer
+        // detail inside the bytes its plainer art took.
+        ...(id === 'dubbelloop' ? { colours: 128 } : {}),
       }),
     );
     console.log(`guns/${id}: ${gunClipNames(cfg, id).join(', ')}`);
