@@ -510,7 +510,16 @@ export function withNoBrakkie(b: ContentBundle): ContentBundle {
 }
 
 /** v1.12 (D-069): the moments `?brakkiePreview=` brings on quickly (lesson 11). */
-export const BRAKKIE_PREVIEWS = ['fetch', 'bark', 'flush', 'point', 'react', 'bag', 'jag'] as const;
+export const BRAKKIE_PREVIEWS = [
+  'fetch',
+  'bark',
+  'flush',
+  'point',
+  'react',
+  'bag',
+  'jag',
+  'jagView',
+] as const;
 export type BrakkiePreview = (typeof BRAKKIE_PREVIEWS)[number];
 
 /**
@@ -552,6 +561,8 @@ export function withBrakkiePreview(
       // for one every few ticks (the card's e2e and screenshots, lesson 11).
       ...(on('bag') ? { demoBagSeconds: 3 } : {}),
       ...(on('jag') ? { jag: { ...d.jag, maxDxPx: 4000, lookSeconds: 0.1 } } : {}),
+      // `jagView` (the screenshots): only birds on screen, so the chase and the pounce are in view.
+      ...(on('jagView') ? { jag: { ...d.jag, maxDxPx: 650, lookSeconds: 0.1 } } : {}),
     },
   };
 }
