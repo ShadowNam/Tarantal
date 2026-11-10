@@ -3868,6 +3868,20 @@
       "width": 240,
       "height": 240
     },
+    "shed/guns": {
+      "group": "shed",
+      "origin": "interim",
+      "file": {
+        "path": "assets/shed/img/shed_guns.e59f6407f072.png",
+        "bytes": 88401,
+        "hash": "e59f6407f072"
+      },
+      "width": 1520,
+      "height": 1120,
+      "scale": 0.5,
+      "originX": 0,
+      "originY": 0
+    },
     "sight/iron_front": {
       "group": "ver",
       "origin": "interim",

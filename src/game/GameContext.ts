@@ -766,6 +766,17 @@ export interface TestHook {
   };
   /** D-035 review: weapon ids whose picture the Skiet-Skuur's Guns tab shows. */
   shedIcons?: string[];
+  /** v1.19 (D-084): each Guns-tab picture: side view or first-person idle frame, where (design
+   *  px), and whether it is the locked (grey) one. */
+  shedPictures?: {
+    id: string;
+    source: 'side' | 'idle';
+    locked: boolean;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  }[];
   /** v1.5 (D-041): the gun names on the Guns tab's cards, as drawn (text language, toggle). */
   shedNames?: string[];
   /** v1.7b (D-046): the pickup card on screen (null = none): what it says and where. */

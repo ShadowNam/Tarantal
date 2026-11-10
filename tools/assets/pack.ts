@@ -43,6 +43,7 @@ import {
   faunaFrames,
   GUN_CLIPS,
   LATE_GROUP,
+  SHED_GROUP,
   VER_GROUP,
   type AssetIndex,
   type AudioKind,
@@ -52,6 +53,7 @@ import {
   type GunEntry,
 } from '../../src/game/assets/assetIndex';
 import { RANGE_GROUP } from '../../src/game/range/rangeAssets';
+import { SHED_GUN_MASTER, SHED_GUN_SHEET } from '../../src/game/ui/shedGunSheet';
 import {
   FEESDAE_GROUP,
   HALLOWEEN_SHEET,
@@ -132,7 +134,7 @@ const sidecarOrigin = z
      *  D-047: the Karoo's and Kalahari's fruit sheets); v1.8b (D-062): or the baboons' own group
      *  (loaded with every hunt, before it starts). */
     group: z.union([
-      z.enum([VER_GROUP, LATE_GROUP, BABOON_GROUP]),
+      z.enum([VER_GROUP, LATE_GROUP, BABOON_GROUP, SHED_GROUP]),
       // v1.17b (D-080): an area's far herds, `fauna-<biome>` (assetIndex.ts faunaGroupOf).
       z.string().regex(/^fauna-[a-z-]+$/),
     ]),
@@ -1056,6 +1058,8 @@ export function propPlaneRes(content: ContentBundle, key: string): number {
   if (Object.values<string>(CAMEO_SHEETS).includes(key)) return 1;
   // v1.8 (D-050): the tin cans keep their 2× master (near cans are seen close up).
   if (key === CAN_SHEET) return CAN_MASTER;
+  // v1.19 (D-084): the Gun Shed's gun pictures keep their 2× master (one file for Standard and HD).
+  if (key === SHED_GUN_SHEET) return SHED_GUN_MASTER;
   let res = 0;
   // D-051: an HD stand-in (and its pieces) packs at its prop's plane.
   const asset = hdBaseOf(key) ?? key;

@@ -2,7 +2,7 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|christmas|newyear|blikkies|makalani|treelife|colony|namiblife|tells|baboons|reenbui|braai|harvest|harvest2
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|christmas|newyear|blikkies|makalani|treelife|colony|namiblife|tells|baboons|reenbui|braai|harvest|harvest2|shed
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
 //                         range = the Skietbaan's steel plate (24 Oct update),
@@ -69,6 +69,8 @@ import { renderHarvestSheet } from './harvest';
 import { HARVEST_SHEET } from '../../src/game/view/harvest/harvestKeys';
 import { HARVEST2_SHEET } from '../../src/game/view/harvest/harvest2Keys';
 import { renderHarvest2Sheet } from './harvest2';
+import { renderGunCardSheet } from './gunCards';
+import { SHED_GUN_GROUP, SHED_GUN_MASTER, SHED_GUN_SHEET } from '../../src/game/ui/shedGunSheet';
 import { TELL_SHEET } from '../../src/game/view/tell/tellSheet';
 import { renderColonySheet } from './colony';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
@@ -890,6 +892,28 @@ if (wants('harvest') && !hdOnly) {
     );
     rmSync(join(hdSrc, 'sprites', `${HARVEST_SHEET}.png`), { force: true });
     console.log(`sprites/${HARVEST_SHEET}`);
+  }
+}
+if (wants('shed') && !hdOnly) {
+  // v1.19 (D-084): the Gun Shed's side-view gun pictures at 2× in the `shed` group (no hunt loads
+  // it; one file serves Standard and HD, so no HD twin).
+  const png = join(src, 'sprites', `${SHED_GUN_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${SHED_GUN_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderGunCardSheet(SHED_GUN_MASTER), 256));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({
+        origin: 'interim',
+        encode: 'png8',
+        master: SHED_GUN_MASTER,
+        group: SHED_GUN_GROUP,
+        hd: false,
+        originX: 0,
+        originY: 0,
+      }),
+    );
+    console.log(`sprites/${SHED_GUN_SHEET}`);
   }
 }
 if ((wants('harvest') || only === 'harvest2') && !hdOnly) {

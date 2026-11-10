@@ -376,3 +376,23 @@ describe('delivered bird clips (M10 review)', () => {
     expect(r.problems.some((p) => p.includes('tarentaal near'))).toBe(false);
   });
 });
+
+describe("the Gun Shed's side-view sheet (v1.19, D-084)", () => {
+  it('is used by its constant (shedGunIcons.ts), and unused without it', () => {
+    const cat: Catalog = {
+      ...catalog,
+      entries: new Map([['shed/guns', entry('shed/guns', 'texture', { width: 760, height: 560 })]]),
+    };
+    const view = 'src/game/ui/shedGunIcons.ts';
+    const used = audit(
+      base({
+        catalog: cat,
+        sources: new Map([[view, 'manifest.loadOnDemand(SHED_GUN_SHEET)']]),
+        tex: {},
+      }),
+    );
+    expect(used.rows.find((x) => x.key === 'shed/guns')?.usedIn).toContain(view);
+    const bare = audit(base({ catalog: cat, sources: new Map([['src/x.ts', 'x']]), tex: {} }));
+    expect(bare.problems.some((p) => p.includes('shed/guns'))).toBe(true);
+  });
+});

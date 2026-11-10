@@ -26,6 +26,7 @@ import { clientToDesign } from '../input/screenButtons';
 import { guideLoaded, guideString, loadGuide } from '../ui/guideI18n';
 import { guideCards } from '../ui/powerupGuide';
 import { upgradePowerupIcons } from '../ui/powerupIcons';
+import type { ShedPictures } from '../ui/shedGunIcons';
 import type { OverlayData } from './SettingsScene';
 import { renderJournal, journalText, type JournalSection } from '../journal/JournalView';
 import { plaqueProgress } from '../../meta/journal';
@@ -197,6 +198,9 @@ export class ShedScene extends Phaser.Scene {
   private lateWaiting = false;
   /** v1.7b: the Power-ups tab has asked for the delivered icons (once per scene object). */
   private iconsSettled = false;
+  /** v1.19 (D-084): the side-view pictures once their lazy chunk and file are in. */
+  private shedPics: ShedPictures | null = null;
+  private shedAsked = false;
   /** The data this scene was last started with (the late refresh restarts with it). */
   private shown: ShedData | null = null;
 
@@ -205,6 +209,30 @@ export class ShedScene extends Phaser.Scene {
     if (this.ctx.hook) {
       this.ctx.hook.shedIcons = [];
       this.ctx.hook.shedNames = [];
+      this.ctx.hook.shedPictures = [];
+    }
+    // v1.19 (D-084): the side views come in a lazy chunk and a file no hunt loads; until they are
+    // in (or with no delivery) the cards show the first-person idle frame; then the tab is redrawn.
+    if (this.shedPics === null && !this.shedAsked) {
+      this.shedAsked = true;
+      void import('../ui/shedGunIcons')
+        .then((m) => m.loadShedPictures(this.ctx.manifest))
+        .then((pics) => {
+          if (pics === null) {
+            this.shedAsked = false;
+            return;
+          }
+          this.shedPics = pics;
+          if (
+            this.sys.isActive() &&
+            this.shown !== null &&
+            (this.shown.tab ?? 'loadout') === 'loadout'
+          )
+            this.scene.restart(this.shown);
+        })
+        .catch(() => {
+          this.shedAsked = false;
+        });
     }
     const save = this.ctx.save.data;
     const weapons = this.ctx.content.weapons.weapons.filter(
@@ -362,12 +390,15 @@ export class ShedScene extends Phaser.Scene {
    * the canvas leaves with the scene.
    */
   private gunIcon(weaponId: string, r: Rect, locked: boolean): number {
-    const src = this.ctx.manifest.gunIdleImage(weaponId);
+    // v1.19 (D-084): the painted side view when its sheet is in, else the first-person idle frame.
+    const side = this.shedPics?.picture(weaponId) ?? null;
+    const src = side ?? this.ctx.manifest.gunIdleImage(weaponId);
     if (src === null) return 0;
     const { img, region } = src;
     const fw = region.rotated ? region.h : region.w;
     const fh = region.rotated ? region.w : region.h;
-    const h = r.h - 12;
+    // A side view is wide: never more than about half the card, so the name keeps its room.
+    const h = Math.min(r.h - 12, side === null ? Infinity : ((r.w * 0.56) / fw) * fh);
     const scale = this.ctx.prefs.renderScale;
     const ch = Math.max(1, Math.round(h * scale));
     const cw = Math.max(1, Math.round((fw / fh) * ch));
@@ -384,14 +415,28 @@ export class ShedScene extends Phaser.Scene {
       c.rotate(-Math.PI / 2);
       c.drawImage(img, region.x, region.y, region.w, region.h, 0, 0, ch, cw);
     } else c.drawImage(img, region.x, region.y, region.w, region.h, 0, 0, cw, ch);
+    // A locked gun: the same picture in grey (D-084), dimmed as before.
+    if (locked && this.shedPics !== null) {
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      this.shedPics.desaturate(c, cw, ch);
+    }
     tex.refresh();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       if (this.textures.exists(key)) this.textures.remove(key);
     });
     const icon = this.add.image(r.x + r.w - 16, r.y + r.h / 2, key).setOrigin(1, 0.5);
     icon.setDisplaySize(cw / scale, h);
-    if (locked) icon.setAlpha(0.45);
+    if (locked) icon.setAlpha(side === null ? 0.45 : 0.7);
     this.ctx.hook?.shedIcons?.push(weaponId);
+    this.ctx.hook?.shedPictures?.push({
+      id: weaponId,
+      source: side === null ? 'idle' : 'side',
+      locked,
+      x: icon.x - icon.displayWidth,
+      y: icon.y - h / 2,
+      w: icon.displayWidth,
+      h,
+    });
     return icon.displayWidth + 16;
   }
 
