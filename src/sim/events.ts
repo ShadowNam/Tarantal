@@ -74,6 +74,8 @@ export type SimEvent =
       /** v1.3 rifles: fired through the raised sight, or from the hip (released early). Absent
        *  for every other gun (older event streams stay byte-identical). */
       readonly aim?: 'sight' | 'hip';
+      /** v1.19 (D-084): a special shell fired from a shotgun (absent: a normal shot). */
+      readonly shell?: 'dragon_breath' | 'slug';
     }
   /** v1.3 (D-036): a rifle's sight starts to come up at the aim point (unzoomed screen px). */
   | {

@@ -87,6 +87,8 @@ export interface HarvestSystem {
     hits: readonly number[],
     hitTarget: boolean,
     aimOn: (layerId: string) => { readonly x: number; readonly y: number },
+    /** v1.19 (D-084): a Slug: what it hits is bagged in one. */
+    heavy?: boolean,
   ): void;
   step(): void;
   view(): HarvestView;
@@ -887,6 +889,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
     hits: readonly number[],
     hitTarget: boolean,
     aimOn: (layerId: string) => { readonly x: number; readonly y: number },
+    heavy = false,
   ): void {
     const tick = host.tick();
     // v1.18 (D-081): Phase 2's animals.
@@ -894,7 +897,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
       const mine = hits.filter((id) => p2?.owns(id) === true);
       if (mine.length > 0) {
         const other = hits.some((id) => p2?.owns(id) !== true);
-        p2.shot(shotId, mine, hitTarget || other, aimOn);
+        p2.shot(shotId, mine, hitTarget || other, aimOn, heavy);
       }
     }
     // Did the shot hit a warthog? Then a bystander behind it wasn't what it was aimed at.
@@ -903,8 +906,9 @@ export const createHarvestSystem: HarvestSystemFactory = (
       const w = warthogs.find((x) => x.id === id);
       if (w !== undefined) {
         if (w.gone || w.phase === 'tumble') continue;
-        w.hits++;
-        const left = Math.max(0, (w.young ? Hh.youngHitsToBag : W.hitsToBag) - w.hits);
+        const toBag = w.young ? Hh.youngHitsToBag : W.hitsToBag;
+        w.hits = heavy ? Math.max(w.hits + 1, toBag) : w.hits + 1;
+        const left = Math.max(0, toBag - w.hits);
         host.emit({
           type: 'warthogHit',
           tick,

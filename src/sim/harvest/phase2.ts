@@ -150,6 +150,8 @@ export interface Phase2System {
     hits: readonly number[],
     hitTarget: boolean,
     aimOn: (layerId: string) => { readonly x: number; readonly y: number },
+    /** v1.19 (D-084): a Slug: a warthog or baboon it hits is bagged in one. */
+    heavy?: boolean,
   ): void;
   /** Every shot: a piglet within pigletScarePx of where it landed runs back out. */
   landed(aimOn: (layerId: string) => { readonly x: number; readonly y: number }): void;
@@ -469,6 +471,7 @@ export function createPhase2(
     hits: readonly number[],
     hitTarget: boolean,
     aimOn: (layerId: string) => { readonly x: number; readonly y: number },
+    heavy = false,
   ): void {
     const tick = host.tick();
     const hitAnimal = hits.some((id) => {
@@ -501,8 +504,8 @@ export function createPhase2(
         flee(a);
         continue;
       }
-      a.hits++;
       const toBag = a.kind === 'warthog' ? W.hitsToBag : bb.hit.hitsToBag;
+      a.hits = heavy ? Math.max(a.hits + 1, toBag) : a.hits + 1;
       const left = Math.max(0, toBag - a.hits);
       if (a.kind === 'warthog')
         host.emit({

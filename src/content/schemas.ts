@@ -922,6 +922,9 @@ const primaryWeaponSchema = obj({
   reachesVer: z.boolean().optional(),
   /** v1.4 (D-038): very loud — every shot threatens every flock (Die Langloop). */
   alertsAllFlocks: z.boolean().optional(),
+  /** v1.19 (D-084): a shotgun (the Dubbelloop, the Pomp): it can load the special shells
+   *  (power-ups with needsShotgun). */
+  shotgun: z.boolean().optional(),
   /** v1.3 rifles: hold to raise the sight and zoom, release to fire (GDD §10.6). */
   aim: obj({
     /** Sights that fit this gun (weapons.json sights), in upgrade order. */
@@ -987,6 +990,8 @@ const crateWeaponSchema = obj({
     alertRadiusPx: nonNeg,
     windSensitivity: nonNeg,
     smokeMs: nonNegInt.optional(),
+    /** v1.19 (D-084): a shotgun (the Voorlaaier): it can fire the special shells. */
+    shotgun: z.boolean().optional(),
     scoreMul: scoreMulSchema,
     shake: shakeSchema,
   })
@@ -1044,6 +1049,20 @@ export const PowerupsSchema = obj({
               redDotSwayMul: z.number().min(0).max(1).optional(),
               /** 1.9.2 (D-055) Rooikol: a rifle's time between shots × this (multiplies). */
               fireCooldownMul: z.number().gt(0).max(1).optional(),
+              /** v1.19 (D-084) Dragon's Breath: a shotgun shell that throws a cone of fire: more
+               *  pellets (× pelletsMul) over a wider pattern (× spreadMul) that stop at the mid
+               *  plane (the flame never reaches far or Ver), and any pellet on a bird is a hit. */
+              dragonBreath: obj({
+                pelletsMul: z.number().min(1).max(4),
+                spreadMul: z.number().min(1).max(4),
+                /** The farthest plane the flame reaches. */
+                reach: z.enum(['near', 'mid']),
+              }).optional(),
+              /** v1.19 (D-084) Slug: a shotgun shell with one heavy projectile: no spread (hip
+               *  or not), reaches far and Ver like a rifle, drifts with the wind by
+               *  windSensitivity (more than a rifle bullet) and bags what it hits in one (armour,
+               *  a boss's hits, a two-hit warthog). */
+              slug: obj({ windSensitivity: nonNeg }).optional(),
             })
             .refine((e) => Object.keys(e).length > 0, 'effect needs at least one entry'),
           durationMs: posInt.optional(),
@@ -1053,13 +1072,24 @@ export const PowerupsSchema = obj({
           /** 1.9.2 (D-055): only for a rifle (a gun with a sight): crates hold it only when the
            *  hunt's gun has one, and the Padstal never offers it (a run's gun can change). */
           needsSight: z.boolean().optional(),
+          /** v1.19 (D-084): a special shell: only a shotgun fires it (crates hold it only when
+           *  the hunt's gun is one; the Padstal offers it only in a shotgun run), and its shells
+           *  count down only on shotgun shots. Two special shells never stack: the newer one
+           *  replaces the other. */
+          needsShotgun: z.boolean().optional(),
         })
         .refine((p) => p.durationMs !== undefined || p.durationShells !== undefined, {
           message: 'power-ups need durationMs or durationShells',
         })
         .refine((p) => p.padstalPrice !== undefined || p.needsSight === true, {
           message: 'power-ups need a padstalPrice unless they need a sight (D-055)',
-        }),
+        })
+        .refine(
+          (p) =>
+            (p.effect.dragonBreath === undefined && p.effect.slug === undefined) ||
+            (p.needsShotgun === true && p.durationShells !== undefined),
+          { message: 'special shells need needsShotgun and durationShells (D-084)' },
+        ),
     )
     .min(1),
   /** v1.6b: no reload (or Kettie draw) shortened by a power-up goes below this (Snelhand included). */
