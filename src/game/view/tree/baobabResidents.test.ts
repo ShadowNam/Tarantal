@@ -158,6 +158,25 @@ describe('lifeHash', () => {
     expect(below).toBeGreaterThan(0.28);
     expect(below).toBeLessThan(0.42);
   });
+
+  it('gives the same numbers as the loop over [a, b, c] it replaced (perf)', async () => {
+    const { lifeHash } = await import('./baobabResidents');
+    const reference = (seed: number, a: number, b: number, c: number): number => {
+      let h = (seed ^ 0x9e3779b9) >>> 0;
+      for (const v of [a, b, c]) {
+        h = Math.imul(h ^ (v >>> 0), 0x85ebca6b) >>> 0;
+        h = (h ^ (h >>> 13)) >>> 0;
+        h = Math.imul(h, 0xc2b2ae35) >>> 0;
+        h = (h ^ (h >>> 16)) >>> 0;
+      }
+      return h / 4294967296;
+    };
+    for (const seed of [0, 1, 42, 0x7fffffff, -5, 123456789])
+      for (let a = 0; a < 100; a += 7)
+        for (const b of [0, 1, 15, 60, 4000, -3])
+          for (const c of [0, 1, 2, 11])
+            expect(lifeHash(seed, a, b, c)).toBe(reference(seed, a, b, c));
+  });
 });
 
 describe('the squirrel runs on top of its limb (review R2)', () => {

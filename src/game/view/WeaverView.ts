@@ -14,7 +14,8 @@ import type { ParallaxView } from './ParallaxView';
 import {
   burstBirds,
   burstSeed,
-  weaverPose,
+  weaverPoseInto,
+  weaverPoseOut,
   type NestShape,
   type WeaverBird,
   type WeaverTuning,
@@ -40,12 +41,25 @@ interface Burst {
   readonly birds: readonly WeaverBird[];
 }
 
+/** A pool image, the layer it is parented to and what was last set on it. */
+interface Slot {
+  readonly img: Phaser.GameObjects.Image;
+  layerId: string | null;
+  key: string;
+  scale: number;
+  visible: boolean;
+}
+
 export class WeaverView {
   private readonly tuning: WeaverTuning;
   private readonly nests = new Map<string, Nest>();
   private readonly bursts: Burst[] = [];
-  private readonly pool: Phaser.GameObjects.Image[] = [];
-  private readonly layerOf = new Map<Phaser.GameObjects.Image, string>();
+  /** Pool slots: each image with what was last set on it (set only on change). */
+  private readonly pool: Slot[] = [];
+  /** Pool images shown after the last update. */
+  private shown = 0;
+  /** The pose each bird is worked out into (reused: no allocation a bird a frame). */
+  private readonly pose = weaverPoseOut();
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -112,7 +126,7 @@ export class WeaverView {
 
   /** Draws every live burst at the sim's tick. */
   update(s: SimState): void {
-    if (this.bursts.length === 0 && this.pool.every((p) => !p.visible)) return;
+    if (this.bursts.length === 0 && this.shown === 0) return;
     const t = this.tuning;
     const endTicks = Math.round(((t.settleMs + t.outMs) / 1000) * TICKS_PER_SECOND);
     // Drop bursts that have settled.
@@ -130,47 +144,66 @@ export class WeaverView {
       const swirlEnd = b.swirlEndTicks / TICKS_PER_SECOND;
       for (const bird of b.birds) {
         if (used >= t.poolCap) break;
-        const pose = weaverPose(t, bird, ts, swirlEnd, s.tick);
+        const pose = weaverPoseInto(t, bird, ts, swirlEnd, s.tick, this.pose);
         if (!pose.visible) continue;
-        const img = this.sprite(used++, parent, b.nest.layerId);
-        img
-          .setTexture(pose.wingsUp ? TEX.weaverUp : TEX.weaverDown)
-          .setPosition(b.nest.x + pose.x, b.nest.y + pose.y)
-          .setScale((pose.scale * b.nest.size) / img.width)
-          .setFlipX(pose.facing < 0)
-          .setVisible(true);
+        const slot = this.sprite(used++, parent, b.nest.layerId);
+        const img = slot.img;
+        // Each property set only when it changed (most frames move the bird, few re-texture it).
+        const key = pose.wingsUp ? TEX.weaverUp : TEX.weaverDown;
+        if (slot.key !== key) {
+          slot.key = key;
+          img.setTexture(key);
+        }
+        const x = b.nest.x + pose.x;
+        const y = b.nest.y + pose.y;
+        if (img.x !== x || img.y !== y) img.setPosition(x, y);
+        const scale = (pose.scale * b.nest.size) / img.width;
+        if (slot.scale !== scale) {
+          slot.scale = scale;
+          img.setScale(scale);
+        }
+        const flip = pose.facing < 0;
+        if (img.flipX !== flip) img.setFlipX(flip);
+        if (!slot.visible) {
+          slot.visible = true;
+          img.setVisible(true);
+        }
       }
     }
-    for (let i = used; i < this.pool.length; i++) this.pool[i]?.setVisible(false);
+    for (let i = used; i < this.pool.length; i++) {
+      const slot = this.pool[i];
+      if (slot !== undefined && slot.visible) {
+        slot.visible = false;
+        slot.img.setVisible(false);
+      }
+    }
+    this.shown = used;
   }
 
   /** Pool sprite `i`, parented to the burst's layer (moved when another layer needs it). */
-  private sprite(
-    i: number,
-    parent: Phaser.GameObjects.Container,
-    layerId: string,
-  ): Phaser.GameObjects.Image {
-    let img = this.pool[i];
-    if (img === undefined) {
-      img = this.scene.add.image(0, 0, TEX.weaverUp).setVisible(false);
-      this.pool.push(img);
+  private sprite(i: number, parent: Phaser.GameObjects.Container, layerId: string): Slot {
+    let slot = this.pool[i];
+    if (slot === undefined) {
+      const img = this.scene.add.image(0, 0, TEX.weaverUp).setVisible(false);
+      slot = { img, layerId: null, key: TEX.weaverUp, scale: img.scaleX, visible: false };
+      this.pool.push(slot);
     }
-    if (this.layerOf.get(img) !== layerId) {
-      parent.add(img);
-      this.layerOf.set(img, layerId);
+    if (slot.layerId !== layerId) {
+      parent.add(slot.img);
+      slot.layerId = layerId;
     }
-    return img;
+    return slot;
   }
 
   /** e2e: weavers on screen now. */
   get visibleCount(): number {
-    return this.pool.filter((p) => p.visible).length;
+    return this.shown;
   }
 
   clear(): void {
     this.bursts.length = 0;
-    for (const p of this.pool) p.destroy();
+    for (const p of this.pool) p.img.destroy();
     this.pool.length = 0;
-    this.layerOf.clear();
+    this.shown = 0;
   }
 }

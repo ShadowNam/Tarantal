@@ -2240,10 +2240,11 @@ export class HuntScene extends Phaser.Scene {
       this.spookView.viewZoom = zoom.z;
       this.spookView.layout(width, height);
     }
-    const f0 = performance.now();
+    // No special day's view (most hunts): nothing to draw or to time.
+    const f0 = this.spookView === null ? 0 : performance.now();
     this.spookView?.update(state.feesdag, runner.prev.feesdag, alpha, state.tick);
     if (this.ctx.hook) {
-      this.ctx.hook.feesdagMs += performance.now() - f0;
+      if (this.spookView !== null) this.ctx.hook.feesdagMs += performance.now() - f0;
       // D-065: the ground dim's share of it (New Year's view only).
       const sv = this.spookView;
       if (sv !== null && 'dimMs' in sv && typeof sv.dimMs === 'number')

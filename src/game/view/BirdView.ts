@@ -23,6 +23,8 @@ import {
 import type { SimEvent } from '../../sim/events';
 import type { DrawBird } from './interpolate';
 import type { ParallaxView } from './ParallaxView';
+import { inViewX, VIEW_CULL_MARGIN_PX } from './viewCull';
+import { designSize } from '../layout';
 
 /** Where a boss's pot is drawn now, with its sprite origin (the knock-off starts from it). */
 export interface PotSpot {
@@ -158,6 +160,7 @@ export class BirdView {
   /** v1.10 (D-067): flocks feeding at a Reënbui column (their foragers peck more). */
   update(birds: readonly DrawBird[], tick: number, feeding?: ReadonlySet<number>): void {
     const seen = new Set<number>();
+    const viewWidth = designSize().width;
     for (const b of birds) {
       const v = b.view;
       // v1.7d (D-059): drifters (hot-air balloons) are drawn by the Namibië chunk's BalloonView.
@@ -252,16 +255,28 @@ export class BirdView {
       d.sprite
         .setPosition(b.x, b.y - bob)
         .setScale(v.facing * s, s)
-        .setRotation(lean)
-        // A peeking boss behind cover (Ou Grys, M8) is not drawn until he peeks out.
-        .setVisible(v.phase !== 'hidden');
+        .setRotation(lean);
+      // A peeking boss behind cover (Ou Grys, M8) is not drawn until he peeks out.
+      let shown = v.phase !== 'hidden';
       if (v.motion === 'popup' && v.ground !== null) {
         // Hide everything below the grass line (in texture px: design px / scale).
         const frameH = d.sprite.frame.height;
         const visible = d.sprite.displayOriginY + (v.ground - b.y) / s;
-        d.sprite.setVisible(visible > 0);
+        shown = visible > 0;
         if (visible > 0) d.sprite.setCrop(0, 0, d.sprite.frame.width, Math.min(frameH, visible));
       }
+      // Perf: a bird off screen isn't drawn (it still animates, so it comes back in step).
+      const root = this.parallax.plane(v.plane).root;
+      const k = root.scaleX;
+      const onScreen =
+        shown &&
+        inViewX(
+          root.x + d.sprite.x * k,
+          Math.abs(d.sprite.displayWidth) * k,
+          viewWidth,
+          VIEW_CULL_MARGIN_PX,
+        );
+      if (d.sprite.visible !== onScreen) d.sprite.setVisible(onScreen);
       if (d.badge) d.badge.setPosition(b.x, b.y - 90);
       if (d.pot) {
         const top = this.headTop(v, b.x, b.y);
@@ -272,7 +287,8 @@ export class BirdView {
           .setScale(s * v.facing, s)
           .setRotation(lean);
       }
-      if (d.hat && this.hats !== null) this.placeHat(d, d.hat, this.hats, v, b.x, b.y - bob, lean);
+      if (d.hat && this.hats !== null)
+        this.placeHat(d, d.hat, this.hats, v, b.x, b.y - bob, lean, shown);
     }
     for (const [id, d] of this.drawn) {
       if (seen.has(id)) continue;
@@ -297,6 +313,8 @@ export class BirdView {
     x: number,
     y: number,
     lean: number,
+    /** Its bird is drawn (on screen or not: the hat's own visibility is as before culling). */
+    shown: boolean,
   ): void {
     const ps = this.content.scoring.planes[v.plane].scale;
     // A delivered clip (its key starts "final:") shows its frames; else the placeholder art.
@@ -321,7 +339,7 @@ export class BirdView {
     hat.setOrigin(f.ox, f.oy);
     const k = (hats.widthPerHeadR * r * ps) / Math.max(1, hat.frame.width);
     hat
-      .setVisible(d.sprite.visible)
+      .setVisible(shown)
       .setPosition(cx, cy)
       .setScale(k * sx, k)
       .setRotation(a);

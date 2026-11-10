@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { loadFeel } from '../../../../tools/testContent';
 import { TICKS_PER_SECOND } from '../../../sim/clock';
-import { falconAt, lovebirdsAt, weaverAt, type ColonyNest } from './colonyFlight';
+import { falconAt, lovebirdsAt, weaverAt, weaverMemo, type ColonyNest } from './colonyFlight';
 import { COLONY_FRAMES } from './colonySheet';
 
 const t = loadFeel().treeLife.colony;
@@ -154,6 +154,31 @@ describe('review R4–R5: alive against the sky', () => {
       expect(f, `tick ${tick}`).not.toBeNull();
       expect(f?.frame).toMatch(/^falcon_(perch|look)$/);
       expect([f?.x, f?.y]).toEqual(perch);
+    }
+  });
+});
+
+describe("the weavers' memo (view perf)", () => {
+  it('answers exactly as weaverAt without it, frame by frame, through scatters and seeds', () => {
+    for (const reduced of [false, true]) {
+      const memos = Array.from({ length: nest.birds }, () => weaverMemo());
+      let scatter: { start: number; end: number } | null = null;
+      // Sub-tick steps (interpolated frames), a scatter now and then, a seed change halfway.
+      for (let f = 0; f < 4000; f++) {
+        const tick = f * 0.75;
+        const seed = f < 2000 ? 7 : 11;
+        if (f % 700 === 350) {
+          const at = Math.floor(tick);
+          scatter = { start: at, end: at + Math.round(t.scatterSeconds * S) };
+        }
+        // Shot at again while away: the same scatter, kept out longer.
+        if (f % 700 === 420 && scatter !== null)
+          scatter = { start: scatter.start, end: scatter.end + 2 * S };
+        for (let i = 0; i < nest.birds; i++)
+          expect(weaverAt(t, nest, seed, i, tick, scatter, reduced, memos[i])).toEqual(
+            weaverAt(t, nest, seed, i, tick, scatter, reduced),
+          );
+      }
     }
   });
 });
