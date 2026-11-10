@@ -91,17 +91,23 @@ async function fire(
         x = Math.min(g.designWidth * 0.85, Math.max(...os.map((o) => o.x)) + 260);
         y = Math.max(...os.map((o) => o.y)) - 4;
       } else {
-        // A standing bird's body (about 60 % up from its feet), inside the screen's middle.
-        const o = os.find(
-          (b) =>
-            b.pose !== 'sit' &&
-            b.pose !== 'run' &&
-            b.x > g.designWidth * 0.15 &&
-            b.x < g.designWidth * 0.85,
-        );
+        // A standing bird's body, inside the screen's middle, the cock first: about 58 % up his
+        // frame. D-082 made the hen 0.73 of the cock, her body ~90 px lower and nearer the
+        // foraging guineafowl; a target within hit.guardPx (260) of the aim point gets the
+        // benefit of the doubt (no penalty), so aim higher on her body: 70 % up her frame (still
+        // inside her body; 58 % kept landing in the guard, 70 % on him is above his).
+        const o = os
+          .filter(
+            (b) =>
+              b.pose !== 'sit' &&
+              b.pose !== 'run' &&
+              b.x > g.designWidth * 0.15 &&
+              b.x < g.designWidth * 0.85,
+          )
+          .sort((a, b) => Number(b.male) - Number(a.male))[0];
         if (o === undefined) return null;
         x = o.x;
-        y = o.y - o.h * 0.58;
+        y = o.y - o.h * (o.male ? 0.58 : 0.7);
       }
       // On touch the crosshair sits aimOffsetPx above the finger: tap that much lower.
       if (isTouch) y += g.aimOffsetPx;
@@ -197,8 +203,10 @@ test.describe('Namibië veld life (v1.7d, D-059)', () => {
     await startHunt(page, touch);
     await pairInView(page);
     let result: { before: number; after: number; bark: boolean } | null = null;
-    for (let attempt = 0; attempt < 8 && result === null; attempt++) {
+    // Eight shots at most; a moment with no bird to shoot (null) does not use one up.
+    for (let attempt = 0; attempt < 8 && result === null;) {
       const shot = await fire(page, touch, 'bird');
+      if (shot !== null) attempt++;
       if (shot === null) {
         // Both birds sitting or running: give them a moment.
         const t0 = await page.evaluate(() => window.__TM__?.tick ?? 0);
