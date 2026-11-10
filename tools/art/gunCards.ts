@@ -792,7 +792,7 @@ function mielieMasjien(a: Art): string {
         );
       }
     return g(
-      { transform: `translate(${x} 34) rotate(${rot})` },
+      { transform: `translate(${x} 31) rotate(${rot})` },
       part(a, body, 'brass'),
       ...kernels,
       // Husk leaves.
