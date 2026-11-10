@@ -4599,7 +4599,7 @@ line-of-fire checks, the music stem, the sim's step with the whole wave list in
 landscape: the banner, the HUD clear of the rest, a hit warthog counts down, the clock ends it, the
 tally's lines; the Phase 2 sheet's pixels); `perf.spec`'s Phase 2 case (next to the rush's).
 Screenshots: `tests/e2e/art-preview-harvest2.spec.ts` (prefix `v118-harvest`). Golden replays:
-harvest-63 (competent) and the new harvest-67-strong-touch reach Phase 2 and clear it.
+harvest-63 (competent) and the new harvest-65-strong-touch reach Phase 2 and clear it.
 
 ### D-082 — v1.17c Animal sizes, the audit's fixes (9 Nov 2026)
 
