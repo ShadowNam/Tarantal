@@ -1045,6 +1045,13 @@ export type SimEvent =
       readonly y: number;
       readonly points: number;
     }
+  /** v1.20 (D-085): a crate's Jag card rolled again (Brakkie can't take it now): what it holds. */
+  | {
+      readonly type: 'crateRerolled';
+      readonly tick: number;
+      readonly crateId: number;
+      readonly item: string | null;
+    }
   /** v1.20 (D-085) "Jag, Brakkie!": the card started (he goes for foraging guineafowl). */
   | { readonly type: 'brakkieJagStarted'; readonly tick: number; readonly maxCatches: number }
   /** v1.20 (D-085): he pounces on a foraging guineafowl (bird `birdId`) on `plane`. */

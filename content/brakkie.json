@@ -66,6 +66,7 @@
   "jag": {
     "creatures": ["tarentaal", "tarentaal_wit", "tarentaal_lavendel"],
     "maxDxPx": 1400,
+    "nearMaxDxPx": 650,
     "sprintPx": 1250,
     "pouncePx": 110,
     "pounceSeconds": 0.45,

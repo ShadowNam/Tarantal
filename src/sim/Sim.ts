@@ -1193,7 +1193,7 @@ export function createSim(config: SimConfig): Sim {
             if (!jagPrey(b)) continue;
             const plane = b.plane === 'near' ? 'near' : 'mid';
             const dx = planeToDx(cameraX, planeGeo[plane].scrollFactor, b.x);
-            if (Math.abs(dx) > maxDx) continue;
+            if (Math.abs(dx) > maxDx[plane]) continue;
             const d = Math.abs(dx - fromDx);
             if (best === null || d < best.d) best = { birdId: b.id, plane, x: b.x, d };
           }
@@ -4234,6 +4234,14 @@ export function createSim(config: SimConfig): Sim {
     }
 
     if (crates.length > 0) {
+      // v1.20 (D-085): a crate holding the Jag card while Brakkie can't take it (bolted from a
+      // hit, a wide gun out) rolls again now, so its icon shows what it will give.
+      if (brakkie !== null && brakkieOnly.length > 0 && !brakkie.canJag())
+        for (const c of crates)
+          if (c.item !== null && brakkieOnly.includes(c.item.id)) {
+            c.item = rollCrate(crateCfg, rng.stream('crates'), crateSkip());
+            emit({ type: 'crateRerolled', tick, crateId: c.id, item: c.item?.id ?? null });
+          }
       const expired = crates.filter((c) => tickCrate(c));
       if (expired.length > 0) {
         crates = crates.filter((c) => !expired.includes(c));

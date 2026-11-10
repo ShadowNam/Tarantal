@@ -2476,7 +2476,10 @@ export const BrakkieSchema = obj({
    *  he looks for one. */
   jag: obj({
     creatures: z.array(id).min(1),
+    /** The mid ground's reach (screen px from the view's centre). */
     maxDxPx: pos,
+    /** v1.20 review: the near plane's reach, inside the view (a catch and its flush in sight). */
+    nearMaxDxPx: pos,
     sprintPx: pos,
     pouncePx: pos,
     pounceSeconds: pos,

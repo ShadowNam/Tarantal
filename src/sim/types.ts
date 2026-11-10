@@ -318,6 +318,8 @@ export interface BrakkieView {
   readonly queuedTick: number | null;
   readonly fetchTick: number | null;
   readonly catchPoints: number;
+  /** v1.20 review, for tests: the bird the Jag card has him after (null: none). */
+  readonly jagBird: number | null;
 }
 
 /** v1.10 (D-067): a Reënbui as drawn (phase ticks, the alate columns, the swarm's bags). */

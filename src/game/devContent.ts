@@ -562,7 +562,9 @@ export function withBrakkiePreview(
       ...(on('bag') ? { demoBagSeconds: 3 } : {}),
       ...(on('jag') ? { jag: { ...d.jag, maxDxPx: 4000, lookSeconds: 0.1 } } : {}),
       // `jagView` (the screenshots): only birds on screen, so the chase and the pounce are in view.
-      ...(on('jagView') ? { jag: { ...d.jag, maxDxPx: 650, lookSeconds: 0.1 } } : {}),
+      ...(on('jagView')
+        ? { jag: { ...d.jag, maxDxPx: 650, nearMaxDxPx: 650, lookSeconds: 0.1 } }
+        : {}),
     },
   };
 }

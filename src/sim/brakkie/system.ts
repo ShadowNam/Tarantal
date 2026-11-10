@@ -53,7 +53,7 @@ export interface BrakkieHost {
    *  px of the view's centre, the one nearest screen dx `fromDx` (first by bird order on a tie). */
   jagTarget(
     fromDx: number,
-    maxDx: number,
+    maxDx: Readonly<Record<DogPlane, number>>,
   ): { readonly birdId: number; readonly plane: DogPlane; readonly x: number } | null;
   /** Where bird `birdId` is now (layer x) while it is still on the ground, else null. */
   jagBird(birdId: number): { readonly plane: DogPlane; readonly x: number } | null;
@@ -247,6 +247,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   const J = B.jag;
   const lookTicks = Math.max(1, ticks(J.lookSeconds));
   const pounceTicks = Math.max(1, ticks(J.pounceSeconds));
+  /** The card's reach by plane (screen px from the view's centre): the near plane in view. */
+  const reach = { near: J.nearMaxDxPx, mid: J.maxDxPx } as const;
   /** A plane's px against the near plane's (his speeds, rooms and roaming px are near-plane px). */
   const k = (plane: DogPlane): number => geo.planeScale[plane] / geo.planeScale.near;
   /** v1.17b (D-080): his body's size on a plane (hit box px are near-plane px at sizeMul 1). */
@@ -563,7 +565,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     if (!dog.jagOn || !idle() || dog.plane !== 'near' || dog.carrying || tick < dog.nextLook)
       return;
     dog.nextLook = tick + lookTicks;
-    const t = host.jagTarget(dxOf('near', dog.x), J.maxDxPx);
+    const t = host.jagTarget(dxOf('near', dog.x), reach);
     if (t === null) return;
     dog.jagBird = t.birdId;
     dog.barkFlock = null;
@@ -1256,6 +1258,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       queuedTick: dog.queuedTick,
       fetchTick: dog.fetchTick,
       catchPoints: dog.catchPoints,
+      jagBird: dog.jagBird,
     };
   }
 
