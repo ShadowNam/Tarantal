@@ -779,7 +779,7 @@ export function drawWhistleButton(
   g.lineStyle(3, ink, 1).strokeCircle(cx + 18, cy - 12, 5);
 }
 
-/** The pop-up of a bonus: Brakkie's ("Bring! +15", "Goeie hond! +30", "Mooi punt! +20", the word
+/** The pop-up of a bonus: Brakkie's ("Bring! +4", "Goeie hond! +20", "Mooi punt! +20", the word
  *  from the lazy guide tables) or the points alone (any other bonus, or before the tables are in);
  *  Brakkie's go to the e2e hook's log. */
 export function popText(

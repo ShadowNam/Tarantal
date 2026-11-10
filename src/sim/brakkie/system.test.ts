@@ -440,7 +440,7 @@ function deliverOne(r: Rig): void {
 }
 
 describe('Brakkie the companion (v1.17, D-079)', () => {
-  it('"Bring!": every delivery pays bring.points; every 3rd in a row the streak bonus', () => {
+  it('"Bring!": every delivery pays bring.points; every bring.streakEvery-th in a row the streak bonus', () => {
     const r = rig(21);
     for (let i = 0; i < B.bring.streakEvery; i++) deliverOne(r);
     const ids = r.bonuses.map((b) => b.id);
@@ -839,8 +839,12 @@ describe('the Jag, Brakkie! card (v1.20, D-085)', () => {
     expect(r.sys.view().jag).toBeNull();
     const end = r.events.find((e) => e.type === 'brakkieJagEnded');
     expect(end?.type === 'brakkieJagEnded' && end.why).toBe('max');
-    // 3 deliveries in a row: Goeie hond!
-    expect(r.bonuses.filter((b) => b.id === 'bringStreak')).toHaveLength(1);
+    // 3 deliveries in a row: they count toward Goeie hond! (every bring.streakEvery in a row).
+    expect(r.sys.view().streak).toBe(3);
+    expect(r.bonuses.filter((b) => b.id === 'bring')).toHaveLength(3);
+    expect(r.bonuses.filter((b) => b.id === 'bringStreak')).toHaveLength(
+      Math.floor(3 / B.bring.streakEvery),
+    );
     // Two birds left foraging: never a 4th.
     r.run(60 * 20);
     expect(r.state.caught).toHaveLength(3);

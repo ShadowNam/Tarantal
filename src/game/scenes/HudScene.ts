@@ -1130,7 +1130,7 @@ export class HudScene extends Phaser.Scene {
       if (e.type === 'scoreAwarded')
         this.pushPop(`${popParts(e.points, e.mult)}  ${formatAward(e.award)}`, '#F3EAD3');
       else if (e.type === 'bonusAwarded') {
-        // v1.17 (D-079): Brakkie's bonuses pop with their word at the edge ("Bring! +15").
+        // v1.17 (D-079): Brakkie's bonuses pop with their word at the edge ("Bring! +4").
         const award = formatAward(e.award);
         const text = brakkieChunk()?.popText(e.bonus, award, (k) => this.lazy(k), this.ctx.hook);
         this.pushPop(text ?? award, text === undefined || text === award ? '#FFD25A' : '#FFE9A8');
