@@ -957,6 +957,8 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       demoTick = null;
       const x = dog.x + 260 * k('near') * dog.facing;
       startFetch({ plane: 'near', x, readyTick: tick, giveUpTick: tick });
+      // The screenshot's fetch is never given up (it isn't from the queue).
+      dog.fetching = null;
       return;
     }
     alarmStep(tick);
@@ -971,7 +973,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       tick >= dog.nextCheck
     ) {
       dog.nextCheck = tick + checkTicks;
-      if (dog.phase === 'fetch') {
+      if (dog.phase === 'fetch' && dog.fetching !== null) {
         const busy = host.busyAt('near', dog.x, B.clear.aimPx * k('near'));
         if (busy !== null || !runClear(dog.goal)) {
           if (dog.fetching !== null) dog.queue.unshift(dog.fetching);
@@ -983,7 +985,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
           else rest();
           return;
         }
-      } else if (!runClear(dog.goal)) goHome('carry', carrySpeed());
+      } else if (dog.phase === 'carry' && !runClear(dog.goal)) goHome('carry', carrySpeed());
     }
     if (dog.plane === 'near' && STANDING.has(dog.phase)) {
       // A wide-spread gun came out: off to the bakkie (no yelp, nothing hit him).

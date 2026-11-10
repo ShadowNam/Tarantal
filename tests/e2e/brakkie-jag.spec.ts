@@ -1,7 +1,8 @@
 // v1.20 (D-085): Brakkie fetches sooner, and the "Jag, Brakkie!" card, on every landscape profile
 // (desktop, Pixel 7, iPhone 14).
 // 1. Fetch sooner: ?brakkiePreview=bag queues a bird beside him 3 s in (a bag without a shot,
-//    through the real delay and clear rules: bagging one by shooting a flock was bound to the
+//    through the real delay and clear rules, with ?birds=0 so no flock stands over his strip:
+//    bagging one by shooting a flock was bound to the
 //    runner's timing, brakkie.spec.ts); the test keeps shooting at the empty sky and he runs out
 //    fetch.delaySeconds after the bag all the same — checked on the sim's ticks, never the wall
 //    clock (lesson 3).
@@ -29,7 +30,7 @@ test('fetch sooner: he runs out ~1.5 s after a bag while the shooting goes on', 
   const errors = collectErrors(page);
   await boot(
     page,
-    'biome=karoo-autumn&layout=none&seed=42&huntSeconds=120&graphics=standard&baboons=0&reenbui=0&omen=0&faunaIdle=0&brakkie=1&brakkiePreview=bag',
+    'biome=karoo-autumn&layout=none&seed=42&huntSeconds=120&graphics=standard&baboons=0&reenbui=0&omen=0&faunaIdle=0&birds=0&brakkie=1&brakkiePreview=bag',
   );
   await startHunt(page, touch);
   // All in one page loop (bounded by frames and by its goal): once the bird is queued, a shot at

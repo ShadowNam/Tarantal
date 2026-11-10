@@ -170,7 +170,7 @@ test('boot 1: he runs out soon after a bag while the shooting goes on', async ({
   const touch = await huntWith(
     page,
     info,
-    'biome=karoo-autumn&layout=none&seed=42&huntSeconds=120&baboons=0&reenbui=0&omen=0&faunaIdle=0&brakkie=1&brakkiePreview=bag',
+    'biome=karoo-autumn&layout=none&seed=42&huntSeconds=120&baboons=0&reenbui=0&omen=0&faunaIdle=0&birds=0&brakkie=1&brakkiePreview=bag',
   );
   // Shots at the empty sky after the bird is queued (in-page, a fresh pointerId each), until he
   // is running out for it; then hold.
