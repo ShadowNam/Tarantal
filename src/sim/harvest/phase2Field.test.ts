@@ -34,20 +34,25 @@ const unlocked = (rushDrain = false) =>
   }));
 
 /** The Harvest system on its own, with a host that records what it is given. */
-function unit(opts: { score?: number; harvest?: Harvest } = {}) {
+function unit(opts: { score?: number; harvest?: Harvest; awardMul?: number } = {}) {
   const oes = base.biomes.find((b) => b.id === 'oes');
   if (oes === undefined) throw new Error('no oes');
   const content = opts.harvest === undefined ? base : withHarvest(() => opts.harvest ?? H);
   let tick = 0;
   let penalties = 0;
   let added = 0;
+  const awards: { bonus: string; base: number }[] = [];
   const events: SimEvent[] = [];
   const host: HarvestHost = {
     tick: () => tick,
     emit: (e) => {
       events.push(e);
     },
-    awardBonus: (_b, b) => b,
+    // The hunt's awardBonus multiplies (Frenzy): here × awardMul.
+    awardBonus: (bonus, b) => {
+      awards.push({ bonus, base: b });
+      return b * (opts.awardMul ?? 1);
+    },
     basePoints: () => 10,
     penalty: (p) => {
       penalties += p;
@@ -95,6 +100,7 @@ function unit(opts: { score?: number; harvest?: Harvest } = {}) {
     tick: () => tick,
     penalties: () => penalties,
     added: () => added,
+    awards,
   };
 }
 
@@ -229,5 +235,74 @@ describe('Phase 2 piglets in the tally (v1.18, D-081, review)', () => {
     expect(shot).toBeGreaterThan(0);
     expect(u.penalties()).toBe(-shot * H.warthogs.pigletPenalty);
     expect(u.sys.view().bystanderPenalty).toBe(-u.penalties());
+  });
+});
+
+describe('Phase 2 points reach the score (v1.18, D-081, review)', () => {
+  it("a bag pays through the hunt's awardBonus (× Frenzy); the end bonuses through addScore", () => {
+    // Nothing eats (the crop stays: a crop bonus and the perfect bonus at the end).
+    const u = unit({
+      awardMul: 3,
+      harvest: {
+        ...H,
+        crop: { ...H.crop, drainPerSecond: { guineafowl: 0, warthog: 0, baboon: 0 } },
+        phase2: { ...P, drainPerSecond: { warthog: 0, piglet: 0, baboon: 0 } },
+      },
+    });
+    toDefend(u);
+    const before = u.added();
+    let bagged = false;
+    for (let i = 0; i < 60 * 40 && u.sys.view().phase === 'defend'; i++) {
+      const hog = bagged
+        ? undefined
+        : u.sys.view().phase2?.animals.find((a) => a.kind === 'warthog' && a.phase === 'eat');
+      if (hog !== undefined) {
+        // Two hits bag it (the first one drives it out; it is still in reach on the next tick).
+        u.sys.shot(1, [hog.id], false, () => bodyOf(u, hog.id));
+        u.sys.shot(2, [hog.id], false, () => bodyOf(u, hog.id));
+        bagged = true;
+      }
+      u.step();
+    }
+    const bag = ofType(u.events, 'warthogBagged')[0];
+    const base = Math.round(10 * H.warthogs.pointsMul);
+    expect(u.awards).toContainEqual({ bonus: 'warthog', base });
+    expect(bag?.points).toBe(3 * base);
+    // Phase 2's end: its bonuses all go to the score.
+    for (let i = 0; i < 60 * 5; i++) u.step();
+    const end = ofType(u.events, 'phase2Ended')[0];
+    if (end === undefined) throw new Error('Phase 2 never ended');
+    const paid = end.cropBonus + end.perfectBonus + end.clearBonus;
+    expect(paid).toBeGreaterThan(0);
+    expect(u.added() - before).toBe(paid);
+  });
+
+  it('in the hunt: the score jumps by the end bonuses the tick Phase 2 ends', () => {
+    const quietPhase2 = withHarvest((h) => ({
+      ...h,
+      crop: { ...h.crop, drainPerSecond: { guineafowl: 0, warthog: 0, baboon: 0 } },
+      phase2: { ...h.phase2, unlockScore: 0, drainPerSecond: { warthog: 0, piglet: 0, baboon: 0 } },
+    }));
+    const s = createSim({
+      seed: 4,
+      content: quietPhase2,
+      mode: { id: 'harvest' },
+      inputKind: 'pointer',
+    });
+    let last = 0;
+    let checked = false;
+    for (let i = 0; i < 20000 && !s.isOver(); i++) {
+      s.step([]);
+      const end = ofType(s.drainEvents(), 'phase2Ended')[0];
+      const score = s.snapshot().score;
+      if (end !== undefined) {
+        const paid = end.cropBonus + end.perfectBonus + end.clearBonus;
+        expect(paid).toBeGreaterThan(0);
+        expect(score - last).toBe(paid);
+        checked = true;
+      }
+      last = score;
+    }
+    expect(checked).toBe(true);
   });
 });
