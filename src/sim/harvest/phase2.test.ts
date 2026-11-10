@@ -116,6 +116,18 @@ describe('Phase 2 unlock (v1.18, D-081)', () => {
     expect(ofType(ev, 'huntEnded')[0]?.tick).toBe(INTRO + RUSH + OUTRO);
   });
 
+  it('review: a rush that lost the whole crop never unlocks it, whatever the score', () => {
+    const { ev } = runSim(
+      withPhase2(
+        { unlockScore: 0 },
+        { crop: { ...H.crop, drainPerSecond: { guineafowl: 5, warthog: 50, baboon: 50 } } },
+      ),
+    );
+    expect(ofType(ev, 'harvestFenceClosed')[0]?.crop).toBe(0);
+    expect(ofType(ev, 'phase2Unlocked')).toHaveLength(0);
+    expect(ofType(ev, 'huntEnded')[0]?.tick).toBe(INTRO + RUSH + OUTRO);
+  });
+
   it('at or over unlockScore: the banner, then Phase 2 on its clock; the hunt runs longer', () => {
     const { ev } = runSim(
       withPhase2(

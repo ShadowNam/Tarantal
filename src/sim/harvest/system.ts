@@ -621,9 +621,9 @@ export const createHarvestSystem: HarvestSystemFactory = (
     bonus = cropBonus(crop, H.crop.bonusPerPercent);
     if (bonus > 0) host.addScore(bonus);
     host.emit({ type: 'harvestFenceClosed', tick: host.tick(), crop, bonus });
-    // v1.18 (D-081): a good enough rush unlocks Phase 2.
+    // v1.18 (D-081): a good enough rush unlocks Phase 2 — if there is any crop left to defend.
     const score = host.score();
-    if (score >= P2.unlockScore) {
+    if (score >= P2.unlockScore && crop > 0) {
       host.extendBy(bannerTicks + phase2Ticks);
       unlockPhase2(score);
     }
