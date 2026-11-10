@@ -5006,7 +5006,11 @@ the same memory as before (namibie 230.8 MB, Reënbui 245.0 MB with Brakkie's sh
 (29 passed: every 4× perf hunt, the nine HD memory tests, the braai tally's). Every spec that reads
 a changed entry (43 files, pixel7-landscape): all pass but `harvest.spec.ts` "from the title…",
 which fails the same way on main's build here (the Harvest's music and ambience not yet in
-`assets.recorded`; untouched by this change). Desktop Chromium: see the PR. Unit tests:
+`assets.recorded`; untouched by this change). Desktop Chromium, 19 of those files (the crates,
+gun look, graphics, the three special-day specs, tells, far animals, shells, power-ups, Karoo,
+Harvest, meerkats, makalani, potjie, braai, flock, visual): all pass but two `visual.spec.ts`
+screens (title, the held hunt), which differ from the CI baselines by the same pixels on main's
+build here (this machine's rendering). Unit tests:
 `lazyHook.test.ts` (read on demand, once per frame, freeze, a view gone at freeze, writes).
 
 ## 3. Research notes (with sources)
