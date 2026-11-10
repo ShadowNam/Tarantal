@@ -74,12 +74,18 @@ import { SaveStore } from './meta/save';
 import type { Settings } from './meta/saveSchema';
 import { setStorageNamespace, storageStatus } from './meta/storage';
 import { applyTextEdits } from './meta/textEdits';
+import { loadSizeEdits, type SizeEditStore } from './meta/sizeEdits';
+import { applySizeEdits } from './meta/sizeApply';
+import { SIZE_CODE_VALUES } from './game/sizes/sizeCode';
+import { setSizeEditCount, setSizeFactors } from './game/sizes/sizeFactor';
+import { isSizeArea, SIZE_HOLD_TICK } from './game/sizes/sizeAreas';
 import { installErrorHook } from './platform/errors';
 import { LocalPlatform } from './platform/local';
 import { handleBack, sendEscapeKey, titleOnTop } from './platform/backButton';
 import { adminPageInBuild, createPlatform, currentPlatformId } from './platform/platform';
 import {
   ADMIN_NAMESPACE,
+  DEFAULT_OPTIONS,
   adminEntries,
   loadAdminSave,
   storeAdminSave,
@@ -125,6 +131,7 @@ declare global {
 }
 
 const params = new URLSearchParams(window.location.search);
+
 // M9 (D-024 known limit): portal builds carry no test hooks (unless built with VITE_TEST_HOOKS=1
 // for their e2e runs), and ?e2e runs keep their own save (tm.e2e.*).
 const hookPolicy = testHookPolicy({
@@ -181,6 +188,17 @@ if (
   adminPageInBuild()
 )
   applyTextEdits();
+// v1.22.1 (D-086): the owner's animal sizes (admin page → Sizes): `?admin=1&sizes=<area>` opens the
+// size editor on that area; elsewhere "Use my sizes in the game" applies them as content overrides
+// (below). Builds with the admin page only, never a portal or store build (the raw flag: dropped).
+const sizesInBuild =
+  platformFlag !== 'poki' &&
+  platformFlag !== 'crazygames' &&
+  platformFlag !== 'capacitor' &&
+  adminPageInBuild();
+const sizeParam = sizesInBuild && adminOn ? params.get('sizes') : null;
+const sizeArea = isSizeArea(sizeParam) ? sizeParam : null;
+const sizeStore: SizeEditStore | null = sizesInBuild && !capture ? loadSizeEdits() : null;
 
 const save = new SaveStore();
 // Older saves inherited Auto without choosing a language. Adopt the new English default
@@ -387,6 +405,7 @@ const hook: TestHook = {
   menu: null,
   admin: null,
   adminTexts: null,
+  sizes: null,
   range: null,
   capture: null,
   fontsReady: false,
@@ -553,10 +572,27 @@ const loaded = loadGameContent();
 // so a hunt on a slow, software-rendered test machine keeps to real time and ends when a wall-clock
 // wait expects it. Client feel only: the content hash and every replay are unchanged.
 const maxStepsParam = testHooks && params.has('maxSteps') ? Number(params.get('maxSteps')) : NaN;
+// v1.22.1 (D-086): "Use my sizes in the game" — the owner's sizes as content overrides on this
+// device (the hit boxes grow with them; never in the size editor, which shows them live itself).
+// The admin list page (its Sizes tab lists the sizes as shipped) plays no hunt: none there.
+const adminListPage = adminOn && params.get('play') !== '1';
+const sized =
+  sizeStore !== null &&
+  sizeStore.apply &&
+  sizeArea === null &&
+  !adminListPage &&
+  sizeStore.edits.length > 0
+    ? applySizeEdits(loaded, sizeStore.edits, SIZE_CODE_VALUES)
+    : null;
+setSizeFactors(sized?.factors ?? null);
+setSizeEditCount(sized?.knobs ?? 0);
+/** v1.22.1 (D-086): the owner's sizes change the content: every hunt is unranked. */
+const sizesInUse = (sized?.knobs ?? 0) > 0;
+const sizedFeel = sized?.feel ?? loaded.feel;
 const feel =
   Number.isInteger(maxStepsParam) && maxStepsParam > 0
-    ? { ...loaded.feel, loop: { ...loaded.feel.loop, maxStepsPerFrame: maxStepsParam } }
-    : loaded.feel;
+    ? { ...sizedFeel, loop: { ...sizedFeel.loop, maxStepsPerFrame: maxStepsParam } }
+    : sizedFeel;
 // M10: the final-asset index, fetched while the platform SDK starts (absent = all placeholders).
 const indexLoad = fetchAssetIndex(feel.assets.indexTimeoutMs);
 // e2e/dev only (v1.11, D-068): ?braai=0 — the plain slate (specs that don't test the braai);
@@ -572,13 +608,12 @@ if (testHooks) {
 
 /** v1.20 (D-085): the e2e/dev content tweaks (URL parameters, devContent.ts) — a lazy chunk,
  *  loaded only when test hooks are on, so the first download never carries them. */
-function devContentOf(dev: typeof import('./game/devContent')): ContentBundle {
+function devContentOf(dev: typeof import('./game/devContent'), base: ContentBundle): ContentBundle {
   // e2e/dev only (D-049 "before" screenshots): ?planeScale=v17 — the old plane scales.
   const planeScaleParam = testHooks ? params.get('planeScale') : null;
   const planePreset = dev.isPlaneScalePreset(planeScaleParam) ? planeScaleParam : null;
   const crateParam = testHooks ? params.get('crate') : null;
-  const shipped =
-    planePreset === null ? loaded.bundle : dev.withPlaneScales(loaded.bundle, planePreset);
+  const shipped = planePreset === null ? base : dev.withPlaneScales(base, planePreset);
   const withCrate = crateParam === null ? shipped : dev.withTestCrate(shipped, crateParam);
   // e2e/dev only: ?quotaMul=0 makes every Season Run quota reachable (short e2e runs).
   const quotaMul = testHooks && params.has('quotaMul') ? Number(params.get('quotaMul')) : NaN;
@@ -659,6 +694,8 @@ let bundle: ContentBundle = loaded.bundle;
 let adminSave: AdminSave | null = adminOn ? loadAdminSave() : null;
 let adminList: ReturnType<typeof adminEntries> = [];
 let adminSetup: AdminHuntSetup | null = null;
+/** v1.22.1 (D-086): the size editor's area entry (`?admin=1&sizes=<area>`), set by prepareContent. */
+let sizeEntry: ReturnType<typeof adminEntries>[number] | undefined = undefined;
 let biome: Biome = classicBiomeOf(bundle);
 
 function classicBiomeOf(b: ContentBundle): Biome {
@@ -669,7 +706,11 @@ function classicBiomeOf(b: ContentBundle): Biome {
 }
 
 async function prepareContent(): Promise<void> {
-  const devBundle = testHooks ? devContentOf(await import('./game/devContent')) : loaded.bundle;
+  // v1.22.1 (D-086): the owner's sizes (when in use) under every tweak; the size editor also needs
+  // the dev content (its preview flags), in admin web builds without test hooks too.
+  const base = sized?.bundle ?? loaded.bundle;
+  const dev = testHooks || sizeArea !== null ? await import('./game/devContent') : null;
+  const devBundle = testHooks && dev !== null ? devContentOf(dev, base) : base;
   // D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
   adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];
   const adminPlay = adminSave?.play ?? null;
@@ -677,7 +718,25 @@ async function prepareContent(): Promise<void> {
     params.get('play') === '1' && adminPlay !== null
       ? adminList.find((e) => e.id === adminPlay.entry)
       : undefined;
-  if (adminEntry !== undefined && adminPlay !== null) {
+  // v1.22.1 (D-086): `?admin=1&sizes=<area>`: that area's hunt with every sized animal out in view
+  // at once (the art previews' flags), held still, for the size editor.
+  sizeEntry =
+    sizeArea === null
+      ? undefined
+      : adminList.find((e) =>
+          // The area's plain map (its biome id starts with it), or Die Oes.
+          sizeArea === 'oes'
+            ? e.kind === 'harvest'
+            : e.kind === 'classic' && e.layout === 'none' && e.biome?.split('-')[0] === sizeArea,
+        );
+  if (sizeEntry !== undefined && dev !== null) {
+    const { adminHuntSetup } = await import('./game/admin/adminPlay');
+    adminSetup = adminHuntSetup(
+      sizeEntry,
+      { ...DEFAULT_OPTIONS, seed: dev.SIZE_PREVIEW_SEED, huntSeconds: 120, omen: 'off' },
+      dev.withSizePreview(devBundle),
+    );
+  } else if (adminEntry !== undefined && adminPlay !== null) {
     const { adminHuntSetup } = await import('./game/admin/adminPlay');
     adminSetup = adminHuntSetup(adminEntry, adminPlay.options, devBundle);
   }
@@ -1015,7 +1074,8 @@ async function boot(): Promise<void> {
   // bookmark doesn't show the card again.
   let pendingChallenge: ChallengeDecode | null = null;
   // Capture mode and `?e2e` on a public build (unranked) open no challenge links.
-  const unranked = capture || !officialResults || adminOn;
+  // v1.22.1 (D-086): and the owner's sizes in use (they change the sim's content).
+  const unranked = capture || !officialResults || adminOn || sizesInUse;
   const challengeParam = unranked ? null : platform.launchParam('c');
   if (challengeParam !== null) {
     pendingChallenge = decodeChallenge(challengeParam, {
@@ -1272,11 +1332,12 @@ async function boot(): Promise<void> {
       (safeCache ??= safeAreaInDesignPx(cssSafeArea(), viewport(), designSize())),
     nextSeed: seedSource(),
     huntSeconds: adminSetup === null ? huntSecondsParam() : adminSetup.huntSeconds,
-    holdAtTick: holdAtParam(),
+    holdAtTick: sizeEntry === undefined ? holdAtParam() : SIZE_HOLD_TICK,
     // D-054: dev and test builds only (a public build with ?e2e must never lose its herds).
     faunaBefore: devOrTestBuild && testHooks && params.get('fauna') === 'before',
     faunaDebug: devOrTestBuild && testHooks && params.get('faunaDebug') === '1',
-    faunaStill: devOrTestBuild && testHooks && params.get('faunaIdle') === '0',
+    faunaStill:
+      sizeEntry !== undefined || (devOrTestBuild && testHooks && params.get('faunaIdle') === '0'),
     soundscapeOff: devOrTestBuild && testHooks && params.get('soundscape') === '0',
     soundscapeBoost:
       devOrTestBuild && testHooks && Number(params.get('soundscapeBoost')) > 0
@@ -1303,6 +1364,10 @@ async function boot(): Promise<void> {
     weaponOverride: adminSetup?.weapon,
     sightOverride: adminSetup?.sight,
     admin,
+    sizes:
+      sizeArea === null || sizeEntry === undefined || sizeStore === null
+        ? null
+        : { area: sizeArea, store: sizeStore },
     coarsePointer,
     reducedMotion,
     paused: () =>

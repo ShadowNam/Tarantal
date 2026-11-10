@@ -730,3 +730,18 @@ export function withAgamaBefore(b: ContentBundle): ContentBundle {
     ),
   };
 }
+
+/** v1.22.1 (D-086): the size editor's fixed seed (the same hunt on every open). */
+export const SIZE_PREVIEW_SEED = 7;
+
+/**
+ * v1.22.1 (D-086) the size editor (`?admin=1&sizes=<area>`, the web admin page): every sized animal
+ * out in view at once — the cameos (all kinds the map has, near the centre), Brakkie out of the
+ * bakkie, the ridge's baboons peeking (up to three) and a raider coming in, the Harvest's rush and
+ * its piglets — and no Reënbui. The hunt is then held still (SIZE_HOLD_TICK).
+ */
+export function withSizePreview(b: ContentBundle): ContentBundle {
+  const shown = withBrakkiePreview(withCameoPreview(b, CAMEO_KINDS, null), []);
+  const baboons = withBaboonRaid(withBaboonPeek(shown, 'long'), 'any');
+  return withNoReenbui(withHarvestPreview(baboons, { rush: true, shots: true }));
+}

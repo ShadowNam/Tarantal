@@ -59,10 +59,12 @@ export class NamibLifeView {
       readonly lightIds: () => readonly string[];
       readonly audio: AudioDirector;
       readonly planeScales: Readonly<Record<'near' | 'mid' | 'far' | 'ver', number>>;
+      /** v1.22.1 (D-086): content birds.json ostriches.henScale. */
+      readonly ostrichHenScale?: number;
     },
   ) {
     this.veld = new VeldView(scene, parallax, biome.id);
-    this.ostriches = new OstrichView(scene, parallax, opts.reducedMotion);
+    this.ostriches = new OstrichView(scene, parallax, opts.reducedMotion, opts.ostrichHenScale);
     this.oryx = new OryxView(
       scene,
       opts.manifest,

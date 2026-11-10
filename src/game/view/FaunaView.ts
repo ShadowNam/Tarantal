@@ -11,6 +11,7 @@ import {
   animalSeed,
   drawOrder,
   FAUNA_BEFORE,
+  FAUNA_DRAWN_MUL,
   FAUNA_HERDS,
   FAUNA_PARTS,
   faunaIdle,
@@ -24,8 +25,10 @@ import {
   type FaunaIdle,
   type FaunaIdleTuning,
   type FaunaPart,
+  type FaunaSpecies,
   type HerdAnimal,
 } from './faunaHerds';
+import { sizeFactor, sizeFactorVersion } from '../sizes/sizeFactor';
 
 /** e2e/dev only (?fauna=before): where the v1.9.0 herd images are served (vite.config.ts). */
 const BEFORE_URL = '__fauna-before/';
@@ -41,6 +44,9 @@ interface Part {
   readonly frame: string;
   readonly sx: number;
   readonly sy: number;
+  /** v1.22.1 (D-086): where it sits at the animal's drawn size (herd px), for a size change. */
+  readonly px: number;
+  readonly py: number;
 }
 
 /** An animal and what its pose needs every frame (its seed is worked out once). */
@@ -69,6 +75,10 @@ export interface FaunaOptions {
   /** e2e/dev only (?faunaIdle=0): every animal held at its rest pose (no idle motion), so herd
    *  bounds compare across runs sampled at different ticks. */
   readonly still?: boolean;
+  /** v1.22.1 (D-086): feel.json fauna.sizeMul: a species is drawn at it ÷ FAUNA_DRAWN_MUL (the
+   *  owner's sizes), × the size editor's factor (sizeFactor `far_<species>`, read again whenever
+   *  the factors change); as drawn when not given. */
+  readonly sizeMul?: Readonly<Partial<Record<FaunaSpecies, number>>>;
 }
 
 /** Off-screen margin (design px) before a herd stops being posed. */
@@ -127,6 +137,8 @@ export class FaunaView {
   private readonly live = new Set<Animal>();
   private m0: Phaser.GameObjects.Components.TransformMatrix | null = null;
   private m1: Phaser.GameObjects.Components.TransformMatrix | null = null;
+  /** v1.22.1 (D-086): the size factors' version the parts were placed for. */
+  private sizeVersion = -1;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -209,15 +221,27 @@ export class FaunaView {
           const f = frames[name];
           if (f === undefined) continue;
           const p = placePart(a, f);
+          // v1.22.1 (D-086): the owner's size, about the animal's feet.
+          const z = this.sizeOf(a.species);
           const img = this.scene.add
-            .image(p.x, p.y, key, name)
+            .image(a.x + (p.x - a.x) * z, a.dy + (p.y - a.dy) * z, key, name)
             .setOrigin(f[4] / f[2], f[5] / f[3])
-            .setScale(p.sx * ds, p.sy * ds);
+            .setScale(p.sx * ds * z, p.sy * ds * z);
           root.add(img);
           if (this.tint !== 0xffffff) img.setTint(this.tint);
-          this.parts.push({ img, part, animal, sheet: key, frame: name, sx: p.sx, sy: p.sy });
+          this.parts.push({
+            img,
+            part,
+            animal,
+            sheet: key,
+            frame: name,
+            sx: p.sx,
+            sy: p.sy,
+            px: p.x,
+            py: p.y,
+          });
           // The frame's reach from the pivot, either way (mirrored herds).
-          const reach = Math.max(f[4], f[2] - f[4]) * a.s;
+          const reach = Math.max(f[4], f[2] - f[4]) * a.s * Math.max(1, z);
           view.x0 = Math.min(view.x0, p.x - reach);
           view.x1 = Math.max(view.x1, p.x + reach);
           added = true;
@@ -226,6 +250,7 @@ export class FaunaView {
       this.herdViews.set(h.key, view);
     }
     if (added) {
+      this.sizeVersion = sizeFactorVersion();
       // New parts start in their rest pose: pose them on the next update even on a held tick.
       this.lastTick = -1;
       if (this.epoch < 0) this.epoch = this.manifest.hdEpoch;
@@ -300,6 +325,7 @@ export class FaunaView {
         ? -1
         : (tick - tr.tick) / tr.ticks;
     this.trumpetSeen = false;
+    if (this.sizeVersion !== sizeFactorVersion()) this.resize();
     if (tick === this.lastTick && calm === this.lastCalm) {
       this.drawDebug();
       return;
@@ -334,11 +360,30 @@ export class FaunaView {
       if (p.part === 'head') p.img.setAngle(f * m.head);
       else if (p.part === 'tail') p.img.setAngle(f * m.tail);
       else {
-        const ds = this.manifest.displayScale(p.sheet);
+        const ds = this.manifest.displayScale(p.sheet) * this.sizeOf(p.animal.a.species);
         p.img.setScale(p.sx * ds * m.ear, p.sy * ds);
       }
     }
     this.drawDebug();
+  }
+
+  /** v1.22.1 (D-086): a species' size over its sheet's (1 without the option). */
+  private sizeOf(species: FaunaSpecies): number {
+    const mul = this.o.sizeMul?.[species];
+    return (mul === undefined ? 1 : mul / FAUNA_DRAWN_MUL[species]) * sizeFactor(`far_${species}`);
+  }
+
+  /** v1.22.1 (D-086): the size factors changed (the size editor): every part placed again. */
+  private resize(): void {
+    this.sizeVersion = sizeFactorVersion();
+    for (const p of this.parts) {
+      const a = p.animal.a;
+      const z = this.sizeOf(a.species);
+      const ds = this.manifest.displayScale(p.sheet) * z;
+      p.img.setPosition(a.x + (p.px - a.x) * z, a.dy + (p.py - a.dy) * z);
+      p.img.setScale(p.sx * ds, p.sy * ds);
+    }
+    this.lastTick = -1;
   }
 
   /** e2e/dev only: each part's frame outlined (tail yellow, body magenta, head cyan, ear green). */
@@ -372,7 +417,7 @@ export class FaunaView {
         if (frames !== undefined) this.cut(p.sheet, frames);
         done.add(p.sheet);
       }
-      const ds = this.manifest.displayScale(p.sheet);
+      const ds = this.manifest.displayScale(p.sheet) * this.sizeOf(p.animal.a.species);
       p.img.setTexture(p.sheet, p.frame).setScale(p.sx * ds, p.sy * ds);
     }
     this.lastTick = -1;

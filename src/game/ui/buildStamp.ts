@@ -3,6 +3,7 @@
 // Farm · Tue · art ok". The version, short commit and UTC build time come from Vite `define`
 // (vite.config.ts); the area, weekday and art status from the screen showing it.
 import { textOverrideCount } from '../../i18n/i18n';
+import { sizeEditCount } from '../sizes/sizeFactor';
 
 export interface BuildInfo {
   readonly version: string;
@@ -11,6 +12,8 @@ export interface BuildInfo {
   readonly time: string;
   /** v1.14 (D-076): the owner's edited texts in use on this device (shown as "✎ n"; 0: none). */
   readonly edits?: number;
+  /** v1.22.1 (D-086): the owner's animal sizes in use on this device (shown as "⇲ n"; 0: none). */
+  readonly sizes?: number;
 }
 
 /** The build's facts (safe outside a Vite build, e.g. in unit tests). */
@@ -20,6 +23,7 @@ export function buildInfo(): BuildInfo {
     sha: typeof __BUILD_SHA__ === 'string' ? __BUILD_SHA__ : 'dev',
     time: typeof __BUILD_TIME__ === 'string' ? __BUILD_TIME__ : '',
     edits: textOverrideCount(),
+    sizes: sizeEditCount(),
   };
 }
 
@@ -37,11 +41,13 @@ export function formatBuildTime(iso: string): string {
 export function buildLine(info: BuildInfo): string {
   const time = formatBuildTime(info.time);
   const edits = info.edits ?? 0;
+  const sizes = info.sizes ?? 0;
   return [
     `v${info.version}`,
     info.sha,
     ...(time === '' ? [] : [time]),
     ...(edits > 0 ? [`✎ ${String(edits)}`] : []),
+    ...(sizes > 0 ? [`⇲ ${String(sizes)}`] : []),
   ].join(' · ');
 }
 

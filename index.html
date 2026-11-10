@@ -89,12 +89,14 @@
       /* The language picker sits above the canvas (z-index 1001): hide it while the portrait
          rotate card is up (it has a lower z-index), and while the admin page, the Project
          overview or the Skietbaan's panels are open (their top-left bars sat under it, so taps
-         on them hit the picker: project-overview and skietbaan e2e on phones, 7 Nov). */
+         on them hit the picker: project-overview and skietbaan e2e on phones, 7 Nov), and over
+         the size editor's bar (v1.22.1, D-086). */
       body:has(#rotate-card.visible) #startup-language,
       body:has(#tm-admin:not([hidden])) #startup-language,
       body:has(#tm-project) #startup-language,
       body:has(#tm-range) #startup-language,
-      body:has(#tm-range-bar) #startup-language {
+      body:has(#tm-range-bar) #startup-language,
+      body:has(#tm-sizes) #startup-language {
         display: none;
       }
       #rotate-card.visible {
