@@ -2323,13 +2323,15 @@ export function createSim(config: SimConfig): Sim {
       how === 'hip' && !usingCrate && !blast && shell?.kind !== 'slug'
         ? (weapon.aim?.hipSpreadPx ?? 0)
         : 0;
-    // Dragon's Breath widens the pattern up to its cap (a gun already wider keeps its own).
+    // Dragon's Breath widens the pattern up to its cap (a gun already wider keeps its own). The
+    // cap holds after every multiplier: Bush Buckshot's ×2.5 never takes the flame past it
+    // (review of v1.19: the two stacked cleared the screen).
     const own = shot.spreadPx + hip;
-    const flamed =
+    const spread =
       shell?.kind === 'dragon_breath'
-        ? Math.min(own * shell.spreadMul, Math.max(own, shell.maxSpreadPx))
-        : own;
-    const offsets = pelletOffsets(shot.pellets, flamed * fx.spreadMul, rng.stream('pellets'));
+        ? Math.min(own * shell.spreadMul * fx.spreadMul, Math.max(own, shell.maxSpreadPx))
+        : own * fx.spreadMul;
+    const offsets = pelletOffsets(shot.pellets, spread, rng.stream('pellets'));
     // Dragon's Breath: the flame stops at its reach (layers behind it are out of range).
     const flame = (g: ShotGeometry): ShotGeometry =>
       shell?.kind === 'dragon_breath' ? flameReach(g, shell.reach) : g;

@@ -55,6 +55,40 @@ function withFlocks(c: Content, flocks: Record<string, number>): Content {
   return c;
 }
 
+/** Quiet content with every gun's real pattern (the harness's quiet() puts every spread at 0). */
+function spread(): Content {
+  const c = quiet();
+  for (const w of c.weapons.weapons) {
+    const real = base.weapons.weapons.find((x) => x.id === w.id);
+    if (real !== undefined) w.spreadPx = real.spreadPx;
+  }
+  return c;
+}
+
+const spreadOf = (id: string): number =>
+  base.weapons.weapons.find((w) => w.id === id)?.spreadPx ?? 0;
+
+/**
+ * The widest pellet of one shot at (0, 500) with `consumables` used first (and `rental` armed),
+ * over several seeds: the pattern's radius (no wind on a plain season hunt).
+ */
+function radius(
+  weapon: string,
+  consumables: readonly string[],
+  rental: string | null = null,
+): number {
+  let r = 0;
+  for (const seed of [1, 2, 3, 4, 5, 6]) {
+    const slots = [consumables[0] ?? null, consumables[1] ?? null];
+    const sim = newSim(spread(), season({ consumables: slots, rental }, weapon), seed);
+    consumables.forEach((_, i) => run(sim, 1, [{ t: 'consumable', slot: i }]));
+    if (rental !== null) run(sim, 1, [{ t: 'consumable', slot: 2 }]);
+    const ev = run(sim, 20, [{ t: 'fire', dx: 0, sy: 500 }]);
+    for (const p of ofType(ev, 'pelletImpact')) r = Math.max(r, Math.hypot(p.dx, p.sy - 500));
+  }
+  return r;
+}
+
 /** One early crate holding `item`. */
 function crates(item: string): Content {
   const c = quiet();
@@ -128,18 +162,47 @@ describe("Dragon's Breath in the sim (D-084)", () => {
     expect(ofType(after, 'pelletImpact')).toHaveLength(dubbelloop?.pellets ?? 0);
   });
 
-  it("caps the Voorlaaier's blast: never more than maxPellets, its own pattern kept", () => {
+  it("caps the Voorlaaier's blast at maxPellets", () => {
     const sim = loaded(quiet(), 'dragon_breath', { rental: 'voorlaaier' });
     run(sim, 1, [{ t: 'consumable', slot: 2 }]);
     const ev = run(sim, 20, [{ t: 'fire', dx: 0, sy: 500 }]);
     expect(ofType(ev, 'shotFired')).toMatchObject([
       { weapon: 'voorlaaier', shell: 'dragon_breath' },
     ]);
-    const impacts = ofType(ev, 'pelletImpact');
-    expect(impacts).toHaveLength(dragon?.effect.dragonBreath?.maxPellets ?? 0);
-    // The pattern stays the Voorlaaier's own (300 px), not 2.4× it.
-    const own = base.weapons.weapons.find((w) => w.id === 'voorlaaier')?.spreadPx ?? 0;
-    for (const p of impacts) expect(Math.hypot(p.dx, p.sy - 500)).toBeLessThanOrEqual(own + 1);
+    expect(ofType(ev, 'pelletImpact')).toHaveLength(dragon?.effect.dragonBreath?.maxPellets ?? 0);
+  });
+
+  it('widens the pattern ×spreadMul up to maxSpreadPx; a wider gun keeps its own', () => {
+    const db = dragon?.effect.dragonBreath;
+    if (db === undefined) throw new Error('no dragon');
+    for (const gun of ['dubbelloop', 'pomp']) {
+      const own = spreadOf(gun);
+      const want = Math.min(own * db.spreadMul, db.maxSpreadPx);
+      const plain = radius(gun, []);
+      const flamed = radius(gun, ['dragon_breath']);
+      expect(plain, `${gun} plain`).toBeLessThanOrEqual(own + 1);
+      expect(flamed, `${gun} flame`).toBeLessThanOrEqual(want + 1);
+      expect(flamed, `${gun} flame`).toBeGreaterThan(want * 0.85);
+      expect(flamed, `${gun} flame wider than plain`).toBeGreaterThan(own * 1.5);
+    }
+    const v = spreadOf('voorlaaier');
+    const blast = radius('dubbelloop', ['dragon_breath'], 'voorlaaier');
+    expect(blast).toBeLessThanOrEqual(v + 1);
+    expect(blast).toBeGreaterThan(v * 0.85);
+  });
+
+  it('stacked with Bush Buckshot the flame stays capped (never a screen-clearer)', () => {
+    const db = dragon?.effect.dragonBreath;
+    if (db === undefined) throw new Error('no dragon');
+    for (const gun of ['dubbelloop', 'pomp']) {
+      const r = radius(gun, ['dragon_breath', 'bush_buckshot']);
+      expect(r, gun).toBeLessThanOrEqual(db.maxSpreadPx + 1);
+      expect(r, gun).toBeGreaterThan(db.maxSpreadPx * 0.85);
+    }
+    const v = radius('dubbelloop', ['dragon_breath', 'bush_buckshot'], 'voorlaaier');
+    expect(v).toBeLessThanOrEqual(spreadOf('voorlaaier') + 1);
+    // Bush Buckshot alone (no flame) still widens as before.
+    expect(radius('dubbelloop', ['bush_buckshot'])).toBeGreaterThan(spreadOf('dubbelloop') * 2);
   });
 
   it('the flame never reaches a far bird', () => {
