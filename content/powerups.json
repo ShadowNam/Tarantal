@@ -66,7 +66,7 @@
       "needsSight": true
     },
     {
-      "$comment": "v1.19 (D-084) Dragon's Breath (Drakevuur): for 4 shotgun shells, each shot throws a cone of fire: 2.5x the pellets (at most 30) over 2.4x the pattern (at most 240 px, or the gun's own if wider: the Voorlaaier's blast stays a cone), stopping at the mid plane (never far or Ver), and any pellet on a bird is a hit. Shotgun only (needsShotgun). Numbers from the balance sim (docs/balance/shells.md).",
+      "$comment": "v1.19 (D-084) Dragon's Breath (Drakevuur): for 4 shotgun shells, each shot throws a cone of fire: 2.5x the pellets (at most 30) over 2.4x the pattern (at most 240 px, or the gun's own if wider: the Voorlaaier's blast stays a cone), stopping at the mid plane (never far or Ver), and any pellet on a bird is a hit. Shotgun only (needsShotgun). Numbers from the balance sim (docs/balance/v1.19-shells.md).",
       "id": "dragon_breath",
       "effect": {
         "dragonBreath": {
