@@ -5,7 +5,7 @@ import { base } from '../../tools/simHarness';
 import { loadContentHash } from '../../tools/testContent';
 import { contentHash } from '../content/hash';
 import { createSim } from '../sim/Sim';
-import { withBrakkieParams, withWindParams } from './devContent';
+import { withBrakkieParams, withNoBirds, withWindParams } from './devContent';
 
 const mode = { id: 'classic' as const, biome: 'karoo-autumn' };
 
@@ -145,5 +145,36 @@ describe('v1.17 (D-079) test flags', () => {
     const c = withBrakkieParams(base, new URLSearchParams('brakkiePreview=jag'));
     expect(c.brakkie.jag.maxDxPx).toBeGreaterThan(base.brakkie.jag.maxDxPx);
     expect(c.brakkie.demoBagSeconds).toBeUndefined();
+  });
+
+  it('v1.20 review: the fetch-sooner e2e in the sim — shots at the sky every 25 ticks, out by T + delay', () => {
+    // brakkie-jag.spec.ts's boot: ?birds=0&brakkie=1&brakkiePreview=bag on the Karoo, seed 42.
+    const c = withNoBirds(
+      withBrakkieParams(base, new URLSearchParams('brakkie=1&brakkiePreview=bag')),
+    );
+    const s = createSim({ seed: 42, content: c, mode, inputKind: 'pointer' });
+    let last = -999;
+    let n = 0;
+    let shots = 0;
+    for (let i = 0; i < 60 * 30; i++) {
+      const d = s.snapshot().brakkie;
+      if (d?.fetchTick != null && d.queuedTick != null) {
+        const wait = d.fetchTick - d.queuedTick;
+        expect(wait).toBeGreaterThanOrEqual(Math.round(base.brakkie.fetch.delaySeconds * 60));
+        expect(wait).toBeLessThanOrEqual(
+          Math.round((base.brakkie.fetch.delaySeconds + base.brakkie.clear.checkSeconds) * 60) + 2,
+        );
+        expect(shots).toBeGreaterThanOrEqual(3);
+        return;
+      }
+      const fire = d?.queuedTick != null && s.tick - last >= 25;
+      if (fire) {
+        last = s.tick;
+        shots++;
+      }
+      s.step(fire ? [{ t: 'fire', dx: n++ % 2 ? 120 : -120, sy: 200 }] : []);
+      s.drainEvents();
+    }
+    throw new Error('no fetch');
   });
 });

@@ -1167,6 +1167,7 @@ export function createSim(config: SimConfig): Sim {
         gunUp: (holdTicks) => aim !== null || hold !== null || ticksSinceShot < holdTicks,
         wideGun: () => (crateWeapon?.def.spreadPx ?? 0) > dogCfg.clear.wideSpreadPx,
         busyNear: (plane, x, px) => dogBusyAt(plane, x, px) !== null,
+        midBirdNear: (x, px) => birds.some((b) => b.plane === 'mid' && Math.abs(b.x - x) <= px),
         busyAt: (plane, x, px) => dogBusyAt(plane, x, px),
         barkTarget: (dx, maxDx) => {
           let best: { flockId: number; x: number; d: number } | null = null;

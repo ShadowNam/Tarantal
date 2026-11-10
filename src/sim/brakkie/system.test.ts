@@ -71,6 +71,7 @@ function rig(seed = 3, homeSide: 1 | -1 = -1): Rig {
     gunUp: () => state.gunUp,
     wideGun: () => state.wide,
     busyNear: (plane, x, px) => state.busy(plane, x, px),
+    midBirdNear: (x, px) => state.busy('mid', x, px),
     busyAt: (plane, x, px) => (state.busy(plane, x, px) ? x + 1 : null),
     barkTarget: () => state.barkFlock,
     threaten: (flockId, fromX) => {
@@ -664,6 +665,28 @@ describe('Brakkie fetches sooner (v1.20, D-085)', () => {
     const late = t - t0 - secondsToTicks(B.fetch.delaySeconds);
     expect(late).toBeGreaterThanOrEqual(0);
     expect(late).toBeLessThanOrEqual(secondsToTicks(B.clear.checkSeconds) + 1);
+  });
+
+  it('shots every 0.4 s after the bag (misses: a head tilt) never hold him: out by T + delay', () => {
+    const r = rig(38);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    const T = r.state.tick;
+    r.sys.bagged('near', towardCentre(r));
+    const sky = (): { x: number; y: number } => ({ x: -9999, y: -9999 });
+    let fetchAt = -1;
+    for (let i = 0; i < 60 * 4 && fetchAt < 0; i++) {
+      // The gun is up the whole time and a missed shot goes off every 0.4 s.
+      r.state.gunUp = true;
+      // From 0.5 s after the bag: the third miss (a head tilt) lands across his 1.5-s mark.
+      if (i >= 30 && (i - 30) % secondsToTicks(0.4) === 0) r.sys.aimed(sky, true);
+      r.run(1);
+      if (r.sys.view().phase === 'fetch') fetchAt = r.state.tick;
+    }
+    expect(r.sys.view().reactions, 'the misses made him tilt his head').toBeGreaterThan(0);
+    expect(fetchAt - T).toBeGreaterThanOrEqual(secondsToTicks(B.fetch.delaySeconds));
+    expect(fetchAt - T).toBeLessThanOrEqual(
+      secondsToTicks(B.fetch.delaySeconds) + secondsToTicks(B.clear.checkSeconds) + 2,
+    );
   });
 
   it('queues up to 3 birds (fetch.queueMax)', () => {

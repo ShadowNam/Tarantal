@@ -34,6 +34,9 @@ export interface BrakkieHost {
   /** Something a player aims at on the plane's layer within `px` of layer x `x`: a live bird on
    *  that plane, a crate, a secret's part, a meerkat, a tell animal, a tin can, a raider… */
   busyNear(plane: DogPlane, x: number, px: number): boolean;
+  /** v1.20 review: a live bird on the mid plane within `px` of mid layer x `x` (only birds: a
+   *  run under a static target — a tell animal, a secret's part — is no run under pellets). */
+  midBirdNear(x: number, px: number): boolean;
   /** The same, with where the nearest such thing is (layer x), else null. */
   busyAt(plane: DogPlane, x: number, px: number): number | null;
   /** A mid flock foraging or settled whose centre is within `maxDx` screen px of `dx`: its id and
@@ -400,7 +403,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     for (let p = dog.x + dir * step; dir * (x - p) > 0; p += dir * step) {
       const dx = dxOf('near', p);
       if (Math.abs(dx) > B.roam.scamperHalfPx + B.clear.pathPx) continue;
-      if (host.busyNear('mid', midCentre + dx, B.clear.pathPx)) return false;
+      if (host.midBirdNear(midCentre + dx, B.clear.pathPx)) return false;
     }
     return true;
   }
@@ -688,6 +691,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
 
   function startFetch(f: Fetch): void {
     dog.fetchTick = host.tick();
+    dog.react = null;
     dog.fetching = f;
     host.emit({
       type: 'brakkieFetchStarted',
@@ -719,7 +723,9 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
    *  whose spot stays busy is passed over for the next one that is clear. */
   function tryFetch(tick: number): void {
     dropStale(tick);
-    if (dog.queue.length === 0 || !idle() || tick < dog.fetchCheck) return;
+    // v1.20 review: a reaction (a head tilt after misses, a proud hop) never holds a fetch back.
+    if (dog.queue.length === 0 || !(idle() || dog.phase === 'react') || tick < dog.fetchCheck)
+      return;
     dog.fetchCheck = tick + checkTicks;
     // v1.20 (D-085): he goes fetch.delaySeconds after the bag, shooting or not (v1.17's lull rule
     // is gone); sent with the whistle ("Soek!") he goes at once.
@@ -1118,7 +1124,11 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
         if (!roam()) rest();
         return;
       case 'react':
-        if (dog.t < dog.dur) return;
+        if (dog.t < dog.dur) {
+          // v1.20 review: a bird ready to fetch cuts the reaction short.
+          tryFetch(tick);
+          return;
+        }
         dog.react = null;
         rest();
         return;
