@@ -182,7 +182,10 @@ export type DogPhase =
   | 'spring'
   | 'toHeel'
   | 'heel'
-  | 'react';
+  | 'react'
+  // v1.20 (D-085) the Jag card: sprinting at a foraging guineafowl, and the pounce.
+  | 'hunt'
+  | 'pounce';
 /** v1.12 (D-069): how he is drawn (a baked frame strip each). v1.17: point, proud, tilt. */
 export type DogPose =
   | 'trot'
@@ -196,7 +199,8 @@ export type DogPose =
   | 'yelp'
   | 'point'
   | 'proud'
-  | 'tilt';
+  | 'tilt'
+  | 'pounce';
 
 /** v1.13 (D-075): what a cameo visit is doing (each member's frame comes from this and its own
  *  ticks: baked strips in the view). */
@@ -305,6 +309,10 @@ export interface BrakkieView {
   readonly goodPoints: number;
   readonly reactions: number;
   readonly whistles: number;
+  /** v1.20 (D-085) the Jag card while it runs (catches so far of maxCatches), else null; and
+   *  every catch this hunt. */
+  readonly jag: { readonly catches: number; readonly maxCatches: number } | null;
+  readonly catches: number;
 }
 
 /** v1.10 (D-067): a Reënbui as drawn (phase ticks, the alate columns, the swarm's bags). */

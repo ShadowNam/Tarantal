@@ -240,6 +240,9 @@ export type SimEvent =
       readonly flockId: number | null;
       readonly x: number;
       readonly y: number;
+      /** v1.20 (D-085): Brakkie caught it on the Jag card (no shot: shotId -1; no fall, no
+       *  feathers). */
+      readonly byDog?: true;
     }
   | {
       readonly type: 'scoreAwarded';
@@ -1041,6 +1044,37 @@ export type SimEvent =
       readonly x: number;
       readonly y: number;
       readonly points: number;
+    }
+  /** v1.20 (D-085) "Jag, Brakkie!": the card started (he goes for foraging guineafowl). */
+  | { readonly type: 'brakkieJagStarted'; readonly tick: number; readonly maxCatches: number }
+  /** v1.20 (D-085): he pounces on a foraging guineafowl (bird `birdId`) on `plane`. */
+  | {
+      readonly type: 'brakkiePounced';
+      readonly tick: number;
+      readonly birdId: number;
+      readonly plane: 'near' | 'mid';
+      readonly x: number;
+    }
+  /** v1.20 (D-085): he caught it (a bag of that bird: its targetBagged and scoreAwarded come
+   *  with it, `byDog`); `catches` so far on this card. No blood, no struggle: simply caught. */
+  | {
+      readonly type: 'brakkieCaught';
+      readonly tick: number;
+      readonly birdId: number;
+      readonly creature: string;
+      readonly plane: 'near' | 'mid';
+      readonly x: number;
+      readonly y: number;
+      readonly catches: number;
+      readonly points: number;
+    }
+  /** v1.20 (D-085): the card is over — its time ran out, he made maxCatches, he was hit, or a
+   *  wide-spread crate gun came out. */
+  | {
+      readonly type: 'brakkieJagEnded';
+      readonly tick: number;
+      readonly catches: number;
+      readonly why: 'time' | 'max' | 'hit' | 'gun';
     }
   /** v1.13 (D-075): a cameo visit comes in (a mid herd from off the screen, a near one out of the
    *  grass). `visitId` is unique in the hunt. */

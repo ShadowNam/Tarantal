@@ -27,7 +27,7 @@ import type { AudioDirector } from '../audio/AudioDirector';
 import { designSize } from '../layout';
 import { setFootOrigin } from '../view/footOrigin';
 import type { ParallaxView } from '../view/ParallaxView';
-import { crossEase, dogFrame, wagFrame } from './brakkieAnim';
+import { crossEase, dogFrame, POUNCE_CROUCH_TICKS, wagFrame } from './brakkieAnim';
 import { BRAKKIE_SHEET, BRAKKIE_SOUNDS } from './brakkieKeys';
 import {
   MOUTH,
@@ -217,7 +217,15 @@ export interface BrakkieHook {
   goodPoints: number;
   reactions: number;
   whistles: number;
+  /** v1.20 (D-085) the Jag card: its catches so far and cap (null: not running), every catch this
+   *  hunt, and how high the pounce's leap lifts him now (design px on screen, 0 on the ground). */
+  jag: { catches: number; maxCatches: number } | null;
+  catches: number;
+  lift: number;
 }
+
+/** v1.20 (D-085): the pounce's leap at its top (design px at his scale 1). */
+const POUNCE_LIFT_PX = 46;
 
 /** v1.17 (D-079): the command words shown over him (the lazy guide tables, from the scene: ''
  *  while they are not in yet — then no word). */
@@ -268,6 +276,8 @@ export class BrakkieView {
   private frame: BrakkieFrame | null = null;
   private shown = false;
   private birdShown = false;
+  /** v1.20 (D-085): the pounce's lift this frame (design px on his layer). */
+  private lift = 0;
   private flip = false;
   private x = NaN;
   private y = NaN;
@@ -309,6 +319,9 @@ export class BrakkieView {
     goodPoints: 0,
     reactions: 0,
     whistles: 0,
+    jag: null,
+    catches: 0,
+    lift: 0,
   };
 
   constructor(private readonly s: BrakkieViewSetup) {
@@ -450,6 +463,14 @@ export class BrakkieView {
         scale = fs + (ts - fs) * p;
       }
     }
+    // v1.20 (D-085): the pounce's leap: up in an arc after the crouch, down on the bird.
+    let lift = 0;
+    if (d.pose === 'pounce' && d.t >= POUNCE_CROUCH_TICKS && d.dur > POUNCE_CROUCH_TICKS) {
+      const p = Math.min(1, (d.t - POUNCE_CROUCH_TICKS) / (d.dur - POUNCE_CROUCH_TICKS));
+      lift = Math.sin(Math.PI * p) * POUNCE_LIFT_PX * scale;
+      y -= lift;
+    }
+    this.lift = lift;
     if (!this.moveTo(layerId)) {
       this.hide();
       this.lastMs = this.s.now() - t0;
@@ -627,6 +648,9 @@ export class BrakkieView {
     h.goodPoints = d.goodPoints;
     h.reactions = d.reactions;
     h.whistles = d.whistles;
+    h.jag = d.jag === null ? null : { catches: d.jag.catches, maxCatches: d.jag.maxCatches };
+    h.catches = d.catches;
+    h.lift = Math.round(this.lift);
     h.word = this.word.visible ? this.wordText : null;
     const ml = this.markerLayer === null ? undefined : this.s.parallax.layer(this.markerLayer);
     h.marker =

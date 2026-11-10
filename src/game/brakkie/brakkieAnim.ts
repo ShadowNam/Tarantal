@@ -17,6 +17,9 @@ export const DIG_TICKS = 6;
 /** v1.17 (D-079): the point's quiver and the proud hop. */
 export const POINT_TICKS = 4;
 export const PROUD_TICKS = 12;
+/** v1.20 (D-085) the Jag card's pounce: a crouch (the proud hop's), then the leap (a stretched
+ *  run frame) — his own frames, no new art. */
+export const POUNCE_CROUCH_TICKS = 9;
 
 const alt = (t: number, every: number): boolean => Math.floor(t / every) % 2 === 0;
 
@@ -48,6 +51,8 @@ export function dogFrame(v: Pick<BrakkieView, 'present' | 'pose' | 't'>): Brakki
       return alt(v.t, PROUD_TICKS) ? 'proud_a' : 'proud_b';
     case 'tilt':
       return 'tilt';
+    case 'pounce':
+      return v.t < POUNCE_CROUCH_TICKS ? 'proud_a' : 'run_a';
   }
 }
 

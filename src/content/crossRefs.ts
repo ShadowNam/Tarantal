@@ -550,6 +550,13 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     if (m === 'ftue' || m === 'range' || m === 'harvest')
       err('brakkie.json', `mode "${m}" never has Brakkie (GDD §11.3f)`);
   if (brakkie.seasonKinds.includes('boss')) err('brakkie.json', 'no Brakkie in a boss hunt (GDD §11.3f)');
+  // v1.20 (D-085): the Jag card hunts only guineafowl (targets, never a penalty animal).
+  for (const c of brakkie.jag.creatures) {
+    const def = birds.creatures.find((x) => x.id === c);
+    if (def === undefined) err('brakkie.json', `jag at unknown creature "${c}"`);
+    else if (def.kind !== 'target' || !c.startsWith('tarentaal'))
+      err('brakkie.json', `jag hunts only guineafowl targets, not "${c}"`);
+  }
   if (brakkie.demoFetchSeconds !== undefined)
     err('brakkie.json', 'demoFetchSeconds is for test builds only (?brakkiePreview=fetch)');
   if (brakkie.demoProudSeconds !== undefined)

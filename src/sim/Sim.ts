@@ -99,7 +99,14 @@ import {
   type ActivePowerup,
   type SpecialShell,
 } from './powerups';
-import { crateView, scheduleCrates, spawnCrate, tickCrate, type Crate } from './props/crates';
+import {
+  crateView,
+  rollCrate,
+  scheduleCrates,
+  spawnCrate,
+  tickCrate,
+  type Crate,
+} from './props/crates';
 import {
   activeParts,
   buildSecrets,
@@ -1180,6 +1187,31 @@ export function createSim(config: SimConfig): Sim {
         },
         canFlush: (size) => dogCanFlush(size),
         bonus: (id, base) => awardBonus(id, base),
+        jagTarget: (fromDx, maxDx) => {
+          let best: { birdId: number; plane: 'near' | 'mid'; x: number; d: number } | null = null;
+          for (const b of birds) {
+            if (!jagPrey(b)) continue;
+            const plane = b.plane === 'near' ? 'near' : 'mid';
+            const dx = planeToDx(cameraX, planeGeo[plane].scrollFactor, b.x);
+            if (Math.abs(dx) > maxDx) continue;
+            const d = Math.abs(dx - fromDx);
+            if (best === null || d < best.d) best = { birdId: b.id, plane, x: b.x, d };
+          }
+          return best === null ? null : { birdId: best.birdId, plane: best.plane, x: best.x };
+        },
+        jagBird: (birdId) => {
+          const b = birds.find((x) => x.id === birdId);
+          if (b === undefined || !onGround(b)) return null;
+          return { plane: b.plane === 'near' ? 'near' : 'mid', x: b.x };
+        },
+        jagCatch: (birdId) => dogCatch(birdId, dogRng),
+        jagEnded: () => {
+          const ids = powerups.filter((p) => p.def.effect.brakkieJag !== undefined);
+          for (const p of ids) {
+            powerups.splice(powerups.indexOf(p), 1);
+            emit({ type: 'powerupEnded', tick, powerup: p.def.id });
+          }
+        },
         flush: (x, size) => {
           if (!dogCanFlush(size)) return null;
           const f = director.spawnFlockAt(
@@ -1799,6 +1831,8 @@ export function createSim(config: SimConfig): Sim {
     // v1.19 (D-084): a special shell takes the other one's place.
     endPowerups(activate(powerups, def));
     emit({ type: 'powerupStarted', tick, powerup: id, source });
+    // v1.20 (D-085): "Jag, Brakkie!"
+    if (def.effect.brakkieJag !== undefined) brakkie?.jag(def.effect.brakkieJag.maxCatches);
   }
 
   /** v1.6b: a reload step (or the Kettie draw, or the Voorlaaier ramrod) with power-ups applied.
@@ -1831,7 +1865,11 @@ export function createSim(config: SimConfig): Sim {
   }
 
   function endPowerups(ids: readonly string[]): void {
-    for (const id of ids) emit({ type: 'powerupEnded', tick, powerup: id });
+    for (const id of ids) {
+      emit({ type: 'powerupEnded', tick, powerup: id });
+      // v1.20 (D-085): the Jag card's time ran out.
+      if (brakkieOnly.includes(id)) brakkie?.jagStop();
+    }
   }
 
   function armWeapon(id: string): void {
@@ -3230,6 +3268,96 @@ export function createSim(config: SimConfig): Sim {
     return paid;
   }
 
+  // --- v1.20 (D-085) the Jag card ------------------------------------------------------------
+  const jagCreatures: ReadonlySet<string> = new Set(content.brakkie.jag.creatures);
+  /** Power-ups only Brakkie can use (the Jag card). */
+  const brakkieOnly: readonly string[] = content.powerups.powerups
+    .filter((p) => p.needsBrakkie === true)
+    .map((p) => p.id);
+
+  /** A guineafowl walking on the ground (its flock still in reach of a dog). */
+  function onGround(b: Bird): boolean {
+    return (
+      (b.plane === 'near' || b.plane === 'mid') &&
+      b.fm !== null &&
+      (b.phase === 'walk' || b.phase === 'alert' || b.phase === 'run')
+    );
+  }
+
+  /** What the Jag card goes for: a guineafowl foraging on the ground (never one in the air, never
+   *  another species or a penalty animal). */
+  function jagPrey(b: Bird): boolean {
+    if (b.creature.kind !== 'target' || !jagCreatures.has(b.creature.id)) return false;
+    if (!onGround(b) || b.phase !== 'walk' || b.fm === null) return false;
+    const flockId = b.fm.flockId;
+    return flocks.some((f) => f.id === flockId && f.state === 'forage');
+  }
+
+  /** Brakkie catches bird `birdId`: a bag of it (its normal score × Frenzy × Stampede; no shot,
+   *  so the streak, the charms and the shot bonuses stay as they are), and the rest of its flock
+   *  flushes (wing shots for the gun). */
+  function dogCatch(
+    birdId: number,
+    dogRng: RandomStream,
+  ): { creature: string; y: number; points: number } | null {
+    const bird = birds.find((b) => b.id === birdId);
+    if (bird === undefined || !onGround(bird)) return null;
+    const c = bird.creature;
+    if (c.kind !== 'target') return null;
+    const behaviour = behaviourOf(bird);
+    const flockId = bird.fm?.flockId ?? null;
+    emit({
+      type: 'targetBagged',
+      tick,
+      shotId: -1,
+      birdId: bird.id,
+      creature: c.id,
+      plane: bird.plane,
+      behaviour,
+      flockId,
+      x: bird.x,
+      y: bird.y,
+      byDog: true,
+    });
+    const s = scoreBag(
+      {
+        base: mapPoints(c.baseOverride ?? scoring.planes[bird.plane].base, bird.plane),
+        behaviourAdd: scoring.behaviourAdd[behaviour],
+        weaponScoreMul: 1,
+        frenzyMul: frenzyMul(streak, scoring.frenzyTiers),
+        stampedeMul: stampedeMul(),
+        countdownMul: countdownMul(),
+        ...(reenbui === null ? {} : { reenbuiMul: reenbui.scoreMul() }),
+      },
+      [],
+    );
+    score += s.award;
+    if (countdownCfg !== null && countdownActive()) countdownPoints += s.award;
+    emit({
+      type: 'scoreAwarded',
+      tick,
+      birdId: bird.id,
+      points: s.points,
+      mult: s.mult,
+      award: s.award,
+      breakdown: s.breakdown,
+    });
+    stats.bagged++;
+    reenbui?.bagged();
+    stats.baggedByPlane[bird.plane]++;
+    if (c.doppiesDrop !== undefined) addDoppies(c.doppiesDrop, bird.id);
+    const gone = new Set([bird.id]);
+    birds = birds.filter((b) => !gone.has(b.id));
+    emit({ type: 'birdDespawned', tick, birdId: bird.id, reason: 'bagged' });
+    pruneFlocks(gone, 'bagged');
+    const f = flocks.find((x) => x.id === flockId);
+    if (f !== undefined && f.members.length > 0 && f.state !== 'flush') {
+      emit({ type: 'flockThreatened', tick, flockId: f.id, source: 'dog' });
+      emitTransition(f, forceState(f, 'flush', bird.x, 'event', fParams, dogRng));
+    }
+    return { creature: c.id, y: bird.y, points: s.award };
+  }
+
   // --- crates ------------------------------------------------------------------------------
   /** Table ids this hunt's crates can't hold: rifle-only power-ups without a sight (D-055),
    *  special shells without a shotgun (D-084). */
@@ -3238,8 +3366,13 @@ export function createSim(config: SimConfig): Sim {
     if (crateSkipSet === null) {
       const skip = new Set<string>(sight === null ? sightOnly : noSkip);
       if (weapon.shotgun !== true) for (const id of shotgunOnly) skip.add(id);
+      // v1.20 (D-085): the Jag card only where Brakkie comes along.
+      if (brakkie === null) for (const id of brakkieOnly) skip.add(id);
       crateSkipSet = skip;
     }
+    // …and only while he can take it (not bolted from a hit, no wide gun out).
+    if (brakkie !== null && !brakkie.canJag() && brakkieOnly.length > 0)
+      return new Set([...crateSkipSet, ...brakkieOnly]);
     return crateSkipSet;
   }
 
@@ -3274,8 +3407,11 @@ export function createSim(config: SimConfig): Sim {
     const c = crates.find((x) => x.id === id);
     if (c === undefined) return;
     crates = crates.filter((x) => x.id !== id);
-    // v1.7b (D-046): rolled when it dropped (props/crates.ts).
-    const item = c.item;
+    // v1.7b (D-046): rolled when it dropped (props/crates.ts). v1.20 (D-085): a Jag card Brakkie
+    // can't take now (bolted from a hit, a wide gun out) rolls again without it.
+    let item = c.item;
+    if (item !== null && brakkieOnly.includes(item.id) && brakkie?.canJag() !== true)
+      item = rollCrate(crateCfg, rng.stream('crates'), crateSkip());
     if (item === null) return;
     stats.crates++;
     emit({
@@ -3822,6 +3958,8 @@ export function createSim(config: SimConfig): Sim {
     // v1.19 (D-084): a special shell waits in its slot while no shotgun is in hand.
     const pu = content.powerups.powerups.find((p) => p.id === id);
     if (pu?.needsShotgun === true && !shotStats().shotgun) return;
+    // v1.20 (D-085): the Jag card waits in its slot while Brakkie can't hunt.
+    if (pu?.needsBrakkie === true && brakkie?.canJag() !== true) return;
     consumables[slot] = null;
     consumablesUsed.push(slot);
     emit({ type: 'consumableUsed', tick, slot, item: id, itemType: 'powerup' });
@@ -4005,7 +4143,13 @@ export function createSim(config: SimConfig): Sim {
         emit({ type: 'weaponChanged', tick, weapon: weapon.id, kind: 'primary' });
       }
     }
-    endPowerups(tickPowerups(powerups));
+    // v1.20 (D-085): the Jag card's clock holds while Brakkie carries a catch home.
+    endPowerups(
+      tickPowerups(
+        powerups,
+        brakkie?.jagHeld() === true ? (p) => p.def.effect.brakkieJag !== undefined : undefined,
+      ),
+    );
     if (gadgetCooldown > 0) gadgetCooldown--;
     if (rainSpells.length > 0 && raining() !== wasRaining) {
       wasRaining = !wasRaining;

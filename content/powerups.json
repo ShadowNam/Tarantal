@@ -90,6 +90,16 @@
       "durationShells": 3,
       "padstalPrice": 3,
       "needsShotgun": true
+    },
+    {
+      "$comment": "v1.20 (D-085) Jag, Brakkie!: for 10 s of hunting (the clock holds while he carries a catch home and is at the bakkie) Brakkie sprints at guineafowl foraging on the ground (near plane, or the mid ground in reach; never birds in the air, other species or a penalty animal) and catches up to 3 (brakkie.json jag). Each catch is a bag of that bird (its normal score x Frenzy x Stampede), then Bring! +15 when he delivers it; catches count toward Goeie hond!. The rest of the flock flushes. Shooting at him (-25) or any hit on him ends it. Only where Brakkie comes along (needsBrakkie): crates elsewhere roll another power-up; a Padstal card waits in its slot. Numbers from the balance sim (docs/balance/v1.20-jag.md).",
+      "id": "brakkie_jag",
+      "effect": {
+        "brakkieJag": { "maxCatches": 3 }
+      },
+      "durationMs": 10000,
+      "padstalPrice": 3,
+      "needsBrakkie": true
     }
   ],
   "reloadFloorMs": 150,
@@ -152,6 +162,10 @@
       },
       {
         "id": "slug",
+        "weight": 10
+      },
+      {
+        "id": "brakkie_jag",
         "weight": 10
       },
       {

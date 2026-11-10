@@ -41,11 +41,16 @@ export function activate(list: ActivePowerup[], def: PowerupDef): string[] {
   return replaced;
 }
 
-/** Advances timers; returns the ids that ran out (in list order) and removes them. */
-export function tickPowerups(list: ActivePowerup[]): string[] {
+/** Advances timers; returns the ids that ran out (in list order) and removes them. v1.20
+ *  (D-085): a power-up `held` says is held keeps its time this tick (the Jag card while Brakkie
+ *  carries a catch home). */
+export function tickPowerups(
+  list: ActivePowerup[],
+  held?: (p: ActivePowerup) => boolean,
+): string[] {
   const ended: string[] = [];
   for (const p of list) {
-    if (p.ticksLeft !== null) {
+    if (p.ticksLeft !== null && held?.(p) !== true) {
       p.ticksLeft--;
       if (p.ticksLeft <= 0) ended.push(p.def.id);
     }

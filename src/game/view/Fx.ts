@@ -169,6 +169,8 @@ export class Fx {
         }
         case 'targetBagged':
           this.bagged.set(e.birdId, { plane: e.plane, x: e.x, y: e.y });
+          // v1.20 (D-085): a bird Brakkie caught is simply caught (no feathers, no puff).
+          if (e.byDog === true) break;
           this.featherBurst(e.plane, e.x, e.y);
           this.poof(e.plane, e.x, e.y);
           break;
