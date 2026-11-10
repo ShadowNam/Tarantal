@@ -4780,7 +4780,11 @@ grizzled back, hands at the chest. Same frame names, cells, anchors and sheet si
   flame never meets far or Ver layers, `flameReach`); any pellet on a bird is a hit (one armour or
   hit off a boss, as a normal hit). The Dubbelloop throws 20 pellets over 168 px, the Pomp 15
   over 144, the Voorlaaier 30 over its own 300 (uncapped it would have been 60 over 720: a
-  screen-clearer). Birds it bags go down in a singed puff.
+  screen-clearer). The cap holds after every multiplier (review): the pattern is
+  min(own × 2.4 × the power-ups' spreadMul, max(own, 240)), so Bush Buckshot (×2.5) stacked with it
+  adds nothing past the cap — before the fix the two threw the flame ~407 px (the Voorlaaier
+  ~727 px), every pellet a hit; now 240 (the Voorlaaier 300). Bush Buckshot keeps working on its
+  own and on every other shot. Birds it bags go down in a singed puff.
 - *The Slug* (Koeëlpatroon), 3 shells: one ball, no spread (hip or not), reaches far and Ver,
   wind sensitivity 1.2 (a shotgun's 0.4, the .22's 0.6, the Langloop's 0.5), and what it hits is
   bagged in one: a bird's armour and a boss's hits go at once, a two-hit warthog (or a Phase 2
@@ -4798,7 +4802,23 @@ grizzled back, hands at the chest. Same frame names, cells, anchors and sheet si
   the other large flashes) and is drawn 55 % as long and dimmer when refused or with "reduce
   flashes". The Slug: a small tight muzzle flash (0.55×) and a heavy boom. Synth sounds through
   `playExtra` (a recording under `sfx/shell_*` would win). Two shell icons in the late group.
-- Test builds: `?crate=dragon_breath|slug` (as before) and `?coneHold=1` (cones stay for a grab).
+- Test builds: `?crate=dragon_breath|slug` (as before) and `?coneHold=1` (cones stay for a grab);
+  e2e hooks `__TM_SPEND_FLASHES__` (the second's flash budget spent, `FlashLimiter.exhaust`: the
+  next cone must be small on any machine) and `__TM_SHED_SCROLL__` (the Power-ups list).
+- The effects' chunk loads when a shotgun hunt starts or a crate with a shell drops (review: on
+  `powerupStarted` alone, the first shot on a slow network had no cone or sound).
+- Tests (review round): the pattern tests use each gun's real spread (the harness's `quiet()` sets
+  them to 0); the Slug bags a two-hit warthog, a yearling and a Phase 2 baboon in one and reaches a
+  Ver bird; pixel checks for the Power-ups tab's shell icons and crate-gun side views.
+
+**Balance, review round** (`docs/balance/v1.19-shells.md`, after the cap fix): the Pomp per area
+(Classic, 500 seeds per bot) within −1.7 … +1.3 %; stacks in Season hunts (the Karoo, 200 seeds,
+the competent bot, the consumables and the Voorlaaier rental used together): Dragon's Breath +1.6 %
+(Dubbelloop) / −3.4 % (Pomp) against no power-ups, Dragon's Breath + Bush Buckshot −1.1 % / −8.7 %,
+the Voorlaaier with both −6.0 % / −9.1 %, the Slug −0.2 % / +2.4 % — no stack scores more than
+the shells alone; Season Runs (200 runs, 12 hunts): every season's gate passes before and after
+(`synergy`, which buys the shells: herfs 0.93 → 0.93, winter 0.74 → 0.77, spring 0.57 → 0.65,
+summer 0.40 → 0.37).
 
 **Balance** (`docs/balance/v1.19-shells.md`; Classic, 500 seeds per bot, the Dubbelloop, pointer
 and touch, main 412128d3 → branch, mean score): every area within −1.7 … +3.7 % (competent
