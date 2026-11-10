@@ -126,10 +126,15 @@ export class CanView {
 
   /** One frame: the fence (built once) and every can, interpolated between the last two ticks. */
   update(s: SimState, prev: SimState | null, alpha: number): void {
-    const t0 = performance.now();
     const c = s[this.which];
     this.last = c ?? null;
-    if (c === undefined || !this.ensureFrames()) {
+    // No cans on this map: nothing drawn, nothing to time (perf: the clock read is the cost).
+    if (c === undefined) {
+      this.ms = 0;
+      return;
+    }
+    const t0 = performance.now();
+    if (!this.ensureFrames()) {
       this.ms = performance.now() - t0;
       return;
     }

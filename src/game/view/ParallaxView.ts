@@ -82,6 +82,8 @@ const CULL_MARGIN_PX = 96;
 export class ParallaxView {
   readonly layers: readonly LayerNode[];
   private readonly byPlane = new Map<PlaneId, LayerNode>();
+  /** Layers by id (layer() is asked many times a frame by the views). */
+  private readonly byId = new Map<string, LayerNode>();
   /** Per layer (same order as `layers`): static art, hidden while off screen (M9 perf). */
   private readonly statics: StaticArt[][] = [];
   /** v1.7c (D-047): the light's tint per layer id (applyLight), for sprites added later. */
@@ -339,6 +341,8 @@ export class ParallaxView {
       };
       nodes.push(node);
       if (plane !== null) this.byPlane.set(plane, node);
+      // The first layer with an id wins, as a find over the list would.
+      if (!this.byId.has(node.id)) this.byId.set(node.id, node);
     }
     this.layers = nodes;
     // v1.6 (D-042): the biome's fair-weather cloud deck on the sky layer.
@@ -818,7 +822,7 @@ export class ParallaxView {
 
   /** A layer by id (secrets live on any layer). */
   layer(id: string): LayerNode | undefined {
-    return this.layers.find((l) => l.id === id);
+    return this.byId.get(id);
   }
 
   /** Screen x (design px) of a point at layer x on plane p (zoomed while a sight is up). */

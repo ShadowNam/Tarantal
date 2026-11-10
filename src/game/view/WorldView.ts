@@ -265,7 +265,9 @@ export class WorldView {
       const spot = crateTagSpot(chute);
       const r = spot.r * scale;
       tag.box.setPosition(c.x + spot.dx * scale, c.y + spot.dy * scale);
-      tag.disc.setRadius(r).setStrokeStyle(Math.max(3, 9 * scale), 0x1b1410, 1);
+      // Perf: a new radius rebuilds the disc's outline (and its fill's triangles): only on change.
+      if (tag.disc.radius !== r) tag.disc.setRadius(r);
+      tag.disc.setStrokeStyle(Math.max(3, 9 * scale), 0x1b1410, 1);
       if (fresh && art.icon !== null) tag.pic.setTexture(art.icon);
       tag.pic.setDisplaySize(r * 1.7, r * 1.7);
     }
@@ -377,8 +379,11 @@ export class WorldView {
       if (m.img.visible !== on) m.img.setVisible(on);
       if (!on) continue;
       const look = mirageLook(m, t, still);
-      m.img.setAlpha(look.alpha * strength);
-      m.img.setScale(m.sx * look.scaleX, m.img.scaleY);
+      // Set only on change (a held frame, or a still mirage, changes nothing).
+      const alpha = look.alpha * strength;
+      if (m.img.alpha !== alpha) m.img.setAlpha(alpha);
+      const sx = m.sx * look.scaleX;
+      if (m.img.scaleX !== sx) m.img.setScale(sx, m.img.scaleY);
     }
   }
 
