@@ -279,7 +279,8 @@
         "penalty": 100,
         "cooldownSeconds": 2,
         "duckSeconds": 1,
-        "leavePx": 5000
+        "leavePx": 5000,
+        "leaveSeconds": 1.8
       },
       "hole": {
         "youngPerMin": 4,

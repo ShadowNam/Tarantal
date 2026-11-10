@@ -1924,6 +1924,10 @@ const harvestSchema = modeSetupSchema.extend({
     /** v1.18 (D-081): Phase 2: they walk off to the farmhouse this far right of the gap (plane
      *  scale 1; past the layer's end) and are gone. */
     leavePx: pos,
+    /** v1.18 (D-081, review): the walk off takes this long (no longer than phase2.bannerSeconds,
+     *  so nobody is in the line of fire when Phase 2's clock starts). They can't be hit once they
+     *  set off. */
+    leaveSeconds: pos,
   }),
   /** v1.18 (D-081): the small hole (the map's harvest.hole): young warthogs (yearlings: drawn
    *  youngScale of an adult, youngHitsToBag hits, youngPointsMul × a guineafowl's base) come
@@ -2004,6 +2008,14 @@ const harvestSchema = modeSetupSchema.extend({
    *  layer art (tools/art/biomes/oes.ts) and the gap panel are drawn to it
    *  (harvestSheet.ts FENCE_POST_H = this × the mid plane's scale). */
   fence: obj({ postPx: pos }),
+}).superRefine((h, ctx) => {
+  // v1.18 (D-081, review): the workers are off the field before Phase 2's first arrival.
+  if (h.workers.leaveSeconds > h.phase2.bannerSeconds)
+    ctx.addIssue({
+      code: 'custom',
+      path: ['workers', 'leaveSeconds'],
+      message: 'the workers must be gone by the end of the Phase 2 banner (<= phase2.bannerSeconds)',
+    });
 });
 export type HarvestSetup = z.infer<typeof harvestSchema>;
 

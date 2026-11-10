@@ -170,6 +170,8 @@ interface Worker {
   duckLeft: number;
   /** v1.18 (D-081): gone to the farmhouse (Phase 2): not drawn, not hittable. */
   away: boolean;
+  /** v1.18 (D-081, review): the walk off's speed (layer px a tick): off by the banner's end. */
+  leaveV: number;
   cooldown: number;
 }
 
@@ -352,6 +354,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
       duckLeft: 0,
       cooldown: 0,
       away: false,
+      leaveV: 0,
     };
   });
   // v1.18 (D-081): Phase 2 (made when it unlocks).
@@ -364,6 +367,9 @@ export const createHarvestSystem: HarvestSystemFactory = (
   let direct = P2.direct === true;
 
   const speed = (pxPerSec: number, scale: number): number => (pxPerSec * scale) / 60;
+  /** v1.18 (D-081): where a worker walks off to (the farmhouse, past the layer's end). */
+  const leaveX = (w: Worker): number => gapX + H.workers.leavePx * w.scale;
+  const leaveTicks = Math.max(1, secondsToTicks(H.workers.leaveSeconds));
   const live = (): number => warthogs.filter((w) => !w.gone && w.phase !== 'tumble').length;
 
   function spawn(spot: DigSpot, pigletCount: number, young = false): void {
@@ -551,8 +557,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
       // Off to the farmhouse along the fence, away from the field (the gap's far side).
       w.facing = 1;
       const o = { x: w.x, y: w.y };
-      if (moveTo(o, gapX + H.workers.leavePx * w.scale, w.y, speed(H.workers.runPxPerSec, w.scale)))
-        w.away = true;
+      if (moveTo(o, leaveX(w), w.y, w.leaveV)) w.away = true;
       w.x = o.x;
       return;
     }
@@ -617,9 +622,12 @@ export const createHarvestSystem: HarvestSystemFactory = (
     phase = 'banner';
     bannerEnd = host.tick() + bannerTicks;
     if (holeOpen) holeOpen = false;
+    // They set off now and are gone within the banner (leaveSeconds <= bannerSeconds); from this
+    // tick on they are out of the line of fire: never hittable again.
     for (const w of workers) {
       w.phase = 'leave';
       w.t = 0;
+      w.leaveV = Math.max(1, Math.abs(leaveX(w) - w.x)) / Math.max(1, leaveTicks - 1);
     }
     p2 = createPhase2(H, host.baboonTuning, phase2Geometry(), host.phase2Rng, host, () => nextId++);
     host.emit({ type: 'phase2Unlocked', tick: host.tick(), score });
@@ -817,7 +825,8 @@ export const createHarvestSystem: HarvestSystemFactory = (
         add(p.spot.layerId, { kind: 'harvest', harvestId: p.id, ...sh });
     }
     for (const w of workers) {
-      if (w.away) continue;
+      // v1.18 (D-081, review): walking off to the farmhouse (Phase 2): out of the line of fire.
+      if (w.away || w.phase === 'leave') continue;
       for (const sh of workerShapes(w)) add(w.layerId, { kind: 'harvest', harvestId: w.id, ...sh });
     }
     p2?.extras(add);
@@ -925,7 +934,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
         continue;
       }
       const k = workers.find((x) => x.id === id);
-      if (k === undefined) continue;
+      if (k === undefined || k.away || k.phase === 'leave') continue;
       const aimed = !hitTarget && !hitWarthog && aimedAt(workerShapes(k), aimOn(k.layerId));
       let points = 0;
       if (aimed && k.cooldown === 0) {
