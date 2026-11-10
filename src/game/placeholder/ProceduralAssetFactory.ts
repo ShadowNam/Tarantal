@@ -1334,6 +1334,7 @@ function m4Specs(): CanvasSpec[] {
         [TEX.puRooikol, '#E8241A', 'disc'],
         [TEX.puDragonBreath, '#A8161A', 'shell'],
         [TEX.puSlug, '#3F6E4A', 'shell'],
+        [TEX.puBrakkieJag, '#C9823F', 'disc'],
       ] as const
     ).map(([key, colour, shape]) =>
       centred(key, 128, 128, (ctx) => {

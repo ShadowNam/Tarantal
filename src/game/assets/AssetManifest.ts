@@ -1111,6 +1111,8 @@ export const TEX = {
   // v1.19 (D-084): the special shells.
   puDragonBreath: 'ui/pu_dragon_breath',
   puSlug: 'ui/pu_slug',
+  // v1.20 (D-085): the Jag, Brakkie! card.
+  puBrakkieJag: 'ui/pu_brakkie_jag',
   bolt: 'fx/bolt',
   // v1.4 B (D-039): angry sociable weavers (WeaverView), shared by every biome with a nest.
   weaverUp: 'fx/weaver_up',

@@ -1354,6 +1354,55 @@ function puSlug(p: SpriteCtx): string {
   );
 }
 
+/** v1.20 (D-085) Jag, Brakkie! icon: Brakkie's head (a white Jack Russell with tan ear and eye
+ *  patches, a black nose, a red collar) looking up keenly to the right, one white paw raised in
+ *  front, and a spotted guineafowl feather behind him: "go get them". */
+function puBrakkieJag(p: SpriteCtx): string {
+  const white = tone('#F4EFE4', 0.2, 0.12);
+  const tan = tone('#C9823F', 0.3, 0.3);
+  const red = tone('#C8302A', 0.3, 0.3);
+  const grey = tone('#3C4652', 0.3, 0.3);
+  return g(
+    { transform: 'translate(0 0)' },
+    // The guineafowl feather behind his head: slate grey with white spots.
+    inked('M-24 20Q-30 -6 -14 -27Q-12 -10 -18 18Z', grey.fill, p.ink, 2),
+    flat(ellipseD(-21, -6, 1.6, 1.6), '#FFFFFF'),
+    flat(ellipseD(-18, -14, 1.4, 1.4), '#FFFFFF'),
+    flat(ellipseD(-22, 4, 1.6, 1.6), '#FFFFFF'),
+    flat(ellipseD(-19, 11, 1.4, 1.4), '#FFFFFF'),
+    // Neck and chest (white), then the red collar.
+    inked('M-12 27Q-14 12 -6 4L12 4Q18 14 16 27Z', white.fill, p.ink, 2.6),
+    flat('M8 8Q14 16 13 26L10 26Q11 16 5 8Z', white.dark),
+    inked('M-9 6Q2 11 15 6L16 11Q2 16 -10 11Z', red.fill, p.ink, 2),
+    inked(ellipseD(3, 14, 2.6, 2.6), '#E9C14A', p.ink, 1.4),
+    // The head: a broad skull, a muzzle out to the right, the tan patch over his eye and ear.
+    inked(
+      'M-12 2Q-16 -18 -2 -24Q12 -27 18 -16L26 -12Q29 -9 26 -6L16 -2Q6 4 -4 4Q-10 4 -12 2Z',
+      white.fill,
+      p.ink,
+      2.6,
+    ),
+    flat('M-8 -18Q-2 -24 8 -22Q6 -14 -2 -10Q-8 -12 -8 -18Z', tan.fill),
+    // The folded ear (tan) flopping forward at the top of his head.
+    inked('M-10 -20Q-14 -32 -2 -30Q4 -26 0 -20Z', tan.fill, p.ink, 2),
+    flat('M-8 -22Q-10 -29 -3 -28Q0 -25 -2 -22Z', tan.dark),
+    // Eye, nose, mouth.
+    inked(ellipseD(6, -15, 2.4, 2.6), '#2A1A10', p.ink, 1.2),
+    flat(ellipseD(6.8, -16, 0.8, 0.9), '#FFFFFF'),
+    inked(ellipseD(26, -10, 3, 2.4), '#1A1A1A', p.ink, 1.2),
+    line('M24 -5Q19 -3 15 -4', { ink: p.ink, w: 1.6 }),
+    // The raised front paw (white with a tan mark), toes pointing forward.
+    inked(
+      'M4 27Q2 20 10 16L20 14Q26 14 26 19Q26 23 20 23L14 24Q12 26 12 27Z',
+      white.fill,
+      p.ink,
+      2.4,
+    ),
+    line('M20 15.5L21 22M23 15.5L24 21.5', { ink: white.dark, w: 1.4 }),
+    flat('M6 25Q6 20 10 18L12 20Q9 22 9 25Z', tan.light),
+  );
+}
+
 /** v1.6b (D-043) Blitslaai's glint on the belt: a small spark of lightning (a local sprite). */
 function boltGlint(p: SpriteCtx): string {
   return g(
@@ -1450,6 +1499,7 @@ export const SPRITES: readonly SpriteSpec[] = [
       ['rooikol', puRooikol],
       ['dragon_breath', puDragonBreath],
       ['slug', puSlug],
+      ['brakkie_jag', puBrakkieJag],
     ] as const
   ).map(([id, draw]) => ({
     key: `ui/pu_${id}`,
