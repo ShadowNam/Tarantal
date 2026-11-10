@@ -969,6 +969,10 @@ export function createSim(config: SimConfig): Sim {
   // v1.8c (D-063): the Harvest (its own stream `harvest`; lazy chunk like the baboons). The hunt
   // gets its intro before the clock and its outro after it.
   let harvest: HarvestSystem | null = null;
+  /** v1.18 (D-081, review): Phase 2 unlocked: no new raids, flocks or pop-ups. */
+  let harvestHeld = false;
+  /** v1.18 (D-081, review): how fast the flocks left in the field fly off when it unlocks. */
+  const harvestFlockLeavePxPerTick = content.modes.modes.harvest.phase2.flockLeavePxPerSec / 60;
   if (mode.id === 'harvest') {
     if (biome.harvest === undefined)
       throw new Error('the Harvest needs a map with harvest geometry');
@@ -3938,6 +3942,23 @@ export function createSim(config: SimConfig): Sim {
     tells?.step();
     baboons?.step();
     harvest?.step();
+    // v1.18 (D-081, review): from Phase 2's unlock the field is its own: no more raids (the raid
+    // in hand ends cleanly), flocks or pop-ups (those up duck back into the grass).
+    if (!harvestHeld && harvest?.holdsSpawns() === true) {
+      harvestHeld = true;
+      baboons?.holdRaids();
+      // The flocks the rush's end flushed fly off the field (the nearer end) and don't land again.
+      const leave = harvestFlockLeavePxPerTick;
+      for (const f of flocks)
+        if (f.members.length > 0) {
+          if (f.state !== 'flush')
+            emitTransition(f, forceState(f, 'flush', centroid(f).x, 'event', fParams, flockRng));
+          f.dir = centroid(f).x < f.coreWidth / 2 ? -1 : 1;
+          f.leavePxPerTick = leave;
+        }
+      for (const b of birds)
+        if (b.motion === 'popup' && b.phase !== 'duck') enterBirdPhase(b, 'duck');
+    }
     reenbui?.step();
     brakkie?.step();
     cameos?.step();
@@ -3955,8 +3976,8 @@ export function createSim(config: SimConfig): Sim {
 
     if (ranged) rangeStep();
     else {
-      addBirds(director.tick(directorContext()));
-      spawnFlocks();
+      addBirds(director.tick({ ...directorContext(), popups: !harvestHeld }));
+      if (!harvestHeld) spawnFlocks();
     }
 
     const slow = slowMoTicks > 0 ? slowMoScale : 1;

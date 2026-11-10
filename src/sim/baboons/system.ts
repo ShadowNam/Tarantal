@@ -23,6 +23,7 @@ import {
   roleScale,
   scareTroop,
   stepBaboons,
+  holdRaids,
   type BaboonCtx,
   type BaboonsState,
 } from './baboons';
@@ -64,6 +65,9 @@ export interface BaboonSystem {
   acting(): number;
   /** v1.8c (D-063): the id is a raider down at its spot (a target), not a ridge member. */
   isRaider(id: number): boolean;
+  /** v1.18 (D-081, review): no more raids this hunt (the Harvest's Phase 2); the raid in hand
+   *  ends cleanly (holdRaids). */
+  holdRaids(): void;
 }
 
 export type BaboonSystemFactory = (
@@ -394,5 +398,16 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
 
   const isRaider = (id: number): boolean => findRaider(state, id) !== null;
 
-  return { extras, plane, shot, step, view, acting, isRaider };
+  return {
+    extras,
+    plane,
+    shot,
+    step,
+    view,
+    acting,
+    isRaider,
+    holdRaids: () => {
+      holdRaids(state, bb);
+    },
+  };
 };

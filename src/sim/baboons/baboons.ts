@@ -133,6 +133,8 @@ export interface BaboonsState {
   raids: number;
   /** v1.18 (D-081): the raids come down in sight (null: they climb down out of sight). */
   readonly descent: PlacedDescent | null;
+  /** v1.18 (D-081, review): no more raids (the Harvest's Phase 2 has the field): see holdRaids. */
+  held: boolean;
 }
 
 /** v1.18 (D-081): the map's descent with its layers' widths. */
@@ -325,6 +327,7 @@ export function createBaboons(
     returning: [],
     raids: 0,
     descent: placeDescent(biome, map),
+    held: false,
   };
 }
 
@@ -572,6 +575,32 @@ export function bagRaider(s: BaboonsState, r: Raider, T: BaboonTuning): void {
   }
 }
 
+/**
+ * v1.18 (D-081, review): no more raids from now on (the Harvest's Phase 2 has the field). The raid
+ * in hand ends cleanly: raiders at the field run off now; a raid still out of sight (the bark, an
+ * unseen climb or walk) is called off and its raiders go back up the ridge later; raiders already
+ * coming down in sight run straight back out when they reach the field (stepRaid).
+ */
+export function holdRaids(s: BaboonsState, T: BaboonTuning): void {
+  s.held = true;
+  const raid = s.raid;
+  if (raid === null) return;
+  if (raid.phase === 'on') for (const r of raid.raiders) fleeRaider(r, raid.spot, T);
+  else if (raid.phase === 'travel' && s.descent === null) callOff(s, raid);
+}
+
+/** A raid that hasn't reached the field is called off: the raiders out of sight come back later
+ *  and a barking lookout stops. */
+function callOff(s: BaboonsState, raid: Raid): void {
+  s.raid = null;
+  const troop = troopOf(s, raid.troopId);
+  for (const m of troop?.members ?? []) {
+    if (m.pose === 'bark') setPose(m, 'peek', 1);
+    if (raid.memberIds.includes(m.id) && (m.pose === 'out' || m.pose === 'down'))
+      s.returning.push({ id: m.id, troopId: raid.troopId, left: 1 });
+  }
+}
+
 /** The raider with this id on the current raid, if any. */
 export function findRaider(s: BaboonsState, id: number): Raider | null {
   return s.raid?.raiders.find((r) => r.id === id) ?? null;
@@ -635,6 +664,11 @@ function stepRaid(s: BaboonsState, raid: Raid, ctx: BaboonCtx, notes: BaboonNote
     if (raid.t < raid.dur) return;
     raid.t = 0;
     const d = s.descent;
+    // v1.18 (D-081, review): held (Phase 2): the bark ends with no raid; an unseen climb, too.
+    if (s.held && (raid.phase === 'warn' || (raid.phase === 'climb' && d === null))) {
+      callOff(s, raid);
+      return;
+    }
     if (raid.phase === 'warn') {
       raid.phase = 'climb';
       raid.dur = Math.max(1, secondsToTicks(d?.cfg.climbSeconds ?? T.raids.climbSeconds));
@@ -673,7 +707,9 @@ function stepRaid(s: BaboonsState, raid: Raid, ctx: BaboonCtx, notes: BaboonNote
           done: false,
         });
       });
-      notes.push({ kind: 'start', raid });
+      // v1.18 (D-081, review): held (Phase 2): down in sight, they turn and run straight out.
+      if (s.held) for (const r of raid.raiders) fleeRaider(r, sp, T);
+      else notes.push({ kind: 'start', raid });
     }
     return;
   }
@@ -775,7 +811,7 @@ export function stepBaboons(s: BaboonsState, ctx: BaboonCtx): BaboonNote[] {
   // that is due while one is still on waits for it to end.
   if (s.nextRaidIn > 0) s.nextRaidIn--;
   if (s.raid !== null) stepRaid(s, s.raid, ctx, notes);
-  else if (s.nextRaidIn <= 0) {
+  else if (s.nextRaidIn <= 0 && !s.held) {
     const note = startRaid(s, ctx);
     if (note !== null) {
       notes.push(note);

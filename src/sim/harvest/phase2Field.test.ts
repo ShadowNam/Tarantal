@@ -151,3 +151,44 @@ describe('the workers in Phase 2 (v1.18, D-081, review)', () => {
     expect(checked).toBeGreaterThan(60);
   });
 });
+
+describe('Phase 2 has the field to itself (v1.18, D-081, review)', () => {
+  it('no raid, flock or pop-up starts in the banner or Phase 2; the raid in hand runs off', () => {
+    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      const s = createSim({
+        seed,
+        content: unlocked(),
+        mode: { id: 'harvest' },
+        inputKind: 'pointer',
+      });
+      const during: SimEvent[] = [];
+      let defend = 0;
+      for (let i = 0; i < 20000 && !s.isOver(); i++) {
+        s.step([]);
+        const ev = s.drainEvents();
+        const h = s.snapshot().harvest;
+        if (h?.phase2 === null || h?.phase2 === undefined) continue;
+        // After the unlock's tick (the rush's last) on: the banner, Phase 2 and its outro.
+        if (ofType(ev, 'phase2Unlocked').length === 0) during.push(...ev);
+        if (h.phase === 'defend') {
+          defend++;
+          // Past the first seconds nothing of the rush is left at the field.
+          if (defend > 60 * 3) {
+            const raiders = s.snapshot().baboons?.raiders ?? [];
+            expect(raiders.filter((r) => r.phase === 'approach' || r.phase === 'act')).toEqual([]);
+            expect(s.snapshot().flocks).toEqual([]);
+          }
+        }
+      }
+      const at = `seed ${String(seed)}`;
+      expect(defend, at).toBeGreaterThan(60 * 10);
+      expect(ofType(during, 'baboonRaidWarned'), at).toEqual([]);
+      expect(ofType(during, 'baboonRaidStarted'), at).toEqual([]);
+      expect(ofType(during, 'flockSpawned'), at).toEqual([]);
+      expect(
+        ofType(during, 'birdSpawned').filter((e) => e.motion === 'popup'),
+        at,
+      ).toEqual([]);
+    }
+  });
+});

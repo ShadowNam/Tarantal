@@ -2000,6 +2000,9 @@ const harvestSchema = modeSetupSchema.extend({
     cropBonusPerPercent: nonNeg,
     perfectBonus: nonNegInt,
     clearBonus: nonNegInt,
+    /** Review (D-081): the guineafowl flocks still in the field at the unlock fly off across at
+     *  this speed (mid-plane px/s) and leave the panorama; none land again. */
+    flockLeavePxPerSec: pos,
     /** Test builds only (?harvestPhase2=1): the hunt starts with Phase 2's banner. */
     direct: z.boolean().optional(),
   }),

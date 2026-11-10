@@ -86,6 +86,9 @@ export interface HarvestSystem {
   view(): HarvestView;
   /** v1.18 (D-081): every shot fired (Phase 2: a piglet near where it landed runs out). */
   landed(aimOn: (layerId: string) => { readonly x: number; readonly y: number }): void;
+  /** v1.18 (D-081, review): Phase 2 has the field (from its unlock to the hunt's end): the hunt
+   *  starts no baboon raid, flock or pop-up (fly-overs, harmless sky dressing, go on). */
+  holdsSpawns(): boolean;
 }
 
 export type HarvestSystemFactory = (
@@ -1043,5 +1046,16 @@ export const createHarvestSystem: HarvestSystemFactory = (
     if (phase === 'defend') p2?.landed(aimOn);
   }
 
-  return { introTicks, outroTicks, fireGate, extras, plane, shot, step, view, landed };
+  return {
+    introTicks,
+    outroTicks,
+    fireGate,
+    extras,
+    plane,
+    shot,
+    step,
+    view,
+    landed,
+    holdsSpawns: () => p2 !== null,
+  };
 };

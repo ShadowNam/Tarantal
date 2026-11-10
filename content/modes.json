@@ -339,7 +339,8 @@
         "drainPerSecond": { "warthog": 1.4, "piglet": 0.7, "baboon": 1.6 },
         "cropBonusPerPercent": 10,
         "perfectBonus": 500,
-        "clearBonus": 750
+        "clearBonus": 750,
+        "flockLeavePxPerSec": 1500
       },
       "fence": { "postPx": 631 }
     }
