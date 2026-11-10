@@ -4741,6 +4741,85 @@ the boxes as numbers); `npm run size -- --strict` OK, lazy chunks ≤ 1,490 KB (
 replay (`classic-76-namibie-thu-competent-touch` 3,192 → 3,126, 1,383 → 1,387 events); the other
 47 keep their events.
 
+### D-084 — v1.19 The Gun Shed, meerkats and two special shells (10 Nov 2026)
+
+(D-083 is the fly-over build, on its own branch.)
+
+**Why.** The owner's requests of 8 Nov (night), with a Gun Shed screenshot where every card showed
+the same small dark shape — the first-person sprite, cropped — next to the gun's name: "in the gun
+shed the guns still look very very primitive, get the graphics up" · "also the meerkat needs to
+get better graphics" · "eventually a power-up … a shotgun bullet called DRAGON fire, that spits a
+huge fire out, and possibly especially with the shotgun a long range single shot SLUG".
+
+**1. The Gun Shed's pictures.** A painted side view of every gun, muzzle right, for its card
+(`tools/art/gunCards.ts`; art bible §1.1 rule 8): the Dubbelloop, Windbuks, Kettie, Plaas-Pomp,
+Twee-Twee, Langloop, and the Voorlaaier and Mielie-Masjien (shown on their Power-ups cards). One
+2× sheet `shed/guns` (760 × 560 design px, 88 KB PNG-8) in an asset group of its own, `shed`, which
+no hunt's manifest loads (`groupForBiome`, the queue in `loadFinal`): ShedScene imports a small
+lazy chunk (`ui/shedGunIcons.ts`) that fetches the file through `AssetManifest.loadOnDemand` and
+crops each picture onto the card's own small canvas, as D-035's crop of the idle frame did — the
+sheet is never a texture, never in the first download, never on the GPU in a hunt. Locked guns:
+the same picture desaturated (and dimmed). With no delivery the cards fall back to the idle frame.
+The audit knows the key by its constant; `gun-shed.spec` checks the pixels under each picture.
+
+**2. The first-person guns.** More detail and material at the same sizes (art bible §1.1 rule 7):
+same boxes, poses, pivots, clips and frame counts, every clip's opaque bounds and every atlas
+page size unchanged (texture memory the same). The Twee-Twee's sprite keeps its open sights: its
+fitted sight (iron, peep or scope) shows in the sight picture, so a scope on the sprite would be
+wrong two times in three. The richer art costs bytes: the start gun and the late group's guns now
+pack at 128 colours (`rig.json colours`, a new pack option) — the Dubbelloop's first-download
+atlas 281 → 250 KB, the late guns 600 → 514 KB.
+
+**3. The meerkats.** Look round 3 (art bible §3.5): a slim upright sentinel with the tail as the
+tripod's third leg, dark eye patches, dark crescent ears set low, a pale face and belly, a banded
+grizzled back, hands at the chest. Same frame names, cells, anchors and sheet size (92 → 90 KB).
+
+**4. Two special shells** (`content/powerups.json`, GDD §10.4). Shotgun shells (`needsShotgun`):
+- *Dragon's Breath* (Drakevuur), 4 shells: 2.5× the gun's pellets (at most 30) over 2.4× its
+  pattern (at most 240 px, or the gun's own if wider), and the pellets stop at the mid plane (the
+  flame never meets far or Ver layers, `flameReach`); any pellet on a bird is a hit (one armour or
+  hit off a boss, as a normal hit). The Dubbelloop throws 20 pellets over 168 px, the Pomp 15
+  over 144, the Voorlaaier 30 over its own 300 (uncapped it would have been 60 over 720: a
+  screen-clearer). Birds it bags go down in a singed puff.
+- *The Slug* (Koeëlpatroon), 3 shells: one ball, no spread (hip or not), reaches far and Ver,
+  wind sensitivity 1.2 (a shotgun's 0.4, the .22's 0.6, the Langloop's 0.5), and what it hits is
+  bagged in one: a bird's armour and a boss's hits go at once, a two-hit warthog (or a Phase 2
+  baboon) in the Harvest falls to one (`harvest.shot(…, heavy)`). Other targets as a pellet.
+- Rules: a special shell counts down only on a shotgun's shot (`onShellFired(…, shotgun)`): the
+  Mielie-Masjien fires normally and leaves it loaded. The two never stack: the newer replaces the
+  other (`activate` returns what it replaced; `powerupEnded` for it). Crates (weight 10 each) hold
+  them only when the hunt's gun is a shotgun (`crateSkip`, like D-055's rifle-only Rooikol); the
+  Padstal offers them (3 caps) only in a run whose gun is a shotgun (a run's gun never changes),
+  and a shell bought there waits in its slot while no shotgun is in hand. Daily: as the other
+  power-ups. All in the sim (seeded, recorded): `shotFired` carries `shell`.
+- *What you see and hear* (a lazy chunk, `view/shells/ShellFx.ts`, loaded with the first shell;
+  art bible §7, §10): the cone — four nested additive tongues of fire with sparks, 0.26 s, at most
+  760 px long — is a large flash: it asks the shared flash budget (≤ 3 a second with lightning and
+  the other large flashes) and is drawn 55 % as long and dimmer when refused or with "reduce
+  flashes". The Slug: a small tight muzzle flash (0.55×) and a heavy boom. Synth sounds through
+  `playExtra` (a recording under `sfx/shell_*` would win). Two shell icons in the late group.
+- Test builds: `?crate=dragon_breath|slug` (as before) and `?coneHold=1` (cones stay for a grab).
+
+**Balance** (`docs/balance/v1.19-shells.md`; Classic, 500 seeds per bot, the Dubbelloop, pointer
+and touch, main 412128d3 → branch, mean score): every area within −1.7 … +3.7 % (competent
+−1.2 … +0.7 %, plinker −1.7 … +3.7 %); every gate that passes on main passes (Namibië with touch is
+above the competent band on main too: 4,660 → 4,688). The shells are rare (two crates a hunt, each
+draws from the whole table) and four or three shells long.
+
+**Sizes and texture memory.** First download 3,026 → 2,999.0 KB gzip (the Dubbelloop's atlas at
+128 colours, −30 KB, pays for the new code; the shells' view, the shed's loader and the icons are
+lazy). `npm run size -- --strict` OK on the web, Poki and CrazyGames builds; lazy chunks: late
+1,418.7 KB (the late guns at 128 colours: 589 → 510 KB; at 256 colours the chunk was 1.52 MB, over
+its cap), ver 571.8 KB (the rifles' richer art +39 KB), shed 85.6 KB (new), desert unchanged.
+Texture memory: every gun atlas page keeps its size (no change in any hunt); the shed's sheet is
+never a texture (the shed's small card canvases go with the shed, as before); the cone is
+Graphics; the two shell icons are 128 px (256 px HD twins in late-hd), +0.5 MB in an HD hunt — the
+tightest HD hunt ~245 → ~245.5 MB of 256 (estimated; CI's perf.spec measures). The cone's own cost
+is measured by perf.spec (Pixel 7, 4× throttle, ≤ 0.3 ms per cone frame).
+
+**Golden replays** re-recorded twice: the two crate-table entries change the crate rolls and the
+content hash (49 replays); the caps changed the hash only (every replay kept its score and events).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
