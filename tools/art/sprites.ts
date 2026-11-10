@@ -1361,10 +1361,10 @@ function puBrakkieJag(p: SpriteCtx): string {
   const white = tone('#F4EFE4', 0.2, 0.12);
   const tan = tone('#C9823F', 0.3, 0.3);
   const red = tone('#C8302A', 0.3, 0.3);
-  const grey = tone('#3C4652', 0.3, 0.3);
+  const grey = tone('#2F5A8E', 0.3, 0.3);
   return g(
     { transform: 'translate(0 0)' },
-    // The guineafowl feather behind his head: slate grey with white spots.
+    // The guineafowl feather behind his head: slate blue with white spots.
     inked('M-24 20Q-30 -6 -14 -27Q-12 -10 -18 18Z', grey.fill, p.ink, 2),
     flat(ellipseD(-21, -6, 1.6, 1.6), '#FFFFFF'),
     flat(ellipseD(-18, -14, 1.4, 1.4), '#FFFFFF'),
