@@ -1971,6 +1971,10 @@ export class HuntScene extends Phaser.Scene {
       perTick: () => mapper.perTick(),
       ...(this.ctx.holdAtTick === undefined ? {} : { holdAtTick: this.ctx.holdAtTick }),
     });
+    // v1.19 (D-084): a shotgun hunt can get a special shell (crates, the Padstal): its effects'
+    // chunk loads now, so the first shell's cone and sound are never late on a slow network.
+    const gun = this.ctx.content.weapons.weapons.find((w) => w.id === sim.snapshot().weapon.id);
+    if (gun?.kind === 'primary' && gun.shotgun === true && range === null) this.loadShellFx();
     // v1.9 (D-066): the hunt's soundscape (its recordings start loading now, after START).
     this.soundscapeHunt = range === null ? { seed, mode } : null;
     this.syncSoundscape();
@@ -3182,7 +3186,11 @@ export class HuntScene extends Phaser.Scene {
             e.y,
             this.ctx.content.scoring.planes[e.plane].scale,
           );
-      } else if (e.type === 'powerupStarted' && isShellId(e.powerup)) {
+      } else if (
+        (e.type === 'powerupStarted' && isShellId(e.powerup)) ||
+        (e.type === 'crateSpawned' && e.item !== null && isShellId(e.item))
+      ) {
+        // v1.19 (D-084): also when a crate holding a shell drops (before it is opened).
         this.loadShellFx();
       } else if (e.type === 'bonusAwarded' && e.bonus === 'twoFlies') {
         this.runner?.hitStop(this.ctx.feel.juice.hitStopTwoFliesMs);
