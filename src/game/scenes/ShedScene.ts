@@ -56,6 +56,7 @@ export class ShedScene extends Phaser.Scene {
     // 1.9.2 (D-055): the Power-ups tab's sentences (lazy) start loading as the Shed opens.
     void loadGuide().catch(() => {});
     this.shown = data;
+    this.rebuilding = false;
     const tab = data.tab ?? 'loadout';
     const { width, height } = designSize();
     fitCamera(this.cameras.main);
@@ -71,6 +72,9 @@ export class ShedScene extends Phaser.Scene {
 
     const items: MenuItem[] = [];
     const rebuild = (patch: Partial<ShedData>): void => {
+      // v1.19 (review): a rebuild is on its way (another tab, a page): late art must not restart
+      // the scene over it (that dropped the tap: the journal never opened on WebKit).
+      this.rebuilding = true;
       this.time.delayedCall(0, () => this.scene.restart({ ...data, ...patch }));
     };
     // Tabs + Settings along the top (v1.7b: a fourth tab, Power-ups, next to the guns).
@@ -198,6 +202,8 @@ export class ShedScene extends Phaser.Scene {
   private lateWaiting = false;
   /** v1.7b: the Power-ups tab has asked for the delivered icons (once per scene object). */
   private iconsSettled = false;
+  /** v1.19 (review): a tab or page change is waiting for its deferred restart. */
+  private rebuilding = false;
   /** v1.19 (D-084): the side-view pictures once their lazy chunk and file are in. */
   private shedPics: ShedPictures | null = null;
   private shedAsked = false;
@@ -241,6 +247,7 @@ export class ShedScene extends Phaser.Scene {
         // Only the Guns tab that is on screen now (the player may have switched tabs or left).
         if (
           this.sys.isActive() &&
+          !this.rebuilding &&
           this.shown !== null &&
           (this.shown.tab ?? 'loadout') === 'loadout'
         )
@@ -375,7 +382,12 @@ export class ShedScene extends Phaser.Scene {
           return;
         }
         this.shedPics = pics;
-        if (this.sys.isActive() && this.shown !== null && (this.shown.tab ?? 'loadout') === tab)
+        if (
+          this.sys.isActive() &&
+          !this.rebuilding &&
+          this.shown !== null &&
+          (this.shown.tab ?? 'loadout') === tab
+        )
           this.scene.restart(this.shown);
       })
       .catch(() => {
@@ -504,7 +516,12 @@ export class ShedScene extends Phaser.Scene {
     // 1.9.2 (D-055): the cards' sentences come from the lazy guide tables: drawn again once in.
     if (!guideLoaded())
       void loadGuide().then(() => {
-        if (this.sys.isActive() && this.shown !== null && this.shown.tab === 'powerups')
+        if (
+          this.sys.isActive() &&
+          !this.rebuilding &&
+          this.shown !== null &&
+          this.shown.tab === 'powerups'
+        )
           this.scene.restart(this.shown);
       });
     // v1.7b (D-046): the icons come with the late group: until it lands the cards show the
@@ -516,6 +533,7 @@ export class ShedScene extends Phaser.Scene {
         if (
           swapped > 0 &&
           this.sys.isActive() &&
+          !this.rebuilding &&
           this.shown !== null &&
           this.shown.tab === 'powerups'
         )
