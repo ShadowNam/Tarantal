@@ -33,7 +33,14 @@ import {
   type CameoArea,
   type CameoSheetArea,
 } from './cameoKeys';
-import { cameoFrame, cameoFrames, cameoTexelsPerPx, type CameoFrame } from './cameoSheet';
+import {
+  CAMEO_SIZE_MUL,
+  cameoFrame,
+  cameoFrames,
+  cameoTexelsPerPx,
+  frameKind,
+  type CameoFrame,
+} from './cameoSheet';
 
 type Tuning = Feel['cameos'];
 
@@ -246,6 +253,10 @@ export interface CameoViewSetup {
   readonly onSighted: (species: string) => boolean;
   /** The e2e hooks are on (else no hook object is kept up to date). */
   readonly hooks: boolean;
+  /** v1.22.1 (D-086): a kind's content sizeMul (cameos.json, the owner's sizes included): its
+   *  frames are drawn at CAMEO_SIZE_MUL and shown × sizeMul ÷ that (the sim's hit shapes are ×
+   *  sizeMul). As drawn when not given. */
+  readonly sizeMul?: (kind: keyof typeof CAMEO_SIZE_MUL) => number;
 }
 
 /** One pooled image and what is set on it now (set only on change). */
@@ -258,6 +269,8 @@ interface Slot {
   x: number;
   y: number;
   alpha: number;
+  /** v1.22.1 (D-086): the scale set on it (NaN: none yet). */
+  scale: number;
 }
 
 export class CameoView {
@@ -308,7 +321,17 @@ export class CameoView {
     const img = this.s.scene.add.image(0, 0, '__DEFAULT').setVisible(false);
     if (this.sheet !== null && this.sheetArea !== null)
       img.setTexture(CAMEO_SHEETS[this.sheetArea]);
-    return { img, layerId: null, frame: null, shown: false, flip: false, x: NaN, y: NaN, alpha: 1 };
+    return {
+      img,
+      layerId: null,
+      frame: null,
+      shown: false,
+      flip: false,
+      x: NaN,
+      y: NaN,
+      alpha: 1,
+      scale: NaN,
+    };
   }
 
   /** The sheet under the key (polled every SHEET_POLL_FRAMES frames until it arrives). */
@@ -375,9 +398,14 @@ export class CameoView {
     const flip = facing < 0;
     if (frame !== sl.frame) {
       sl.img.setFrame(frame);
-      if (sl.frame === null || this.sheetArea === null) {
-        const res = this.sheetArea === null ? 0.5 : cameoFrame(this.sheetArea, frame).res;
-        sl.img.setScale(1 / (res * this.k));
+      const res = this.sheetArea === null ? 0.5 : cameoFrame(this.sheetArea, frame).res;
+      // v1.22.1 (D-086): the kind's content size over the size its frames are drawn at.
+      const kind = frameKind(frame);
+      const scale = (this.s.sizeMul?.(kind) ?? CAMEO_SIZE_MUL[kind]) / CAMEO_SIZE_MUL[kind];
+      const sc = scale / (res * this.k);
+      if (sc !== sl.scale) {
+        sl.img.setScale(sc);
+        sl.scale = sc;
         this.calls++;
       }
       sl.frame = frame;

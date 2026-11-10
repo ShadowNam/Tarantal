@@ -33,6 +33,8 @@ import {
   withPlaneScales,
   withQuotaMul,
   withTestCrate,
+  withSizePreview,
+  SIZE_PREVIEW_SEED,
 } from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import {
@@ -97,12 +99,17 @@ import { SaveStore } from './meta/save';
 import type { Settings } from './meta/saveSchema';
 import { setStorageNamespace, storageStatus } from './meta/storage';
 import { applyTextEdits } from './meta/textEdits';
+import { applySizeEdits, loadSizeEdits, type SizeEditStore } from './meta/sizeEdits';
+import { setSizeEditCount, setSizeFactors } from './game/sizes/sizeFactor';
+import { SIZE_CODE_VALUES } from './game/sizes/sizeCode';
+import { isSizeArea, SIZE_AREA_BIOME, SIZE_HOLD_TICK } from './game/sizes/sizeAreas';
 import { installErrorHook } from './platform/errors';
 import { LocalPlatform } from './platform/local';
 import { handleBack, sendEscapeKey, titleOnTop } from './platform/backButton';
 import { adminPageInBuild, createPlatform, currentPlatformId } from './platform/platform';
 import {
   ADMIN_NAMESPACE,
+  DEFAULT_OPTIONS,
   adminEntries,
   loadAdminSave,
   storeAdminSave,
@@ -204,6 +211,17 @@ if (
   adminPageInBuild()
 )
   applyTextEdits();
+// v1.22.1 (D-086): the owner's animal sizes (admin page → Sizes): `?admin=1&sizes=<area>` opens the
+// size editor on that area; elsewhere "Use my sizes in the game" applies them as content overrides
+// (below). Builds with the admin page only, never a portal or store build (the raw flag: dropped).
+const sizesInBuild =
+  platformFlag !== 'poki' &&
+  platformFlag !== 'crazygames' &&
+  platformFlag !== 'capacitor' &&
+  adminPageInBuild();
+const sizeParam = sizesInBuild && adminOn ? params.get('sizes') : null;
+const sizeArea = isSizeArea(sizeParam) ? sizeParam : null;
+const sizeStore: SizeEditStore | null = sizesInBuild && !capture ? loadSizeEdits() : null;
 
 const save = new SaveStore();
 // Older saves inherited Auto without choosing a language. Adopt the new English default
@@ -410,6 +428,7 @@ const hook: TestHook = {
   menu: null,
   admin: null,
   adminTexts: null,
+  sizes: null,
   range: null,
   capture: null,
   fontsReady: false,
@@ -579,14 +598,32 @@ const planePreset = isPlaneScalePreset(planeScaleParam) ? planeScaleParam : null
 // so a hunt on a slow, software-rendered test machine keeps to real time and ends when a wall-clock
 // wait expects it. Client feel only: the content hash and every replay are unchanged.
 const maxStepsParam = testHooks && params.has('maxSteps') ? Number(params.get('maxSteps')) : NaN;
+// v1.22.1 (D-086): "Use my sizes in the game" — the owner's sizes as content overrides on this
+// device (the hit boxes grow with them; never in the size editor, which shows them live itself).
+// The admin list page (its Sizes tab lists the sizes as shipped) plays no hunt: none there.
+const adminListPage = adminOn && params.get('play') !== '1';
+const sized =
+  sizeStore !== null &&
+  sizeStore.apply &&
+  sizeArea === null &&
+  !adminListPage &&
+  sizeStore.edits.length > 0
+    ? applySizeEdits(loaded, sizeStore.edits, SIZE_CODE_VALUES)
+    : null;
+setSizeFactors(sized?.factors ?? null);
+setSizeEditCount(sized?.knobs ?? 0);
+/** v1.22.1 (D-086): the owner's sizes change the content: every hunt is unranked. */
+const sizesInUse = (sized?.knobs ?? 0) > 0;
+const sizedFeel = sized?.feel ?? loaded.feel;
 const feel =
   Number.isInteger(maxStepsParam) && maxStepsParam > 0
-    ? { ...loaded.feel, loop: { ...loaded.feel.loop, maxStepsPerFrame: maxStepsParam } }
-    : loaded.feel;
+    ? { ...sizedFeel, loop: { ...sizedFeel.loop, maxStepsPerFrame: maxStepsParam } }
+    : sizedFeel;
 // M10: the final-asset index, fetched while the platform SDK starts (absent = all placeholders).
 const indexLoad = fetchAssetIndex(feel.assets.indexTimeoutMs);
 const crateParam = testHooks ? params.get('crate') : null;
-const shipped = planePreset === null ? loaded.bundle : withPlaneScales(loaded.bundle, planePreset);
+const sizedBundle = sized?.bundle ?? loaded.bundle;
+const shipped = planePreset === null ? sizedBundle : withPlaneScales(sizedBundle, planePreset);
 const withCrate = crateParam === null ? shipped : withTestCrate(shipped, crateParam);
 // e2e/dev only: ?quotaMul=0 makes every Season Run quota reachable (short e2e runs).
 const quotaMul = testHooks && params.has('quotaMul') ? Number(params.get('quotaMul')) : NaN;
@@ -674,10 +711,25 @@ const adminEntry =
   params.get('play') === '1' && adminPlay !== null
     ? adminList.find((e) => e.id === adminPlay.entry)
     : undefined;
+// v1.22.1 (D-086): `?admin=1&sizes=<area>`: that area's hunt with every sized animal out in view
+// at once (the art previews' flags), held still, for the size editor.
+const sizeEntry =
+  sizeArea === null
+    ? undefined
+    : adminList.find(
+        (e) =>
+          e.id === (sizeArea === 'oes' ? 'harvest' : `classic:${SIZE_AREA_BIOME[sizeArea]}:plain`),
+      );
 const adminSetup: AdminHuntSetup | null =
-  adminEntry === undefined || adminPlay === null
-    ? null
-    : adminHuntSetup(adminEntry, adminPlay.options, devBundle);
+  sizeEntry !== undefined
+    ? adminHuntSetup(
+        sizeEntry,
+        { ...DEFAULT_OPTIONS, seed: SIZE_PREVIEW_SEED, huntSeconds: 120, omen: 'off' },
+        withSizePreview(devBundle),
+      )
+    : adminEntry === undefined || adminPlay === null
+      ? null
+      : adminHuntSetup(adminEntry, adminPlay.options, devBundle);
 const bundle = adminSetup?.content ?? devBundle;
 hook.boot['content'] = performance.now();
 const biomeId = bundle.modes.modes.classic.biome;
@@ -1013,7 +1065,8 @@ async function boot(): Promise<void> {
   // bookmark doesn't show the card again.
   let pendingChallenge: ChallengeDecode | null = null;
   // Capture mode and `?e2e` on a public build (unranked) open no challenge links.
-  const unranked = capture || !officialResults || adminOn;
+  // v1.22.1 (D-086): and the owner's sizes in use (they change the sim's content).
+  const unranked = capture || !officialResults || adminOn || sizesInUse;
   const challengeParam = unranked ? null : platform.launchParam('c');
   if (challengeParam !== null) {
     pendingChallenge = decodeChallenge(challengeParam, {
@@ -1270,11 +1323,12 @@ async function boot(): Promise<void> {
       (safeCache ??= safeAreaInDesignPx(cssSafeArea(), viewport(), designSize())),
     nextSeed: seedSource(),
     huntSeconds: adminSetup === null ? huntSecondsParam() : adminSetup.huntSeconds,
-    holdAtTick: holdAtParam(),
+    holdAtTick: sizeEntry === undefined ? holdAtParam() : SIZE_HOLD_TICK,
     // D-054: dev and test builds only (a public build with ?e2e must never lose its herds).
     faunaBefore: devOrTestBuild && testHooks && params.get('fauna') === 'before',
     faunaDebug: devOrTestBuild && testHooks && params.get('faunaDebug') === '1',
-    faunaStill: devOrTestBuild && testHooks && params.get('faunaIdle') === '0',
+    faunaStill:
+      sizeEntry !== undefined || (devOrTestBuild && testHooks && params.get('faunaIdle') === '0'),
     soundscapeOff: devOrTestBuild && testHooks && params.get('soundscape') === '0',
     soundscapeBoost:
       devOrTestBuild && testHooks && Number(params.get('soundscapeBoost')) > 0
@@ -1301,6 +1355,10 @@ async function boot(): Promise<void> {
     weaponOverride: adminSetup?.weapon,
     sightOverride: adminSetup?.sight,
     admin,
+    sizes:
+      sizeArea === null || sizeEntry === undefined || sizeStore === null
+        ? null
+        : { area: sizeArea, store: sizeStore },
     coarsePointer,
     reducedMotion,
     paused: () =>

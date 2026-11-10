@@ -19,6 +19,7 @@ import {
 import type { AdminContext } from './AdminContext';
 import { entryFacts, entryLabel, gunLabel, groupLabel } from './adminLabels';
 import type { TextsPanelDeps } from './texts/TextsPanel';
+import type { SizesPanelDeps } from './sizes/SizesPanel';
 
 const STYLE_ID = 'tm-admin-style';
 const ADMIN_CSS = `
@@ -113,7 +114,14 @@ export interface AdminPanelHooks {
   readonly onProject?: () => void;
   /** v1.14 (D-076): the Texts & voices tab (its code and tables load when it opens). */
   readonly texts?: Omit<TextsPanelDeps, 'content'>;
+  /** v1.22.1 (D-086): the Sizes tab (its code and the knobs load when it opens). */
+  readonly sizes?: Omit<SizesPanelDeps, 'content'>;
+  /** v1.22.1 (D-086): the tab the list page opens on (`?admin=1&tab=sizes`: back from the size
+   *  editor). */
+  readonly tab?: 'sizes';
 }
+
+type Tab = 'maps' | 'texts' | 'sizes';
 
 export class AdminPanel {
   private readonly root: HTMLElement;
@@ -121,7 +129,8 @@ export class AdminPanel {
   /** v1.14 (D-076): the list page's body (the maps list and detail, or the Texts & voices tab). */
   private cols: HTMLElement | null = null;
   private mapsBody: Node[] = [];
-  private textsOpen = false;
+  /** v1.22.1 (D-086): the list page's open tab. */
+  private tab: Tab = 'maps';
   /** Bumped on every tab change: a Texts chunk that arrives after the owner left is dropped. */
   private tabVisit = 0;
 
@@ -256,55 +265,92 @@ export class AdminPanel {
     this.fillDetail(detail, sel);
     list.querySelector('[aria-selected=true]')?.scrollIntoView({ block: 'center' });
     this.hooks.onView?.('list', sel.id);
+    if (this.hooks.tab === 'sizes') void this.showSizes();
   }
 
-  /** v1.14 (D-076): the list page's tabs: the maps (reviews) and Texts & voices. */
+  /** v1.14 (D-076): the list page's tabs: the maps (reviews), Texts & voices and (v1.22.1, D-086)
+   *  Sizes. */
   private tabs(): HTMLElement[] {
-    if (this.hooks.texts === undefined) return [];
+    if (this.hooks.texts === undefined && this.hooks.sizes === undefined) return [];
     const maps = button(at('admin.tab_maps'), 'tab-maps', () => {
       this.showMaps();
     });
-    const texts = button(at('admin.tab_texts'), 'tab-texts', () => {
-      void this.showTexts();
-    });
-    maps.setAttribute('role', 'tab');
-    texts.setAttribute('role', 'tab');
-    maps.setAttribute('aria-selected', 'true');
-    texts.setAttribute('aria-selected', 'false');
-    const list = el('div', { className: 'row' }, maps, texts);
+    const tabs = [maps];
+    if (this.hooks.texts !== undefined)
+      tabs.push(
+        button(at('admin.tab_texts'), 'tab-texts', () => {
+          void this.showTexts();
+        }),
+      );
+    if (this.hooks.sizes !== undefined)
+      tabs.push(
+        button(at('admin.tab_sizes'), 'tab-sizes', () => {
+          void this.showSizes();
+        }),
+      );
+    for (const t of tabs) {
+      t.setAttribute('role', 'tab');
+      t.setAttribute('aria-selected', String(t === maps));
+    }
+    const list = el('div', { className: 'row' }, ...tabs);
     list.setAttribute('role', 'tablist');
     return [list];
   }
 
-  private markTab(texts: boolean): void {
-    // Phones (short screens): the texts tab's CSS keeps the header to the title and the tabs.
-    this.root.dataset['tab'] = texts ? 'texts' : 'maps';
-    this.root
-      .querySelector('[data-action=tab-maps]')
-      ?.setAttribute('aria-selected', String(!texts));
-    this.root
-      .querySelector('[data-action=tab-texts]')
-      ?.setAttribute('aria-selected', String(texts));
+  private markTab(tab: Tab): void {
+    // Phones (short screens): the texts and sizes tabs' CSS keeps the header to the title and tabs.
+    this.root.dataset['tab'] = tab;
+    for (const t of ['maps', 'texts', 'sizes'] as const)
+      this.root
+        .querySelector(`[data-action=tab-${t}]`)
+        ?.setAttribute('aria-selected', String(t === tab));
   }
 
   private showMaps(): void {
     const cols = this.cols;
-    if (cols === null || !this.textsOpen) return;
-    this.textsOpen = false;
+    if (cols === null || this.tab === 'maps') return;
+    this.tab = 'maps';
     this.tabVisit++;
     cols.replaceChildren(...this.mapsBody);
-    this.markTab(false);
+    this.markTab('maps');
+  }
+
+  /** Leaves the maps for another tab (their DOM is kept to come back to). */
+  private leaveMaps(cols: HTMLElement, tab: Tab): number {
+    if (this.tab === 'maps') this.mapsBody = [...cols.childNodes];
+    this.tab = tab;
+    this.markTab(tab);
+    return ++this.tabVisit;
+  }
+
+  /** v1.22.1 (D-086): opens the Sizes tab (its chunk, with the knobs, loads now). */
+  private async showSizes(): Promise<void> {
+    const cols = this.cols;
+    const deps = this.hooks.sizes;
+    if (cols === null || deps === undefined || this.tab === 'sizes') return;
+    const visit = this.leaveMaps(cols, 'sizes');
+    cols.replaceChildren(
+      el('p', { className: 'muted mt', textContent: at('admin.sizes.loading') }),
+    );
+    try {
+      const m = await import('./sizes/SizesPanel');
+      if (visit !== this.tabVisit) return;
+      const panel = new m.SizesPanel({ ...deps, content: this.content });
+      cols.replaceChildren(panel.root);
+    } catch {
+      // Offline: back to the maps, with the reason in the toast.
+      this.showMaps();
+      const toast = this.root.querySelector('[data-role=toast]');
+      if (toast) toast.textContent = at('admin.sizes.load_failed');
+    }
   }
 
   /** Opens the Texts & voices tab (its chunk, with the lazy text tables, loads now). */
   private async showTexts(): Promise<void> {
     const cols = this.cols;
     const deps = this.hooks.texts;
-    if (cols === null || deps === undefined || this.textsOpen) return;
-    this.textsOpen = true;
-    const visit = ++this.tabVisit;
-    this.mapsBody = [...cols.childNodes];
-    this.markTab(true);
+    if (cols === null || deps === undefined || this.tab === 'texts') return;
+    const visit = this.leaveMaps(cols, 'texts');
     cols.replaceChildren(
       el('p', { className: 'muted mt', textContent: at('admin.texts.loading') }),
     );

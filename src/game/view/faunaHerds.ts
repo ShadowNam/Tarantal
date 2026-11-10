@@ -108,6 +108,23 @@ export const FEMALE_SHARE: Readonly<Record<FaunaSpecies, number>> = {
   lechwe: 0.94,
 };
 
+/**
+ * v1.22.1 (D-086): the feel.json fauna.sizeMul each species' sheets are drawn at (tools/art/
+ * faunaSheets.ts draws them to lookHeight at that multiplier). The view shows a species at feel's
+ * sizeMul ÷ this, so an owner-set size (npm run sizes:apply) shows before the sheets are redrawn;
+ * after a redraw this follows feel again (faunaHerds.test.ts).
+ */
+export const FAUNA_DRAWN_MUL: Readonly<Record<FaunaSpecies, number>> = {
+  elephant: 1,
+  giraffe: 1,
+  zebra: 1,
+  wildebeest: 1,
+  gemsbok: 1,
+  springbok: 1,
+  ostrich: 1,
+  lechwe: 1,
+};
+
 /** Drawn height (design px) of a look on a plane where a metre is `pxPerMetre` px, × the
  *  species' size multiplier (feel.json fauna.sizeMul; 1 = true proportion). */
 export function lookHeight(

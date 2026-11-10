@@ -156,7 +156,14 @@ export class OstrichView {
     private readonly scene: Phaser.Scene,
     private readonly parallax: ParallaxView,
     private readonly reducedMotion: boolean,
-  ) {}
+    /** v1.22.1 (D-086): content birds.json ostriches.henScale (the owner's sizes included): the
+     *  hen's frames are drawn at OSTRICH_HEN_SCALE of the cock and shown × henScale ÷ that. */
+    henScale: number = OSTRICH_HEN_SCALE,
+  ) {
+    this.henMul = henScale / OSTRICH_HEN_SCALE;
+  }
+
+  private readonly henMul: number;
 
   private readonly byName = new Map(this.frames.map((f) => [f.name, f]));
 
@@ -373,7 +380,8 @@ export class OstrichView {
           const rot = sway * facing;
           if (img.rotation !== rot) img.setRotation(rot);
           if (img.x !== x || img.y !== f.ground) img.setPosition(x, f.ground);
-          if (img.scaleX !== k || img.scaleY !== k) img.setScale(k);
+          const kb = bird.male ? k : k * this.henMul;
+          if (img.scaleX !== kb || img.scaleY !== kb) img.setScale(kb);
         }
       b.children = b.layer.fixtures.length;
     }
