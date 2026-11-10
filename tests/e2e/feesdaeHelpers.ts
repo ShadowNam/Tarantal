@@ -180,7 +180,15 @@ export async function shootLanternOut(
   for (let i = 0; i < tries; i++) {
     await reloadIfEmpty(page, touch);
     const before = await fireAt(page, touch, { id });
-    if (before === null) return false;
+    if (before === null) {
+      // The lantern off the screen's edge for a moment (or gone): log it, give it a few ticks.
+      const t0 = await page.evaluate(() => window.__TM__?.tick ?? 0);
+      console.log(`[lantern] try ${String(i)}: not in view at tick ${String(t0)}`);
+      await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 30, t0, {
+        timeout: 30_000,
+      });
+      continue;
+    }
     const out = await page
       .waitForFunction(
         ([lid, n]) => {
@@ -201,6 +209,29 @@ export async function shootLanternOut(
       delete (window as unknown as { __lanternShotTick?: number }).__lanternShotTick;
     });
     if (out === 'dark') return true;
+    // CI-only failures (D-081 review): say what each miss looked like.
+    console.log(
+      `[lantern] try ${String(i)}: ${String(out)} ${JSON.stringify(
+        await page.evaluate(
+          ([lid, n]) => {
+            const g = window.__TM__;
+            const t = g?.spook?.things.find((x) => x.id === lid);
+            return {
+              tick: g?.tick,
+              left: g?.ticksLeft,
+              over: g?.over,
+              shots: (g?.shots ?? 0) - n,
+              score: g?.score,
+              lantern:
+                t === undefined ? null : { x: Math.round(t.x), y: Math.round(t.y), dark: t.dark },
+              flocks: (g?.flockSpots ?? []).map((f) => [f.plane, Math.round(f.x), Math.round(f.y)]),
+              baboons: (g?.baboons ?? []).map((b) => b.role),
+            };
+          },
+          [id, before.shots] as const,
+        ),
+      )}`,
+    );
   }
   return false;
 }
