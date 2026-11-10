@@ -4943,7 +4943,15 @@ or fire held) is **replaced by a short after-the-bag delay**: he runs out `fetch
 clear path, never into the line of fire; −25 for a shot aimed at him; the Bring streak breaks for
 a shot aimed within `clear.aimPx` while he carries; Bring +15, Goeie hond +30. The whistle sends
 him for any queued bird at once (before its delay). He stays low on the near plane and goes onto
-the mid plane only to fetch, as before. A first-time hint, once per save (`SaveData.notices`
+the mid plane only to fetch, as before. *Review (10 Nov):* the spot check alone could send him
+~1,300 px past a live near flock while the player fired, so a fetch on his own plane also needs a
+clear way (`pathClear`), and on the near plane no live mid-ground bird over his way on screen
+(`runClear`: pellets at a bird low on its ground line fall on whatever runs under it); a run out
+that meets something being aimed at is given up (the bird goes back to the queue) and a carry home
+takes the clear end. Stray hits a hunt, main → branch (60 hunts per area): Bushveld 0.150 → 0.117,
+Kalahari 0.117 → 0.100, Karoo 0.133 → 0.117, Namibië 0.050 → 0.017, Okavango 0.100 → 0.067; ticks
+in front of a flock (on screen within 150 px across of a live mid bird) fall in every area (e.g.
+Karoo 303 → 270, Okavango 373 → 204); docs/balance/v1.20-jag.md. A first-time hint, once per save (`SaveData.notices`
 `brakkieFetchHint`), on his first fetch: "Brakkie fetches your birds by himself. Press F to whistle
 him out at once!" (on touch: "Tap the whistle…"), en/af/de/nl.
 
@@ -4953,16 +4961,22 @@ him out at once!" (on touch: "Tap the whistle…"), en/af/de/nl.
 - *Where:* crates (Classic, the Daily, bonus maps) only in hunts where Brakkie comes along (D-069's
   modes and areas; never the Harvest, the Skietbaan, boss hunts or Oupa se Les), and only while he
   can take it (not bolted from a hit, no wide-spread crate gun out): otherwise the crate rolls
-  again without it (`crates` stream). The Padstal offers it in every Season Run; a bought card waits
+  again without it (`crates` stream) — at once, the tick he becomes unable, so the crate's icon
+  shows what it will give (`crateRerolled`; the open-time check stays as a backstop). He *can*
+  take it while he is away at the bakkie after a delivery (or still on his way in at the start):
+  the card's clock holds until he is out hunting. The Padstal offers it in every Season Run; a bought card waits
   in its slot in a hunt he isn't out in (as a special shell waits for a shotgun, D-084). Daily: the
   same table for everyone.
 - *What:* he sprints (`jag.sprintPx` 1 250 px/s) at a guineafowl (`jag.creatures`: the three
-  tarentaal) **walking in a foraging flock** on the near plane or the mid ground within
-  `jag.maxDxPx` **1 400** screen px of the view's centre — never a bird in the air, another species
+  tarentaal) **walking in a foraging flock** on the mid ground within `jag.maxDxPx` **1 400**
+  screen px of the view's centre or on the near plane within `jag.nearMaxDxPx` **650** (in view, so
+  the player sees the catch and gets the wing shots) — never a bird in the air, another species
   or a penalty animal (cross-checked in `crossRefs.ts`) — pounces from `pouncePx` 110 (a crouch and a
   leap, `pounceSeconds` 0.45) and, if it is still on the ground within `reachPx` 170, has it: a bag
   of that bird (`targetBagged` with `byDog`, no shot: its normal score × Frenzy × Stampede, no
-  feathers, no poof, no struggle — simply caught). The rest of its flock flushes (wing shots). He
+  feathers, no poof, no struggle — simply caught). The rest of its flock reacts as to a threat:
+  three threats from the catch (`jag.alarmThreats`), 0.35 s apart (`alarmEverySeconds`), as the
+  bark's — alert → run → flush (wing shots). He
   carries it home at his sprint like a fetch: Bring +15 on delivery, and catches count toward
   Goeie hond. Up to 3 catches.
 - *The clock:* the 10 s count **only his hunting time** (looking round, crossing out for a bird,
@@ -4970,7 +4984,9 @@ him out at once!" (on touch: "Tap the whistle…"), en/af/de/nl.
   bot hunts the first version (clock always running, 700 px reach) caught 0.14 birds a card: the
   clock ran down while he fetched, and the bots had spooked the flocks near the view.
 - *Ends early:* any hit on him ends it (aimed at him: −25 as ever; a stray pellet: the yelp and
-  bolt), and a wide-spread crate gun coming out. Deterministic on his stream `dog`.
+  bolt), and a wide-spread crate gun coming out — whatever he is doing (review: it ended only
+  while he stood, so a card could freeze while he hunted or was away). Deterministic on his
+  stream `dog`.
 - *HUD and voice:* the chip shows its icon, the seconds and the catches ("7 s · 1/3"); Oupa says
   "Jag, Brakkie, jag!" when it starts and "He's got one! Good dog, Brakkie!" for each catch —
   text-only for now ("voices later": interim clips put the German pack over its 1.5 MB budget).
@@ -4978,8 +4994,10 @@ him out at once!" (on touch: "Tap the whistle…"), en/af/de/nl.
   the pounce reuses his frames (the proud hop's crouch, then a stretched run frame lifted in an
   arc by the view, up to 46 px): no new dog frames, no new texture in the hunt.
 
-**Balance** (docs/balance/v1.20-jag.md; 250 seeds per bot, five areas, pointer and touch). The
-card itself: −0.5 % to +1.2 %; worth per card +77 (competent) / +172 (plinker) against Blitslaai's
+**Balance — held for the owner** (docs/balance/v1.20-jag.md; 250 seeds per bot, five areas,
+pointer and touch; after the review's fixes, the card's crate weight 0 as the baseline): the card's
+own share −1.7 % … +2.0 % (mean +0.2 %); fetch sooner +1.4 % … +12.3 % (mean +7.1 %) against main.
+First sweep: the card itself −0.5 % to +1.2 %; worth per card +77 (competent) / +172 (plinker) against Blitslaai's
 +115 / −20. Fetch sooner raises the mean by +2–9 % (competent) and +0.5–15 % (plinker): about five
 more deliveries a hunt and longer Bring streaks (+130 points a hunt, Bring 28 → 108, Goeie hond
 5 → 53 for the plinker). That is above the brief's "≤ ~5 % per area", but Bring +15 and Goeie

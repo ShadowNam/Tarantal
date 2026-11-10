@@ -976,8 +976,9 @@ fetching Brakkie (`content/brakkie.json`):
   live birds), one at a time from a queue of up to `fetch.queueMax` (**3**, v1.20). **v1.20
   (D-085), fetch sooner:** he runs out `fetch.delaySeconds` (**1.5 s**) after a bird falls, even
   while the player keeps shooting (v1.17's "sent when the shooting stops", 6 s of quiet, is gone);
-  every clear rule still holds (a spot clear of live birds, a clear path, never into the line of
-  fire). **Sent with the whistle ("Soek!")** he goes at once. On his first fetch of a save Oupa
+  every clear rule still holds (a spot clear of live birds, a clear way there — on the near plane
+  with no live mid-ground bird over it on screen — never into the line of fire; a run out that
+  meets something being aimed at is given up, and the bird waits in the queue). **Sent with the whistle ("Soek!")** he goes at once. On his first fetch of a save Oupa
   says once that he fetches by himself and that F (touch: the whistle button) sends him.
 - **"Staan!" (the point):** instead of the plain dig, he freezes in a classic point (body low and
   level, the near front paw lifted, tail straight up, quivering) at a hidden flock; a small marker
@@ -998,13 +999,13 @@ fetching Brakkie (`content/brakkie.json`):
   he is away, dimmed while it would do nothing.
 - **"Jag, Brakkie!" (v1.20, D-085), the card:** a power-up (§10.4) from crates and the Padstal,
   only in hunts he comes to. While it runs he sprints at a guineafowl **foraging on the ground**
-  (the near plane, or the mid ground within 1 400 screen px of the view's centre — never a bird in
-  the air, another species or a penalty animal), pounces (a crouch and a leap) and catches it: a
+  (the near plane in view, within 650 screen px of the centre, or the mid ground within 1 400 —
+  never a bird in the air, another species or a penalty animal), pounces (a crouch and a leap) and catches it: a
   bag of that bird with its normal score (× Frenzy × Stampede), no blood, no struggle. He carries
   it home at a sprint for **Bring!** (+15; catches count toward Goeie hond!), and the rest of the
-  flock flushes — wing shots. Up to **3 catches** in **10 s of hunting** (the clock holds while he
+  flock reacts as to a threat — alert, run, flush — wing shots. Up to **3 catches** in **10 s of hunting** (the clock holds while he
   fetches, carries or is at the bakkie). Shooting at him costs −25 and ends it; a stray pellet makes
-  him yelp and bolt, which ends it too. Oupa: "Jag, Brakkie, jag!" at the start, a proud line per
+  him yelp and bolt, which ends it too, as does a wide-spread crate gun. Oupa: "Jag, Brakkie, jag!" at the start, a proud line per
   catch.
 - **Reactions (no points):** after a Whole Flock, Twee Vlieë, Frenzy ×3 or a Ver bag he does a
   proud hop and a double bark (if idle); after 3 clean misses in a row he sits and tilts his head,
