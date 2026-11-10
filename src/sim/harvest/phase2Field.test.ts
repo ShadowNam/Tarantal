@@ -192,3 +192,42 @@ describe('Phase 2 has the field to itself (v1.18, D-081, review)', () => {
     }
   });
 });
+
+/** Steps the unit to Phase 2's clock. */
+function toDefend(u: ReturnType<typeof unit>): void {
+  while (u.sys.view().phase !== 'defend') {
+    if (u.tick() > INTRO + RUSH + BANNER + 10) throw new Error('no Phase 2');
+    u.step();
+  }
+}
+
+/** The body ellipse's centre of a harvest actor (as extras() adds it). */
+function bodyOf(u: ReturnType<typeof unit>, id: number): { x: number; y: number } {
+  const at: { x: number; y: number }[] = [];
+  u.sys.extras((_l, e) => {
+    if (e.kind === 'harvest' && e.harvestId === id) at.push({ x: e.x, y: e.y });
+  });
+  const body = at[0];
+  if (body === undefined) throw new Error(`no shapes for ${String(id)}`);
+  return body;
+}
+
+describe('Phase 2 piglets in the tally (v1.18, D-081, review)', () => {
+  it('a piglet aimed at in Phase 2 counts in "Workers and piglets": the row is the score drop', () => {
+    const u = unit();
+    toDefend(u);
+    expect(u.sys.view().bystanderPenalty).toBe(0);
+    let shot = 0;
+    for (let i = 0; i < 60 * 30 && shot < 3; i++) {
+      const pig = u.sys.view().phase2?.animals.find((a) => a.kind === 'piglet' && a.phase === 'go');
+      if (pig !== undefined) {
+        const at = bodyOf(u, pig.id);
+        u.sys.shot(++shot, [pig.id], false, () => at);
+      }
+      u.step();
+    }
+    expect(shot).toBeGreaterThan(0);
+    expect(u.penalties()).toBe(-shot * H.warthogs.pigletPenalty);
+    expect(u.sys.view().bystanderPenalty).toBe(-u.penalties());
+  });
+});

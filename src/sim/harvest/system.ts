@@ -11,7 +11,13 @@ import type {
   HarvestMap,
   HarvestSetup,
 } from '../../content/schemas';
-import { createPhase2, mielieSpots, type Phase2Plane, type Phase2System } from './phase2';
+import {
+  createPhase2,
+  mielieSpots,
+  type Phase2Host,
+  type Phase2Plane,
+  type Phase2System,
+} from './phase2';
 import { secondsToTicks } from '../clock';
 import type { BonusId, SimEvent } from '../events';
 import type { RandomStream } from '../rng';
@@ -623,6 +629,21 @@ export const createHarvestSystem: HarvestSystemFactory = (
     }
   }
 
+  /** v1.18 (D-081, review): what Phase 2 gets: the hunt's, but its piglet penalties count in the
+   *  tally's "Workers and piglets" row like the rush's. */
+  const phase2Host: Phase2Host = {
+    tick: host.tick,
+    emit: (e) => {
+      host.emit(e);
+    },
+    awardBonus: (bonus, b) => host.awardBonus(bonus, b),
+    basePoints: (plane) => host.basePoints(plane),
+    penalty: (points) => {
+      host.penalty(points);
+      bystanderPenalty -= points;
+    },
+  };
+
   /** v1.18 (D-081): the banner: the fence whole, the hole patched, the workers off to the farm. */
   function unlockPhase2(score: number): void {
     phase = 'banner';
@@ -635,7 +656,14 @@ export const createHarvestSystem: HarvestSystemFactory = (
       w.t = 0;
       w.leaveV = Math.max(1, Math.abs(leaveX(w) - w.x)) / Math.max(1, leaveTicks - 1);
     }
-    p2 = createPhase2(H, host.baboonTuning, phase2Geometry(), host.phase2Rng, host, () => nextId++);
+    p2 = createPhase2(
+      H,
+      host.baboonTuning,
+      phase2Geometry(),
+      host.phase2Rng,
+      phase2Host,
+      () => nextId++,
+    );
     host.emit({ type: 'phase2Unlocked', tick: host.tick(), score });
   }
 
