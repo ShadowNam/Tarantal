@@ -3,7 +3,6 @@
 // penalties and the rank stamp. GDD §16 step 7: [Again] (default focus) starts the next hunt with
 // one tap; [Season Run] opens the run (M6); [Menu] goes back to the title. Below the rank:
 // what the hunt changed in the save (new best, rank up, Notaboek ticks, unlocks), one line.
-import { BRAKKIE_SHEET } from '../brakkie/brakkieKeys';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -32,7 +31,6 @@ import { braaiFlags, braaiReady } from '../braai/braaiChunk';
 import type { StoryFacts } from '../braai/storyFacts';
 import type { BraaiView } from '../braai/BraaiView';
 import { oupaShows, oupaSpeaks } from '../audio/oupaMode';
-import { textureBytes } from '../assets/textureBytes';
 import { huntMoment, coachTip } from '../../meta/journal';
 import { JOURNAL } from '../../content/journal';
 import { journalText } from '../journal/JournalView';
@@ -783,9 +781,8 @@ export class TallyScene extends Phaser.Scene {
     const hook = ctx.hook;
     if (hook) {
       hook.braai = view.hook;
-      hook.textureBytes = textureBytes(this.textures);
-      hook.brakkieTexture = this.textures.exists(BRAKKIE_SHEET);
-      hook.textureTop = view.textureTop();
+      // The texture entries (textureBytes, textureTop, brakkieTexture) are read from the texture
+      // manager whenever a spec reads them (D-087), the braai's sheet included once it is in.
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.verdictBubble = null;
