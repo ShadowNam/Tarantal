@@ -190,7 +190,8 @@ interface Slot {
   hphase: string | undefined;
 }
 
-const alt = (t: number, every: number): boolean => (Math.floor(t / every) & 1) === 0;
+// A two-frame cycle of `every` ticks shows its first frame while (Math.floor(t / every) & 1) === 0
+// (written out where used: until the JIT has warmed up, each call costs).
 
 /** A tumble's alpha: whole while it tumbles, then it lies still and fades out. */
 const tumbleAlpha = (t: number, tumbleTicks: number): number => {
@@ -205,14 +206,14 @@ function baboonFrame(
   ready2: boolean,
   tumbleTicks: number,
 ): Harvest2Frame | BorrowedFrame {
-  const run: BorrowedFrame = alt(t, RUN_TICKS) ? 'run_a' : 'run_b';
+  const run: BorrowedFrame = (Math.floor(t / RUN_TICKS) & 1) === 0 ? 'run_a' : 'run_b';
   switch (phase) {
     case 'climb':
-      return ready2 ? (alt(t, CLIMB_TICKS) ? 'bb_climb_a' : 'bb_climb_b') : run;
+      return ready2 ? ((Math.floor(t / CLIMB_TICKS) & 1) === 0 ? 'bb_climb_a' : 'bb_climb_b') : run;
     case 'drop':
       return ready2 ? 'bb_drop' : run;
     case 'eat':
-      return alt(t, DIG_TICKS) ? 'mielie_a' : 'mielie_b';
+      return (Math.floor(t / DIG_TICKS) & 1) === 0 ? 'mielie_a' : 'mielie_b';
     case 'tumble':
       return t / tumbleTicks < TUMBLE_SHARE ? 'tumble' : 'down';
     default:
@@ -726,9 +727,9 @@ export class HarvestView {
     this.wfAlpha = 1;
     switch (phase) {
       case 'dig':
-        return alt(t, DIG_TICKS) ? 'wh_dig_a' : 'wh_dig_b';
+        return (Math.floor(t / DIG_TICKS) & 1) === 0 ? 'wh_dig_a' : 'wh_dig_b';
       case 'run':
-        return alt(t, RUN_TICKS) ? 'wh_run_a' : 'wh_run_b';
+        return (Math.floor(t / RUN_TICKS) & 1) === 0 ? 'wh_run_a' : 'wh_run_b';
       case 'tumble':
         this.wfAlpha = tumbleAlpha(t, this.tumbleTicks);
         return t / this.tumbleTicks < TUMBLE_SHARE ? 'wh_tumble' : 'wh_down';
@@ -768,7 +769,11 @@ export class HarvestView {
   update(state: SimState): void {
     const t0 = this.now();
     const h = state.harvest;
-    if (h === null || !this.sheetReady()) {
+    const sheet = this.sheet;
+    const tx = this.scene.textures;
+    // (sheetReady's fast path inline: the texture last cut is still the one under the key.)
+    const cut = sheet !== null && tx.exists(HARVEST_SHEET) && tx.get(HARVEST_SHEET) === sheet;
+    if (h === null || (!cut && !this.sheetReady())) {
       // (Pooled slots are hidden already.)
       for (let i = 0; i < this.active.length; i++) this.hide(this.active[i]);
       this.hide(this.gap);
@@ -784,7 +789,7 @@ export class HarvestView {
       const xf = xfs[i];
       if (xf !== undefined) readXf(xf);
     }
-    const ready2 = this.sheet2Ready();
+    const ready2 = this.sheet2 !== null || this.sheet2Ready();
     this.ready2 = ready2;
     if (h.phase2 !== null) this.baboonSheet();
     const W = this.tuning.warthogs;
@@ -823,7 +828,7 @@ export class HarvestView {
           ? 'pg_squeeze'
           : p.running
             ? 'pg_run'
-            : alt(p.t, TROT_TICKS)
+            : (Math.floor(p.t / TROT_TICKS) & 1) === 0
               ? 'pg_trot_a'
               : 'pg_trot_b';
       const s = this.slots.get(p.id) ?? this.takeSlot(p, 'piglet', frame);
@@ -987,10 +992,10 @@ export class HarvestView {
           : phase === 'flee'
             ? 'pg_run'
             : phase === 'eat' && ready2
-              ? alt(t, DIG_TICKS)
+              ? (Math.floor(t / DIG_TICKS) & 1) === 0
                 ? 'pg_squeeze'
                 : 'pg_trot_a'
-              : alt(t, TROT_TICKS)
+              : (Math.floor(t / TROT_TICKS) & 1) === 0
                 ? 'pg_trot_a'
                 : 'pg_trot_b';
     } else {
