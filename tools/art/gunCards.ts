@@ -401,34 +401,37 @@ function kettie(a: Art): string {
   );
   const band = (d: string): string =>
     stroke(d, INK, 5.2) + stroke(d, '#C8302A', 3.6) + stroke(d, '#F07A5A', 1, 0.7);
-  // Lifted a little so the shadow keeps clear of the cell's bottom edge.
+  // v1.19 (D-084, CI): laid on its side, fork to the right and drawn 1.5× — upright it filled
+  // only a sliver of the wide card. The shadow and the spare stones lie under it, unturned.
   return g(
-    { transform: 'translate(0 -7)' },
-    cardShadow(a, 150, 236, 134),
-    // Spare stones beside it.
-    el('path', { d: ellipseD(246, 126, 8, 5.5), fill: '#9A9187', stroke: INK, 'stroke-width': 1 }),
-    el('path', { d: ellipseD(262, 129, 6, 4), fill: '#B1A89D', stroke: INK, 'stroke-width': 1 }),
-    shine('M242 123Q246 121 250 123', 0.5, 0.9),
-    // The far band behind the fork.
-    band('M219 26Q214 62 194 90'),
-    wood(a, fork, [150, 16, 226, 132], 31, 'bark'),
-    // Bark knots and a worn grip.
-    stroke(ellipseD(188, 114, 3, 5), '#2C2014', 0.9, 0.7),
-    stroke(ellipseD(166, 44, 2, 3.5), '#2C2014', 0.8, 0.7),
-    el('path', { d: 'M180 104L198 104L198 128L182 128Z', fill: '#E2BC86', opacity: 0.2 }),
-    // Twine bindings at the tips.
-    stroke('M151 26L161 24M152 30L163 28', '#E8D9B0', 1.4),
-    stroke('M214 22L225 25M213 26L224 29', '#E8D9B0', 1.4),
-    // The near band hangs in front to the pouch, a stone in it.
-    band('M156 28Q160 66 182 90'),
-    part(a, 'M176 84Q188 78 200 86Q197 100 188 100Q178 98 176 84Z', 'leather'),
-    el('path', {
-      d: ellipseD(188, 90, 5.5, 4.5),
-      fill: '#9A9187',
-      stroke: INK,
-      'stroke-width': 0.8,
-    }),
-    shine('M185 88Q188 86 191 88', 0.6, 0.7),
+    {},
+    cardShadow(a, 116, 290, 128),
+    el('path', { d: ellipseD(318, 118, 9, 6), fill: '#9A9187', stroke: INK, 'stroke-width': 1 }),
+    el('path', { d: ellipseD(336, 123, 7, 4.5), fill: '#B1A89D', stroke: INK, 'stroke-width': 1 }),
+    shine('M313 115Q318 112 323 115', 0.5, 0.9),
+    g(
+      { transform: 'translate(200 66) rotate(90) scale(1.5) translate(-188 -75)' },
+      // The far band behind the fork.
+      band('M219 26Q214 62 194 90'),
+      wood(a, fork, [150, 16, 226, 132], 31, 'bark'),
+      // Bark knots and a worn grip.
+      stroke(ellipseD(188, 114, 3, 5), '#2C2014', 0.9, 0.7),
+      stroke(ellipseD(166, 44, 2, 3.5), '#2C2014', 0.8, 0.7),
+      el('path', { d: 'M180 104L198 104L198 128L182 128Z', fill: '#E2BC86', opacity: 0.2 }),
+      // Twine bindings at the tips.
+      stroke('M151 26L161 24M152 30L163 28', '#E8D9B0', 1.4),
+      stroke('M214 22L225 25M213 26L224 29', '#E8D9B0', 1.4),
+      // The near band hangs in front to the pouch, a stone in it.
+      band('M156 28Q160 66 182 90'),
+      part(a, 'M176 84Q188 78 200 86Q197 100 188 100Q178 98 176 84Z', 'leather'),
+      el('path', {
+        d: ellipseD(188, 90, 5.5, 4.5),
+        fill: '#9A9187',
+        stroke: INK,
+        'stroke-width': 0.8,
+      }),
+      shine('M185 88Q188 86 191 88', 0.6, 0.7),
+    ),
   );
 }
 
