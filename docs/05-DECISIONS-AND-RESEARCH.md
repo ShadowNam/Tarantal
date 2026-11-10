@@ -4605,7 +4605,9 @@ unlock rates are unchanged to the digit (competent 52 % / 53 %, strong 66 % / 69
 raiders and 42.1 → 40.1 birds a run, competent pointer). Aimed worker hits a run fall (competent
 0.032 → 0.022, strong 0.026 → 0.010): those were Phase 2 shots at the workers walking off.
 Golden replays: only harvest-63 (3,699 → 3,628) and harvest-65 (4,349 → 4,329) change events;
-both still clear all 24.
+both still clear all 24. Budgets: first download 3,025.9 → 3,026.3 KB gzip of 3,072 (the tally's
+rush numbers in the hunt scene); the lazy groups and chunks unchanged (`oes` 1,294 KB, `oes-hd`
+1,773 KB, largest `voice-de` 1,499.9 KB); no texture changed (HD memory as above).
 
 **Budgets.** First download (web, gzip) 3,024.1 → 3,025.9 KB of 3,072 (+1.8 KB: the Phase 2 HUD's
 loader, the music stem, the tally's rows, the test hooks; everything else is lazy: Phase 2's HUD
