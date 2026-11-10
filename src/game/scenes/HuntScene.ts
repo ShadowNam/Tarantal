@@ -3218,6 +3218,8 @@ export class HuntScene extends Phaser.Scene {
           this.ctx.audio.playExtra(key, pan, synth);
         },
         ...(stats === undefined ? {} : { stats }),
+        // e2e/art previews only: ?coneHold=1 keeps the cones on screen for the grab.
+        holdCone: hook !== null && new URLSearchParams(location.search).has('coneHold'),
       });
     });
   }

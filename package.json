@@ -33,6 +33,7 @@
     "art:compare-polish": "tsx tools/art/polishCompare.ts",
     "art:compare-realism": "tsx tools/art/realismCompare.ts",
     "art:compare-companion": "tsx tools/art/companionCompare.ts",
+    "art:compare-guns": "tsx tools/art/gunsCompare.ts",
     "audio:interim": "tsx tools/audio/interim.ts",
     "audio:voice": "tsx tools/audio/voice.ts",
     "text:apply": "tsx tools/text-apply.ts",

@@ -35,6 +35,8 @@ export interface ShellFxHost {
   readonly flashes: FlashLimiter;
   playExtra(key: string, pan: number, synth: Synth): void;
   stats?: ShellFxStats;
+  /** e2e/art previews only (?coneHold=1): cones and sparks stay on screen for the grab. */
+  readonly holdCone?: boolean;
 }
 
 /** How long the cone shows (ms): ≤ 0.3 s (D-084). */
@@ -61,16 +63,17 @@ export class ShellFx {
     g.setBlendMode('ADD');
     drawCone(g, shape, big ? 1 : 0.55 * prefs.flashAlpha);
     this.host.layer.addAt(g, 0);
-    scene.tweens.add({
-      targets: g,
-      alpha: 0,
-      duration: CONE_MS,
-      ease: 'Quad.easeIn',
-      onComplete: () => {
-        g.destroy();
-        if (this.host.stats !== undefined) this.host.stats.live = null;
-      },
-    });
+    if (this.host.holdCone !== true)
+      scene.tweens.add({
+        targets: g,
+        alpha: 0,
+        duration: CONE_MS,
+        ease: 'Quad.easeIn',
+        onComplete: () => {
+          g.destroy();
+          if (this.host.stats !== undefined) this.host.stats.live = null;
+        },
+      });
     this.sparks(shape, big);
     const st = this.host.stats;
     if (st !== undefined) {
@@ -147,16 +150,19 @@ export class ShellFx {
         .setScale(0.3)
         .setAlpha(big ? 1 : prefs.flashAlpha);
       this.host.layer.addAt(s, 0);
-      scene.tweens.add({
-        targets: s,
-        x,
-        y,
-        alpha: 0,
-        duration: CONE_MS + 40,
-        onComplete: () => {
-          s.destroy();
-        },
-      });
+      // Held for a grab: the sparks sit where they fly to, at full strength.
+      if (this.host.holdCone === true) s.setPosition(x, y);
+      else
+        scene.tweens.add({
+          targets: s,
+          x,
+          y,
+          alpha: 0,
+          duration: CONE_MS + 40,
+          onComplete: () => {
+            s.destroy();
+          },
+        });
     }
   }
 }

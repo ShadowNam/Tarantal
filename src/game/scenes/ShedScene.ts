@@ -213,27 +213,7 @@ export class ShedScene extends Phaser.Scene {
     }
     // v1.19 (D-084): the side views come in a lazy chunk and a file no hunt loads; until they are
     // in (or with no delivery) the cards show the first-person idle frame; then the tab is redrawn.
-    if (this.shedPics === null && !this.shedAsked) {
-      this.shedAsked = true;
-      void import('../ui/shedGunIcons')
-        .then((m) => m.loadShedPictures(this.ctx.manifest))
-        .then((pics) => {
-          if (pics === null) {
-            this.shedAsked = false;
-            return;
-          }
-          this.shedPics = pics;
-          if (
-            this.sys.isActive() &&
-            this.shown !== null &&
-            (this.shown.tab ?? 'loadout') === 'loadout'
-          )
-            this.scene.restart(this.shown);
-        })
-        .catch(() => {
-          this.shedAsked = false;
-        });
-    }
+    this.askShedPictures('loadout');
     const save = this.ctx.save.data;
     const weapons = this.ctx.content.weapons.weapons.filter(
       (w): w is PrimaryWeapon => w.kind === 'primary',
@@ -383,6 +363,74 @@ export class ShedScene extends Phaser.Scene {
     }
   }
 
+  /** v1.19 (D-084): loads the side views once (a lazy chunk, then the `shed` file); redraws `tab`. */
+  private askShedPictures(tab: 'loadout' | 'powerups'): void {
+    if (this.shedPics !== null || this.shedAsked) return;
+    this.shedAsked = true;
+    void import('../ui/shedGunIcons')
+      .then((m) => m.loadShedPictures(this.ctx.manifest))
+      .then((pics) => {
+        if (pics === null) {
+          this.shedAsked = false;
+          return;
+        }
+        this.shedPics = pics;
+        if (this.sys.isActive() && this.shown !== null && (this.shown.tab ?? 'loadout') === tab)
+          this.scene.restart(this.shown);
+      })
+      .catch(() => {
+        this.shedAsked = false;
+      });
+  }
+
+  /**
+   * v1.19 (D-084): a crate gun's side view under its Power-ups card text (h design px tall, at most
+   * maxW wide), top-left at (x, y); returns the height it takes (0 = none yet).
+   */
+  private crateGunPicture(
+    id: string,
+    x: number,
+    y: number,
+    maxW: number,
+    h: number,
+    list: Phaser.GameObjects.Container,
+  ): number {
+    const pic = this.shedPics?.picture(id) ?? null;
+    if (pic === null) return 0;
+    const { img, region } = pic;
+    const dh = Math.min(h, (maxW / region.w) * region.h);
+    const scale = this.ctx.prefs.renderScale;
+    const ch = Math.max(1, Math.round(dh * scale));
+    const cw = Math.max(1, Math.round((region.w / region.h) * ch));
+    const key = `shed/crate/${id}`;
+    if (this.textures.exists(key)) this.textures.remove(key);
+    const tex = this.textures.createCanvas(key, cw, ch);
+    if (tex === null) return 0;
+    const c = tex.getContext();
+    c.imageSmoothingEnabled = true;
+    c.imageSmoothingQuality = 'high';
+    c.drawImage(img, region.x, region.y, region.w, region.h, 0, 0, cw, ch);
+    tex.refresh();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      if (this.textures.exists(key)) this.textures.remove(key);
+    });
+    const image = this.add
+      .image(x, y, key)
+      .setOrigin(0, 0)
+      .setDisplaySize(cw / scale, dh);
+    list.add(image);
+    this.ctx.hook?.shedPictures?.push({
+      id,
+      source: 'side',
+      locked: false,
+      x,
+      y,
+      w: cw / scale,
+      h: dh,
+    });
+    return dh;
+  }
+
   /**
    * The gun's idle frame at the right of its card; returns the width it takes (0 = none).
    * D-035 review: the frame is cropped from the decoded atlas page onto a small canvas about the
@@ -474,6 +522,8 @@ export class ShedScene extends Phaser.Scene {
           this.scene.restart(this.shown);
       });
     }
+    this.askShedPictures('powerups');
+    if (this.ctx.hook) this.ctx.hook.shedPictures = [];
     const head = this.add.text(
       body.x,
       body.y - 8,
@@ -528,6 +578,11 @@ export class ShedScene extends Phaser.Scene {
       ty = para(c.how.map((h) => `• ${h}`).join('\n'), ty, 26, '#D9CBB0') + 8;
       if (c.tip !== '')
         ty = para(tr.text('guide.tip_label').replace('{tip}', c.tip), ty, 26, '#FFD25A');
+      // v1.19 (D-084): a crate gun shows its painted side view under its words.
+      if (c.kind === 'weapon') {
+        const ph = this.crateGunPicture(c.id, textX, ty + 10, textW, 120, list);
+        if (ph > 0) ty += ph + 14;
+      }
       const h = Math.max(iconBox + 2 * pad, ty - y + pad);
       g.fillStyle(UI.ink, 1).fillRoundedRect(view.x, y, view.w, h, 20);
       g.fillStyle(dim ? 0x1f2722 : 0x3e5146, 1).fillRoundedRect(
