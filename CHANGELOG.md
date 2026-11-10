@@ -22,7 +22,7 @@ birds, and a card should send him hunting guineafowl on the ground.
 - **Scores:** a dog who fetches more earns more Bring bonuses (about +130 points a hunt); the card
   itself is worth about as much as Blitslaai. Details: docs/balance/v1.20-jag.md.
 - **Smaller first download:** the test-only content switches now load only in test runs
-  (2,999.7 → 2,998.6 KB).
+  (1 KB smaller than main).
 
 ## [1.22.1] — Sizes: set the animals' sizes by eye (10 Nov 2026)
 

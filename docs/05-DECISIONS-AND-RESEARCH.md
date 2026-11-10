@@ -5004,7 +5004,7 @@ more deliveries a hunt and longer Bring streaks (+130 points a hunt, Bring 28 �
 hond +30 stay as the owner asked; Bring +10 would trim only ~1.5 points of it. **Open for the
 owner:** keep it, or Goeie hond every 5th delivery instead of every 3rd.
 
-**Sizes.** First download 2,999.7 → 2,998.6 KB gz: the card's code costs ~1 KB, and main.ts no
+**Sizes.** First download 2,999.7 → 2,998.6 KB gz (after main's Sizes editor, D-086: main 3,002.0 → this branch 3,001.0; Poki 2,991.9, CrazyGames 2,992.0, Android 2,991.9, all `--strict` OK): the card's code costs ~1 KB, and main.ts no
 longer carries the e2e/dev content tweaks (`devContent.ts`) and the admin's Play setup — they are
 lazy chunks that boot() awaits only when test hooks or the admin's Play ask for them. The icon is
 in the late group (Standard 128 px, HD 256 px: +0.25 MB HD texture memory, tightest hunt
