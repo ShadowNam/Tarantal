@@ -80,6 +80,8 @@
   "guide.brakkie.spring": "Spring!",
   "guide.brakkie.heel": "Hier!",
   "guide.brakkie.seek": "Soek!",
+  "guide.brakkie.fetch_hint_key": "Brakkie bring self jou voëls. Druk F om hom dadelik uit te fluit!",
+  "guide.brakkie.fetch_hint_touch": "Brakkie bring self jou voëls. Tik die fluitjie om hom dadelik te stuur!",
   "guide.journal.section.field": "Veldgids",
   "guide.journal.section.goals": "Jou doelwitte",
   "guide.journal.section.coach": "Oupa se lesse",

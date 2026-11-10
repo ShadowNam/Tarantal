@@ -80,6 +80,8 @@
   "guide.brakkie.spring": "Voran!",
   "guide.brakkie.heel": "Fuß!",
   "guide.brakkie.seek": "Such!",
+  "guide.brakkie.fetch_hint_key": "Brakkie apportiert deine Vögel von selbst. Drück F, um ihn sofort loszupfeifen!",
+  "guide.brakkie.fetch_hint_touch": "Brakkie apportiert deine Vögel von selbst. Tipp auf die Pfeife, um ihn sofort zu schicken!",
   "guide.journal.section.field": "Naturführer",
   "guide.journal.section.goals": "Deine Ziele",
   "guide.journal.section.coach": "Opas Lektionen",

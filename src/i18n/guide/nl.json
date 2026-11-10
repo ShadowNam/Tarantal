@@ -80,6 +80,8 @@
   "guide.brakkie.spring": "Vooruit!",
   "guide.brakkie.heel": "Hier!",
   "guide.brakkie.seek": "Zoek!",
+  "guide.brakkie.fetch_hint_key": "Brakkie apporteert je vogels uit zichzelf. Druk op F om hem meteen weg te fluiten!",
+  "guide.brakkie.fetch_hint_touch": "Brakkie apporteert je vogels uit zichzelf. Tik op het fluitje om hem meteen te sturen!",
   "guide.journal.section.field": "Veldgids",
   "guide.journal.section.goals": "Jouw doelen",
   "guide.journal.section.coach": "Opa’s lessen",

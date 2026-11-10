@@ -2396,7 +2396,8 @@ export const BrakkieSchema = obj({
   }),
   fetch: obj({
     planes: z.array(z.enum(['near', 'mid'])).min(1),
-    /** The bird is down after this. */
+    /** The bird is down after this. v1.20 (D-085): he runs out this long after the bag, shooting
+     *  or not (the after-the-bag delay replaced v1.17's quiet rule). */
     delaySeconds: nonNeg,
     /** He goes only when no live bird is within this of the spot (plane px; mid converts). */
     clearPx: pos,
@@ -2405,9 +2406,6 @@ export const BrakkieSchema = obj({
     waitSeconds: nonNeg,
     /** v1.16 (D-078): birds he means to fetch, one at a time in the order they fell. */
     queueMax: posInt,
-    /** v1.17 (D-079): like a real gundog he is sent once the shooting stops: he runs out for a
-     *  bird only after the gun has been quiet (no shot, no sight or fire held) this long. */
-    quietSeconds: nonNeg,
     /** Only for a bag this close to the view's centre (screen px). */
     maxDxPx: pos,
     pickupSeconds: pos,

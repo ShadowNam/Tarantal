@@ -102,6 +102,9 @@ const SCORE_FEEDBACK: ReadonlySet<SimEvent['type']> = new Set([
   'comboChanged',
 ]);
 
+/** v1.20 (D-085): SaveData.notices entry — Brakkie's fetch hint was shown once. */
+const BRAKKIE_FETCH_NOTICE = 'brakkieFetchHint';
+
 export class HudScene extends Phaser.Scene {
   private readonly ctx: GameContext;
   private layoutNow: HudLayout | null = null;
@@ -995,6 +998,23 @@ export class HudScene extends Phaser.Scene {
         // Oupa's scold.
         this.pushPop(formatAward(e.points), '#FF6B5A');
         this.oupa('guide.cameo.scold', banner);
+      } else if (
+        e.type === 'brakkieFetchStarted' &&
+        !this.ctx.save.data.notices.includes(BRAKKIE_FETCH_NOTICE)
+      ) {
+        // v1.20 (D-085): once per save, on his first fetch — he fetches by himself, and F (or the
+        // whistle button on touch) sends him at once.
+        this.ctx.save.update((d) =>
+          d.notices.includes(BRAKKIE_FETCH_NOTICE)
+            ? d
+            : { ...d, notices: [...d.notices, BRAKKIE_FETCH_NOTICE] },
+        );
+        this.oupa(
+          this.inputKind === 'pointer'
+            ? 'guide.brakkie.fetch_hint_key'
+            : 'guide.brakkie.fetch_hint_touch',
+          banner,
+        );
       } else if (e.type === 'brakkieFetched' && !this.brakkieProud) {
         // He's back at the bakkie with the bird: Oupa's proud line (once a hunt).
         this.brakkieProud = true;

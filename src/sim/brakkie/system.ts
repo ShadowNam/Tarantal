@@ -195,8 +195,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   const rangeTicks = (r: readonly [number, number]): number => ticks(rng.range(r[0], r[1]));
   const checkTicks = Math.max(1, ticks(B.clear.checkSeconds));
   const holdTicks = ticks(B.clear.holdBackSeconds);
-  const quietTicks = ticks(B.fetch.quietSeconds);
-  /** v1.17: set while the whistle sends him (tryFetch skips the lull). */
+  /** v1.17: set while the whistle sends him (v1.20, D-085: tryFetch skips the bird's delay). */
   let sent = false;
   const cooldownTicks = ticks(B.hit.cooldownSeconds);
   /** A plane's px against the near plane's (his speeds, rooms and roaming px are near-plane px). */
@@ -449,11 +448,11 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     dropStale(tick);
     if (dog.queue.length === 0 || !idle() || tick < dog.fetchCheck) return;
     dog.fetchCheck = tick + checkTicks;
-    // v1.17 (D-079): only in a lull in the shooting, or sent with the whistle ("Soek!").
-    if (!sent && host.gunUp(quietTicks)) return;
+    // v1.20 (D-085): he goes fetch.delaySeconds after the bag, shooting or not (v1.17's lull rule
+    // is gone); sent with the whistle ("Soek!") he goes at once.
     for (let i = 0; i < dog.queue.length; i++) {
       const f = dog.queue[i];
-      if (f === undefined || tick < f.readyTick) continue;
+      if (f === undefined || (!sent && tick < f.readyTick)) continue;
       f.giveUpTick ??= tick + ticks(B.fetch.waitSeconds);
       if (host.busyNear(f.plane, f.x, B.fetch.clearPx * k(f.plane))) continue;
       dog.queue.splice(i, 1);
@@ -580,10 +579,9 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     return planeCentreX(host.cameraX(), sf) + geo.homeSide * B.whistle.heelDxPx;
   }
 
-  /** A bird in his queue is down and ready to fetch (he would go in a lull). */
+  /** A bird in his queue is down (v1.20, D-085: the whistle sends him for it at once). */
   function birdWaiting(): boolean {
-    const tick = host.tick();
-    return dog.queue.some((f) => tick >= f.readyTick);
+    return dog.queue.length > 0;
   }
 
   /** What the whistle would do now (null: nothing). */

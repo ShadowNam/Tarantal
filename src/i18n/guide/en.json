@@ -80,6 +80,8 @@
   "guide.brakkie.spring": "Flush!",
   "guide.brakkie.heel": "Heel!",
   "guide.brakkie.seek": "Seek!",
+  "guide.brakkie.fetch_hint_key": "Brakkie fetches your birds by himself. Press F to whistle him out at once!",
+  "guide.brakkie.fetch_hint_touch": "Brakkie fetches your birds by himself. Tap the whistle to send him at once!",
   "guide.journal.section.field": "Field guide",
   "guide.journal.section.goals": "Your goals",
   "guide.journal.section.coach": "Oupa’s lessons",

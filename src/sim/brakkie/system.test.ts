@@ -618,26 +618,52 @@ describe('Brakkie the companion (v1.17, D-079)', () => {
   });
 });
 
-describe('Brakkie is sent once the shooting stops (v1.17, D-079)', () => {
-  it('a bird down waits while the gun is busy; he goes in a lull of fetch.quietSeconds', () => {
+describe('Brakkie fetches sooner (v1.20, D-085)', () => {
+  it('runs out fetch.delaySeconds (~1.5 s) after a bag while the shooting goes on', () => {
+    expect(B.fetch.delaySeconds).toBeGreaterThanOrEqual(1);
+    expect(B.fetch.delaySeconds).toBeLessThanOrEqual(2);
     const r = rig(31);
     r.until((v) => v.present && v.phase === 'rest', 60 * 30);
     r.state.gunUp = true;
+    const t0 = r.state.tick;
     r.sys.bagged('near', towardCentre(r));
-    r.run(secondsToTicks(B.fetch.delaySeconds) + 60);
     expect(r.sys.view().queued).toBe(1);
+    // Not before the bird's delay…
+    r.run(secondsToTicks(B.fetch.delaySeconds) - 2);
     expect(r.events.some((e) => e.type === 'brakkieFetchStarted')).toBe(false);
-    r.state.gunUp = false;
-    r.until((v) => v.phase === 'fetch', 60 * 5);
+    // …and within a clear check after it, the gun up all the while.
+    const t = r.until((v) => v.phase === 'fetch', 60 * 2);
+    const late = t - t0 - secondsToTicks(B.fetch.delaySeconds);
+    expect(late).toBeGreaterThanOrEqual(0);
+    expect(late).toBeLessThanOrEqual(secondsToTicks(B.clear.checkSeconds) + 1);
   });
 
-  it('"Soek!": with a bird waiting the whistle sends him for it at once, gun busy or not', () => {
+  it('queues up to 3 birds (fetch.queueMax)', () => {
+    expect(B.fetch.queueMax).toBe(3);
+    const r = rig(33);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.state.gunUp = true;
+    for (let i = 0; i < 6; i++) r.sys.bagged('near', towardCentre(r) + i * 5);
+    expect(r.sys.view().queued).toBe(3);
+  });
+
+  it('the clear rules still hold while shooting: a busy spot waits, then is left', () => {
+    const r = rig(34);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.state.gunUp = true;
+    r.state.busy = () => true;
+    r.sys.bagged('near', towardCentre(r));
+    r.run(secondsToTicks(B.fetch.delaySeconds + B.fetch.waitSeconds) + 30);
+    expect(r.events.some((e) => e.type === 'brakkieFetchStarted')).toBe(false);
+    expect(r.sys.view().queued).toBe(0);
+  });
+
+  it('"Soek!": with a bird down the whistle sends him for it at once, gun busy or not', () => {
     const r = rig(32);
     r.until((v) => v.present && v.phase === 'rest', 60 * 30);
     r.state.gunUp = true;
-    r.sys.bagged('near', towardCentre(r));
     expect(r.sys.view().whistle).toBe('heel');
-    r.run(secondsToTicks(B.fetch.delaySeconds) + 2);
+    r.sys.bagged('near', towardCentre(r));
     expect(r.sys.view().whistle).toBe('seek');
     r.sys.whistle();
     expect(r.sys.view().phase).toBe('fetch');
