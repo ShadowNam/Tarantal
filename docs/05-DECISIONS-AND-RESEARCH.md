@@ -4941,7 +4941,8 @@ or fire held) is **replaced by a short after-the-bag delay**: he runs out `fetch
 (0.9 → **1.5 s**) after a bird falls, shooting or not; `fetch.quietSeconds` is gone; the queue holds
 **3** (`queueMax` 2 → 3). Unchanged: he goes only to a spot `clearPx` from every live bird, along a
 clear path, never into the line of fire; −25 for a shot aimed at him; the Bring streak breaks for
-a shot aimed within `clear.aimPx` while he carries; Bring +15, Goeie hond +30. The whistle sends
+a shot aimed within `clear.aimPx` while he carries (Bring and Goeie hond: see *The owner's balance
+decision* below). The whistle sends
 him for any queued bird at once (before its delay). He stays low on the near plane and goes onto
 the mid plane only to fetch, as before. *Review (10 Nov):* the spot check alone could send him
 ~1,300 px past a live near flock while the player fired, so a fetch on his own plane also needs a
@@ -4977,7 +4978,7 @@ him out at once!" (on touch: "Tap the whistle…"), en/af/de/nl.
   feathers, no poof, no struggle — simply caught). The rest of its flock reacts as to a threat:
   three threats from the catch (`jag.alarmThreats`), 0.35 s apart (`alarmEverySeconds`), as the
   bark's — alert → run → flush (wing shots). He
-  carries it home at his sprint like a fetch: Bring +15 on delivery, and catches count toward
+  carries it home at his sprint like a fetch: Bring on delivery, and catches count toward
   Goeie hond. Up to 3 catches.
 - *The clock:* the 10 s count **only his hunting time** (looking round, crossing out for a bird,
   the chase, the pounce); it holds while he fetches a shot bird, carries, or is at the bakkie. In
@@ -5001,8 +5002,22 @@ First sweep: the card itself −0.5 % to +1.2 %; worth per card +77 (competent) 
 +115 / −20. Fetch sooner raises the mean by +2–9 % (competent) and +0.5–15 % (plinker): about five
 more deliveries a hunt and longer Bring streaks (+130 points a hunt, Bring 28 → 108, Goeie hond
 5 → 53 for the plinker). That is above the brief's "≤ ~5 % per area", but Bring +15 and Goeie
-hond +30 stay as the owner asked; Bring +10 would trim only ~1.5 points of it. **Open for the
-owner:** keep it, or Goeie hond every 5th delivery instead of every 3rd.
+hond +30 stayed as the brief asked, and the question went to the owner.
+
+**The owner's balance decision (10 Nov, chat; review 2).** Asked how much Brakkie should help the
+score, he chose **"Keep it near +5 %"**: "Tune it down so scores stay comparable with before (e.g.
+Bring +10 instead of +15, the +30 streak every 4th): he still fetches much more often and the card
+still pays, but Daily and best scores don't jump." Review 2 first fixed fetch sooner itself: in a
+real hunt he ran out only once the shooting stopped (the e2e measured 271 ticks, not ~90) — the
+near-plane run check counted static mid-layer targets (a tell animal, a secret's part) as birds
+over his way, and a missed shot's head tilt held him; now only live mid birds count
+(`midBirdNear`) and a ready bird cuts a reaction short. Tuned on that sim (250 seeds per bot, five
+areas × pointer/touch, the card in the crate pool): the owner's example (Bring +10, every 4th)
+still left +6–8 %, because he delivers ~8× as many birds and Bring is × Frenzy; without the
+bonuses the rise is ~2 %. **Shipped: Bring! +4 a delivery, Goeie hond! +20 every 5th delivery in a
+row** (`bring` 15 → 4, `streakEvery` 3 → 5, `streakPoints` 30 → 20): −2.2 % … +5.2 % against main
+(mean +2.4 %), every case ≤ +5 % but Kalahari pointer, plinker, +5.2 % (inside the noise of 250
+seeds). The card still pays: each catch its bag score (~14 on the mid plane × Frenzy) + Bring.
 
 **Sizes.** First download 2,999.7 → 2,998.6 KB gz (after main's Sizes editor, D-086: main 3,002.0 → this branch 3,001.0; Poki 2,991.9, CrazyGames 2,992.0, Android 2,991.9, all `--strict` OK): the card's code costs ~1 KB, and main.ts no
 longer carries the e2e/dev content tweaks (`devContent.ts`) and the admin's Play setup — they are

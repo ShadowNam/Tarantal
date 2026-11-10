@@ -19,8 +19,10 @@ birds, and a card should send him hunting guineafowl on the ground.
   shoot at him: it costs 25 and ends the card. Its chip shows the seconds and the catches; Oupa
   cheers him on (text for now, voices later).
 - **The Gun Shed's Power-ups tab** has the new card with its picture: Brakkie's head with a paw.
-- **Scores:** a dog who fetches more earns more Bring bonuses (about +130 points a hunt); the card
-  itself is worth about as much as Blitslaai. Details: docs/balance/v1.20-jag.md.
+- **Scores stay comparable (the owner: "Keep it near +5 %"):** he delivers about eight times as
+  many birds, so each delivery now pays "Bring!" +4 (was +15) and "Goeie hond!" pays +20 every 5th
+  in a row (was +30 every 3rd); scores land within about 5 % of before. The card itself is worth
+  about as much as Blitslaai. Details: docs/balance/v1.20-jag.md.
 - **Smaller first download:** the test-only content switches now load only in test runs
   (1 KB smaller than main).
 
