@@ -3,6 +3,7 @@
 // birds dark and cool against a warm veld. Everything is drawn onto canvases and registered in the
 // AssetManifest, so real art can replace any key later. Rendering-only code: Math.random would be
 // allowed here, but a tiny seeded PRNG keeps the panorama identical between runs and screenshots.
+import { SHED_GUN_SHEET, SHED_GUN_SHEET_H, SHED_GUN_SHEET_W } from '../ui/shedGunSheet';
 import { canSpecs } from './canArt';
 import { makalaniSpecs } from './makalaniArt';
 import type { AmmoType, Biome, ContentBundle } from '../../content/schemas';
@@ -1331,6 +1332,8 @@ function m4Specs(): CanvasSpec[] {
         [TEX.puVoorlaaier, '#8B5A2B', 'gun'],
         [TEX.puMielieMasjien, '#5E7A3A', 'gun'],
         [TEX.puRooikol, '#E8241A', 'disc'],
+        [TEX.puDragonBreath, '#A8161A', 'shell'],
+        [TEX.puSlug, '#3F6E4A', 'shell'],
       ] as const
     ).map(([key, colour, shape]) =>
       centred(key, 128, 128, (ctx) => {
@@ -1523,6 +1526,18 @@ export function createPlaceholderManifest(
   const m = new AssetManifest();
   const art = loadedArt.get(biome.id);
   if (art === undefined) throw new Error(`biome art ${biome.id} not loaded (loadBiomeArt first)`);
+  // v1.19 (D-084): the Gun Shed's side-view sheet (group `shed`): listed so the pack and the audit
+  // know the key; no manifest loads it (ShedScene fetches it on demand), so its placeholder is an
+  // empty 1×1 canvas and the cards fall back to the gun's first-person idle frame.
+  m.addTexture({
+    key: SHED_GUN_SHEET,
+    width: SHED_GUN_SHEET_W,
+    height: SHED_GUN_SHEET_H,
+    originX: 0,
+    originY: 0,
+    empty: true,
+    draw() {},
+  });
   const planes: PlaneId[] = ['near', 'mid', 'far'];
   for (const c of content.birds.creatures) {
     if (c.kind === 'helper') continue;

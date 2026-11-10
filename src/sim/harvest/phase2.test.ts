@@ -330,6 +330,22 @@ describe('stopping them (v1.18, D-081)', () => {
     expect(r.sys.left()).toBe(0);
   });
 
+  it('v1.19 (D-084): one Slug (heavy) bags a warthog or a baboon at once', () => {
+    const w = standalone(one('warthog'));
+    const a = w.step(120)[0];
+    if (a === undefined) throw new Error('no warthog');
+    w.sys.shot(1, [a.id], false, aimAt(a), true);
+    expect(ofType(w.events, 'warthogHit')[0]?.hitsLeft).toBe(0);
+    expect(ofType(w.events, 'warthogBagged')).toHaveLength(1);
+    const b = standalone(one('baboon'));
+    const c = b.step(60)[0];
+    if (c === undefined) throw new Error('no baboon');
+    expect(base.birds.baboons.hit.hitsToBag).toBeGreaterThan(1);
+    b.sys.shot(1, [c.id], false, aimAt(c), true);
+    expect(ofType(b.events, 'baboonHit')[0]?.hitsLeft).toBe(0);
+    expect(ofType(b.events, 'baboonBagged')).toHaveLength(1);
+  });
+
   it('a piglet is never a target: a shot near it scares it out, free; aimed at it costs 15', () => {
     const r = standalone(one('piglet'));
     const a = r.step(120)[0];

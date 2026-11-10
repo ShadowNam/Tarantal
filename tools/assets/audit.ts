@@ -3,6 +3,7 @@
 // files referenced but missing, placeholder keys nothing uses. `--strict` (the launch gate) also
 // fails while any key is still a placeholder. Pure: the CLI (tools/asset-audit.ts) gathers the
 // inputs from disk.
+import { SHED_GUN_SHEET } from '../../src/game/ui/shedGunSheet';
 import { hdBaseOf, POTJIE_LID } from '../../src/game/assets/hdProps';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
 import { NUT_SHEET } from '../../src/game/view/palms/makalaniSheet';
@@ -119,6 +120,8 @@ function usages(
   if (key === HARVEST_SHEET) needles.push(/\bHARVEST_SHEET\b/);
   // v1.18 (D-081): the Phase 2 sheet by its constant (HarvestView).
   if (key === HARVEST2_SHEET) needles.push(/\bHARVEST2_SHEET\b/);
+  // v1.19 (D-084): the Gun Shed's side-view sheet by its constant (shedGunIcons.ts).
+  if (key === SHED_GUN_SHEET) needles.push(/\bSHED_GUN_SHEET\b/);
   // v1.10 (D-067): Reënbui's sheet by its constant (ReenbuiView).
   if (key === REENBUI_SHEET) needles.push(/\bREENBUI_SHEET\b/);
   // v1.11 (D-068): the braai's sheet and sounds by their constants (BraaiView, braaiLoad).

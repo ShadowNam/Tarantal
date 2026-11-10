@@ -1300,6 +1300,60 @@ function puRooikol(p: SpriteCtx): string {
   );
 }
 
+/** v1.19 (D-084) Dragon's Breath icon: a deep red shell with a gold head, a gold band and a
+ *  flame mark on its side, a tongue of fire licking out of its open crimp. */
+function puDragonBreath(p: SpriteCtx): string {
+  const red = tone('#A8161A', 0.3, 0.32);
+  const gold = tone('#D7A93A', 0.3, 0.35);
+  return g(
+    { transform: 'translate(2 9) scale(0.64) rotate(-14)' },
+    // The flame out of the crimp (behind the shell's mouth).
+    inked(
+      'M-12 -22Q-20 -38 -8 -50Q-10 -40 -2 -36Q0 -52 12 -58Q6 -44 14 -36Q20 -42 18 -30Q16 -22 10 -22Z',
+      '#F07A1E',
+      p.ink,
+      2.2,
+    ),
+    flat('M-6 -24Q-10 -36 -2 -44Q-2 -36 4 -32Q6 -42 10 -46Q8 -36 12 -28Q10 -24 6 -24Z', '#FFC93A'),
+    flat('M-1 -25Q-2 -31 2 -35Q3 -30 6 -27Z', '#FFF3B0'),
+    // Shell body, the gold band and the flame mark.
+    inked('M-13 -24L13 -24L13 16L-13 16Z', red.fill, p.ink, 2.6),
+    flat('M5 -22L11 -22L11 16L5 16Z', red.dark),
+    flat('M-10 -21L-7 -21L-7 14L-10 14Z', red.light),
+    inked('M-13 -14L13 -14L13 -9L-13 -9Z', gold.fill, p.ink, 1.6),
+    inked('M0 10Q-8 4 -4 -2Q-3 2 0 2Q-1 -4 3 -7Q2 -1 6 2Q8 6 0 10Z', '#FFB12E', p.ink, 1.4),
+    // The brass head and its rim.
+    inked('M-14 16L14 16L14 28L-14 28Z', gold.fill, p.ink, 2.6),
+    flat('M-11 18L-8 18L-8 26L-11 26Z', gold.light),
+    line('M-14 24L14 24', { ink: gold.dark, w: 1.6 }),
+  );
+}
+
+/** v1.19 (D-084) Slug icon: a blue plastic shell cut away at the top so the heavy grey lead slug shows,
+ *  its rifled ribs and hollow base, a speed streak behind it. */
+function puSlug(p: SpriteCtx): string {
+  const hull = tone('#2B78C4', 0.3, 0.32);
+  const lead = tone('#7E858C', 0.35, 0.35);
+  const gold = tone('#D7A93A', 0.3, 0.35);
+  return g(
+    { transform: 'translate(3 8) scale(0.66) rotate(-14)' },
+    // A speed streak off the nose.
+    line('M-4 -54L-4 -44M4 -56L4 -46', { ink: '#D9D2C2', w: 2.4 }),
+    // The slug: a rounded nose with angled ribs, sitting in the open hull.
+    inked('M-11 -14L-11 -30Q-11 -44 0 -44Q11 -44 11 -30L11 -14Z', lead.fill, p.ink, 2.6),
+    flat('M-8 -30Q-8 -40 -2 -41Q-6 -36 -6 -28Z', lead.light),
+    line('M-11 -26L-4 -32M-11 -20L2 -32M-6 -15L8 -29M2 -14L11 -23', { ink: lead.dark, w: 1.6 }),
+    // The hull (cut open at the top) and its brass head.
+    inked('M-13 -16L13 -16L13 16L-13 16Z', hull.fill, p.ink, 2.6),
+    flat('M5 -14L11 -14L11 16L5 16Z', hull.dark),
+    flat('M-10 -13L-7 -13L-7 14L-10 14Z', hull.light),
+    line('M-13 -16L13 -16', { ink: p.ink, w: 2.6 }),
+    inked('M-14 16L14 16L14 28L-14 28Z', gold.fill, p.ink, 2.6),
+    flat('M-11 18L-8 18L-8 26L-11 26Z', gold.light),
+    line('M-14 24L14 24', { ink: gold.dark, w: 1.6 }),
+  );
+}
+
 /** v1.6b (D-043) Blitslaai's glint on the belt: a small spark of lightning (a local sprite). */
 function boltGlint(p: SpriteCtx): string {
   return g(
@@ -1394,6 +1448,8 @@ export const SPRITES: readonly SpriteSpec[] = [
       ['voorlaaier', puVoorlaaier],
       ['mielie_masjien', puMielieMasjien],
       ['rooikol', puRooikol],
+      ['dragon_breath', puDragonBreath],
+      ['slug', puSlug],
     ] as const
   ).map(([id, draw]) => ({
     key: `ui/pu_${id}`,

@@ -183,15 +183,30 @@ function screw(x: Ctx, cx: number, cy: number, r: number, rot: number): string {
       stroke: x.c('steelShadow'),
       'stroke-width': Math.max(0.8, r * 0.25),
     }),
+    // The dome's shadow side (light from the top left).
+    el('path', {
+      d: ellipseD(cx + r * 0.22, cy + r * 0.24, r * 0.72, r * 0.68),
+      fill: x.c('steelShadow'),
+      opacity: 0.55,
+    }),
     el('path', {
       d: `M${r2(cx - dx)} ${r2(cy - dy)}L${r2(cx + dx)} ${r2(cy + dy)}`,
       stroke: x.c('bluedShadow'),
       'stroke-width': Math.max(0.8, r * 0.35),
       'stroke-linecap': 'round',
     }),
+    // The slot's lit lower lip.
     el('path', {
-      d: ellipseD(cx - r * 0.35, cy - r * 0.4, r * 0.3, r * 0.22),
-      fill: x.c('steelHi'),
+      d: `M${r2(cx - dx * 0.8)} ${r2(cy - dy * 0.8 + r * 0.22)}L${r2(cx + dx * 0.8)} ${r2(cy + dy * 0.8 + r * 0.22)}`,
+      stroke: x.c('steelHi'),
+      'stroke-width': Math.max(0.5, r * 0.14),
+      'stroke-linecap': 'round',
+      opacity: 0.6,
+    }),
+    el('path', {
+      d: ellipseD(cx - r * 0.38, cy - r * 0.42, r * 0.3, r * 0.22),
+      fill: '#FFFFFF',
+      opacity: 0.75,
     }),
   ].join('');
 }
@@ -261,15 +276,79 @@ function grain(
     const drift = (rnd() - 0.5) * 14;
     figure += `M${r2(fx - w0)} ${r2(y0)}Q${r2(fx + drift / 2)} ${r2((y0 + y1) / 2)} ${r2(fx + drift - w0 * 0.6)} ${r2(y1)}L${r2(fx + drift + w0 * 0.6)} ${r2(y1)}Q${r2(fx + drift / 2 + w0)} ${r2((y0 + y1) / 2)} ${r2(fx + w0)} ${r2(y0)}Z`;
   }
+  // Fiddleback figure: faint wavy bands across the grain, alternately lit and dark, that give
+  // walnut its shimmer; open pores as broken dark dashes; a few pale streaks of sapwood.
+  const h = y1 - y0;
+  const w = x1 - x0;
+  let curlD = '';
+  let curlL = '';
+  const bands = Math.max(4, Math.round(h / 16));
+  for (let k = 0; k < bands; k++) {
+    const fy = y0 + ((k + rnd() * 0.9) / bands) * h;
+    const amp = 3 + rnd() * 6;
+    const tilt = (rnd() - 0.5) * 16;
+    // Partial bands: the figure comes and goes across the width.
+    const a0 = x0 + rnd() * w * 0.4;
+    const a1 = x1 - rnd() * w * 0.4;
+    const seg = `M${r2(a0)} ${r2(fy)}Q${r2((a0 + a1) / 2)} ${r2(fy - amp)} ${r2(a1)} ${r2(fy + tilt)}`;
+    if (k % 2 === 0) curlD += seg;
+    else curlL += seg;
+  }
+  // Pores: short scattered dark ticks along the grain (not dashed lines, which line up).
+  const pores: string[] = [];
+  for (let k = 0; k < Math.round((w * h) / 260); k++) {
+    const px = x0 + rnd() * w;
+    const py = y0 + rnd() * h;
+    const len = 1 + rnd() * 3;
+    pores.push(`M${r2(px)} ${r2(py)}l${r2((rnd() - 0.5) * 0.6)} ${r2(len)}`);
+  }
+  let streaks = '';
+  for (let k = 0; k < Math.max(2, Math.round(n / 3)); k++) {
+    const fx = x0 + (0.1 + rnd() * 0.6) * w;
+    const drift = (rnd() - 0.5) * 10;
+    streaks += `M${r2(fx)} ${r2(y0)}Q${r2(fx + drift)} ${r2((y0 + y1) / 2)} ${r2(fx + drift * 0.4)} ${r2(y1)}`;
+  }
   return (
-    el('path', { d: figure, fill: x.c('woodGrain'), opacity: 0.22 }) +
+    el('path', { d: figure, fill: x.c('woodGrain'), opacity: 0.26 }) +
+    el('path', {
+      d: curlD,
+      fill: 'none',
+      stroke: x.c('woodGrain'),
+      'stroke-width': 4,
+      'stroke-linecap': 'round',
+      opacity: 0.1,
+    }) +
+    el('path', {
+      d: curlL,
+      fill: 'none',
+      stroke: x.c('woodHi'),
+      'stroke-width': 3,
+      'stroke-linecap': 'round',
+      opacity: 0.12,
+    }) +
+    el('path', {
+      d: streaks,
+      fill: 'none',
+      stroke: x.c('woodHi'),
+      'stroke-width': 1.3,
+      'stroke-linecap': 'round',
+      opacity: 0.3,
+    }) +
     el('path', {
       d: lines.join(''),
       fill: 'none',
       stroke: x.c('woodGrain'),
       'stroke-width': 0.55,
       'stroke-linecap': 'round',
-      opacity: 0.38,
+      opacity: 0.45,
+    }) +
+    el('path', {
+      d: pores.join(''),
+      fill: 'none',
+      stroke: '#1A0E06',
+      'stroke-width': 0.8,
+      'stroke-linecap': 'round',
+      opacity: 0.32,
     })
   );
 }
@@ -387,7 +466,43 @@ function metal(
       opacity: o,
       'stroke-linecap': 'round',
     });
+  // v1.19: deeper blued shadow side, a faint sky reflection, a reflected rim light on the far
+  // edge, fine polish lines along the part and broken wear on the lit edge.
+  const across = Math.hypot(tr[0] - tl[0], tr[1] - tl[1]) || 10;
+  // Full-length lines (past both ends; the part's clip trims them) for the broad bands.
+  const along = (t: number): string => {
+    const a: Pt = [tl[0] + (tr[0] - tl[0]) * t, tl[1] + (tr[1] - tl[1]) * t];
+    const b: Pt = [bl[0] + (br[0] - bl[0]) * t, bl[1] + (br[1] - bl[1]) * t];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    const [ux, uy] = [(b[0] - a[0]) / len, (b[1] - a[1]) / len];
+    return `M${r2(a[0] - ux * 20)} ${r2(a[1] - uy * 20)}L${r2(b[0] + ux * 20)} ${r2(b[1] + uy * 20)}`;
+  };
+  const band = (t: number, colour: string, wFrac: number, o: number): string =>
+    el('path', {
+      d: along(t),
+      stroke: colour,
+      'stroke-width': Math.max(1.2, across * wFrac),
+      opacity: o,
+      'stroke-linecap': 'butt',
+    });
+  const deep = kind === 'brass' ? '#3A2A08' : '#05070A';
+  const sky = kind === 'brass' ? '#FFF1C0' : kind === 'blued' ? '#9FB6CF' : '#DCE4EC';
+  const rnd = prng(seed * 7 + 3);
+  let polish = '';
+  for (let k = 0; k < 4; k++) {
+    const t = 0.3 + rnd() * 0.55;
+    polish += spec(t);
+  }
   const detail =
+    band(0.74, deep, 0.2, kind === 'blued' ? 0.42 : 0.3) +
+    band(0.5, sky, 0.12, kind === 'blued' ? 0.12 : 0.1) +
+    band(0.93, sky, 0.05, 0.22) +
+    el('path', {
+      d: polish,
+      stroke: sky,
+      'stroke-width': 0.5,
+      opacity: 0.18,
+    }) +
     el('path', {
       d: spec(0.2),
       stroke: '#FFFFFF',
@@ -398,11 +513,23 @@ function metal(
     el('path', {
       d: spec(0.2),
       stroke: '#FFFFFF',
-      'stroke-width': 0.9,
-      opacity: 0.5,
+      'stroke-width': 1.1,
+      opacity: 0.75,
       'stroke-linecap': 'round',
     }) +
-    (wear ? worn(0.03, 0.35) + worn(0.97, 0.22) + scratches(x, x0, y0, x1, y1, seed) : '');
+    (wear
+      ? worn(0.03, 0.35) +
+        worn(0.97, 0.22) +
+        el('path', {
+          d: spec(0.06),
+          stroke: x.c('steelHi'),
+          'stroke-width': 1.2,
+          'stroke-dasharray': '6 9 14 7 3 12',
+          opacity: 0.45,
+          'stroke-linecap': 'round',
+        }) +
+        scratches(x, x0, y0, x1, y1, seed, 7)
+      : '');
   return (
     sideFace(x, pts, x.c(`${kind}Shadow`), depth) +
     shaded(
@@ -497,12 +624,26 @@ function checkering(x: Ctx, pts: readonly Pt[]): string {
   }
   return [
     el('clipPath', { id }, el('path', { d: polyD(pts) })),
+    // The panel sits a touch darker (oil and grime in the cuts).
+    el('path', { d: polyD(pts), fill: '#1A0E06', opacity: 0.12 }),
+    // Each diamond's lit upper face, then the cut lines between them.
+    g(
+      { 'clip-path': `url(#${id})` },
+      el('path', {
+        d,
+        stroke: x.c('woodHi'),
+        'stroke-width': 0.8,
+        fill: 'none',
+        opacity: 0.45,
+        transform: 'translate(0 -1.3)',
+      }),
+    ),
     el('path', {
       d,
       stroke: x.c('woodShadow'),
       'stroke-width': 0.9,
       fill: 'none',
-      opacity: 0.85,
+      opacity: 0.9,
       'clip-path': `url(#${id})`,
     }),
     // The checkered panel's cut border.
@@ -621,7 +762,7 @@ interface DubbelState {
   readonly glow: number;
 }
 
-function stockButt(x: Ctx, top: number, seed: number, light = false): string {
+function stockButt(x: Ctx, top: number, seed: number, light = false, brass = false): string {
   // In 3/4 view the butt swings out toward the player's shoulder (bottom right) and shows its
   // comb (the side face) on the right.
   const comb: Pt[] = [
@@ -693,12 +834,34 @@ function stockButt(x: Ctx, top: number, seed: number, light = false): string {
       opacity: 0.5,
       transform: 'translate(2 1)',
     }) +
-    // Rubber butt pad with a white-line spacer.
-    el('path', { d: pad, fill: '#24201D', stroke: '#14110F', 'stroke-width': 1 }) +
-    el('path', { d: 'M-73 -8L104 -8', stroke: '#E9E2D2', 'stroke-width': 1.6, opacity: 0.8 }) +
-    el('path', { d: 'M-60 -2L20 -2M40 -2L98 -2', stroke: '#3A3430', 'stroke-width': 0.8 }) +
+    (brass
+      ? // A cast brass butt plate (the Voorlaaier): polished, a crisp catch-light along its top.
+        metal(
+          x,
+          [
+            [-76, -8],
+            [104, -8],
+            [106, 4],
+            [-76, 4],
+          ],
+          'brass',
+          seed + 5,
+          true,
+        ) +
+        el('path', {
+          d: 'M-60 -6L-10 -6',
+          stroke: '#FFFFFF',
+          'stroke-width': 1.2,
+          opacity: 0.7,
+          'stroke-linecap': 'round',
+        })
+      : // Rubber butt pad with a white-line spacer and its fine moulded ribs.
+        el('path', { d: pad, fill: '#24201D', stroke: '#14110F', 'stroke-width': 1 }) +
+        el('path', { d: 'M-73 -8L104 -8', stroke: '#E9E2D2', 'stroke-width': 1.6, opacity: 0.8 }) +
+        el('path', { d: 'M-60 -2L20 -2M40 -2L98 -2', stroke: '#3A3430', 'stroke-width': 0.8 }) +
+        el('path', { d: 'M-66 1L94 1', stroke: '#4A433E', 'stroke-width': 0.6, opacity: 0.7 })) +
     checkering(x, wrist) +
-    triggerGuard(x, top) +
+    triggerGuard(x, top, brass) +
     // Tang screw behind the guard, the rear sling swivel under the butt, buttplate screws.
     screw(x, 38, top + 66, 3, 25) +
     swivel(x, 80, -40, -30) +
@@ -708,7 +871,8 @@ function stockButt(x: Ctx, top: number, seed: number, light = false): string {
 }
 
 /** Steel trigger guard and trigger(s) peeking out on the right of the wrist (3/4 view). */
-function triggerGuard(x: Ctx, top: number): string {
+function triggerGuard(x: Ctx, top: number, brass = false): string {
+  const m = brass ? 'brass' : 'steel';
   // D-035 round 2: a slim forged bow (a thin steel band, not a disc) around a dark opening, and
   // narrow blade triggers; lit from the top left.
   const outer: Pt[] = [
@@ -741,9 +905,10 @@ function triggerGuard(x: Ctx, top: number): string {
     el(
       'linearGradient',
       { id: gid, x1: 34, y1: top, x2: 66, y2: top + 58, gradientUnits: 'userSpaceOnUse' },
-      el('stop', { offset: 0, 'stop-color': x.c('steelHi') }),
-      el('stop', { offset: 0.5, 'stop-color': x.c('steel') }),
-      el('stop', { offset: 1, 'stop-color': x.c('steelShadow') }),
+      el('stop', { offset: 0, 'stop-color': x.c(`${m}Hi`) }),
+      el('stop', { offset: 0.35, 'stop-color': x.c(m) }),
+      el('stop', { offset: 0.7, 'stop-color': x.c(`${m}Shadow`) }),
+      el('stop', { offset: 1, 'stop-color': mixHex(x.c(`${m}Shadow`), x.c(`${m}Hi`), 0.3) }),
     ),
     el('path', { d: hole, fill: '#1E1712' }),
     trig(0),
@@ -752,9 +917,61 @@ function triggerGuard(x: Ctx, top: number): string {
       d: loop + hole,
       fill: `url(#${gid})`,
       'fill-rule': 'evenodd',
-      stroke: mixHex(x.c('steelShadow'), '#000000', 0.3),
+      stroke: mixHex(x.c(`${m}Shadow`), '#000000', 0.3),
       'stroke-width': 1,
       'stroke-linejoin': 'round',
+    }),
+    // A catch-light on the bow's lit shoulder.
+    el('path', {
+      d: `M${r2(40)} ${r2(top + 8)}Q${r2(54)} ${r2(top + 5)} ${r2(62)} ${r2(top + 18)}`,
+      fill: 'none',
+      stroke: '#FFFFFF',
+      'stroke-width': 1,
+      opacity: brass ? 0.75 : 0.55,
+      'stroke-linecap': 'round',
+    }),
+  ].join('');
+}
+
+/**
+ * v1.19: scope glass seen at an angle: a dark rim, coated glass shading from blue (top left) to
+ * deep green, and a white catch-light with a small second glint.
+ */
+function lens(x: Ctx, cx: number, cy: number, rx: number, ry: number): string {
+  const id = uid(x, 'ln');
+  return [
+    el(
+      'linearGradient',
+      {
+        id,
+        x1: cx - rx,
+        y1: cy - ry,
+        x2: cx + rx,
+        y2: cy + ry,
+        gradientUnits: 'userSpaceOnUse',
+      },
+      el('stop', { offset: 0, 'stop-color': '#7FC4E8' }),
+      el('stop', { offset: 0.35, 'stop-color': '#2F7A8C' }),
+      el('stop', { offset: 0.75, 'stop-color': '#16404A' }),
+      el('stop', { offset: 1, 'stop-color': '#0B1E24' }),
+    ),
+    el('path', { d: ellipseD(cx, cy, rx, ry), fill: '#0A0C0E' }),
+    el('path', { d: ellipseD(cx, cy, rx * 0.86, ry * 0.8), fill: `url(#${id})` }),
+    // A purple-green coating sheen on the far side.
+    el('path', {
+      d: ellipseD(cx + rx * 0.3, cy + ry * 0.15, rx * 0.4, ry * 0.4),
+      fill: '#6FD3A0',
+      opacity: 0.22,
+    }),
+    el('path', {
+      d: ellipseD(cx - rx * 0.4, cy - ry * 0.3, rx * 0.26, ry * 0.3),
+      fill: '#FFFFFF',
+      opacity: 0.9,
+    }),
+    el('path', {
+      d: ellipseD(cx + rx * 0.18, cy + ry * 0.25, rx * 0.08, ry * 0.12),
+      fill: '#FFFFFF',
+      opacity: 0.7,
     }),
   ].join('');
 }
@@ -813,6 +1030,29 @@ function dubbelloop(x: Ctx, s: DubbelState): string {
       'stroke-linecap': 'round',
     }),
   );
+  // The engraving's cut border and the action's cross pins.
+  out.push(
+    el('path', {
+      d: polyD([
+        [-44, -238],
+        [44, -238],
+        [39, -166],
+        [-39, -166],
+      ]),
+      fill: 'none',
+      stroke: x.c('steelShadow'),
+      'stroke-width': 0.8,
+      opacity: 0.8,
+    }),
+    el('path', {
+      d: 'M-42 -235L42 -235',
+      stroke: x.c('steelHi'),
+      'stroke-width': 0.7,
+      opacity: 0.7,
+    }),
+    screw(x, -34, -174, 3.2, 35),
+    screw(x, 32, -174, 3.2, 120),
+  );
   // Safety slide.
   out.push(
     inked(
@@ -836,6 +1076,21 @@ function dubbelloop(x: Ctx, s: DubbelState): string {
     [-47, hinge - 22 * k],
   ];
   out.push(wood(x, fore, 21, false, 0.4));
+  // Checkered panels down both edges of the fore-end (only these strips show beside the barrels).
+  {
+    const fy0 = hinge + (-360 - hinge) * k;
+    const fy1 = hinge - 34 * k;
+    const ex = (y: number): number => 34 + ((y - fy0) / (fy1 - fy0 || 1)) * 12;
+    for (const side of [-1, 1] as const)
+      out.push(
+        checkering(x, [
+          [side * (ex(fy0) - 3), fy0],
+          [side * (ex(fy0) - 12), fy0],
+          [side * (ex(fy1) - 14), fy1],
+          [side * (ex(fy1) - 3), fy1],
+        ]),
+      );
+  }
   out.push(contactShadow(x, polyD(bar(-1)) + polyD(bar(1)), smoothD(fore, true, 0.4), 4, 6, 0.55));
   // Barrels with a fine rib between them.
   for (const side of [-1, 1] as const)
@@ -953,9 +1208,30 @@ function windbuks(x: Ctx, puff: number): string {
       x.inner,
     ),
   );
+  // The cylinder's end-cap seams, the cocking slot's lit lip and the trigger-block screws.
+  out.push(
+    el('path', {
+      d: 'M-24 -226L24 -226M-26 -136L26 -136',
+      stroke: x.c('bluedShadow'),
+      'stroke-width': 1.4,
+    }),
+    el('path', {
+      d: 'M-24 -224L24 -224M-26 -134L26 -134',
+      stroke: x.c('bluedHi'),
+      'stroke-width': 0.7,
+      opacity: 0.6,
+    }),
+    el('path', { d: 'M-4 -150L-4 -220', stroke: x.c('bluedHi'), 'stroke-width': 0.8 }),
+    screw(x, -15, -142, 2.6, 30),
+    screw(x, 16, -142, 2.6, 100),
+  );
   // Slim barrel with the breech joint.
   out.push(metal(x, taper(0, MUZZLE_Y + 6, 5.5, -236, 14), 'blued', 8, true, 5));
   out.push(inked(ellipseD(0, -240, 18, 7), x.c('bluedHi'), x.ink, x.inner));
+  out.push(
+    el('path', { d: ellipseD(-5, -242, 7, 2), fill: '#FFFFFF', opacity: 0.35 }),
+    screw(x, 11, -240, 3, 60),
+  );
   // Front sight hood and rear sight leaf.
   out.push(
     metal(
@@ -1116,6 +1392,8 @@ function tweeTwee(
       false,
     ),
   );
+  // v1.19 (D-084): no scope on the sprite: the Twee-Twee is fitted with iron, peep or scope
+  // sights (the sight picture shows which), so the gun itself keeps its open sights.
   // Five-round box magazine under the receiver (it drops out for the reload).
   const my = s.mag * 70;
   out.push(
@@ -1304,9 +1582,21 @@ function langloop(
   }
   out.push(metal(x, taper(0, -300, 16, -140, 16), 'blued', 97, true, 7));
   out.push(metal(x, taper(0, -346, 27, -296, 17), 'blued', 98, true, 8));
-  out.push(el('path', { d: ellipseD(0, -346, 24, 6), fill: x.c('bluedShadow'), opacity: 0.9 }));
-  out.push(el('path', { d: ellipseD(-6, -347, 8, 2.2), fill: '#9FC3D8', opacity: 0.55 }));
+  out.push(lens(x, 0, -346, 24, 6));
+  // The power ring's grip ribs on the eyepiece and its ocular glass.
   out.push(metal(x, taper(0, -150, 18, -118, 21), 'blued', 99, true, 6));
+  out.push(
+    el('path', {
+      d: Array.from({ length: 5 }, (_, i) => {
+        const y = -146 + i * 4;
+        const w = 18 + i * 0.5;
+        return `M${r2(-w + 2)} ${r2(y)}L${r2(w - 2)} ${r2(y)}`;
+      }).join(''),
+      stroke: x.c('bluedShadow'),
+      'stroke-width': 1.2,
+    }),
+    lens(x, 0, -121, 17, 4),
+  );
   // Elevation turret on top (a ribbed cap) and the windage turret on the right.
   out.push(
     metal(
@@ -1324,6 +1614,13 @@ function langloop(
     ),
   );
   out.push(
+    el('path', {
+      d: 'M-6 -230L-6 -214M-3 -230L-3 -214M0 -230L0 -214M3 -230L3 -214M6 -230L6 -214',
+      stroke: x.c('steelShadow'),
+      'stroke-width': 0.8,
+    }),
+  );
+  out.push(
     metal(
       x,
       [
@@ -1337,6 +1634,15 @@ function langloop(
       false,
       3,
     ),
+  );
+  out.push(
+    el('path', {
+      d: 'M18 -223L28 -223M18 -219L28 -219M18 -215L28 -215',
+      stroke: x.c('steelShadow'),
+      'stroke-width': 0.8,
+    }),
+    screw(x, 17, -168, 2.4, 20),
+    screw(x, 17, -250, 2.4, 70),
   );
   // A long empty case flicks out of the port.
   if (s.eject > 0) {
@@ -1472,6 +1778,32 @@ function kettie(
       ]),
     ),
   );
+  out.push(
+    el('path', {
+      d: smoothD(
+        place(
+          [
+            [-19, -5],
+            [0, -10],
+            [19, -5],
+            [20, 5],
+            [0, 10],
+            [-20, 5],
+          ],
+          pouch[0],
+          pouch[1],
+          0,
+          s.pouchS,
+          s.pouchS,
+        ),
+      ),
+      fill: 'none',
+      stroke: x.c('leatherHi'),
+      'stroke-width': 0.9,
+      'stroke-dasharray': '3 2.5',
+      opacity: 0.8,
+    }),
+  );
   if (s.stone)
     out.push(
       inked(
@@ -1487,7 +1819,15 @@ function kettie(
     );
   // Fork-tip binding knots.
   for (const tip of [tipL, tipR])
-    out.push(inked(ellipseD(tip[0], tip[1] + 6, 12, 7), x.c('leatherShadow'), x.ink, x.inner));
+    out.push(
+      inked(ellipseD(tip[0], tip[1] + 6, 12, 7), x.c('leatherShadow'), x.ink, x.inner),
+      el('path', {
+        d: `M${r2(tip[0] - 9)} ${r2(tip[1] + 3)}L${r2(tip[0] + 9)} ${r2(tip[1] + 3)}M${r2(tip[0] - 10)} ${r2(tip[1] + 7)}L${r2(tip[0] + 10)} ${r2(tip[1] + 7)}M${r2(tip[0] - 8)} ${r2(tip[1] + 11)}L${r2(tip[0] + 8)} ${r2(tip[1] + 11)}`,
+        stroke: x.c('leatherHi'),
+        'stroke-width': 0.9,
+        opacity: 0.6,
+      }),
+    );
   return out.join('');
 }
 
@@ -1496,6 +1836,26 @@ function pomp(x: Ctx, s: { pump: number; eject: number; smoke: number; glow: num
   out.push(stockButt(x, -150, 61));
   // Magazine tube peeking out under the barrel.
   out.push(metal(x, taper(0, -470, 14, -250, 31), 'blued', 62, false));
+  // The magazine cap at its end, knurled.
+  out.push(
+    metal(
+      x,
+      [
+        [-14, -472],
+        [14, -472],
+        [15, -458],
+        [-15, -458],
+      ],
+      'steel',
+      66,
+      false,
+    ),
+    el('path', {
+      d: 'M-9 -471L-9 -459M-4 -471L-4 -459M1 -471L1 -459M6 -471L6 -459M11 -471L11 -459',
+      stroke: x.c('steelShadow'),
+      'stroke-width': 0.8,
+    }),
+  );
   // Barrel with a vent rib.
   out.push(metal(x, taper(0, MUZZLE_Y, 11, -240, 27), 'blued', 63, true, 8));
   // A fine vent rib along the top: a narrow lit strip with small posts.
@@ -1548,6 +1908,23 @@ function pomp(x: Ctx, s: { pump: number; eject: number; smoke: number; glow: num
       x.inner,
     ),
   );
+  // The port's lit lower lip, the trigger-plate pins and a milled line along the receiver.
+  out.push(
+    el('path', { d: 'M23 -185L37 -185', stroke: x.c('bluedHi'), 'stroke-width': 1, opacity: 0.8 }),
+    el('path', {
+      d: 'M-38 -200L18 -200',
+      stroke: x.c('bluedShadow'),
+      'stroke-width': 1.2,
+    }),
+    el('path', {
+      d: 'M-38 -198.6L18 -198.6',
+      stroke: x.c('bluedHi'),
+      'stroke-width': 0.6,
+      opacity: 0.5,
+    }),
+    screw(x, -30, -158, 3, 20),
+    screw(x, 28, -158, 3, 80),
+  );
   // Ribbed pump fore-end slides back toward the player.
   const dy = s.pump * 68;
   // D-035: a slim grooved slide under the barrel and magazine tube (not a fat drum).
@@ -1558,19 +1935,54 @@ function pomp(x: Ctx, s: { pump: number; eject: number; smoke: number; glow: num
     [-24, -282 + dy],
   ];
   const barrelD = polyD(taper(0, MUZZLE_Y, 11, -240, 27));
+  // The twin action bars (slide rails) run back from the fore-end into the receiver.
+  const railTop = -290 + dy;
+  if (railTop < -248)
+    for (const side of [-1, 1] as const)
+      out.push(
+        metal(
+          x,
+          side < 0
+            ? [
+                [-20, railTop],
+                [-15, railTop],
+                [-15, -246],
+                [-21, -246],
+              ]
+            : [
+                [15, railTop],
+                [20, railTop],
+                [21, -246],
+                [15, -246],
+              ],
+          'steel',
+          67 + side,
+          false,
+        ),
+      );
   out.push(wood(x, fore, 65, false, 0.5));
   out.push(contactShadow(x, barrelD, smoothD(fore, true, 0.5), 3, 5, 0.4));
+  // Deep grip grooves: a dark cut with the lit edge of the next ridge just below it.
+  const grooves = (dyOff: number): string =>
+    Array.from({ length: 16 }, (_, i) => {
+      const y = -404 + dy + i * 7.6 + dyOff;
+      const w = 19 + (i / 16) * 5;
+      return `M${r2(-w + 3)} ${r2(y)}Q0 ${r2(y + 1.5)} ${r2(w - 3)} ${r2(y)}`;
+    }).join('');
   out.push(
     el('path', {
-      d: Array.from({ length: 16 }, (_, i) => {
-        const y = -404 + dy + i * 7.6;
-        const w = 19 + (i / 16) * 5;
-        return `M${r2(-w + 3)} ${r2(y)}Q0 ${r2(y + 1.5)} ${r2(w - 3)} ${r2(y)}`;
-      }).join(''),
-      stroke: x.c('woodGrain'),
-      'stroke-width': 1,
+      d: grooves(0),
+      stroke: '#1A0E06',
+      'stroke-width': 2.2,
       'stroke-linecap': 'round',
-      opacity: 0.6,
+      opacity: 0.7,
+    }),
+    el('path', {
+      d: grooves(2),
+      stroke: x.c('woodHi'),
+      'stroke-width': 0.9,
+      'stroke-linecap': 'round',
+      opacity: 0.55,
     }),
   );
   if (s.eject > 0) out.push(shell(x, 50 + s.eject * 80, -210 - s.eject * 70, 60 + s.eject * 240));
@@ -1603,7 +2015,7 @@ function voorlaaier(
   const k = 1 - 0.16 * s.lower;
   const inner: string[] = [];
   const muzzle = MUZZLE_Y;
-  inner.push(stockButt(x, -176, 81));
+  inner.push(stockButt(x, -176, 81, false, true));
   // Full stock running under the barrel almost to the muzzle.
   inner.push(
     wood(
@@ -1645,6 +2057,26 @@ function voorlaaier(
         x.c('brass'),
         x.ink,
         x.inner,
+      ),
+    );
+  }
+  // Brass ramrod pipes on the fore-stock (they stay when the rod is out).
+  for (const y of [-352, -296, -232]) {
+    const t = (y + 382) / 168;
+    const l = -36 - 6 * t;
+    const rr = -31 - 5 * t;
+    inner.push(
+      metal(
+        x,
+        [
+          [l - 2.5, y - 5],
+          [rr + 2.5, y - 5],
+          [rr + 2.5, y + 5],
+          [l - 2.5, y + 5],
+        ],
+        'brass',
+        87 + y,
+        false,
       ),
     );
   }
@@ -1729,19 +2161,73 @@ function voorlaaier(
     -20 + s.hammer * 48,
   );
   inner.push(metal(x, hammer, 'steel', 86, false));
-  // Brass patch box on the butt.
+  // The lock plate's screws and its engraved border.
   inner.push(
-    inked(
-      smoothD([
-        [-26, -70],
-        [6, -74],
-        [10, -36],
-        [-24, -32],
+    el('path', {
+      d: polyD([
+        [34, -209],
+        [60, -201],
+        [58, -164],
+        [32, -171],
       ]),
-      x.c('brass'),
-      x.ink,
-      x.inner,
-    ),
+      fill: 'none',
+      stroke: x.c('steelShadow'),
+      'stroke-width': 0.8,
+      opacity: 0.8,
+    }),
+    screw(x, 36, -176, 2.6, 30),
+    screw(x, 50, -168, 2.6, 110),
+  );
+  // Brass patch box on the butt: a polished lid with an engraved border, its hinge and a
+  // catch-light across the lit corner.
+  const patch = smoothD([
+    [-26, -70],
+    [6, -74],
+    [10, -36],
+    [-24, -32],
+  ]);
+  const pg = roundGradient(
+    x,
+    [-26, -52, 10, -54],
+    x.c('brass'),
+    x.c('brassShadow'),
+    x.c('brassHi'),
+  );
+  inner.push(
+    pg.svg,
+    el('path', {
+      d: patch,
+      fill: `url(#${pg.id})`,
+      stroke: mixHex(x.c('brassShadow'), '#000000', 0.3),
+      'stroke-width': 1.2,
+    }),
+    el('path', {
+      d: smoothD([
+        [-21, -65],
+        [2, -68],
+        [5, -40],
+        [-19, -37],
+      ]),
+      fill: 'none',
+      stroke: x.c('brassShadow'),
+      'stroke-width': 0.8,
+    }),
+    el('path', {
+      d: 'M-14 -56q4 -6 8 0t8 0M-12 -48q4 -5 8 0',
+      fill: 'none',
+      stroke: x.c('brassShadow'),
+      'stroke-width': 0.7,
+    }),
+    el('path', { d: 'M-24 -64L-24 -40', stroke: x.c('brassShadow'), 'stroke-width': 1.4 }),
+    el('path', {
+      d: 'M-18 -66Q-8 -69 0 -68',
+      stroke: '#FFFFFF',
+      'stroke-width': 1.6,
+      opacity: 0.8,
+      'stroke-linecap': 'round',
+      fill: 'none',
+    }),
+    el('path', { d: ellipseD(-14, -63, 2.2, 1.5), fill: '#FFFFFF', opacity: 0.9 }),
   );
   if (s.glow > 0) inner.push(muzzleGlow(x, 44, -226, s.glow));
   // The ramrod out of its thimbles: held above (and pushed into) the muzzle.
@@ -1904,6 +2390,25 @@ function mielieMasjien(x: Ctx, s: { crank: number; kernels: number }): string {
       false,
     ),
   );
+  // Duct-tape wrinkles, pipe clamps' bolts and the hopper's rivets.
+  out.push(
+    el('path', {
+      d: 'M-14 -366l4 12M2 -367l-3 14M12 -365l2 10M-10 -316l5 13M6 -317l-2 14',
+      stroke: '#6E777C',
+      'stroke-width': 0.8,
+      opacity: 0.7,
+    }),
+    el('path', {
+      d: 'M-18 -366L18 -366M-19 -316L19 -316',
+      stroke: '#FFFFFF',
+      'stroke-width': 1,
+      opacity: 0.35,
+    }),
+    screw(x, -22, -278, 3.2, 20),
+    screw(x, 22, -278, 3.2, 80),
+    screw(x, -112, -326, 2.6, 10),
+    screw(x, -72, -326, 2.6, 60),
+  );
   // Crank on the right: axle, arm turning with the frame, wooden knob.
   const axle: Pt = [80, -196];
   const a = s.crank * Math.PI * 2;
@@ -1926,6 +2431,14 @@ function mielieMasjien(x: Ctx, s: { crank: number; kernels: number }): string {
   );
   out.push(inked(ellipseD(axle[0], axle[1], 10, 10), x.c('steel'), x.ink, x.inner));
   out.push(inked(ellipseD(knob[0], knob[1], 11, 13), x.c('wood'), x.ink, x.inner));
+  out.push(
+    el('path', {
+      d: ellipseD(knob[0] - 3, knob[1] - 4, 3.5, 4.5),
+      fill: x.c('woodHi'),
+      opacity: 0.7,
+    }),
+    screw(x, axle[0], axle[1], 4, 30),
+  );
   // Kernels spitting out of the muzzle.
   if (s.kernels > 0) {
     const rnd = prng(Math.round(s.crank * 100) + 7);

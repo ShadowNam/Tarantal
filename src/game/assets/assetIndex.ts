@@ -31,6 +31,12 @@ export const LATE_GROUP = 'late';
  */
 export const VER_GROUP = 'ver';
 /**
+ * v1.19 (D-084): the Gun Shed's side-view gun sheet. No hunt's manifest loads this group (it is
+ * never in the first download and never on the GPU in a hunt): the Gun Shed fetches its file on
+ * demand (AssetManifest.loadOnDemand) and crops each card's picture onto a small canvas.
+ */
+export const SHED_GROUP = 'shed';
+/**
  * v1.17b (D-080): an area's far herds, at true size too big for the area's own chunk (each lazy
  * chunk ≤ 1.5 MB): a group of their own that the area's manifest fetches in the background, like
  * the late group (FaunaView draws a herd once its sheet is delivered).

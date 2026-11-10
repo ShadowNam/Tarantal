@@ -356,6 +356,8 @@ belt is a deliberate arcade abstraction.
 | `blitslaai` | Blitslaai (Lightning Load, v1.6b) | Every reload takes 35 % of its time: full-belt reloads, each per-shell step, the Voorlaaier's ramrod and the Kettie's draw (its reload, D-025) | 12 s |
 | `oupa_laai` | Oupa Laai (Oupa Loads, v1.6b) | Auto reload: the moment the gun is empty its reload starts by itself; per-shell guns (Windbuks, Plaas-Pomp) also top up whenever you haven't fired for 0.6 s. A shot can always cut an auto reload. Reload time unchanged | 12 s |
 | `rooikol` | Rooikol (Red Dot, 1.9.2) | Rifles only (the .22 and the Langloop, any sight): the rifle aims through a red dot instead of its sight — up the moment you press (no raise, no zoom in or out), a calm dot (the sight's first-step sway × 0.6), and 75 % of the time between shots. No magnification: far birds stay small on screen (still hittable, D-049 hit-radius floors) | 15 s |
+| `dragon_breath` | Dragon's Breath (Drakevuur, v1.19) | Shotguns only (Dubbelloop, Plaas-Pomp, Voorlaaier): each shot throws a cone of fire — 2.5× the gun's pellets over a 2.4× wider pattern that stops at the mid plane (never the far birds or Ver), and any pellet that touches a bird brings it down (one hit; a boss loses one armour or hit as usual). Birds it bags go down in a singed puff | 4 shells |
+| `slug` | Slug (Koeëlpatroon, v1.19) | Shotguns only: one heavy ball per shot — no spread (hip or not), it reaches the far plane and Ver like a rifle, the wind pushes it more than a rifle bullet (wind sensitivity 1.2; the .22 0.6, the Langloop 0.5), and whatever it hits is bagged in one (armour, a boss's hits, a two-hit warthog in the Harvest) | 3 shells |
 
 Picking a power-up up again refreshes it. A shell power-up counts the shots after the one that
 picked it up. Reload power-ups (D-043): Blitslaai multiplies with Snelhand and the Boss Rule, and
@@ -372,6 +374,18 @@ draw exactly as before — and the Padstal never sells it (a run's gun can chang
 The sim keeps the power-up and the instant raise, sway and cooldown; the 1× view and the red-dot
 reticle are the view's (§10.6). A red-dot hold started before it ends stays a red dot until it is
 released. Numbers: docs/balance/rooikol.md.
+
+**Special shells (v1.19, D-084).** The product owner (8 Nov): "a shotgun bullet called DRAGON
+fire, that spits a huge fire out, and possibly especially with the shotgun a long range single shot
+SLUG". Dragon's Breath and the Slug are shotgun shells (`needsShotgun`): only a shotgun's shot uses
+one and counts it down (a crate gun that isn't a shotgun — the Mielie-Masjien — fires normally and
+leaves the shells loaded). The two never stack: picking one up replaces the other. Crates hold
+them (weight 10 each) only in a hunt with a shotgun — with a rifle, the Windbuks or the Kettie they
+weigh nothing and the crate draws something else; the Padstal sells them (3 caps) only in a run
+whose gun is a shotgun, and a shell bought there waits in its slot while no shotgun is in hand.
+Daily: as the other power-ups (the crates). The cone is a large flash: at most 3 a second with
+every other large flash (§18.3), and a smaller, dimmer cone when refused or with "reduce
+flashes". It never sets the veld alight. Numbers: content/powerups.json; balance: D-084.
 
 **v1.7b — what a power-up does, said plainly (D-046).** The product owner: "When one collects these
 power-ups, one is very unsure what they actually do." What the power-ups and crate guns *do* is
@@ -1405,6 +1419,12 @@ Classic or Daily hunt" / "Buy it at the Padstal in a Season Run: 3 caps" / "Rent
 hunt" / "Some farm secrets give it too") and one tip. Ones not picked up yet on this save are
 darker and say "Not found yet", but explain themselves all the same. The list scrolls (drag,
 wheel, or ↑/↓ through the cards) and is sized for an iPhone 14 in landscape (32 px sentences).
+v1.19 (D-084): every gun card shows a painted side view of its gun (the owner: "the guns still look
+very very primitive"): the Dubbelloop's boxlock with hammers, the Windbuks' break barrel, the
+Kettie, the Plaas-Pomp's fore-end slide and tube magazine, the Twee-Twee with its small scope, the
+Langloop with its big scope and bipod (and the Voorlaaier and the Mielie-Masjien drawn alike).
+Locked guns show the same picture in grey. The pictures load when the shed opens, never with the
+first download or in a hunt.
 
 #### The journal rollout (D-072, R1–R6)
 

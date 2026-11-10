@@ -766,6 +766,19 @@ export interface TestHook {
   };
   /** D-035 review: weapon ids whose picture the Skiet-Skuur's Guns tab shows. */
   shedIcons?: string[];
+  /** v1.19 (D-084): the special shells' effects (cones, big ones and when, slugs, singes). */
+  shellFx?: import('./view/shells/ShellFx').ShellFxStats;
+  /** v1.19 (D-084): each Guns-tab picture: side view or first-person idle frame, where (design
+   *  px), and whether it is the locked (grey) one. */
+  shedPictures?: {
+    id: string;
+    source: 'side' | 'idle';
+    locked: boolean;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  }[];
   /** v1.5 (D-041): the gun names on the Guns tab's cards, as drawn (text language, toggle). */
   shedNames?: string[];
   /** v1.7b (D-046): the pickup card on screen (null = none): what it says and where. */
@@ -800,9 +813,19 @@ export interface TestHook {
   runStatus?: string | null;
   /** v1.7b (D-046): the Gun Shed's Power-ups tab: each card as drawn, and the list's scroll. */
   shedPowerups?: {
-    cards: { id: string; name: string; effect: string; found: boolean; icon: boolean }[];
+    cards: {
+      id: string;
+      name: string;
+      effect: string;
+      found: boolean;
+      icon: boolean;
+      /** v1.19 (D-084): the icon's centre and half-size (list coordinates, design px). */
+      iconAt?: { x: number; y: number; r: number };
+    }[];
     scroll: number;
     maxScroll: number;
+    /** v1.19 (D-084): the list's top on screen (screen y = list y − scroll). */
+    viewY?: number;
   };
   /** M9: the Padstal help card's text bottom and OK button top (no overlap: textBottom < okTop). */
   helpCard?: { textBottom: number; okTop: number };

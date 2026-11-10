@@ -1,5 +1,5 @@
 // v1.7b (D-046): power-ups explained, and Oupa's switch, on every landscape profile (desktop,
-// Pixel 7, iPhone 14). The Gun Shed's Power-ups tab shows all nine cards (1.9.2: the Rooikol) with their icons and
+// Pixel 7, iPhone 14). The Gun Shed's Power-ups tab shows all eleven cards (1.9.2: the Rooikol; v1.19: Dragon's Breath and the Slug) with their icons and
 // scrolls; a hunt with `?crate=boeretroos` picks up the first crate: its card says what it does
 // (the full sentence the first time, its numbers from content) and its chip counts down; with
 // Oupa's comments Off no bark is shown or voiced in a hunt; with Text only his bubble shows but
@@ -37,6 +37,9 @@ const ALL = [
   'blitslaai',
   'oupa_laai',
   'rooikol',
+  // v1.19 (D-084): the special shotgun shells.
+  'dragon_breath',
+  'slug',
   'voorlaaier',
   'mielie_masjien',
 ];
@@ -123,7 +126,7 @@ test.beforeEach(({ browserName }, info) => {
   test.setTimeout(420_000);
 });
 
-test('the Gun Shed explains all nine power-ups and crate guns, with icons', async ({
+test('the Gun Shed explains all eleven power-ups and crate guns, with icons', async ({
   page,
 }, info) => {
   const touch = isTouchProject(info);
@@ -146,10 +149,30 @@ test('the Gun Shed explains all nine power-ups and crate guns, with icons', asyn
     null,
     { timeout: 60_000 },
   );
+  // v1.19 (D-084): the crate guns' cards show their painted side views once the shed's sheet is
+  // in (the tab is drawn again then): read the cards after that.
+  await page.waitForFunction(
+    () => {
+      const pics = window.__TM__?.shedPictures ?? [];
+      return ['voorlaaier', 'mielie_masjien'].every((id) =>
+        pics.some((x) => x.id === id && x.source === 'side'),
+      );
+    },
+    null,
+    { timeout: 120_000 },
+  );
+  await page.waitForFunction(
+    () => (window.__TM__?.shedPowerups?.cards ?? []).every((c) => c.effect !== ''),
+    null,
+    { timeout: 60_000 },
+  );
   const p = (await hook(page)).shedPowerups;
   if (p === undefined) throw new Error('no power-ups tab');
   expect(p.cards.map((c) => c.id)).toEqual(ALL);
   expect(p.cards.every((c) => c.icon)).toBe(true);
+  // v1.19 (D-084): the two shells have their icons like the others.
+  for (const id of ['dragon_breath', 'slug'])
+    expect(p.cards.find((c) => c.id === id)?.icon, `${id} icon`).toBe(true);
   // A fresh save has met none of them, and every card still explains itself.
   expect(p.cards.every((c) => !c.found)).toBe(true);
   expect(p.cards.find((c) => c.id === 'boeretroos')?.effect).toBe(COFFEE_TEXT);

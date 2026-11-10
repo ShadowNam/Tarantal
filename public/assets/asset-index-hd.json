@@ -731,6 +731,16 @@
       "height": 256,
       "scale": 0.5
     },
+    "ui/pu_dragon_breath": {
+      "file": {
+        "path": "assets/late-hd/img/ui_pu_dragon_breath.aee5a4402ffa.png",
+        "bytes": 4466,
+        "hash": "aee5a4402ffa"
+      },
+      "width": 256,
+      "height": 256,
+      "scale": 0.5
+    },
     "ui/pu_meerkat_spotter": {
       "file": {
         "path": "assets/late-hd/img/ui_pu_meerkat_spotter.cfa0197abbf2.png",
@@ -766,6 +776,16 @@
         "path": "assets/late-hd/img/ui_pu_rooikol.424695200858.png",
         "bytes": 5093,
         "hash": "424695200858"
+      },
+      "width": 256,
+      "height": 256,
+      "scale": 0.5
+    },
+    "ui/pu_slug": {
+      "file": {
+        "path": "assets/late-hd/img/ui_pu_slug.35785b8fed13.png",
+        "bytes": 3315,
+        "hash": "35785b8fed13"
       },
       "width": 256,
       "height": 256,

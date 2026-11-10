@@ -51,6 +51,31 @@ stay comic. Rules that replace or refine §1 for those four:
    slope and fine ripples.
 6. **Same budgets:** more detail comes from better drawing at the same texture sizes; download
    growth is measured per pass (D-035).
+7. **v1.19 (D-084) richer first-person guns** (the owner: "the guns still look very very
+   primitive, get the graphics up"): wood with fiddleback figure, pale sapwood streaks and pores;
+   blued steel with a darker shadow band, a sky reflection, a crisp specular streak, fine polish
+   lines and broken edge wear; checkering with lit diamonds; domed screws with a glint; the Pomp's
+   grooved fore-end and its slide rails; the Langloop's objective and ocular glass (blue-green with
+   a white catch-light); the Voorlaaier's brass butt plate, guard, ramrod pipes and an engraved
+   patchbox. Same boxes, poses, pivots, clips and opaque bounds (texture memory unchanged). The
+   Twee-Twee's sprite keeps its open sights (its fitted sight shows in the sight picture). The
+   Dubbelloop (first download) packs at 128 colours (`rig.json colours`).
+8. **v1.19 (D-084) Gun Shed side views** (`tools/art/gunCards.ts`, one sheet `shed/guns`, layout
+   `src/game/ui/shedGunSheet.ts`): every gun painted side-on, muzzle right, in a 380 × 140 cell
+   at 2×, readable at phone card size: the Dubbelloop (side-by-side boxlock, engraved silver
+   action, two exposed hammers, two triggers, splinter fore-end, checkered walnut), the Windbuks
+   (slim beech stock, blued compression tube, the break-barrel pivot, hooded front sight), the
+   Kettie (forked branch with bark and knots, red bands bound with twine, a leather pouch and a
+   stone), the Plaas-Pomp (pistol grip, receiver with its ejection port, ventilated rib, tube
+   magazine, grooved slide), the Twee-Twee (sporter stock, small scope with a lens glint, bolt
+   knob, box magazine), the Langloop (raised comb, big scope with an objective bell, muzzle brake,
+   a bipod standing on its feet), the Voorlaaier (full-length stock, octagonal barrel, ramrod in
+   brass pipes, percussion lock with a big hammer, brass patchbox and butt plate) and the
+   Mielie-Masjien (a farm-green hand-cranked mealie gun: a tin hopper of cobs, four barrels in
+   brass bands, the crank, kernels flying). A warm-black ink line keeps each one readable small;
+   a soft shadow under it. Locked guns: the same picture desaturated. Its own asset group
+   (`shed`), fetched when the shed opens and cropped onto each card's canvas: never in the first
+   download or on the GPU during a hunt (88 KB PNG-8).
 
 ## 2. Review of the existing concept art (project files)
 
@@ -199,6 +224,15 @@ shapes; light from the upper left.
   The left-looking peek and stand are the right-looking frames, flipped. It is a 32-colour
   palette PNG, 92 KB; a Kalahari hunt's download (its chunk plus the desert chunk) stays under
   1.5 MB.
+
+  Look round 3 (v1.19, D-084; the owner: "the meerkat needs to get better graphics"): the real
+  meerkat — a slim, pear-shaped upright sentinel (full at the belly, narrow at the chest), the
+  tail lying on the sand behind as the tripod's third leg with its dark tip turned up, little
+  hands held at the chest with drooping wrists and dark claws; dark eye patches ("sunglasses")
+  drawn out toward the nose round a small dark almond eye with a catch-light, a pale brow, small
+  dark crescent ears set low on the sides of the head; a longer, tapering snout with a dark nose;
+  a pale cream face, throat and belly, darker grizzled sides and ragged dark bands across the
+  lower back. Every tail stays inside its cell. Same frame names, cells and anchors; 90 KB.
 
 ## 4. Biomes
 
@@ -572,6 +606,10 @@ moved to the same 128 px size. A crate shows its item's icon, fully opaque on a 
 dark ring: big on the canopy while it falls (74 px radius at the near plane, drawn above the
 scenery so haze never fades it) and on the box's planked front, where the stencil used to be (the
 canopy's canvas patch and the stencil are gone from the art). About 3 KB each (PNG-8); all eight 26 KB, in the first download.
+v1.19 (D-084): the special shells, in the same style and the late group: **Dragon's Breath** — a
+deep red shell with a gold band and a gold flame mark, a tongue of orange-yellow fire licking out
+of its crimp; **Slug** — a blue plastic hull (it reads as a shell at chip size, not grey lead) cut open at the top so the grey lead slug shows, its angled
+ribs and round nose, a speed streak off it.
 
 
 #### 4.2b Makalani palms (1.9.3, D-056)
@@ -1026,6 +1064,15 @@ Feather bursts (palette-tinted per variant), dust puffs, muzzle flash + smoke, s
 pellet impact puffs on ground/props, Voorlaaier smoke cloud, corn-kernel spray, BZZZT shockwave rings,
 rain/dust/leaf weather particles, heat-haze filter (high tier), lightning screen tint, score pops,
 onomatopoeia bubbles (6–8 variants each, random rotation ±8°).
+v1.19 (D-084) special shells: **Dragon's Breath** throws a cone of fire from the muzzle toward the
+aim — four nested tongues (`#E0461A` outside, `#FF8A1E`, `#FFC93A`, a pale `#FFF3B0` core near the
+muzzle), additive, a ragged front, with sparks (`fx/spark` tinted orange and pale yellow), 0.26 s;
+at most 760 design px long and ~0.32 rad half-angle, a small share of the screen. It is a large
+flash: the shared budget allows 3 a second (with lightning and the rest, §18.3 of the GDD); when
+refused, or with "reduce flashes", the cone is 55 % as long, narrower and dimmer. Birds it bags get
+a singed puff (`fx/puff` tinted `#4A3A30`) and a few embers — no gore, nothing left burning, the
+veld never catches. **The Slug:** a small, tight muzzle flash (0.55 × the gun's own,
+`feel.json juice.slugFlashScale`). Graphics and existing sprites only (no new texture).
 
 ## 8. Prompt pack for further concepting (reference only — not shippable art)
 Use these to explore; then give the winners to a human illustrator. Always append:
@@ -1084,6 +1131,11 @@ calm stem, a marimba line in the build and hand drums in the Stampede, each area
 **Guineafowl voices:** alarm "kek-kek-kek-kaaa", soft contact "kek", flock chatter, take-off wing
 clatter. Best source: record real flocks (common on farms — you own the recordings). Field-recording
 libraries (e.g. xeno-canto) use Creative Commons licences, many **NonCommercial** — check each file.
+
+**Special shells (v1.19, D-084):** Dragon's Breath roars — band-passed noise that swells (500 →
+1,600 Hz) and falls in 0.6 s, a low sawtooth rumble under it; the Slug booms — a deep sine thump
+(110 → 38 Hz) under a short dull crack. Both play over the gun's own shot, as synths in the shells'
+lazy chunk (`sfx/shell_dragon`, `sfx/shell_slug`: a delivered recording under the key would win).
 
 **Oupa (voice actor, EN/AF mix, ~40 barks at launch, all subtitled):**
 "Mooi skoot, my kind!" · "Ag nee man!" · "Jinne, kyk hoe hardloop hulle!" · "Die hele swerm!" ·

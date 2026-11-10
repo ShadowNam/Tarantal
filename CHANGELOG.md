@@ -3,6 +3,35 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.22.0] — v1.19: The Gun Shed, meerkats and two special shells (10 Nov 2026)
+
+Decision record D-084. The owner's requests of 8 Nov (night): better gun pictures in the Gun Shed,
+better meerkats, and two special shotgun shells.
+
+- **The Gun Shed shows the guns properly:** every card has a painted side view of its gun — the
+  Double Barrel with its hammers and engraved action, the Air Rifle's break barrel, the
+  Slingshot, the Farm Pump's slide and magazine tube, the Twenty-Two with its little scope, the
+  Long Rifle with its big scope and bipod (and the Voorlaaier and the Mielie-Masjien drawn the
+  same way). Locked guns show the same picture in grey. The pictures load when you open the shed.
+- **Better-looking guns in the hunt:** wood grain and figure on the stocks, blued steel with
+  highlights and wear, the pump's grooved slide and rails, glass that glints in the Long Rifle's
+  scope, the Voorlaaier's brass. Same sizes and feel.
+- **Real meerkats:** slim upright sentinels with their tail as a prop, dark "sunglasses" round the
+  eyes, dark ears, pale faces and bellies, banded backs, little hands held at the chest.
+- **New power-up — Dragon's Breath (Drakevuur):** for 4 shotgun shells every shot throws a cone of
+  fire: more pellets over a much wider pattern, and any pellet that touches a bird on the near or
+  mid ground brings it down. The flame doesn't reach far birds. A big orange flame with sparks
+  and a roar (smaller and dimmer with "reduce flashes", and never more than 3 big flashes a
+  second).
+- **New power-up — the Slug (Koeëlpatroon):** for 3 shotgun shells every shot is one heavy ball:
+  no spread, it reaches the far birds and the Ver plane like a rifle, and it brings down whatever
+  it hits in one shot — a boss, an armoured bird, a two-hit warthog. The wind pushes it more than
+  a rifle bullet. A heavy boom and a small, tight muzzle flash.
+- **Both shells** come in supply crates when you carry a shotgun (Double Barrel, Farm Pump), and
+  at the Padstal in a shotgun Season Run (3 caps). They only work in a shotgun (the Voorlaaier
+  too); a new one replaces the other. The HUD shows the shell's icon and the shells left; the Gun
+  Shed's Power-ups tab explains both.
+
 ## [1.21.0] — v1.18: Die Oes, the raid and the bonus round (9 Nov 2026)
 
 Decision record D-081. The owner's requests of 8 Nov: the baboons climbing off the koppie, a small

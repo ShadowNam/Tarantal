@@ -26,6 +26,7 @@ import { clientToDesign } from '../input/screenButtons';
 import { guideLoaded, guideString, loadGuide } from '../ui/guideI18n';
 import { guideCards } from '../ui/powerupGuide';
 import { upgradePowerupIcons } from '../ui/powerupIcons';
+import type { ShedPictures } from '../ui/shedGunIcons';
 import type { OverlayData } from './SettingsScene';
 import { renderJournal, journalText, type JournalSection } from '../journal/JournalView';
 import { plaqueProgress } from '../../meta/journal';
@@ -55,6 +56,7 @@ export class ShedScene extends Phaser.Scene {
     // 1.9.2 (D-055): the Power-ups tab's sentences (lazy) start loading as the Shed opens.
     void loadGuide().catch(() => {});
     this.shown = data;
+    this.rebuilding = false;
     const tab = data.tab ?? 'loadout';
     const { width, height } = designSize();
     fitCamera(this.cameras.main);
@@ -70,6 +72,9 @@ export class ShedScene extends Phaser.Scene {
 
     const items: MenuItem[] = [];
     const rebuild = (patch: Partial<ShedData>): void => {
+      // v1.19 (review): a rebuild is on its way (another tab, a page): late art must not restart
+      // the scene over it (that dropped the tap: the journal never opened on WebKit).
+      this.rebuilding = true;
       this.time.delayedCall(0, () => this.scene.restart({ ...data, ...patch }));
     };
     // Tabs + Settings along the top (v1.7b: a fourth tab, Power-ups, next to the guns).
@@ -197,6 +202,11 @@ export class ShedScene extends Phaser.Scene {
   private lateWaiting = false;
   /** v1.7b: the Power-ups tab has asked for the delivered icons (once per scene object). */
   private iconsSettled = false;
+  /** v1.19 (review): a tab or page change is waiting for its deferred restart. */
+  private rebuilding = false;
+  /** v1.19 (D-084): the side-view pictures once their lazy chunk and file are in. */
+  private shedPics: ShedPictures | null = null;
+  private shedAsked = false;
   /** The data this scene was last started with (the late refresh restarts with it). */
   private shown: ShedData | null = null;
 
@@ -205,7 +215,11 @@ export class ShedScene extends Phaser.Scene {
     if (this.ctx.hook) {
       this.ctx.hook.shedIcons = [];
       this.ctx.hook.shedNames = [];
+      this.ctx.hook.shedPictures = [];
     }
+    // v1.19 (D-084): the side views come in a lazy chunk and a file no hunt loads; until they are
+    // in (or with no delivery) the cards show the first-person idle frame; then the tab is redrawn.
+    this.askShedPictures('loadout');
     const save = this.ctx.save.data;
     const weapons = this.ctx.content.weapons.weapons.filter(
       (w): w is PrimaryWeapon => w.kind === 'primary',
@@ -233,6 +247,7 @@ export class ShedScene extends Phaser.Scene {
         // Only the Guns tab that is on screen now (the player may have switched tabs or left).
         if (
           this.sys.isActive() &&
+          !this.rebuilding &&
           this.shown !== null &&
           (this.shown.tab ?? 'loadout') === 'loadout'
         )
@@ -355,6 +370,79 @@ export class ShedScene extends Phaser.Scene {
     }
   }
 
+  /** v1.19 (D-084): loads the side views once (a lazy chunk, then the `shed` file); redraws `tab`. */
+  private askShedPictures(tab: 'loadout' | 'powerups'): void {
+    if (this.shedPics !== null || this.shedAsked) return;
+    this.shedAsked = true;
+    void import('../ui/shedGunIcons')
+      .then((m) => m.loadShedPictures(this.ctx.manifest))
+      .then((pics) => {
+        if (pics === null) {
+          this.shedAsked = false;
+          return;
+        }
+        this.shedPics = pics;
+        if (
+          this.sys.isActive() &&
+          !this.rebuilding &&
+          this.shown !== null &&
+          (this.shown.tab ?? 'loadout') === tab
+        )
+          this.scene.restart(this.shown);
+      })
+      .catch(() => {
+        this.shedAsked = false;
+      });
+  }
+
+  /**
+   * v1.19 (D-084): a crate gun's side view under its Power-ups card text (h design px tall, at most
+   * maxW wide), top-left at (x, y); returns the height it takes (0 = none yet).
+   */
+  private crateGunPicture(
+    id: string,
+    x: number,
+    y: number,
+    maxW: number,
+    h: number,
+    list: Phaser.GameObjects.Container,
+  ): number {
+    const pic = this.shedPics?.picture(id) ?? null;
+    if (pic === null) return 0;
+    const { img, region } = pic;
+    const dh = Math.min(h, (maxW / region.w) * region.h);
+    const scale = this.ctx.prefs.renderScale;
+    const ch = Math.max(1, Math.round(dh * scale));
+    const cw = Math.max(1, Math.round((region.w / region.h) * ch));
+    const key = `shed/crate/${id}`;
+    if (this.textures.exists(key)) this.textures.remove(key);
+    const tex = this.textures.createCanvas(key, cw, ch);
+    if (tex === null) return 0;
+    const c = tex.getContext();
+    c.imageSmoothingEnabled = true;
+    c.imageSmoothingQuality = 'high';
+    c.drawImage(img, region.x, region.y, region.w, region.h, 0, 0, cw, ch);
+    tex.refresh();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      if (this.textures.exists(key)) this.textures.remove(key);
+    });
+    const image = this.add
+      .image(x, y, key)
+      .setOrigin(0, 0)
+      .setDisplaySize(cw / scale, dh);
+    list.add(image);
+    this.ctx.hook?.shedPictures?.push({
+      id,
+      source: 'side',
+      locked: false,
+      x,
+      y,
+      w: cw / scale,
+      h: dh,
+    });
+    return dh;
+  }
+
   /**
    * The gun's idle frame at the right of its card; returns the width it takes (0 = none).
    * D-035 review: the frame is cropped from the decoded atlas page onto a small canvas about the
@@ -362,12 +450,15 @@ export class ShedScene extends Phaser.Scene {
    * the canvas leaves with the scene.
    */
   private gunIcon(weaponId: string, r: Rect, locked: boolean): number {
-    const src = this.ctx.manifest.gunIdleImage(weaponId);
+    // v1.19 (D-084): the painted side view when its sheet is in, else the first-person idle frame.
+    const side = this.shedPics?.picture(weaponId) ?? null;
+    const src = side ?? this.ctx.manifest.gunIdleImage(weaponId);
     if (src === null) return 0;
     const { img, region } = src;
     const fw = region.rotated ? region.h : region.w;
     const fh = region.rotated ? region.w : region.h;
-    const h = r.h - 12;
+    // A side view is wide: never more than about half the card, so the name keeps its room.
+    const h = Math.min(r.h - 12, side === null ? Infinity : ((r.w * 0.56) / fw) * fh);
     const scale = this.ctx.prefs.renderScale;
     const ch = Math.max(1, Math.round(h * scale));
     const cw = Math.max(1, Math.round((fw / fh) * ch));
@@ -384,14 +475,28 @@ export class ShedScene extends Phaser.Scene {
       c.rotate(-Math.PI / 2);
       c.drawImage(img, region.x, region.y, region.w, region.h, 0, 0, ch, cw);
     } else c.drawImage(img, region.x, region.y, region.w, region.h, 0, 0, cw, ch);
+    // A locked gun: the same picture in grey (D-084), dimmed as before.
+    if (locked && this.shedPics !== null) {
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      this.shedPics.desaturate(c, cw, ch);
+    }
     tex.refresh();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       if (this.textures.exists(key)) this.textures.remove(key);
     });
     const icon = this.add.image(r.x + r.w - 16, r.y + r.h / 2, key).setOrigin(1, 0.5);
     icon.setDisplaySize(cw / scale, h);
-    if (locked) icon.setAlpha(0.45);
+    if (locked) icon.setAlpha(side === null ? 0.45 : 0.7);
     this.ctx.hook?.shedIcons?.push(weaponId);
+    this.ctx.hook?.shedPictures?.push({
+      id: weaponId,
+      source: side === null ? 'idle' : 'side',
+      locked,
+      x: icon.x - icon.displayWidth,
+      y: icon.y - h / 2,
+      w: icon.displayWidth,
+      h,
+    });
     return icon.displayWidth + 16;
   }
 
@@ -411,7 +516,12 @@ export class ShedScene extends Phaser.Scene {
     // 1.9.2 (D-055): the cards' sentences come from the lazy guide tables: drawn again once in.
     if (!guideLoaded())
       void loadGuide().then(() => {
-        if (this.sys.isActive() && this.shown !== null && this.shown.tab === 'powerups')
+        if (
+          this.sys.isActive() &&
+          !this.rebuilding &&
+          this.shown !== null &&
+          this.shown.tab === 'powerups'
+        )
           this.scene.restart(this.shown);
       });
     // v1.7b (D-046): the icons come with the late group: until it lands the cards show the
@@ -423,12 +533,15 @@ export class ShedScene extends Phaser.Scene {
         if (
           swapped > 0 &&
           this.sys.isActive() &&
+          !this.rebuilding &&
           this.shown !== null &&
           this.shown.tab === 'powerups'
         )
           this.scene.restart(this.shown);
       });
     }
+    this.askShedPictures('powerups');
+    if (this.ctx.hook) this.ctx.hook.shedPictures = [];
     const head = this.add.text(
       body.x,
       body.y - 8,
@@ -483,6 +596,11 @@ export class ShedScene extends Phaser.Scene {
       ty = para(c.how.map((h) => `• ${h}`).join('\n'), ty, 26, '#D9CBB0') + 8;
       if (c.tip !== '')
         ty = para(tr.text('guide.tip_label').replace('{tip}', c.tip), ty, 26, '#FFD25A');
+      // v1.19 (D-084): a crate gun shows its painted side view under its words.
+      if (c.kind === 'weapon') {
+        const ph = this.crateGunPicture(c.id, textX, ty + 10, textW, 120, list);
+        if (ph > 0) ty += ph + 14;
+      }
       const h = Math.max(iconBox + 2 * pad, ty - y + pad);
       g.fillStyle(UI.ink, 1).fillRoundedRect(view.x, y, view.w, h, 20);
       g.fillStyle(dim ? 0x1f2722 : 0x3e5146, 1).fillRoundedRect(
@@ -503,7 +621,15 @@ export class ShedScene extends Phaser.Scene {
         list.add(icon);
       }
       cardRects.push({ x: view.x, y, w: view.w, h });
-      hookCards.push({ id: c.id, name: c.name, effect: c.effect, found: c.found, icon: hasIcon });
+      hookCards.push({
+        id: c.id,
+        name: c.name,
+        effect: c.effect,
+        found: c.found,
+        icon: hasIcon,
+        // v1.19 (D-084, e2e pixels): the icon's centre and half-size in list coordinates.
+        iconAt: { x: cx, y: cy, r: (iconBox - 28) / 2 },
+      });
       y += h + gap;
     }
     const maxScroll = Math.max(0, y - gap - (view.y + view.h));
@@ -512,7 +638,8 @@ export class ShedScene extends Phaser.Scene {
     const cam = this.cameras.add(view.x * s, view.y * s, view.w * s, view.h * s);
     cam.setOrigin(0, 0).setZoom(s);
     const publish = (): void => {
-      if (this.ctx.hook) this.ctx.hook.shedPowerups = { cards: hookCards, scroll, maxScroll };
+      if (this.ctx.hook)
+        this.ctx.hook.shedPowerups = { cards: hookCards, scroll, maxScroll, viewY: view.y };
     };
     let menuRef: Menu | null = null;
     const setScroll = (v: number): void => {
@@ -521,6 +648,9 @@ export class ShedScene extends Phaser.Scene {
       menuRef?.refresh();
       publish();
     };
+    // e2e only (v1.19, D-084): scroll the list to a point (screen y = list y − scroll).
+    if (this.ctx.hook)
+      (window as { __TM_SHED_SCROLL__?: (v: number) => void }).__TM_SHED_SCROLL__ = setScroll;
     // Each card is a menu item (keyboard focus walks the list); its rect is the part on screen.
     cards.forEach((c, i) => {
       items.push({

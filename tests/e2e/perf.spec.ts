@@ -1819,3 +1819,118 @@ test('perf: the braai tally at 4× CPU throttle (Pixel 7)', async ({ page, brows
   expect(report.braaiMsPerFrame, 'braai view ms per frame, 4× throttle').toBeLessThanOrEqual(0.3);
   expect(errors).toEqual([]);
 });
+
+// v1.19 (D-084): Dragon's Breath on the Pixel 7 profile at 4× CPU throttle, medium tier: a crate
+// gives it in the first seconds, then every shell is fired (the flame cone, its sparks, the singed
+// puffs). The shells' effects on their own timer (shellFx.ms: building each cone) per frame a cone
+// shows (≈ 0.26 s at 60 fps), ≤ 0.3 ms; the frame within the smoke's budget.
+test("perf: Dragon's Breath cones at 4× CPU throttle (Pixel 7)", async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await emulateCores(page);
+  await page.addInitScript(() => {
+    const key = 'tm.e2e.save.v1';
+    if (localStorage.getItem(key) === null)
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          v: 1,
+          settings: { quality: 'medium' },
+          ftue: { done: true, skipped: false, step: '' },
+        }),
+      );
+  });
+  await boot(page, 'seed=7&huntSeconds=30&graphics=standard&crate=dragon_breath&baboons=0');
+  await startHunt(page, touch);
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  // All in the page: tap the first crate until the shell is in, then fire every shell into the
+  // low sky (a few ticks apart). Bounded by frames as well as by the goal.
+  const fired = await page.evaluate(
+    (isTouch) =>
+      new Promise<number>((resolve) => {
+        const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
+        const h = window.__TM__;
+        if (!canvas || !h) {
+          resolve(-1);
+          return;
+        }
+        const r = canvas.getBoundingClientRect();
+        let pid = 1500;
+        const tap = (x: number, y: number): void => {
+          const init: PointerEventInit = {
+            clientX: r.left + (x / h.designWidth) * r.width,
+            clientY: r.top + (y / h.designHeight) * r.height,
+            pointerId: pid++,
+            pointerType: isTouch ? 'touch' : 'mouse',
+            isPrimary: true,
+            button: 0,
+            buttons: 1,
+            bubbles: true,
+            cancelable: true,
+          };
+          canvas.dispatchEvent(new PointerEvent('pointerdown', init));
+          canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+        };
+        let last = -99;
+        let frames = 0;
+        const loop = (): void => {
+          frames++;
+          const cones = h.shellFx?.cones ?? 0;
+          if (h.over || frames > 9000 || (cones >= 4 && !h.powerups.includes('dragon_breath'))) {
+            resolve(cones);
+            return;
+          }
+          if (h.tick - last >= 12) {
+            last = h.tick;
+            const spot = h.crateSpots[0];
+            if (!h.powerups.includes('dragon_breath')) {
+              if (spot !== undefined && spot.x > 0 && spot.x < h.designWidth) tap(spot.x, spot.y);
+            } else if (h.shellFx !== undefined && !h.reloading) {
+              if (h.shells === 0) {
+                const belt = h.rects['belt'];
+                if (belt) tap(belt.x + belt.w / 2, belt.y + belt.h / 2);
+              } else tap(h.designWidth * 0.45, h.designHeight * 0.35);
+            }
+          }
+          requestAnimationFrame(loop);
+        };
+        loop();
+      }),
+    touch,
+  );
+  while (!(await hook(page)).over) await waitTicks(page, 60);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const cpu = stats(h.cpuFrameMs.slice(30));
+  const fx = h.shellFx;
+  const coneFrames = (fx?.cones ?? 0) * 16;
+  const report = {
+    project: info.project.name,
+    tier: h.quality.tier,
+    throttle: 4,
+    cones: fx?.cones ?? 0,
+    big: fx?.big ?? 0,
+    shellMsPerConeFrame: coneFrames > 0 ? (fx?.ms ?? 0) / coneFrames : 0,
+    cpuFrameMs: cpu,
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf.json'), JSON.stringify(report, null, 2));
+  expect(fired, 'Dragon’s Breath shells fired').toBeGreaterThanOrEqual(4);
+  expect(
+    report.shellMsPerConeFrame,
+    'shell effects ms per cone frame, 4× throttle',
+  ).toBeLessThanOrEqual(0.3);
+  expect(cpu.avg, "CPU cost per frame (ms), Dragon's Breath, 4× throttle").toBeLessThanOrEqual(
+    BUDGET_MS,
+  );
+  expect(errors).toEqual([]);
+});

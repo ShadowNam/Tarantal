@@ -97,6 +97,7 @@ import {
   powerupView,
   tickPowerups,
   type ActivePowerup,
+  type SpecialShell,
 } from './powerups';
 import { crateView, scheduleCrates, spawnCrate, tickCrate, type Crate } from './props/crates';
 import {
@@ -390,6 +391,8 @@ interface ShotContext {
   readonly cx: number;
   /** v1.8b (D-062): the command's aim point (screen dx, y; a rifle's before the sway). */
   readonly aim: { readonly dx: number; readonly sy: number };
+  /** v1.19 (D-084): the special shell this shot fired (a shotgun's), or null. */
+  readonly shell: SpecialShell | null;
 }
 
 /** A pellet that has landed: where (screen px for the shot's camera) and on what. */
@@ -411,6 +414,8 @@ interface ShotStats {
   readonly reachesVer: boolean;
   /** v1.4: every shot threatens every flock (Die Langloop). */
   readonly alertsAllFlocks: boolean;
+  /** v1.19 (D-084): a shotgun: it fires the special shells. */
+  readonly shotgun: boolean;
 }
 
 export function createSim(config: SimConfig): Sim {
@@ -618,6 +623,10 @@ export function createSim(config: SimConfig): Sim {
     content.powerups.powerups.filter((p) => p.needsSight === true).map((p) => p.id),
   );
   const noSkip: ReadonlySet<string> = new Set();
+  /** v1.19 (D-084): the special shells, which only a shotgun fires. */
+  const shotgunOnly: readonly string[] = content.powerups.powerups
+    .filter((p) => p.needsShotgun === true)
+    .map((p) => p.id);
   const crateTicks = ranged
     ? []
     : scheduleCrates(crateCfg, mode.id, durationTicks, rng.stream('crates'));
@@ -715,6 +724,11 @@ export function createSim(config: SimConfig): Sim {
   const hasVer = geometry.slices.some((sl) => sl.plane === 'ver');
   const reach = (g: ShotGeometry, ver: boolean): ShotGeometry =>
     ver || !hasVer ? g : { ...g, slices: g.slices.filter((sl) => sl.plane !== 'ver') };
+  /** v1.19 (D-084): Dragon's Breath's flame meets only the layers up to its reach plane. */
+  const flameReach = (g: ShotGeometry, plane: 'near' | 'mid'): ShotGeometry => {
+    const edge = planeGeo[plane].scrollFactor;
+    return { ...g, slices: g.slices.filter((sl) => sl.scrollFactor >= edge) };
+  };
 
   // v1.3 rifles (D-036): the fitted sight, its zoom step and the sight while it is held.
   const sight = setup.sight === null ? null : sightTiming(setup.sight);
@@ -1754,9 +1768,10 @@ export function createSim(config: SimConfig): Sim {
   }
 
   function statsOf(
-    w: Omit<ShotStats, 'reachesVer' | 'alertsAllFlocks'> & {
+    w: Omit<ShotStats, 'reachesVer' | 'alertsAllFlocks' | 'shotgun'> & {
       readonly reachesVer?: boolean | undefined;
       readonly alertsAllFlocks?: boolean | undefined;
+      readonly shotgun?: boolean | undefined;
     },
   ): ShotStats {
     return {
@@ -1768,6 +1783,7 @@ export function createSim(config: SimConfig): Sim {
       scoreMul: w.scoreMul,
       reachesVer: w.reachesVer === true,
       alertsAllFlocks: w.alertsAllFlocks === true,
+      shotgun: w.shotgun === true,
     };
   }
 
@@ -1780,7 +1796,8 @@ export function createSim(config: SimConfig): Sim {
   function startPowerup(id: string, source: 'crate' | 'secret' | 'consumable'): void {
     const def = content.powerups.powerups.find((p) => p.id === id);
     if (def === undefined) return;
-    activate(powerups, def);
+    // v1.19 (D-084): a special shell takes the other one's place.
+    endPowerups(activate(powerups, def));
     emit({ type: 'powerupStarted', tick, powerup: id, source });
   }
 
@@ -2234,7 +2251,29 @@ export function createSim(config: SimConfig): Sim {
       const every = pass.weaponBlastEvery?.every ?? 0;
       blast = blastDef !== null && every > 0 && primaryShots % every === 0;
     }
-    const shot = blast && blastDef !== null ? statsOf(blastDef) : shotStats();
+    const base = blast && blastDef !== null ? statsOf(blastDef) : shotStats();
+    // v1.19 (D-084): a special shell in a shotgun: Dragon's Breath (more pellets, a wider cone
+    // that stops at its reach, any pellet a hit) or the Slug (one heavy ball that reaches Ver and
+    // drifts more). Other guns fire as normal (the shells wait for a shotgun).
+    const shell = base.shotgun ? fx.shell : null;
+    const shot: ShotStats =
+      shell === null
+        ? base
+        : shell.kind === 'slug'
+          ? {
+              ...base,
+              pellets: 1,
+              spreadPx: 0,
+              reachesVer: true,
+              windSensitivity: shell.windSensitivity,
+            }
+          : {
+              ...base,
+              pellets: Math.max(
+                1,
+                Math.min(shell.maxPellets, Math.round(base.pellets * shell.pelletsMul)),
+              ),
+            };
     // Rooi Patrone / Laaste Patroon: the shell's place in the belt (primary shells only).
     const shellIndex =
       !usingCrate && timing.magazine >= 0 && !fx.infiniteAmmo ? timing.magazine - shellsLeft : null;
@@ -2251,8 +2290,17 @@ export function createSim(config: SimConfig): Sim {
       sy,
       shellsLeft,
       ...(how === undefined ? {} : { aim: how }),
+      ...(shell === null ? {} : { shell: shell.kind }),
     });
-    const ctx: ShotContext = { shotId, shot, shellIndex, lastShell, cx: cameraX, aim: aimAt };
+    const ctx: ShotContext = {
+      shotId,
+      shot,
+      shellIndex,
+      lastShell,
+      cx: cameraX,
+      aim: aimAt,
+      shell,
+    };
     if (rangeProgram !== null) {
       // The Skietbaan's aim point on its plane: groups are measured from it.
       const aimed = rangeProgram.aimTarget(cameraX, aimAt.dx, aimAt.sy, birds);
@@ -2271,16 +2319,27 @@ export function createSim(config: SimConfig): Sim {
     const byPlane = hitBirds();
     const extras = hitExtras();
     const drift = shotDrift(shot);
-    const hip = how === 'hip' && !usingCrate && !blast ? (weapon.aim?.hipSpreadPx ?? 0) : 0;
-    const offsets = pelletOffsets(
-      shot.pellets,
-      (shot.spreadPx + hip) * fx.spreadMul,
-      rng.stream('pellets'),
+    const hip =
+      how === 'hip' && !usingCrate && !blast && shell?.kind !== 'slug'
+        ? (weapon.aim?.hipSpreadPx ?? 0)
+        : 0;
+    // Dragon's Breath widens the pattern up to its cap (a gun already wider keeps its own). The
+    // cap holds after every multiplier: Bush Buckshot's ×2.5 never takes the flame past it
+    // (review of v1.19: the two stacked cleared the screen).
+    const own = shot.spreadPx + hip;
+    const spread =
+      shell?.kind === 'dragon_breath'
+        ? Math.min(own * shell.spreadMul * fx.spreadMul, Math.max(own, shell.maxSpreadPx))
+        : own * fx.spreadMul;
+    const offsets = pelletOffsets(shot.pellets, spread, rng.stream('pellets'));
+    // Dragon's Breath: the flame stops at its reach (layers behind it are out of range).
+    const flame = (g: ShotGeometry): ShotGeometry =>
+      shell?.kind === 'dragon_breath' ? flameReach(g, shell.reach) : g;
+    const assisted = flame(
+      reach(stats.bagged === 0 ? firstHitGeometry : geometry, shot.reachesVer),
     );
-    const assisted = reach(stats.bagged === 0 ? firstHitGeometry : geometry, shot.reachesVer);
-    const precise = reach(
-      stats.bagged === 0 ? preciseFirstHitGeometry : preciseGeometry,
-      shot.reachesVer,
+    const precise = flame(
+      reach(stats.bagged === 0 ? preciseFirstHitGeometry : preciseGeometry, shot.reachesVer),
     );
     // Touch assist rescues a clean miss only (resolvePattern, D-026); pointer never has it.
     const pellets = resolvePattern(
@@ -2490,8 +2549,15 @@ export function createSim(config: SimConfig): Sim {
       emit({ type: 'rangeOutcome', tick, shotId, hits, short });
     }
 
-    // Damage, in bird order (stable).
-    const damage = applyShotDamage(birds, pelletsOn, shot.pellets);
+    // v1.19 (D-084): the Slug bags what it hits in one: armour and a boss's hits go at once.
+    if (ctx.shell?.kind === 'slug')
+      for (const b of birds) {
+        if (!pelletsOn.has(b.id) || b.creature.kind === 'nonTarget') continue;
+        b.armorLeft = 0;
+        b.hitsLeft = Math.min(b.hitsLeft, 1);
+      }
+    // Damage, in bird order (stable). A special shell's pellet is a hit on its own (D-084).
+    const damage = applyShotDamage(birds, pelletsOn, ctx.shell === null ? shot.pellets : 1);
     const byId = new Map(birds.map((b) => [b.id, b]));
     const bagged: { bird: Bird; behaviour: BagBehaviour }[] = [];
     const armorBonuses: number[] = [];
@@ -2717,7 +2783,7 @@ export function createSim(config: SimConfig): Sim {
       shotNuts(shotId, canHits, shot.id);
     }
     // This shot counts against shell power-ups it had; one it picks up starts with the next.
-    endPowerups(onShellFired(powerups));
+    endPowerups(onShellFired(powerups, shot.shotgun));
     for (const id of crateHits) openCrate(id);
     for (const s of secrets) {
       for (const h of partHits) if (h.propId === s.propId) hitSecretPart(s, h.partId);
@@ -2783,6 +2849,7 @@ export function createSim(config: SimConfig): Sim {
         harvestHits,
         damage.outcomes.length > 0 || baboonHits.some((id) => baboons?.isRaider(id) === true),
         aimOn,
+        ctx.shell?.kind === 'slug',
       );
     // v1.12 (D-069): Brakkie yelps and bolts; −25 only if the shot was aimed at him and hit no
     // target elsewhere (D-062/D-063's rule).
@@ -3164,6 +3231,18 @@ export function createSim(config: SimConfig): Sim {
   }
 
   // --- crates ------------------------------------------------------------------------------
+  /** Table ids this hunt's crates can't hold: rifle-only power-ups without a sight (D-055),
+   *  special shells without a shotgun (D-084). */
+  let crateSkipSet: ReadonlySet<string> | null = null;
+  function crateSkip(): ReadonlySet<string> {
+    if (crateSkipSet === null) {
+      const skip = new Set<string>(sight === null ? sightOnly : noSkip);
+      if (weapon.shotgun !== true) for (const id of shotgunOnly) skip.add(id);
+      crateSkipSet = skip;
+    }
+    return crateSkipSet;
+  }
+
   function dropCrate(): void {
     const p = scoring.planes[crateCfg.plane];
     const c = spawnCrate(
@@ -3176,7 +3255,7 @@ export function createSim(config: SimConfig): Sim {
         refScale: scoring.tuningRefScale,
       },
       rng.stream('crates'),
-      sight === null ? sightOnly : noSkip,
+      crateSkip(),
     );
     if (c === null) return;
     nextCrateId++;
@@ -3740,6 +3819,9 @@ export function createSim(config: SimConfig): Sim {
     }
     const id = consumables[slot];
     if (id === null || id === undefined) return;
+    // v1.19 (D-084): a special shell waits in its slot while no shotgun is in hand.
+    const pu = content.powerups.powerups.find((p) => p.id === id);
+    if (pu?.needsShotgun === true && !shotStats().shotgun) return;
     consumables[slot] = null;
     consumablesUsed.push(slot);
     emit({ type: 'consumableUsed', tick, slot, item: id, itemType: 'powerup' });

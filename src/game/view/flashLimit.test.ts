@@ -50,3 +50,14 @@ describe('large-flash limit (GDD §18.3, M10)', () => {
     expect(loadFeel().accessibility.maxLargeFlashesPerSec).toBeLessThanOrEqual(3);
   });
 });
+
+describe('FlashLimiter.exhaust (v1.19, D-084, e2e)', () => {
+  it('refuses every start in the next second, then grants again', () => {
+    const l = new FlashLimiter(3, 50);
+    expect(l.start(0)).toBe(true);
+    l.exhaust(100);
+    expect(l.start(120)).toBe(false);
+    expect(l.start(900)).toBe(false);
+    expect(l.start(1150)).toBe(true);
+  });
+});

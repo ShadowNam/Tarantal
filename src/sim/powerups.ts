@@ -14,7 +14,20 @@ export interface ActivePowerup {
   shellsLeft: number | null;
 }
 
-export function activate(list: ActivePowerup[], def: PowerupDef): void {
+/** v1.19 (D-084): a special shotgun shell (Dragon's Breath, the Slug). */
+export function isSpecialShell(def: PowerupDef): boolean {
+  return def.effect.dragonBreath !== undefined || def.effect.slug !== undefined;
+}
+
+/**
+ * Starts (or refreshes) a power-up. v1.19 (D-084): a special shell replaces any other special
+ * shell (they never stack); returns the ids it replaced (in list order).
+ */
+export function activate(list: ActivePowerup[], def: PowerupDef): string[] {
+  const replaced = isSpecialShell(def)
+    ? list.filter((p) => p.def.id !== def.id && isSpecialShell(p.def)).map((p) => p.def.id)
+    : [];
+  removeIds(list, replaced);
   const totalTicks = def.durationMs === undefined ? null : Math.max(1, msToTicks(def.durationMs));
   const fresh: ActivePowerup = {
     def,
@@ -25,6 +38,7 @@ export function activate(list: ActivePowerup[], def: PowerupDef): void {
   const i = list.findIndex((p) => p.def.id === def.id);
   if (i >= 0) list[i] = fresh;
   else list.push(fresh);
+  return replaced;
 }
 
 /** Advances timers; returns the ids that ran out (in list order) and removes them. */
@@ -40,10 +54,12 @@ export function tickPowerups(list: ActivePowerup[]): string[] {
   return ended;
 }
 
-/** One shell fired: counts down shell power-ups; returns the ids that ran out. */
-export function onShellFired(list: ActivePowerup[]): string[] {
+/** One shell fired: counts down shell power-ups; returns the ids that ran out. v1.19 (D-084): a
+ *  special shell (needsShotgun) counts only a shotgun's shot (`shotgun`). */
+export function onShellFired(list: ActivePowerup[], shotgun = true): string[] {
   const ended: string[] = [];
   for (const p of list) {
+    if (p.def.needsShotgun === true && !shotgun) continue;
     if (p.shellsLeft !== null) {
       p.shellsLeft--;
       if (p.shellsLeft <= 0) ended.push(p.def.id);
@@ -79,7 +95,22 @@ export interface PowerupEffects {
   readonly redDotSwayMul: number;
   /** A rifle's time between shots × this; factors multiply. 1 = normal. */
   readonly fireCooldownMul: number;
+  /** v1.19 (D-084): the special shell loaded (only one at a time), or null. */
+  readonly shell: SpecialShell | null;
 }
+
+/** v1.19 (D-084): what a special shell does to a shotgun's shot. */
+export type SpecialShell =
+  | {
+      readonly id: string;
+      readonly kind: 'dragon_breath';
+      readonly pelletsMul: number;
+      readonly spreadMul: number;
+      readonly reach: 'near' | 'mid';
+      readonly maxPellets: number;
+      readonly maxSpreadPx: number;
+    }
+  | { readonly id: string; readonly kind: 'slug'; readonly windSensitivity: number };
 
 export function effectsOf(list: readonly ActivePowerup[]): PowerupEffects {
   let autoFire = false;
@@ -93,6 +124,7 @@ export function effectsOf(list: readonly ActivePowerup[]): PowerupEffects {
   let redDot = false;
   let redDotSwayMul = 1;
   let fireCooldownMul = 1;
+  let shell: SpecialShell | null = null;
   for (const p of list) {
     const e = p.def.effect;
     if (e.autoFire === true) autoFire = true;
@@ -110,6 +142,9 @@ export function effectsOf(list: readonly ActivePowerup[]): PowerupEffects {
     if (e.redDot === true) redDot = true;
     if (e.redDotSwayMul !== undefined) redDotSwayMul = Math.min(redDotSwayMul, e.redDotSwayMul);
     if (e.fireCooldownMul !== undefined) fireCooldownMul *= e.fireCooldownMul;
+    if (e.dragonBreath !== undefined)
+      shell = { id: p.def.id, kind: 'dragon_breath', ...e.dragonBreath };
+    if (e.slug !== undefined) shell = { id: p.def.id, kind: 'slug', ...e.slug };
   }
   return {
     autoFire,
@@ -123,6 +158,7 @@ export function effectsOf(list: readonly ActivePowerup[]): PowerupEffects {
     redDot,
     redDotSwayMul,
     fireCooldownMul,
+    shell,
   };
 }
 

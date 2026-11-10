@@ -283,8 +283,13 @@ export function rollOffers(content: ContentBundle, run: RunState, rerolls: numbe
     offers.push({ kind: 'charm', id: c.id, price: content.charms.prices[c.rarity], bought: false });
   }
   // 1.9.2 (D-055): a power-up without a Padstal price (the rifle-only Rooikol) is never offered.
+  // v1.19 (D-084): the special shells only in a run with a shotgun (the run's gun never changes).
+  const gun = content.weapons.weapons.find((w) => w.id === run.weapon);
+  const shotgunRun = gun?.kind === 'primary' && gun.shotgun === true;
   const powerups = content.powerups.powerups.flatMap((pu) =>
-    pu.padstalPrice === undefined ? [] : [{ id: pu.id, price: pu.padstalPrice }],
+    pu.padstalPrice === undefined || (pu.needsShotgun === true && !shotgunRun)
+      ? []
+      : [{ id: pu.id, price: pu.padstalPrice }],
   );
   for (let i = 0; i < p.consumableOffers && powerups.length > 0; i++) {
     const pu = powerups[rng.int(0, powerups.length - 1)];
