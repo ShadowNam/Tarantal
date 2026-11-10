@@ -3,6 +3,10 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.23.0] — v1.20: Brakkie fetches sooner, and the "Jag, Brakkie!" card (10 Nov 2026)
+
+Decision record D-085. The owner's request of 10 Nov (afternoon). Work in progress.
+
 ## [1.22.0] — v1.19: The Gun Shed, meerkats and two special shells (10 Nov 2026)
 
 Decision record D-084. The owner's requests of 8 Nov (night): better gun pictures in the Gun Shed,
