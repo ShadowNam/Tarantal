@@ -1174,6 +1174,29 @@ exported file back into the tables and lists the clips to redo (`art-source/audi
 Test hook: `adminTexts` (counts, the page's ids, the last Save refusal, export and ▶), and
 `titleShedLabel`.
 
+**Sizes tab and size editor (v1.22.1, D-086).** The list page's third tab
+(`data-action="tab-sizes"`, `?admin=1&tab=sizes` opens on it): `src/game/admin/sizes/SizesPanel.ts`
+lists `src/game/sizes/sizeKnobs.ts` (one knob per sized animal: its content path(s) or code
+constant, its px hit box sets, real size, metres per unit — held to `tools/sizes.ts` by
+`tools/sizeKnobs.test.ts` — and the texture/frame of its sprites) per area. "Open in game" loads
+`?admin=1&sizes=<area>`: `main.ts` builds the admin hunt of that area's plain map (or the Harvest)
+on `withSizePreview` content, holds it at `SIZE_HOLD_TICK`, and `HuntScene` starts it at once,
+loads `src/game/sizes/SizeEditor.ts` (lazy) and, while held, advances the `InputMapper`'s pan
+itself (`panCameraX`, `panDrag`) and draws every view from that camera (the sim's camera stays).
+The editor walks the display list after the views each frame: it finds sprites by texture and
+frame, scales the `pass` knobs' about their origin (their feet), and sets `sizeFactor()`
+(`src/game/sizes/sizeFactor.ts`) for the `factor` knobs that FaunaView (parts about the animal's
+feet) and BaobabLifeView read. Sizes: `src/meta/sizeEdits.ts`, key `sizeEdits.v1` in the
+device-wide namespace; each edit carries its own path (`src/content/sizePaths.ts`). With the
+toggle on, boot calls `applySizeEdits` (`src/meta/sizeApply.ts`; not on the admin list page, which
+shows the shipped sizes) and the content overrides reach the sim; hunts are unranked
+(`DailyFlow` `unranked`, no challenge links) and `buildLine` adds `⇲ <n>`. Views whose art is drawn
+at a size show content ÷ drawn: `CameoView` (`CAMEO_SIZE_MUL`), `FaunaView` (`FAUNA_DRAWN_MUL`),
+`OstrichView`'s hen (`OSTRICH_HEN_SCALE`). `npm run sizes:apply` (`tools/sizesApply.ts`,
+`tools/jsonNumbers.ts`) writes a sizes file back in place and keeps `tools/sizes.ts OWNER_SET`.
+Test hook: `sizes` (the tab's or the editor's state: the picked knob, its factor, value, metres,
+its sprite's box and feet, a point per knob on screen, the last export).
+
 ### 8.3 Skietbaan: the range mode and its gating (v1.3x, D-037)
 - **Gating:** the admin page's Skietbaan button, so only builds whose adapter has `adminPage` (web).
   The range's code is one lazy chunk (`src/game/range/` → `Skietbaan-*.js`, 8.7 KB gzip), loaded

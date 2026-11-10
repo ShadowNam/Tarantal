@@ -1192,6 +1192,19 @@ the game there ("Use my edits in the game"), and are sent by exporting a file. P
 `{n}` must stay. The corrected lines are applied to the game by `npm run text:apply`, and the clips
 whose words changed are re-made later.
 
+### 12.1c Sizes — the owner sets the animals' sizes by eye, admin page only (v1.22.1, D-086)
+Not a player feature: a tab on the playtest admin page (web builds). Every animal that is not a
+target is drawn at its real size beside the guineafowl (D-080); where one still looks wrong to the
+owner, he opens its area in the game from the tab: the hunt holds still with every sized animal
+out (the far herds, the cameos, the ostriches, the baboons, Brakkie, the meerkats, the weavers,
+the tells, the baobab's residents; in Die Oes the warthogs, piglets and workers), the panorama
+still pans, and a tap picks an animal — outlined, named, with the height it shows as and a
+standing guineafowl (0.5 m) beside it. −10 % · −2 % · +2 % · +10 % · Reset change it at once; Save
+keeps it on that device. "Use my sizes in the game" shows them in every hunt there (hit boxes
+grow with the drawing; hunts are unranked; the build line shows ⇲ and the count). The sizes are
+sent as a file and applied to the game by `npm run sizes:apply`; a size outside ±15 % of real is
+then recorded as the owner's choice.
+
 ### 12.2 Die Oes (The Harvest) — a 30-second mode (1.11.0, D-063)
 The product owner (25 Oct): "A big plantation of crops, and all the birds and everything, the
 warthogs and the baboons, everything flocks to it and tries to eat as much as possible. You've got

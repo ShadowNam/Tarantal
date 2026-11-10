@@ -4840,6 +4840,91 @@ is measured by perf.spec (Pixel 7, 4× throttle, ≤ 0.3 ms per cone frame).
 **Golden replays** re-recorded twice: the two crate-table entries change the crate rolls and the
 content hash (49 replays); the caps changed the hash only (every replay kept its score and events).
 
+### D-086 — v1.22.1 Sizes: the owner sets the animals' sizes by eye in the admin page (10 Nov 2026)
+
+(D-083 is PR #127's, D-084 v1.19's, D-085 the v1.20 Brakkie job's.)
+
+**Why.** The owner (10 Nov): "is the animal sizes correct, they still look in the test demo wrong.
+and especially the ostrich that runs past. if we cant fix the sizes, you need to put into the admin
+menu an option that brings the different map with animals, and i can select them and use a button
+to adjust the size to the correct size. then you save it and then we have them correct size."
+Measured, every animal is at true size (D-080, D-082: tools/sizes.ts, ±15 % beside the 0.5 m
+guineafowl); the Karoo's sprinting ostrich (cameos.json `kinds.ostrich.sizeMul` 2.76, mid plane)
+is 2.52 m at its highest stride. His eye says otherwise, so he sets the sizes himself — the same
+loop as the texts (D-076): edit on the device → export → apply to the repo with a tool.
+
+**The Sizes tab** (admin page `?admin=1`, web builds; `src/game/admin/sizes/SizesPanel.ts`, its own
+lazy chunk). Each area — Karoo, Bushveld, Kalahari, Okavango, Namibië, Die Oes — with its animals
+(`src/game/sizes/sizeKnobs.ts`, 42 "knobs": the far and Ver herds per species, the six cameos,
+Namibië's ostrich cock and hen, the baboon and the baboon mother, the Harvest's warthog, piglet and
+workers, Brakkie, the meerkats, the weaver colony and its pygmy falcon, the angry weavers, the 13
+tells and the baobab's flying owl, hornbill and bushbaby): the real size it stands for (m, and what
+is measured), its value in the game now and the height that shows as, the owner's size if he set
+one (Revert), and "Open in game" per area. Then "Use my sizes in the game" (off by default),
+"Download sizes" / "Copy" / "Share", and help: save the file to Dropbox
+`/AI-DEV/Tarantal-Madness/size-edits/` and send it to the developer.
+
+**The size editor** (`?admin=1&sizes=<area>`; `src/game/sizes/SizeEditor.ts`, lazy). The area's
+plain map (Die Oes: the Harvest) starts at once with every sized animal out (`withSizePreview`: the
+cameo previews for every kind, Brakkie out of the bakkie, the ridge's peeks and a raider, the
+Harvest's rush and piglets, no Reënbui; a fixed seed) and holds still at tick 480; the far herds
+stand at rest. The panorama still pans (a finger drags it; on a desktop the edge pan, the keys or a
+mouse drag): HuntScene advances the pan itself and draws the views from that camera while the sim is
+held. The HUD and the gun step aside; the editor's bar sits at the top, or at the bottom when there
+is more room below the animal picked (on a phone it is one row that scrolls sideways). Tap or click
+an animal (the one drawn on top; a small one within 72 design px): it is outlined and named with the
+height it shows as, and a standing guineafowl with a 0.5 m bar stands beside its feet on its own
+plane (the yardstick, `rulerBirds`). −10 % · −2 % · +2 % · +10 % · Reset (to the shipped size), ≥ 64
+design px (and 44 CSS px) each, change it at once: sprites drawn whole are scaled about their feet
+every frame after the views drew (the editor's pass, found by texture key and frame name); the far
+herds (several parts each) and the baobab's residents read `sizeFactor()` in their own views. "Save"
+keeps the sizes on this device (`src/meta/sizeEdits.ts`, key `sizeEdits.v1` in the device-wide
+namespace, like `textEdits.v1`); unsaved changes are asked about before leaving (the bar's ‹ Sizes,
+and the page's beforeunload). A pick list names the area's animals too.
+
+**In the game.** With "Use my sizes in the game" on, boot (`src/meta/sizeApply.ts`) applies each
+saved size as a content override on this device — only where the value is still the edit's
+`from` (a size already applied to the repo is not applied twice). Hit boxes follow the drawing:
+a px hit box set named with the size (the baboons', the Harvest warthogs' and workers') is scaled
+with it; every other one is already × the size in the sim (the cameos', Brakkie's, the ostriches',
+the meerkats'). Some art is drawn at a size and shown 1:1, so a changed content value showed only
+in the hit shapes: the cameos (`CAMEO_SIZE_MUL`), the far herds (`FAUNA_DRAWN_MUL`, new: the sheets
+are drawn at feel.json `fauna.sizeMul`) and the ostrich hen (`OSTRICH_HEN_SCALE`) are now drawn ×
+content ÷ drawn (1 as shipped), so drawing and hit shapes always match. The baobab's residents
+are a code constant (`RESIDENT_TRUE_MUL`): their size is a view factor (no hit shapes). While a size
+is in use every hunt is unranked (no Daily result or streak, no challenge links, as in capture
+mode), and the build line shows `⇲ <n>`. Nothing leaves the device.
+
+**The file and the tool.** `{ version: 1, exportedAt, build: { version, commit }, edits: [{ id,
+area, path, from, to, realM, hitboxes? }] }`, a path being `content/<file>.json#<keys>` (array
+items by id: `tells.species[id=rock_agama].scale`) or `code:<file>#<CONSTANT>.<key>`.
+`npm run sizes:apply -- <file> [--force-rest] [--dry-run]` (`tools/sizes-apply.ts`,
+`tools/sizesApply.ts`) writes each value into its file in place (`tools/jsonNumbers.ts`: layout
+and key order kept) with its px hit boxes × the same change, refuses the whole file when an edit's
+`from` no longer matches (or a value would break its schema's limits; `--force-rest` applies the
+others), skips one already in, and reports a code constant to change by hand (its art is drawn
+from it). It then records the owner's choice in the true-size table: each row of an edited animal
+now outside ±15 % of real goes into `tools/sizes.ts OWNER_SET` with the date and "the owner set
+this by eye …" (how far from real), and leaves it when back within — `tools/sizes.test.ts` holds
+those rows to their record and every other row to ±15 %, so the test passes on purpose rather than
+being loosened for everyone. The art-density tests now allow content within 1.5× of the size the
+art is drawn at (a redraw is due beyond that).
+
+**Size.** First download 2,999.7 → ~3,002 KB gzip (+2.3 KB: the store, the override and its path
+reader, the camera hold, the build-line marker; `npm run size -- --strict` OK). The tab (2.8 KB),
+the editor (5.0 KB) and the knobs (`sizeWork`, 2.8 KB) are lazy chunks; Poki and CrazyGames builds
+drop the store and the editor (the raw `VITE_PLATFORM` flag), as with the texts.
+
+**Tests.** Unit: the store (device namespace, a malformed store), the override (values, hit boxes,
+array items, stale and code edits), the size paths, the knobs against the true-size table (every
+animal is a knob, metres within 1 %, sprites found by texture and frame), the working factors and
+export, the apply tool (in place, refusals, schema limits, code constants, OWNER_SET in and out),
+the build line. E2e `tests/e2e/admin-sizes.spec.ts` (desktop, Pixel 7, iPhone 14 landscape): the
+tab, Open in game (Karoo), tap the ostrich, +10 % → its box 10 % taller about the same feet and its
+art's top on the canvas ~10 % higher above its feet, Save, reload, back, the toggle, the export,
+⇲ 1 in the game. Screenshots: `docs/art-preview/compare/sizes-admin-*.png`
+(`tests/e2e/art-preview-sizes-admin.spec.ts`, ART_PREVIEW=1).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

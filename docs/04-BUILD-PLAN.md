@@ -108,6 +108,9 @@ Priority order after this review:
 3. **v1.14 Texts & voices — built, in review (PR #119, 1.18.0, D-076).** The admin page's editor
    for every player-facing line; the owner's exported corrections go in with `npm run text:apply`,
    which lists the clips to re-make in `art-source/audio/voice/redo.json`.
+   **v1.22.1 Sizes (D-086)** follows the same loop for the animals' sizes: the admin page's Sizes
+   tab and the in-game size editor (`?admin=1&sizes=<area>`); the owner's sizes go in with
+   `npm run sizes:apply`, which records any outside ±15 % of real in `tools/sizes.ts OWNER_SET`.
 4. **Final Oupa voices after the text is settled** (input: `redo.json`). The saved plan calls for an en/af/de sample
    first and speech-to-text checks. Final voice selection and access to the chosen service remain
    external inputs.
