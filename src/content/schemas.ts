@@ -3085,6 +3085,8 @@ export const FeelSchema = obj({
     hitStopMs: nonNeg,
     hitStopTwoFliesMs: nonNeg,
     muzzleFlashMs: pos,
+    /** v1.19 (D-084): the Slug's muzzle flash: small and tight (× the gun's own). */
+    slugFlashScale: z.number().gt(0).max(1),
     gunKickPx: nonNeg,
     gunKickMs: pos,
     featherCount: range(nonNegInt),

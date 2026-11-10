@@ -63,6 +63,10 @@ import { SightView, type SightPicture } from '../view/SightView';
 import { NO_ZOOM, zoomFor, type ZoomState } from '../view/zoomView';
 import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
+import type { ShellFx } from '../view/shells/ShellFx';
+
+/** v1.19 (D-084): the special shells' ids (their effects chunk loads with the first). */
+const isShellId = (id: string): boolean => id === 'dragon_breath' || id === 'slug';
 import { planeToDx } from '../../sim/camera';
 import { crosshairExtent, reloadBoostsOf, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
@@ -244,6 +248,11 @@ export class HuntScene extends Phaser.Scene {
   private screenFixed!: Phaser.GameObjects.Container;
   private sightLayer!: Phaser.GameObjects.Container;
   private gunLayer!: Phaser.GameObjects.Container;
+  /** v1.19 (D-084): the special shells' effects (a lazy chunk, loaded with the first shell). */
+  private shellFx: ShellFx | null = null;
+  private shellFxLoading = false;
+  /** Dragon's Breath shots whose bags get a singed puff (the last few). */
+  private dragonShots: number[] = [];
   private sight!: SightView;
   /** The rifle zoom view of the last frame (NO_ZOOM when no sight is up). */
   private zoomView: ZoomState = NO_ZOOM(1920, 1080);
@@ -3139,7 +3148,9 @@ export class HuntScene extends Phaser.Scene {
     for (const e of events) {
       if (e.type === 'shotFired') {
         this.weapon.setWeapon(e.weapon);
-        this.weapon.fired();
+        // v1.19 (D-084): the Slug's flash is small and tight.
+        this.weapon.fired(e.shell === 'slug' ? this.ctx.feel.juice.slugFlashScale : 1);
+        if (e.shell !== undefined) this.shellShot(e, half);
         const def = this.ctx.content.weapons.weapons.find((x) => x.id === e.weapon);
         if (def?.kind === 'crate' && def.smokeMs !== undefined && def.smokeMs > 0)
           this.weapon.smoke(def.smokeMs, this.ctx.feel.juice.smokeScale);
@@ -3165,6 +3176,14 @@ export class HuntScene extends Phaser.Scene {
         this.mapper?.dropAim();
       } else if (e.type === 'targetBagged') {
         bagged = true;
+        if (this.dragonShots.includes(e.shotId))
+          this.shellFx?.singe(
+            this.parallax.screenX(e.plane, e.x),
+            e.y,
+            this.ctx.content.scoring.planes[e.plane].scale,
+          );
+      } else if (e.type === 'powerupStarted' && isShellId(e.powerup)) {
+        this.loadShellFx();
       } else if (e.type === 'bonusAwarded' && e.bonus === 'twoFlies') {
         this.runner?.hitStop(this.ctx.feel.juice.hitStopTwoFliesMs);
       } else if (e.type === 'flockWiped' && this.range === null) {
@@ -3179,6 +3198,43 @@ export class HuntScene extends Phaser.Scene {
       }
     }
     if (bagged) this.runner?.hitStop(this.ctx.feel.juice.hitStopMs);
+  }
+
+  /** v1.19 (D-084): loads the shells' effects chunk (once; the first shell is picked up). */
+  private loadShellFx(): void {
+    if (this.shellFx !== null || this.shellFxLoading) return;
+    this.shellFxLoading = true;
+    const hook = this.ctx.hook;
+    void import('../view/shells/ShellFx').then((m) => {
+      this.shellFxLoading = false;
+      if (!this.sys.isActive()) return;
+      const stats = hook ? (hook.shellFx = m.newShellFxStats()) : undefined;
+      this.shellFx = new m.ShellFx({
+        scene: this,
+        layer: this.gunLayer,
+        prefs: this.ctx.prefs,
+        flashes: this.ctx.flashes,
+        playExtra: (key, pan, synth) => {
+          this.ctx.audio.playExtra(key, pan, synth);
+        },
+        ...(stats === undefined ? {} : { stats }),
+      });
+    });
+  }
+
+  /** v1.19 (D-084): a special shell's shot: the flame cone or the Slug's boom. */
+  private shellShot(e: Extract<SimEvent, { type: 'shotFired' }>, half: number): void {
+    this.loadShellFx();
+    const pan = e.dx / half;
+    if (e.shell === 'slug') {
+      this.shellFx?.slug(pan);
+      return;
+    }
+    this.dragonShots.push(e.shotId);
+    if (this.dragonShots.length > 8) this.dragonShots.shift();
+    const m = this.weapon.muzzle();
+    if (m.hidden) return;
+    this.shellFx?.dragon(m, { x: half + e.dx, y: e.sy }, pan);
   }
 
   /**

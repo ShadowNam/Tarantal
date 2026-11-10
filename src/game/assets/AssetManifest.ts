@@ -1108,6 +1108,9 @@ export const TEX = {
   puMielieMasjien: 'ui/pu_mielie_masjien',
   // 1.9.2 (D-055): the Rooikol (red dot sight) power-up.
   puRooikol: 'ui/pu_rooikol',
+  // v1.19 (D-084): the special shells.
+  puDragonBreath: 'ui/pu_dragon_breath',
+  puSlug: 'ui/pu_slug',
   bolt: 'fx/bolt',
   // v1.4 B (D-039): angry sociable weavers (WeaverView), shared by every biome with a nest.
   weaverUp: 'fx/weaver_up',

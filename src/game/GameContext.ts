@@ -766,6 +766,8 @@ export interface TestHook {
   };
   /** D-035 review: weapon ids whose picture the Skiet-Skuur's Guns tab shows. */
   shedIcons?: string[];
+  /** v1.19 (D-084): the special shells' effects (cones, big ones and when, slugs, singes). */
+  shellFx?: import('./view/shells/ShellFx').ShellFxStats;
   /** v1.19 (D-084): each Guns-tab picture: side view or first-person idle frame, where (design
    *  px), and whether it is the locked (grey) one. */
   shedPictures?: {

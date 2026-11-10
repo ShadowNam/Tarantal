@@ -271,7 +271,8 @@ export class WeaponView {
     if (raise > 0) this.reticle.setVisible(false);
   }
 
-  fired(): void {
+  /** `flashScale`: v1.19 (D-084) the Slug's small, tight flash (< 1). */
+  fired(flashScale = 1): void {
     if (this.frozen) return;
     this.kick = 1;
     if (this.gunHidden) return;
@@ -286,7 +287,7 @@ export class WeaponView {
       .setPosition(x, y)
       .setVisible(true)
       .setAlpha(this.prefs.flashAlpha)
-      .setScale(this.displayScale * (rig?.scale ?? 1) * (0.8 + Math.random() * 0.3));
+      .setScale(this.displayScale * (rig?.scale ?? 1) * (0.8 + Math.random() * 0.3) * flashScale);
     if (own !== null && rig !== null) {
       // The gun's own flash is drawn along the barrel: it turns with the gun. Its frames carry
       // their centre as the pivot when cropped.
@@ -409,6 +410,11 @@ export class WeaponView {
   gunRect(): { x: number; y: number; w: number; h: number } {
     const b = this.gun.getBounds();
     return { x: b.x, y: b.y, w: b.width, h: b.height };
+  }
+
+  /** v1.19 (D-084): the muzzle on screen (design px) and the gun's turn (the flame's start). */
+  muzzle(): { x: number; y: number; rotation: number; hidden: boolean } {
+    return { ...this.barrelTip(), rotation: this.gun.rotation, hidden: this.gunHidden };
   }
 
   private barrelTip(): { x: number; y: number } {

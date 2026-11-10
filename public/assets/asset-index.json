@@ -4170,6 +4170,17 @@
       "width": 128,
       "height": 128
     },
+    "ui/pu_dragon_breath": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/ui_pu_dragon_breath.c2d64a3e1760.png",
+        "bytes": 2833,
+        "hash": "c2d64a3e1760"
+      },
+      "width": 128,
+      "height": 128
+    },
     "ui/pu_meerkat_spotter": {
       "group": "late",
       "origin": "interim",
@@ -4210,6 +4221,17 @@
         "path": "assets/late/img/ui_pu_rooikol.14871caf8667.png",
         "bytes": 3040,
         "hash": "14871caf8667"
+      },
+      "width": 128,
+      "height": 128
+    },
+    "ui/pu_slug": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/ui_pu_slug.721e97d858e0.png",
+        "bytes": 2129,
+        "hash": "721e97d858e0"
       },
       "width": 128,
       "height": 128
