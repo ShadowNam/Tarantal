@@ -20,9 +20,11 @@ import {
   falconAt,
   lovebirdsAt,
   weaverAt,
+  weaverMemo,
   type ColonyNest,
   type ColonyPose,
   type Scatter,
+  type WeaverMemo,
   COLONY_FALCON_PERCH,
 } from './colonyFlight';
 import { COLONY_SHEET, COLONY_WINGSPAN, colonyFrames, colonyTexelsPerPx } from './colonySheet';
@@ -37,6 +39,22 @@ interface Colony {
   /** Frame scale: the weavers' size on this plane over the sheet's. */
   readonly k: number;
   scatter: Scatter | null;
+  /** Each weaver's cycle cache (weaverAt answers the same; it skips re-walking its cycles). */
+  readonly memos: WeaverMemo[];
+}
+
+/** A pool image and what was last set on it. */
+interface Slot {
+  readonly img: Phaser.GameObjects.Image;
+  parent: Phaser.GameObjects.Container | null;
+  frame: string;
+  x: number;
+  y: number;
+  scale: number;
+  flip: boolean;
+  alpha: number;
+  tint: number;
+  visible: boolean;
 }
 
 export interface ColonyOptions {
@@ -64,8 +82,12 @@ const S = TICKS_PER_SECOND;
 
 export class ColonyView {
   private readonly colonies: Colony[] = [];
-  private readonly pool: Phaser.GameObjects.Image[] = [];
-  private readonly parentOf = new Map<Phaser.GameObjects.Image, Phaser.GameObjects.Container>();
+  /** Pool slots: each image with what was last set on it (set only on change). */
+  private readonly pool: Slot[] = [];
+  /** Slots used so far this update. */
+  private used = 0;
+  /** Kinds already reported sighted this update. */
+  private readonly sighted = new Set<string>();
   private sheet: Phaser.Textures.Texture | null = null;
   private tk = 1;
   private readonly burstTicks: number;
@@ -118,6 +140,7 @@ export class ColonyView {
         // Review R4: a set drawn wingspan per plane (about 1.3× true size against the tree).
         k: t.wingspanPx[plane] / COLONY_WINGSPAN,
         scatter: null,
+        memos: Array.from({ length: count }, () => weaverMemo()),
       });
     });
   }
@@ -145,7 +168,7 @@ export class ColonyView {
         fr.pivotY = f.oy / f.h;
       }
       this.tk = k;
-      for (const img of this.pool) img.setTexture(COLONY_SHEET, img.frame.name);
+      for (const slot of this.pool) slot.img.setTexture(COLONY_SHEET, slot.img.frame.name);
       this.sheet = tex;
     }
     return true;
@@ -205,82 +228,166 @@ export class ColonyView {
   }
 
   update(s: SimState, alpha: number): void {
-    const view = designSize();
     if (this.colonies.length === 0 || !this.ensureSheet()) return;
+    const view = designSize();
     const t = this.feel.treeLife.colony;
     const tick = s.tick - 1 + alpha;
     const seed = this.o.seed();
-    let used = 0;
-    let weavers = 0;
-    let falcon = false;
-    let lovebirds = 0;
-    const nests: { x: number; y: number }[] = [];
+    const shown = this.shown;
+    this.used = 0;
+    this.sighted.clear();
+    shown.weavers = 0;
+    shown.falcon = false;
+    shown.lovebirds = 0;
+    let nestCount = 0;
     for (const c of this.colonies) {
       const layer = this.parallax.layer(c.layerId);
       if (layer === undefined) continue;
-      nests.push({
-        x: Math.round(layer.root.x + (c.x + c.nest.ox) * layer.root.scaleX),
-        y: Math.round(layer.root.y + (c.y + c.nest.oy) * layer.root.scaleY),
-      });
-      const poses: ColonyPose[] = [];
+      const root = layer.root;
+      const rx = root.x;
+      const ry = root.y;
+      const sx = root.scaleX;
+      const sy = root.scaleY;
+      const nx = Math.round(rx + (c.x + c.nest.ox) * sx);
+      const ny = Math.round(ry + (c.y + c.nest.oy) * sy);
+      const spot = shown.nests[nestCount];
+      if (spot === undefined) shown.nests.push({ x: nx, y: ny });
+      else {
+        spot.x = nx;
+        spot.y = ny;
+      }
+      nestCount++;
+      const tint = this.parallax.layerTint(c.layerId);
+      const parent = layer.propFruit;
+      const ctx = this.drawCtx;
+      ctx.c = c;
+      ctx.parent = parent;
+      ctx.tint = tint;
+      ctx.rx = rx;
+      ctx.ry = ry;
+      ctx.sx = sx;
+      ctx.sy = sy;
+      ctx.vw = view.width;
+      ctx.vh = view.height;
       for (let i = 0; i < c.nest.birds; i++) {
-        const p = weaverAt(t, c.nest, seed, i, tick, c.scatter, this.o.reducedMotion);
+        const p = weaverAt(t, c.nest, seed, i, tick, c.scatter, this.o.reducedMotion, c.memos[i]);
         if (p !== null) {
-          poses.push(p);
-          weavers++;
+          this.draw(p, 'weaver', 1);
+          shown.weavers++;
         }
       }
       const f = falconAt(t, c.nest, seed, Math.floor(tick), c.scatter, this.o.falconPreview);
       if (f !== null) {
-        poses.push(f);
-        falcon = true;
+        this.draw(f, 'falcon', t.falconMul);
+        shown.falcon = true;
       }
-      for (const l of lovebirdsAt(t, c.nest, seed, tick, c.scatter)) {
-        poses.push(l);
-        lovebirds++;
-      }
-      const tint = this.parallax.layerTint(c.layerId);
-      for (const p of poses) {
-        if (this.o.onSighted !== undefined) {
-          const x = layer.root.x + (c.x + p.x) * layer.root.scaleX;
-          const y = layer.root.y + (c.y + p.y) * layer.root.scaleY;
-          if (sightingVisible(x, y, p.alpha, view.width, view.height))
-            this.o.onSighted(
-              p.frame.startsWith('falcon')
-                ? 'falcon'
-                : p.frame.startsWith('lovebird')
-                  ? 'lovebirds'
-                  : 'weaver',
-            );
+      if (c.nest.lovebirds)
+        for (const l of lovebirdsAt(t, c.nest, seed, tick, c.scatter)) {
+          this.draw(l, 'lovebirds', 1);
+          shown.lovebirds++;
         }
-        const img = this.sprite(used++, layer.propFruit);
-        img.setFrame(p.frame);
-        // The origin at the frame's anchor, flipped or not (a custom pivot: footOrigin.ts).
-        setFootOrigin(img, p.flip);
-        img
-          .setScale(((p.frame.startsWith('falcon') ? t.falconMul : 1) * c.k) / this.tk)
-          .setPosition(c.x + p.x, c.y + p.y)
-          .setFlipX(p.flip)
-          .setAlpha(p.alpha)
-          .setTint(tint)
-          .setVisible(true);
+    }
+    if (shown.nests.length !== nestCount) shown.nests.length = nestCount;
+    shown.scatters = this.scatterCount;
+    const pool = this.pool;
+    for (let i = this.used; i < pool.length; i++) {
+      const slot = pool[i];
+      if (slot !== undefined && slot.visible) {
+        slot.visible = false;
+        slot.img.setVisible(false);
       }
     }
-    for (let i = used; i < this.pool.length; i++) this.pool[i]?.setVisible(false);
-    this.shown = { weavers, falcon, lovebirds, scatters: this.scatterCount, nests };
   }
 
-  private sprite(i: number, parent: Phaser.GameObjects.Container): Phaser.GameObjects.Image {
-    let img = this.pool[i];
-    if (img === undefined) {
-      img = this.scene.add.image(0, 0, COLONY_SHEET, 'weaver_perch');
-      this.pool.push(img);
+  /** The colony being drawn and its layer's transform (reused: no closure or object a frame). */
+  private readonly drawCtx: {
+    c: Colony | null;
+    parent: Phaser.GameObjects.Container | null;
+    tint: number;
+    rx: number;
+    ry: number;
+    sx: number;
+    sy: number;
+    vw: number;
+    vh: number;
+  } = { c: null, parent: null, tint: 0xffffff, rx: 0, ry: 0, sx: 1, sy: 1, vw: 0, vh: 0 };
+
+  /** One bird into the next pool slot, each property set only when it changed. */
+  private draw(p: ColonyPose, kind: 'weaver' | 'falcon' | 'lovebirds', mul: number): void {
+    const ctx = this.drawCtx;
+    const c = ctx.c;
+    const parent = ctx.parent;
+    if (c === null || parent === null) return;
+    const x = c.x + p.x;
+    const y = c.y + p.y;
+    // Once a kind per update is enough (a second sighting in the same frame changes nothing).
+    if (
+      this.o.onSighted !== undefined &&
+      !this.sighted.has(kind) &&
+      sightingVisible(ctx.rx + x * ctx.sx, ctx.ry + y * ctx.sy, p.alpha, ctx.vw, ctx.vh)
+    ) {
+      this.sighted.add(kind);
+      this.o.onSighted(kind);
     }
-    if (this.parentOf.get(img) !== parent) {
-      parent.add(img);
-      this.parentOf.set(img, parent);
+    const slot = this.slot(this.used++, parent);
+    const img = slot.img;
+    if (slot.frame !== p.frame) {
+      slot.frame = p.frame;
+      img.setFrame(p.frame);
     }
-    return img;
+    // The origin at the frame's anchor, flipped or not (a custom pivot: footOrigin.ts).
+    setFootOrigin(img, p.flip);
+    const scale = (mul * c.k) / this.tk;
+    if (slot.scale !== scale) {
+      slot.scale = scale;
+      img.setScale(scale);
+    }
+    if (slot.x !== x || slot.y !== y) {
+      slot.x = x;
+      slot.y = y;
+      img.setPosition(x, y);
+    }
+    if (slot.flip !== p.flip) {
+      slot.flip = p.flip;
+      img.setFlipX(p.flip);
+    }
+    if (slot.alpha !== p.alpha) {
+      slot.alpha = p.alpha;
+      img.setAlpha(p.alpha);
+    }
+    if (slot.tint !== ctx.tint) {
+      slot.tint = ctx.tint;
+      img.setTint(ctx.tint);
+    }
+    if (!slot.visible) {
+      slot.visible = true;
+      img.setVisible(true);
+    }
+  }
+
+  private slot(i: number, parent: Phaser.GameObjects.Container): Slot {
+    let slot = this.pool[i];
+    if (slot === undefined) {
+      const img = this.scene.add.image(0, 0, COLONY_SHEET, 'weaver_perch');
+      slot = {
+        img,
+        parent: null,
+        frame: img.frame.name,
+        x: img.x,
+        y: img.y,
+        scale: img.scaleX,
+        flip: img.flipX,
+        alpha: img.alpha,
+        tint: img.tintTopLeft,
+        visible: img.visible,
+      };
+      this.pool.push(slot);
+    }
+    if (slot.parent !== parent) {
+      parent.add(slot.img);
+      slot.parent = parent;
+    }
+    return slot;
   }
 
   get hook(): ColonyHook {
@@ -288,8 +395,7 @@ export class ColonyView {
   }
 
   destroy(): void {
-    for (const img of this.pool) img.destroy();
+    for (const slot of this.pool) slot.img.destroy();
     this.pool.length = 0;
-    this.parentOf.clear();
   }
 }
