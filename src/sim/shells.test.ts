@@ -12,11 +12,13 @@ import {
   quiet,
   run,
   shootBird,
+  aimAt,
   type Content,
   waitForBird,
 } from '../../tools/simHarness';
 import { activate, effectsOf, onShellFired, type ActivePowerup } from './powerups';
 import { createRun, rollOffers } from './run/run';
+import type { SimEvent } from './events';
 import type { Sim } from './Sim';
 import type { ModeConfig, SeasonHuntConfig } from './types';
 import { eventEntry } from '../../tools/simHarness';
@@ -253,6 +255,44 @@ describe('the Slug in the sim (D-084)', () => {
     expect(impacts[0]?.birdId).not.toBeNull();
     expect(ofType(ev, 'targetBagged').map((b) => b.birdId)).toContain(impacts[0]?.birdId);
     expect(hit === undefined || hit.plane === 'far').toBe(true);
+  });
+
+  it('reaches a Ver-plane bird (a plain shotgun shell falls short of it)', () => {
+    // Verder opened onto the Ver plane with Ver flocks only; one early crate with the Slug.
+    const c = crates('slug');
+    const karoo = karooOf(c);
+    const verder = karoo.bonusMaps[0];
+    if (verder === undefined) throw new Error('no verder');
+    verder.ver = true;
+    for (const k of karoo.pacing.keyframes) k.flocks = { ver: 1 };
+    verder.pacing = { flocks: { ver: 1 } };
+    const mode: ModeConfig = {
+      id: 'classic',
+      layout: 'mon',
+      bonus: 'verder',
+      weapon: 'dubbelloop',
+    };
+    const verShot = (withSlug: boolean): SimEvent[] => {
+      const sim = newSim(c, mode);
+      run(sim, 60);
+      if (withSlug) {
+        for (let i = 0; i < 1200 && sim.snapshot().crates[0]?.landed === false; i++) run(sim, 1);
+        const crate = sim.snapshot().crates[0];
+        if (crate === undefined) throw new Error('no crate');
+        const sf = c.scoring.planes[crate.plane].scrollFactor;
+        const opened = run(sim, 20, aimAt(sf, crate.x, crate.y));
+        expect(ofType(opened, 'crateOpened')).toMatchObject([{ item: 'slug' }]);
+      } else run(sim, 20);
+      const bird = waitForBird(sim, c, 'tarentaal');
+      expect(bird.plane).toBe('ver');
+      return shootBird(sim, c, sim.snapshot().birds.find((b) => b.id === bird.id) ?? bird);
+    };
+    const slugged = verShot(true);
+    expect(ofType(slugged, 'shotFired')).toMatchObject([{ shell: 'slug' }]);
+    expect(ofType(slugged, 'targetBagged').map((b) => b.plane)).toContain('ver');
+    const plain = verShot(false);
+    expect(ofType(plain, 'shotFired')[0]?.shell).toBeUndefined();
+    expect(ofType(plain, 'targetBagged')).toHaveLength(0);
   });
 
   it('bags an armoured three-hit boss in one shot', () => {
