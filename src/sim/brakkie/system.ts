@@ -976,7 +976,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       if (dog.phase === 'fetch' && dog.fetching !== null) {
         const busy = host.busyAt('near', dog.x, B.clear.aimPx * k('near'));
         if (busy !== null || !runClear(dog.goal)) {
-          if (dog.fetching !== null) dog.queue.unshift(dog.fetching);
+          dog.queue.unshift(dog.fetching);
           dog.fetching = null;
           const wide = B.roam.scamperHalfPx;
           const away: 1 | -1 = busy !== null && busy > dog.x ? -1 : 1;
