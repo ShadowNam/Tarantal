@@ -4,9 +4,9 @@
 //   ART_PREVIEW=1 npx playwright test tests/e2e/art-preview-harvest2.spec.ts --project=desktop-chromium
 // Writes docs/art-preview/compare/v118-harvest-<shot>-<device>.png (palette PNG ≤ 1600 px wide):
 //   raid-down, raid-down-2x: a raider scrambling down the koppie (?harvestShots=1: a raid at once,
-//     30 s down the koppie);
+//     12 s down the koppie);
 //   raid-dash, raid-dash-2x: a raider dashing into the rows;
-//   hole, hole-2x: the small hole with a piglet squeezing through it (?harvestShots=1: yearlings
+//   hole, hole-2x: the small hole with a piglet or yearling squeezing through it (?harvestShots=1: yearlings
 //     with a piglet every few seconds, slow in the hole);
 //   p2-banner: Phase 2's banner (?harvestPhase2=1: the hunt starts with it);
 //   p2-jump, p2-jump-2x: a warthog in mid-jump over the intact fence;
@@ -245,7 +245,7 @@ test('the rush: the raid down the koppie, the dash for the rows, the small hole'
   const touch = isTouchProject(info);
   await bootTitle(page, 'harvestShots=1', 'standard');
   await startHarvest(page, info, 'standard');
-  // The raid comes at once (?harvestShots=1) and takes 30 s down the koppie: pan to it running.
+  // The raid comes at once (?harvestShots=1) and takes 12 s down the koppie: pan to it running.
   await page.waitForFunction(
     () => (window.__TM__?.baboons ?? []).some((b) => b.role === 'descender'),
     null,
@@ -271,12 +271,48 @@ test('the rush: the raid down the koppie, the dash for the rows, the small hole'
     scaled(cut(g, { x: down.x - 120, y: down.y - 120, w: 240, h: 160 }), 3),
   );
 
+  // The small hole while the raid is still climbing (the rush is only 30 s): pan to it,
+  // then step until a piglet or a yearling squeezes through.
+  await release(page);
+  const holeX = async (): Promise<number | null> =>
+    (await hook(page)).harvestActors?.find((a) => a.role === 'hole')?.x ?? null;
+  await panToX(page, touch, holeX);
+  tick = (await hook(page)).tick;
+  const hole = await stepUntil(
+    page,
+    touch,
+    tick,
+    10,
+    120,
+    async () => {
+      const as = (await hook(page)).harvestActors ?? [];
+      // v1.18 (D-081): the young that come through (two a rush) are piglets or yearling warthogs
+      // (hole.pigletChance), so either one squeezing through makes the shot.
+      const p = as.find(
+        (a) =>
+          (a.role === 'piglet' || a.role === 'warthog') &&
+          a.visible &&
+          (a.frame === 'pg_squeeze' || a.frame === 'wh_squeeze'),
+      );
+      return p ?? null;
+    },
+    'young warthog or piglet squeezing through the small hole',
+  );
+  g = await grab(page);
+  save('hole', info, g.img);
+  save(
+    'hole-2x',
+    info,
+    scaled(cut(g, { x: hole.got.x - 170, y: hole.got.y - 200, w: 340, h: 240 }), 2),
+  );
+
   // On down: the run across the veld, then the dash. Follow it, then step to the dash.
   await release(page);
   await page.waitForFunction(
     () =>
+      // Running down, or already in the rows (the hole shot may have taken that long).
       (window.__TM__?.baboons ?? []).some(
-        (b) => b.role === 'descender' && (b.frame ?? '').startsWith('run'),
+        (b) => b.role === 'raider' || (b.role === 'descender' && (b.frame ?? '').startsWith('run')),
       ),
     null,
     { timeout: 900_000 },
@@ -312,33 +348,6 @@ test('the rush: the raid down the koppie, the dash for the rows, the small hole'
     'raid-dash-2x',
     info,
     scaled(cut(g, { x: dash.got.x - 160, y: dash.got.y - 200, w: 320, h: 230 }), 2),
-  );
-
-  // The small hole: pan to it, then step until a piglet squeezes through.
-  await release(page);
-  const holeX = async (): Promise<number | null> =>
-    (await hook(page)).harvestActors?.find((a) => a.role === 'hole')?.x ?? null;
-  await panToX(page, touch, holeX);
-  tick = (await hook(page)).tick;
-  const hole = await stepUntil(
-    page,
-    touch,
-    tick,
-    10,
-    120,
-    async () => {
-      const as = (await hook(page)).harvestActors ?? [];
-      const p = as.find((a) => a.role === 'piglet' && a.visible && a.frame === 'pg_squeeze');
-      return p ?? null;
-    },
-    'piglet squeezing through the small hole',
-  );
-  g = await grab(page);
-  save('hole', info, g.img);
-  save(
-    'hole-2x',
-    info,
-    scaled(cut(g, { x: hole.got.x - 170, y: hole.got.y - 200, w: 340, h: 240 }), 2),
   );
 });
 

@@ -26,8 +26,27 @@ describe('the Harvest screenshot flags (v1.18, D-081)', () => {
       if ((v.baboons?.descenders ?? []).some((d) => d.pose === 'climb')) climbTicks++;
       if ((v.harvest?.piglets ?? []).some((p) => p.squeeze)) squeezing++;
     }
-    expect(climbTicks).toBeGreaterThan(60 * 10);
+    expect(climbTicks).toBeGreaterThan(60 * 8);
     expect(squeezing).toBeGreaterThan(60 * 3);
+  });
+
+  it('shots: the rush outlasts the raid, so its dash into the rows can be shot', () => {
+    const c = withHarvestPreview(base, { shots: true });
+    const s = createSim({ seed: 42, content: c, mode: { id: 'harvest' }, inputKind: 'pointer' });
+    let raiderAt: number | null = null;
+    for (let i = 0; i < 60 * 90 && raiderAt === null && !s.isOver(); i++) {
+      s.step([]);
+      s.drainEvents();
+      if ((s.snapshot().baboons?.raiders ?? []).length > 0) raiderAt = i;
+    }
+    expect(raiderAt, 'a raider reaches the rows before the rush ends').not.toBeNull();
+    // Room to pan to the dash and step to it: the rush (30 s) still runs 5 s later.
+    for (let i = 0; i < 60 * 5; i++) {
+      s.step([]);
+      s.drainEvents();
+    }
+    expect(s.isOver()).toBe(false);
+    expect(s.snapshot().harvest?.phase2 ?? null).toBeNull();
   });
 
   it('phase2 + phase2Seconds: Phase 2 from the start, its clock shortened', () => {
