@@ -116,9 +116,6 @@ export class AdminScene extends Phaser.Scene {
                       build: { version: buildInfo().version, commit: buildInfo().sha },
                       hook,
                     },
-                    ...(new URLSearchParams(window.location.search).get('tab') === 'sizes'
-                      ? { tab: 'sizes' as const }
-                      : {}),
                   }
                 : {}),
               ...(projectOn

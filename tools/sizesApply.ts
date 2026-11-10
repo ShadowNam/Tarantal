@@ -24,7 +24,8 @@ import {
 import { getAt, parseSizePath, sameSize, scaleNumbers, updateAt } from '../src/content/sizePaths';
 import { knobById } from '../src/game/sizes/sizeKnobs';
 import { SIZE_CODE_VALUES } from '../src/game/sizes/sizeCode';
-import { applySizeEdits, type SizeEdit } from '../src/meta/sizeEdits';
+import { applySizeEdits } from '../src/meta/sizeApply';
+import type { SizeEdit } from '../src/meta/sizeEdits';
 import { KNOB_ROWS } from './sizeKnobRows';
 import { offBy, sizeTable, type OwnerSet } from './sizes';
 

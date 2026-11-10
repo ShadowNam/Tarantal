@@ -116,9 +116,6 @@ export interface AdminPanelHooks {
   readonly texts?: Omit<TextsPanelDeps, 'content'>;
   /** v1.22.1 (D-086): the Sizes tab (its code and the knobs load when it opens). */
   readonly sizes?: Omit<SizesPanelDeps, 'content'>;
-  /** v1.22.1 (D-086): the tab the list page opens on (`?admin=1&tab=sizes`: back from the size
-   *  editor). */
-  readonly tab?: 'sizes';
 }
 
 type Tab = 'maps' | 'texts' | 'sizes';
@@ -265,7 +262,8 @@ export class AdminPanel {
     this.fillDetail(detail, sel);
     list.querySelector('[aria-selected=true]')?.scrollIntoView({ block: 'center' });
     this.hooks.onView?.('list', sel.id);
-    if (this.hooks.tab === 'sizes') void this.showSizes();
+    // `?admin=1&tab=sizes`: back from the size editor.
+    if (new URLSearchParams(window.location.search).get('tab') === 'sizes') void this.showSizes();
   }
 
   /** v1.14 (D-076): the list page's tabs: the maps (reviews), Texts & voices and (v1.22.1, D-086)

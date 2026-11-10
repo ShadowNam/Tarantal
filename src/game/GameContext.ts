@@ -140,6 +140,8 @@ export interface SizesHook {
   /** Its sprites on screen now (design px): their union box, and the tapped sprite's box. */
   bounds: { x: number; y: number; w: number; h: number } | null;
   sprite: { x: number; y: number; w: number; h: number } | null;
+  /** The tapped sprite's origin on screen (its feet, for a sprite drawn standing). */
+  feet: { x: number; y: number } | null;
   /** Per knob on screen now: a point to tap (design px, the sprite's middle). */
   spots: Record<string, { x: number; y: number }>;
   /** Knobs with a factor other than 1; unsaved changes. */

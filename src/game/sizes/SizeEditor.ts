@@ -68,6 +68,7 @@ const TAP_MS = 700;
 const MIN_TAP_BOX = 72;
 const STYLE_ID = 'tm-sizes-editor-style';
 const CSS = `
+#tm-sizes[data-at=bottom]{top:auto;bottom:0;padding-bottom:calc(env(safe-area-inset-bottom) + 6px)}
 #tm-sizes{position:fixed;left:0;right:0;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:6px 8px;
   align-items:center;padding:calc(env(safe-area-inset-top) + 6px) calc(env(safe-area-inset-right) + 8px)
   6px calc(env(safe-area-inset-left) + 8px);background:rgba(27,20,16,.88);color:#F3EAD3;
@@ -85,8 +86,11 @@ const CSS = `
 #tm-sizes .muted{color:#C9BFA6;font-size:13px}
 #tm-sizes .steps{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
 #tm-sizes .value{min-width:92px;text-align:center;font-weight:700}
-@media (max-height:500px){#tm-sizes{font-size:13px;gap:4px 6px}#tm-sizes .muted{font-size:12px}
-  #tm-sizes button,#tm-sizes select{padding:2px 8px}}
+@media (max-height:500px){#tm-sizes{font-size:13px;gap:4px 6px;flex-wrap:nowrap;overflow-x:auto;
+  touch-action:pan-x}#tm-sizes>*{flex:none}#tm-sizes .muted{font-size:12px}
+  #tm-sizes .info{max-width:46vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #tm-sizes .info>*{overflow:hidden;text-overflow:ellipsis}
+  #tm-sizes button,#tm-sizes select{padding:2px 8px}#tm-sizes select{max-width:30vw}}
 `;
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -230,10 +234,10 @@ export class SizeEditor {
       { id: 'tm-sizes' },
       back,
       this.picker,
-      this.info,
       steps,
       reset,
       this.saveBtn,
+      this.info,
       this.status,
     );
     this.root.setAttribute('role', 'toolbar');
@@ -432,6 +436,15 @@ export class SizeEditor {
   private select(k: SizeKnob | null, img: Img | null): void {
     this.selected = k;
     this.selectedImg = img;
+    // The bar keeps clear of the animal picked: on the side of the screen with more room beside
+    // it (it stays put when nothing is picked).
+    const f =
+      img === null
+        ? this.found.find((x) => x.knobs[0] === k)
+        : this.found.find((x) => x.img === img);
+    if (f !== undefined)
+      this.root.dataset['at'] =
+        designSize().height - (f.box.y + f.box.h) > f.box.y ? 'bottom' : 'top';
     this.picker.value = k?.id ?? '';
     this.refresh();
   }
@@ -653,6 +666,13 @@ export class SizeEditor {
       shownM: k === null ? null : shownM(k, this.d.content, this.w),
       bounds: union === null ? null : box1(union),
       sprite: first === undefined ? null : box1(first.box),
+      feet:
+        first === undefined
+          ? null
+          : {
+              x: round1(first.img.getWorldTransformMatrix().tx),
+              y: round1(first.img.getWorldTransformMatrix().ty),
+            },
       spots,
       changed: Object.keys(this.w).length,
       dirty: this.dirty(),

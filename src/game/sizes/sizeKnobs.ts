@@ -12,6 +12,25 @@ import type { PlaneId } from '../../sim/types';
 import { RESIDENT_TRUE_MUL } from '../view/tree/residentTrueSize';
 import type { SizeArea } from './sizeAreas';
 
+/** The areas in the lists' order, each the biome it plays (Die Oes: the Harvest's field). */
+export const SIZE_AREAS: readonly SizeArea[] = [
+  'karoo',
+  'bushveld',
+  'kalahari',
+  'okavango',
+  'namibie',
+  'oes',
+];
+
+export const SIZE_AREA_BIOME: Readonly<Record<SizeArea, string>> = {
+  karoo: 'karoo-autumn',
+  bushveld: 'bushveld-winter',
+  kalahari: 'kalahari-summer',
+  okavango: 'okavango-spring',
+  namibie: 'namibie',
+  oes: 'oes',
+};
+
 export interface SizeKnob {
   readonly id: string;
   /** Where the editor shows it (the admin page lists it under each). */

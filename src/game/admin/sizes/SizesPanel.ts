@@ -9,8 +9,14 @@ import type { ContentBundle, Feel } from '../../../content/schemas';
 import type { SizeEditStore } from '../../../meta/sizeEdits';
 import type { TestHook } from '../../GameContext';
 import { at } from '../adminI18n';
-import { SIZE_AREA_BIOME, SIZE_AREAS, type SizeArea } from '../../sizes/sizeAreas';
-import { knobsIn, SIZE_KNOBS, type SizeKnob } from '../../sizes/sizeKnobs';
+import type { SizeArea } from '../../sizes/sizeAreas';
+import {
+  knobsIn,
+  SIZE_AREA_BIOME,
+  SIZE_AREAS,
+  SIZE_KNOBS,
+  type SizeKnob,
+} from '../../sizes/sizeKnobs';
 import {
   exportSizes,
   factorsOf,
@@ -291,6 +297,7 @@ export class SizesPanel {
       shownM: null,
       bounds: null,
       sprite: null,
+      feet: null,
       spots: {},
       changed: new Set(this.store.edits.map((e) => e.id)).size,
       dirty: false,

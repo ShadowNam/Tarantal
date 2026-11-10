@@ -4,13 +4,14 @@
 // the content, the metres it shows as match its row, and the editor finds its sprites.
 import { describe, expect, it } from 'vitest';
 import { getAt, parseSizePath } from '../src/content/sizePaths';
-import { SIZE_AREA_BIOME, SIZE_AREAS } from '../src/game/sizes/sizeAreas';
 import { SIZE_CODE_VALUES } from '../src/game/sizes/sizeCode';
 import {
   knobById,
   knobsIn,
   knobsOfSprite,
   knobValue,
+  SIZE_AREA_BIOME,
+  SIZE_AREAS,
   SIZE_KNOBS,
   valueAt,
 } from '../src/game/sizes/sizeKnobs';

@@ -1,10 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadContent, loadFeel } from '../../tools/testContent';
 import { readText, resetStorageForTests, setStorageNamespace, writeText } from './storage';
+import { applySizeEdits, isSizeEdit } from './sizeApply';
 import {
-  applySizeEdits,
   EMPTY_SIZE_EDITS,
-  isSizeEdit,
   loadSizeEdits,
   SIZE_EDITS_KEY,
   storeSizeEdits,

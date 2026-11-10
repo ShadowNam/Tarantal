@@ -1117,8 +1117,8 @@ export class HuntScene extends Phaser.Scene {
           if (this.sizeEditor === editor) this.sizeEditor = null;
         });
       },
-      (err: unknown) => {
-        console.warn('[sizes] the editor could not load', err);
+      () => {
+        // Offline before its chunk was cached: the hunt stays, without the editor.
       },
     );
   }

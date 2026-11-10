@@ -99,10 +99,11 @@ import { SaveStore } from './meta/save';
 import type { Settings } from './meta/saveSchema';
 import { setStorageNamespace, storageStatus } from './meta/storage';
 import { applyTextEdits } from './meta/textEdits';
-import { applySizeEdits, loadSizeEdits, type SizeEditStore } from './meta/sizeEdits';
-import { setSizeEditCount, setSizeFactors } from './game/sizes/sizeFactor';
+import { loadSizeEdits, type SizeEditStore } from './meta/sizeEdits';
+import { applySizeEdits } from './meta/sizeApply';
 import { SIZE_CODE_VALUES } from './game/sizes/sizeCode';
-import { isSizeArea, SIZE_AREA_BIOME, SIZE_HOLD_TICK } from './game/sizes/sizeAreas';
+import { setSizeEditCount, setSizeFactors } from './game/sizes/sizeFactor';
+import { isSizeArea, SIZE_HOLD_TICK } from './game/sizes/sizeAreas';
 import { installErrorHook } from './platform/errors';
 import { LocalPlatform } from './platform/local';
 import { handleBack, sendEscapeKey, titleOnTop } from './platform/backButton';
@@ -155,6 +156,7 @@ declare global {
 }
 
 const params = new URLSearchParams(window.location.search);
+
 // M9 (D-024 known limit): portal builds carry no test hooks (unless built with VITE_TEST_HOOKS=1
 // for their e2e runs), and ?e2e runs keep their own save (tm.e2e.*).
 const hookPolicy = testHookPolicy({
@@ -716,9 +718,11 @@ const adminEntry =
 const sizeEntry =
   sizeArea === null
     ? undefined
-    : adminList.find(
-        (e) =>
-          e.id === (sizeArea === 'oes' ? 'harvest' : `classic:${SIZE_AREA_BIOME[sizeArea]}:plain`),
+    : adminList.find((e) =>
+        // The area's plain map (its biome id starts with it), or Die Oes.
+        sizeArea === 'oes'
+          ? e.kind === 'harvest'
+          : e.kind === 'classic' && e.layout === 'none' && e.biome?.split('-')[0] === sizeArea,
       );
 const adminSetup: AdminHuntSetup | null =
   sizeEntry !== undefined
