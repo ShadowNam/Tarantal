@@ -401,16 +401,19 @@ function kettie(a: Art): string {
   );
   const band = (d: string): string =>
     stroke(d, INK, 5.2) + stroke(d, '#C8302A', 3.6) + stroke(d, '#F07A5A', 1, 0.7);
-  // v1.19 (D-084, CI): laid on its side, fork to the right and drawn 1.5× — upright it filled
-  // only a sliver of the wide card. The shadow and the spare stones lie under it, unturned.
+  // v1.19 (D-084, CI): laid on its side, fork to the right and drawn 1.65× (the cell's height) —
+  // upright it filled only a sliver of the wide card, and greyed (locked) a 1.5× fork left
+  // the card under it almost bare. Three spare stones lie beside it; shadow and stones unturned.
   return g(
     {},
-    cardShadow(a, 116, 290, 128),
-    el('path', { d: ellipseD(318, 118, 9, 6), fill: '#9A9187', stroke: INK, 'stroke-width': 1 }),
-    el('path', { d: ellipseD(336, 123, 7, 4.5), fill: '#B1A89D', stroke: INK, 'stroke-width': 1 }),
-    shine('M313 115Q318 112 323 115', 0.5, 0.9),
+    cardShadow(a, 100, 300, 130),
+    el('path', { d: ellipseD(322, 114, 13, 9), fill: '#9A9187', stroke: INK, 'stroke-width': 1.2 }),
+    el('path', { d: ellipseD(346, 122, 10, 7), fill: '#B1A89D', stroke: INK, 'stroke-width': 1.1 }),
+    el('path', { d: ellipseD(332, 129, 8, 5), fill: '#857C72', stroke: INK, 'stroke-width': 1 }),
+    shine('M315 110Q322 106 329 110', 0.5, 0.9),
+    shine('M341 119Q346 116 351 119', 0.5, 0.8),
     g(
-      { transform: 'translate(200 66) rotate(90) scale(1.5) translate(-188 -75)' },
+      { transform: 'translate(200 69) rotate(90) scale(1.65) translate(-188 -75)' },
       // The far band behind the fork.
       band('M219 26Q214 62 194 90'),
       wood(a, fork, [150, 16, 226, 132], 31, 'bark'),
