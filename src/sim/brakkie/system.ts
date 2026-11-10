@@ -388,6 +388,23 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     return true;
   }
 
+  /** v1.20 review: a run on the near plane (a fetch, a carry home) is clear when its way is
+   *  (pathClear) and no live mid-plane bird is over it on screen (within clear.pathPx across, in
+   *  view): shots at a bird low on the mid ground rain pellets on whatever runs under it. */
+  function runClear(x: number): boolean {
+    if (!pathClear(x)) return false;
+    if (dog.plane !== 'near') return true;
+    const step = B.clear.pathStepPx;
+    const dir = x > dog.x ? 1 : -1;
+    const midCentre = planeCentreX(host.cameraX(), geo.layers.mid.scrollFactor);
+    for (let p = dog.x + dir * step; dir * (x - p) > 0; p += dir * step) {
+      const dx = dxOf('near', p);
+      if (Math.abs(dx) > B.roam.scamperHalfPx + B.clear.pathPx) continue;
+      if (host.busyNear('mid', midCentre + dx, B.clear.pathPx)) return false;
+    }
+    return true;
+  }
+
   /** A clear spot in view on his plane (null: none of the tries was clear); `away`: only on that
    *  side of where he stands (scampering away from something, never past it). */
   function pickSpot(away: 1 | -1 | 0 = 0, halfPx = B.roam.viewHalfPx): number | null {
@@ -446,7 +463,9 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   function goHome(phase: 'carry' | 'bolt', pxPerSecond: number): void {
     const pref = geo.homeSide;
     const other: 1 | -1 = pref < 0 ? 1 : -1;
-    side = pathClear(homeX(dog.plane, pref)) || !pathClear(homeX(dog.plane, other)) ? pref : other;
+    // v1.20 review: a carry takes the end whose run is clear of the mid birds over it too.
+    const clear = phase === 'carry' ? runClear : (x: number): boolean => pathClear(x);
+    side = clear(homeX(dog.plane, pref)) || !clear(homeX(dog.plane, other)) ? pref : other;
     moveTo(phase, phase === 'carry' ? 'carry' : 'run', homeX(dog.plane), pxPerSecond);
   }
 
@@ -711,7 +730,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       if (host.busyNear(f.plane, f.x, B.fetch.clearPx * k(f.plane))) continue;
       // v1.20 review: on his own plane the way there must be clear too (a run past a live flock
       // is a run through the line of fire): a blocked way is passed over like a busy spot.
-      if (f.plane === dog.plane && !pathClear(f.x)) continue;
+      if (f.plane === dog.plane && !runClear(f.x)) continue;
       dog.queue.splice(i, 1);
       startFetch(f);
       return;
@@ -954,7 +973,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       dog.nextCheck = tick + checkTicks;
       if (dog.phase === 'fetch') {
         const busy = host.busyAt('near', dog.x, B.clear.aimPx * k('near'));
-        if (busy !== null || !pathClear(dog.goal)) {
+        if (busy !== null || !runClear(dog.goal)) {
           if (dog.fetching !== null) dog.queue.unshift(dog.fetching);
           dog.fetching = null;
           const wide = B.roam.scamperHalfPx;
@@ -964,7 +983,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
           else rest();
           return;
         }
-      } else if (!pathClear(dog.goal)) goHome('carry', carrySpeed());
+      } else if (!runClear(dog.goal)) goHome('carry', carrySpeed());
     }
     if (dog.plane === 'near' && STANDING.has(dog.phase)) {
       // A wide-spread gun came out: off to the bakkie (no yelp, nothing hit him).

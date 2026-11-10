@@ -715,6 +715,20 @@ describe('Brakkie fetches sooner (v1.20, D-085)', () => {
     c.until((v) => v.phase === 'fetch', 60 * 5);
   });
 
+  it('the run rule: a live mid-plane bird over his way on screen holds him (pellets fall on him)', () => {
+    const r = rig(37);
+    const { dogX, spot } = farSpot(r);
+    r.state.gunUp = true;
+    // The mid layer x over near x (near sf 1, mid sf 0.6): the view's mid centre + the screen dx.
+    const midOver = (x: number): number =>
+      0.6 * (r.state.cameraX - 960) + 960 + (x - r.state.cameraX);
+    const bird = midOver(dogX + 500);
+    r.state.busy = (plane, x, px) => plane === 'mid' && Math.abs(x - bird) <= px;
+    r.sys.bagged('near', spot);
+    r.run(secondsToTicks(B.fetch.delaySeconds + B.fetch.waitSeconds) + 30);
+    expect(r.events.some((e) => e.type === 'brakkieFetchStarted')).toBe(false);
+  });
+
   it('a run out that meets something aimed at is given up: the bird goes back to the queue', () => {
     const r = rig(36);
     const { spot } = farSpot(r);
