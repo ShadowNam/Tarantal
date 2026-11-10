@@ -42,14 +42,9 @@ describe('the true-size animals’ texture density (D-080)', () => {
     });
 
   it('the mid ostriches: drawn for their true size, ≥ 0.5 (Standard) and ≥ 1.0 (HD twin)', () => {
-    // v1.22.1 (D-086): an owner-set size (npm run sizes:apply) is shown from the art drawn for the
-    // old one until it is redrawn: within 1.5× either way it stays crisp enough.
-    const os = loadContent().birds.ostriches;
-    expect(os.sizeMul / OSTRICH_DRAWN_MUL).toBeGreaterThanOrEqual(1 / 1.5);
-    expect(os.sizeMul / OSTRICH_DRAWN_MUL).toBeLessThanOrEqual(1.5);
+    expect(OSTRICH_DRAWN_MUL).toBe(loadContent().birds.ostriches.sizeMul);
     // D-082: the hen's frames are drawn smaller from the same shapes, at the same density.
-    expect(os.henScale / OSTRICH_HEN_SCALE).toBeGreaterThanOrEqual(1 / 1.5);
-    expect(os.henScale / OSTRICH_HEN_SCALE).toBeLessThanOrEqual(1.5);
+    expect(OSTRICH_HEN_SCALE).toBe(loadContent().birds.ostriches.henScale);
     const file = images[OSTRICH_SHEET];
     if (file === undefined) throw new Error('no ostrich sheet in the index');
     // Texture px per layout px, over the layout px each drawn px stands for (sizeMul).
@@ -63,9 +58,7 @@ describe('the true-size animals’ texture density (D-080)', () => {
 
   it('Brakkie: his frames drawn for his true size, ≥ 0.5 (Standard) and ≥ 1.0 (HD twin) per drawn px', () => {
     const content = loadContent();
-    // v1.22.1 (D-086): an owner-set size shows from these frames until they are redrawn.
-    expect(content.brakkie.sizeMul / BRAKKIE_DRAWN_MUL).toBeGreaterThanOrEqual(1 / 1.5);
-    expect(content.brakkie.sizeMul / BRAKKIE_DRAWN_MUL).toBeLessThanOrEqual(1.5);
+    expect(BRAKKIE_DRAWN_MUL).toBe(content.brakkie.sizeMul);
     const file = images[BRAKKIE_SHEET];
     const twin = hdImages[BRAKKIE_SHEET];
     if (file === undefined || twin === undefined) throw new Error('no Brakkie sheet or HD twin');

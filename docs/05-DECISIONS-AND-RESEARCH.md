@@ -4907,8 +4907,11 @@ from it). It then records the owner's choice in the true-size table: each row of
 now outside ±15 % of real goes into `tools/sizes.ts OWNER_SET` with the date and "the owner set
 this by eye …" (how far from real), and leaves it when back within — `tools/sizes.test.ts` holds
 those rows to their record and every other row to ±15 %, so the test passes on purpose rather than
-being loosened for everyone. The art-density tests now allow content within 1.5× of the size the
-art is drawn at (a redraw is due beyond that).
+being loosened for everyone. The art-density tests stay strict (content equals the size the art is
+drawn at): applying an owner's size file is done together with a redraw of the art it touches
+(`npm run art:interim` for that sheet, the drawn-size constant and a re-measure of `MEASURED_ART`)
+in the same change, so no build ships blurry or mis-sized art (supervisor review: the 1.5×
+allowance first tried here was taken out).
 
 **Size.** First download (web) 2,999.7 → 3,002.0 KB gzip (+2.3 KB: the store, the override and its
 path reader, the camera hold, the build-line marker; `npm run size -- --strict` OK). The tab (2.8

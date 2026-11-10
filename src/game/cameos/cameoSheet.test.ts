@@ -44,16 +44,10 @@ describe('cameo sheets (D-075)', () => {
 });
 
 describe('the cameos at true size (D-080)', () => {
-  // v1.22.1 (D-086): the view shows a kind at content's sizeMul ÷ the art's growth (the hit shapes
-  // are × sizeMul), so an owner-set size (npm run sizes:apply) matches its hit shapes before the
-  // frames are redrawn; within ±(1/1.5) of the drawn size the art stays crisp enough.
-  it("content's sizeMul is the art's growth, or an owner-set size the art still covers", () => {
+  it("the art's growth is content's sizeMul for every kind (the drawing and the hit shapes)", () => {
     const kinds = loadContent().cameos.kinds;
-    for (const [kind, mul] of Object.entries(CAMEO_SIZE_MUL)) {
-      const ratio = kinds[kind as keyof typeof CAMEO_SIZE_MUL].sizeMul / mul;
-      expect(ratio, kind).toBeGreaterThanOrEqual(1 / 1.5);
-      expect(ratio, kind).toBeLessThanOrEqual(1.5);
-    }
+    for (const [kind, mul] of Object.entries(CAMEO_SIZE_MUL))
+      expect(kinds[kind as keyof typeof CAMEO_SIZE_MUL].sizeMul, kind).toBe(mul);
   });
 
   it('every frame belongs to a kind and is drawn at its size', () => {
