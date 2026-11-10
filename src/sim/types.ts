@@ -606,6 +606,9 @@ export interface HarvestView {
   readonly breakTick: number;
   /** Crop saved, percent (100 → 0). */
   readonly crop: number;
+  /** v1.18 (D-081, review): the crop the rush saved — as the fence closed (the live crop before
+   *  it closes). Phase 2 eats on from it; the tally's "Crop saved" row is this one. */
+  readonly rushCrop: number;
   /** Fence repaired 0..1 (fills over the rush). */
   readonly repair: number;
   /** Ticks left on the 30-s clock (0 in the outro). */

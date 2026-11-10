@@ -329,6 +329,8 @@ export const createHarvestSystem: HarvestSystemFactory = (
   let introEnd = introTicks;
   let rushEnd = introTicks + rushTicks;
   let crop = 100;
+  /** v1.18 (D-081, review): the crop as the fence closed (null: not closed yet). */
+  let rushCrop: number | null = null;
   let warned = false;
   let acc = 0;
   let flockAcc = 0;
@@ -607,6 +609,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
 
   function closeFence(): void {
     phase = 'outro';
+    rushCrop = crop;
     for (const w of warthogs) runOff(w);
     host.scatterFlocks();
     bonus = cropBonus(crop, H.crop.bonusPerPercent);
@@ -681,6 +684,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
       introEnd = tick;
       rushEnd = tick;
       for (const w of workers) w.away = true;
+      rushCrop = crop;
       unlockPhase2(host.score());
       host.endAt(tick + bannerTicks + phase2Ticks + outroTicks);
     }
@@ -1015,6 +1019,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
       introTicks: introEnd,
       breakTick,
       crop,
+      rushCrop: rushCrop ?? crop,
       repair: p2 !== null ? 1 : phase === 'intro' ? 0 : Math.min(1, (tick - introEnd) / rushTicks),
       clockTicksLeft:
         p2 !== null ? p2.ticksLeft() : phase === 'intro' ? rushTicks : Math.max(0, rushEnd - tick),
