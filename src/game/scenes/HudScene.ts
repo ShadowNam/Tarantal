@@ -104,6 +104,8 @@ const SCORE_FEEDBACK: ReadonlySet<SimEvent['type']> = new Set([
 
 /** v1.20 (D-085): SaveData.notices entry — Brakkie's fetch hint was shown once. */
 const BRAKKIE_FETCH_NOTICE = 'brakkieFetchHint';
+/** v1.20 (D-085): the Jag, Brakkie! card's power-up id. */
+const JAG_CARD = 'brakkie_jag';
 
 export class HudScene extends Phaser.Scene {
   private readonly ctx: GameContext;
@@ -1015,6 +1017,11 @@ export class HudScene extends Phaser.Scene {
             : 'guide.brakkie.fetch_hint_touch',
           banner,
         );
+      } else if (e.type === 'brakkieJagStarted') {
+        // v1.20 (D-085): "Jag, Brakkie, jag!" — and a proud line for every catch.
+        this.oupa('guide.brakkie.jag_start', banner);
+      } else if (e.type === 'brakkieCaught') {
+        this.oupa('guide.brakkie.caught', banner);
       } else if (e.type === 'brakkieFetched' && !this.brakkieProud) {
         // He's back at the bakkie with the bird: Oupa's proud line (once a hunt).
         this.brakkieProud = true;
@@ -1458,7 +1465,11 @@ export class HudScene extends Phaser.Scene {
         ending: ending(w.ticksLeft),
       });
     }
+    // v1.20 (D-085): the Jag card's chip shows its catches beside the seconds ("7 s · 1/3").
+    const jag = s.brakkie?.jag ?? null;
     for (const p of s.powerups) {
+      const catches =
+        jag !== null && p.id === JAG_CARD ? ` · ${jag.catches}/${jag.maxCatches}` : '';
       const frac =
         p.ticksLeft !== null && p.totalTicks !== null
           ? p.ticksLeft / p.totalTicks
@@ -1472,7 +1483,7 @@ export class HudScene extends Phaser.Scene {
         icon: iconOf(p.id),
         time:
           p.ticksLeft !== null
-            ? secs(p.ticksLeft)
+            ? secs(p.ticksLeft) + catches
             : p.shellsLeft !== null
               ? `×${p.shellsLeft}`
               : '',

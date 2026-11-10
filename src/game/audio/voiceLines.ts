@@ -66,9 +66,18 @@ export function harvestBarks(): string[] {
 }
 
 /** v1.12 (D-069): Oupa's Brakkie lines (lazy guide tables): the scold when he is shot at, the
- *  proud line after a fetch, the title's greeting. */
+ *  proud line after a fetch, the title's greeting. v1.20 (D-085): the first fetch's hint (key or
+ *  touch), the Jag card's "Jag, Brakkie, jag!" and the proud line for each catch. */
 export function brakkieBarks(): string[] {
-  return ['scold', 'fetched', 'title'].map((k) => `guide.brakkie.${k}`);
+  return [
+    'scold',
+    'fetched',
+    'title',
+    'fetch_hint_key',
+    'fetch_hint_touch',
+    'jag_start',
+    'caught',
+  ].map((k) => `guide.brakkie.${k}`);
 }
 
 /** v1.13 (D-075): Oupa's one scold for a shot aimed at a veld cameo (lazy guide tables). */
