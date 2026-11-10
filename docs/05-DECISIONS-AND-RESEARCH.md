@@ -4494,6 +4494,153 @@ Screenshots: `tests/e2e/art-preview-sizes.spec.ts` (prefix `v117b-sizes`; a test
 `__TM_RULERS__` draws standing guineafowl as yardsticks beside each subject, view only). Golden
 replays re-recorded (hit areas moved; the v3 fixture classic-11 1,243 → 1,198).
 
+### D-081 — v1.18 Die Oes: the raid comes down, a small hole, Phase 2 "Defend the field" (9 Nov 2026)
+
+**The owner's words (8 Nov, on a Harvest screenshot).** "in the harvest the baboons need to climb
+off the mountains and make a dash for the corn field" · "maybe there should be another small hole
+in the fence where pigs can come through, not just one big one" · "there needs to be a bonus level:
+when a certain amount of points get done in the HARVEST map, the map gets into a phase 2 where the
+fence is still intact, and the pigs and monkeys try to jump the fence to get in from all the sides
+and eat, and you just need to try keep them off the field … there should be a countdown of animals
+and a timer, and you need to see if you can kill or keep them away to avoid them eating the field
+before the timer runs out." On 9 Nov he confirmed the Phase 2 defaults: the unlock about half a
+competent player's rushes, ~24 animals in 30 s, piglets scare-only, the three bonuses.
+
+**1. The raid comes down in sight (the rush).** A Harvest raid's climb and travel (D-062: the
+raiders went down behind the ridge and walked in from beside their spot) are now on screen: the
+raiders scramble down the koppie's field side on the troop's layer (a zig-zag of 4 legs ±36 px
+from the seat to the foot at the veld's horizon, 2.4 s; new ridge-size frames `r_climb_a/b`), run
+across the far veld (380 px/s from the foot's u to where the spot's approach starts) and dash in at
+1.6× the raiders' run (run frames). Not targets until the spot's plane — on the koppie they are a
+few px tall, and a far shot on the ridge would put the troop's mothers in the line of fire; at the
+rows the raider rules hold (bagged as before; the mothers' aimed-at rule unchanged).
+`biomes/oes.json → baboons.descent`; pure arithmetic in `descentPose` (no trig), the second raider
+15 % behind. Maps without a `descent` are unchanged (golden replays: only the Harvest's change).
+
+**2. A second, small hole (the rush).** `oes.json harvest.hole` (u 0.238: the fence bay left of the
+gap, ~1,000 px from the nearest worker): yearlings (0.7× an adult; one hit bags one, 2× a
+guineafowl's base, eating 0.7× an adult's share) come through it 6 s into the rush, then every 15 s
+(two a rush), each with a piglet 45 % of the time; in the hole they push through head down at 0.35× their trot (`*_squeeze` frames); the
+workers patch it at 80 % of the rush (`harvestHolePatched`, a hammer, the mesh patch drawn) and
+anyone who came in by it leaves by the gap. The layer art tears the bay's bottom wire over a dug
+burrow and keeps the rows in front of it low (`HOLE_U` = the content's u, a test holds them
+together). The workers' line of fire covers the hole's paths (`harvestLineOfFire.ts`).
+
+**3. Phase 2 — "Defend the field".** The rules and numbers are GDD §12.2.1 and `modes.json →
+harvest.phase2`. Unlock at the fence's close when the score (crop bonus in) ≥ 1850; a 2-s banner
+(no shooting), then 30 s: the fence whole, the hole patched, the workers off to the farmhouse
+(never in the field: no line-of-fire question), the crop as the rush left it. Three bursts of 8
+(0.5, 9.5, 18.5 s ±0.4 s, seeded) from both ends and over the back fence (mid: warthogs jump it,
+piglets squeeze under, baboons climb over and drop), round the near plane's ends; each eats until
+stopped (warthog 1.4, piglet 0.7, baboon 1.6 % a second). A first hit drives a warthog or baboon
+out (2 bag it), a shot landing within 450 px (× plane) of a piglet scares it out, aimed at one
+costs 15; each stopped counts down "Animals left". Ends: all stopped (clear), the clock (time) or
+the crop gone (eaten). Bonuses: 10 × whole crop %, +500 "Field defended!" when the crop didn't
+drop, +750 "All of them!" when all were stopped in time. Animals bagged score as in the rush (× Frenzy).
+**The tally:** the Harvest tally adds "Bonus round: stopped N / 24", the crop at the end, Phase 2's
+crop bonus and, when earned, "Field defended!", "All of them!" or "They ate the lot!"; the local
+best is the hunt's score with Phase 2 in. The HUD (its own lazy chunk) shows "Animals left: N" and
+Phase 2's clock on a plate over the fence bar, the banner and the verdict; Oupa's lines are text
+for now (`guide.harvest2.*`, en/af/de/nl), not voiced.
+
+*Why bursts of 8.* A list of one animal a second let every bot stop all 24 before any reached the
+field (95–99 % of the crop kept): no tension. Three bursts from several sides at once make the
+player choose and pan, so some get in and eat for a few seconds — the owner's "keep them off the
+field". *Why piglets don't count against you:* never targets (D-063), so a shot near one is how
+you turn it.
+
+**Balance.**
+500 seeds per bot (`docs/balance/v1.18-harvest-defence.md`; Dubbelloop).
+
+| bot | input | rush crop saved | rush score p50 | Phase 2 unlocked | crop kept in Phase 2 | stopped of 24 | Phase 2 bonus | eaten |
+|---|---|---|---|---|---|---|---|---|
+| random | pointer | 2.6 % | −35 | 0 % | — | — | — | — |
+| plinker | pointer | 59.5 % | 1,524 | 19 % | 22 % | 22.3 | 666 | 6 % |
+| competent | pointer | 60.3 % | 1,865 | 52 % | 62 % | 24.0 | 1,167 | 0 % |
+| strong | pointer | 63.5 % | 2,067 | 66 % | 75 % | 24.0 | 1,266 | 0 % |
+| plinker | touch | 60.2 % | 1,540 | 24 % | 22 % | 22.3 | 692 | 7 % |
+| competent | touch | 61.1 % | 1,890 | 53 % | 63 % | 24.0 | 1,179 | 0 % |
+| strong | touch | 63.7 % | 2,118 | 69 % | 75 % | 24.0 | 1,268 | 0 % |
+
+The unlock at 1,850 is the competent bot's median rush score: it unlocks about half the time, as
+the owner asked. A strong player unlocks two times in three, not "nearly always": the rush's
+score depends more on what comes in than on skill (the strong bot's median is only ~200 above the
+competent bot's), and a lower bar would give the competent player Phase 2 most of the time. The
+rush itself: 60–61 % of the crop saved for the competent bot (main 66 %): the small hole's two
+yearlings cost ~5 points. Worker-hit gate (< 0.1 a run, plinker and competent): PASS (≤ 0.06).
+
+**Review fixes (10 Nov).** An independent review found Phase 2 did not have the field to itself.
+Decided:
+- *The workers* walk off to the farmhouse in `workers.leaveSeconds` (1.8 s; the schema refuses more
+  than `phase2.bannerSeconds`), so they are gone before the first arrival, and a worker who has set
+  off has no hit shapes (the walk at running pace took ~7 s and they were hittable while the first
+  burst crossed the same stretch).
+- *The rush's spawners stop at the unlock* (to the hunt's end): no new baboon raid; the raid in hand
+  ends cleanly (`holdRaids`: raiders at the field run off, a raid still out of sight — the bark, an
+  unseen climb or walk — is called off and its raiders go back up the ridge, raiders already coming
+  down in sight run straight back out on reaching the field). No new flock or pop-up (pop-ups up
+  duck; the pop-up clock waits). The flocks the rush's end flushed used to land again in the field:
+  now they fly off to the nearer end at `phase2.flockLeavePxPerSec` (1,500) and leave within the
+  banner. *Fly-overs stay* as sky dressing: they eat nothing, cross and leave, and are shot as
+  ever (points as in the rush).
+- *Phase 2 unlocks only with crop > 0* (a rush that lost the whole crop got the banner and then
+  "They ate the lot!" at once).
+- *The tally's "Crop saved"* (and the braai story and share card that read it) is the rush's crop
+  as the fence closed (the view's `rushCrop`), beside the rush's crop bonus; Phase 2's row keeps
+  its end crop. *Phase 2's piglet penalties* count in "Workers and piglets" (the row is the score
+  drop).
+- *No animal is hittable while drawn invisible:* a climbing or dropping baboon borrows a run frame
+  from the baboon sheet until the lazy Phase 2 sheet is in; a back arrival has no hit shapes while
+  it fades in (`phase2.backFadeSeconds` 0.33 s, the view's fade from the same number).
+- The wave schedule is sorted by arrival (the ±0.4-s jitter can swap entries 0.2 s apart); the
+  squeeze, drop and knock-down distances are content (`phase2.squeezePx`, `climb.dropPx`,
+  `knockDownPx`); Oupa's clear-verdict line now reads "Not one of them is left in the rows"
+  (Phase 2's lines are subtitles only: no clip to regenerate).
+
+Balance before → after (500 seeds; `docs/balance/v1.18-harvest-defence.md`): the rush and the
+unlock rates are unchanged to the digit (competent 52 % / 53 %, strong 66 % / 69 %, plinker
+19 % / 24 %, pointer / touch), so `unlockScore` stays 1,850. Phase 2 crop kept: competent
+62 → 60 % (pointer) and 63 → 60 % (touch), strong 75 → 74 % / 75 → 75 %, plinker 22 → 18 % /
+22 → 21 %; score mean −45 to −60 (no more raiders and birds coming in Phase 2: 0.71 → 0.64
+raiders and 42.1 → 40.1 birds a run, competent pointer). Aimed worker hits a run fall (competent
+0.032 → 0.022, strong 0.026 → 0.010): those were Phase 2 shots at the workers walking off.
+Golden replays: only harvest-63 (3,699 → 3,628) and harvest-65 (4,349 → 4,329) change events;
+both still clear all 24. Budgets: first download 3,025.9 → 3,026.3 KB gzip of 3,072 (the tally's
+rush numbers in the hunt scene); the lazy groups and chunks unchanged (`oes` 1,294 KB, `oes-hd`
+1,773 KB, largest `voice-de` 1,499.9 KB); no texture changed (HD memory as above).
+
+**Budgets.** First download (web, gzip) 3,024.1 → 3,025.9 KB of 3,072 (+1.8 KB: the Phase 2 HUD's
+loader, the music stem, the tally's rows, the test hooks; everything else is lazy: Phase 2's HUD
+is its own chunk, its strings in the lazy guide tables, the sim in the lazy systems chunk, the art
+in the Harvest's group). The Harvest's group `oes` 1,294 KB gzip (≤ 1.5 MB), `oes-hd` 1,773 KB
+(≤ 4 MB); the largest lazy chunk is still `voice-de` (1,499.9 KB). `npm run size -- --strict`
+passes. HD texture memory, estimated from the textures that changed: the Phase 2 sheet
+1,024 × 492 at 1× (+1.92 MiB, no HD twin), the baboon sheet's HD twin +70 rows (+0.40 MiB, in
+every hunt with a troop), the mid layer the same size → **the Harvest ~244.9 → ~247.2 MB** of 256;
+the other troop hunts +0.4. Per-view budgets: `harvestMs` ≤ 0.3 ms on the Pixel 7 at 4× throttle
+with Phase 2 at its busiest (`perf.spec`); the sim's step with all 24 in ~0.29 ms
+(`tools/simPerf.test.ts`, budget 1.5).
+
+**CI notes.** The Phase 2 perf case sits next to the rush's in `perf.spec.ts` (Playwright's
+`--shard 1/2 | 2/2` split by order), so the `perf` and `perf2` Pixel 7 jobs each take one more
+~3-min case and stay well under 45 min. `harvest2.spec.ts` (two tests, desktop, Pixel 7, iPhone 14
+landscape) boots Phase 2 straight away with `?harvestPhase2=1&harvestPhase2Seconds=8` and holds
+the sim for every check; its longest wait is bounded by sim ticks. Visual baselines: no
+`visual.spec` screen changes (the Harvest's title and HUD outside Phase 2 are as before).
+
+**Tests.** Unit: the descent (`src/sim/baboons/descent.test.ts`: zig-zag, layers, dash, seeded,
+other maps unchanged), the hole (`src/sim/harvest/hole.test.ts`), Phase 2
+(`src/sim/harvest/phase2.test.ts`: unlock threshold, the test flag, no shooting in the banner,
+wave list determinism, the crossings, the stopping rules, piglet scare and penalty, the end
+conditions, the bonuses), the flags (`devContent.harvestShots.test.ts`), the sheet and its frames
+(`harvest2Sheet.test.ts`, `harvest2Art.test.ts`, `animalDensity.test.ts`), the nothing-floats and
+line-of-fire checks, the music stem, the sim's step with the whole wave list in
+(`tools/simPerf.test.ts`). e2e: `tests/e2e/harvest2.spec.ts` (desktop, Pixel 7, iPhone 14
+landscape: the banner, the HUD clear of the rest, a hit warthog counts down, the clock ends it, the
+tally's lines; the Phase 2 sheet's pixels); `perf.spec`'s Phase 2 case (next to the rush's).
+Screenshots: `tests/e2e/art-preview-harvest2.spec.ts` (prefix `v118-harvest`). Golden replays:
+harvest-63 (competent) and the new harvest-65-strong-touch reach Phase 2 and clear it.
+
 ### D-082 — v1.17c Animal sizes, the audit's fixes (9 Nov 2026)
 
 (D-081 is the v1.18 Harvest build, on its own branch.)

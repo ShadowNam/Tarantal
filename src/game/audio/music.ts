@@ -155,12 +155,15 @@ export interface IntensityRules {
 }
 
 /**
- * The stem a moment calls for: no hunt → calm; the Stampede → stampede; a fleeing flock (run or
+ * The stem a moment calls for: no hunt → calm; the Stampede (or the Harvest's Phase 2) →
+ * stampede; Phase 2's banner → build; a fleeing flock (run or
  * flush) or a Frenzy at `buildAtFrenzy` → build; otherwise calm.
  */
 export function stemFor(state: SimState | null, rules: IntensityRules): Stem {
   if (state === null) return 'calm';
-  if (state.stampedeActive) return 'stampede';
+  // v1.18 (D-081): the Harvest's Phase 2 is its stampede (the banner builds to it).
+  if (state.stampedeActive || state.harvest?.phase === 'defend') return 'stampede';
+  if (state.harvest?.phase === 'banner') return 'build';
   if (state.frenzyMul >= rules.buildAtFrenzy) return 'build';
   if (state.flocks.some((f) => f.state === 'run' || f.state === 'flush')) return 'build';
   return 'calm';

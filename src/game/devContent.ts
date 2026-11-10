@@ -367,15 +367,46 @@ export function withNoBaboons(b: ContentBundle): ContentBundle {
  * v1.8c (D-063) e2e/dev only: the Harvest's previews. `duckSeconds`: a worker struck by a pellet
  * stays down this long (?harvestDuck=600: a screenshot of the duck under a held frame); `rush`:
  * the rush's peak rate from the start (?harvestRush=1: a full field within seconds).
+ * v1.18 (D-081): `phase2`, `phase2Seconds` (below).
  */
 export function withHarvestPreview(
   b: ContentBundle,
-  opts: { readonly duckSeconds?: number; readonly rush?: boolean },
+  opts: {
+    readonly duckSeconds?: number;
+    readonly rush?: boolean;
+    /** v1.18 (D-081): ?harvestPhase2=1 — the hunt starts with Phase 2's banner; with
+     *  ?harvestPhase2Seconds=<s> its clock is that long (e2e: the clock ends it quickly). */
+    readonly phase2?: boolean;
+    readonly phase2Seconds?: number;
+    /** v1.18 (D-081): ?harvestShots=1 — the screenshot spec's moments last: the first raid comes
+     *  at once and its raiders take 12 s down the koppie and dash in slowly (a pan can follow);
+     *  yearlings with a piglet come through
+     *  the small hole every few seconds and squeeze through slowly; the hole stays open. */
+    readonly shots?: boolean;
+  },
 ): ContentBundle {
   const h = b.modes.modes.harvest;
   const peak = h.rush.keyframes.at(-1)?.warthogsPerMin ?? 20;
+  const biomes =
+    opts.shots === true
+      ? b.biomes.map((x) => {
+          const bb = x.baboons;
+          if (x.id !== h.biome || bb?.descent === undefined) return x;
+          return {
+            ...x,
+            baboons: {
+              ...bb,
+              firstAfterSeconds: [0.5, 0.5] as [number, number],
+              // 12 s down: slow enough to pan to, early enough that the dash lands
+              // inside the 30 s rush (huntSeconds).
+              descent: { ...bb.descent, climbSeconds: 12, dashMul: 0.35 },
+            },
+          };
+        })
+      : b.biomes;
   return {
     ...b,
+    biomes,
     modes: {
       ...b.modes,
       modes: {
@@ -386,6 +417,15 @@ export function withHarvestPreview(
             opts.duckSeconds === undefined
               ? h.workers
               : { ...h.workers, duckSeconds: opts.duckSeconds },
+          phase2: {
+            ...h.phase2,
+            ...(opts.phase2 === true ? { direct: true } : {}),
+            ...(opts.phase2Seconds === undefined ? {} : { seconds: opts.phase2Seconds }),
+          },
+          hole:
+            opts.shots === true
+              ? { ...h.hole, youngPerMin: 30, pigletChance: 1, squeezeMul: 0.08, patchAt: 0.98 }
+              : h.hole,
           rush:
             opts.rush === true
               ? {

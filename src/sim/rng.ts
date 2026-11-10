@@ -67,6 +67,8 @@ export type StreamName =
   | 'baboons'
   // v1.8c (D-063): the Harvest's warthogs and piglets.
   | 'harvest'
+  // v1.18 (D-081): the Harvest's Phase 2 (its wave list's jitter and crossings).
+  | 'harvestPhase2'
   // v1.10 (D-067): Reënbui (whether it comes, when, its columns and the extra flocks).
   | 'reenbui'
   // v1.12 (D-069): Brakkie, the farm dog (spots, rests, fetches, barks, flushes and their flocks).

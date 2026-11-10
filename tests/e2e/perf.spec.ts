@@ -878,6 +878,71 @@ test('perf: the Harvest rush at its peak at 4× CPU throttle (Pixel 7)', async (
   expect(errors).toEqual([]);
 });
 
+// v1.18 (D-081): the Harvest's Phase 2 at its busiest on the Pixel 7 profile at 4× CPU throttle:
+// started with the test flag (?harvestPhase2=1), nobody shooting, so all three bursts of the wave
+// list pile into the field (warthogs jumping, piglets squeezing, baboons on the fence and in the
+// mielies); the Harvest view on its own timer (harvestMs per scenery frame ≤ 0.3 ms), the frame
+// within the budget. Next to the rush's case: the perf and perf2 jobs keep their halves.
+test('perf: the Harvest Phase 2 at its busiest at 4× CPU throttle (Pixel 7)', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await emulateCores(page);
+  await boot(page, 'seed=3&harvestPhase2=1&graphics=standard');
+  await page.waitForFunction(() => window.__TM__?.rects['harvest'] !== undefined, null, {
+    timeout: 60_000,
+  });
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await tapRect(page, touch, 'harvest');
+  await page.waitForFunction(() => window.__TM__?.harvest?.phase === 'defend', null, {
+    timeout: 180_000,
+  });
+  let maxActors = 0;
+  let maxAnimals = 0;
+  for (let i = 0; i < 200 && !(await hook(page)).over; i++) {
+    const h = await hook(page);
+    if (h.harvest?.phase !== 'defend') break;
+    maxActors = Math.max(maxActors, (h.harvestActors ?? []).filter((a) => a.visible).length);
+    maxAnimals = Math.max(maxAnimals, h.harvest.phase2?.animals.length ?? 0);
+    await waitTicks(page, 60);
+  }
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const real = stats(h.frameTimes.slice(30));
+  const cpu = stats(h.cpuFrameMs.slice(30));
+  const report = {
+    project: info.project.name,
+    tier: h.quality.tier,
+    throttle: 4,
+    maxActorsShown: maxActors,
+    maxPhase2Animals: maxAnimals,
+    harvestMsPerFrame: h.sceneryFrames > 0 ? h.harvestMs / h.sceneryFrames : 0,
+    realFrameMs: real,
+    cpuFrameMs: cpu,
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf.json'), JSON.stringify(report, null, 2));
+  expect(maxActors, 'Phase 2 actors drawn on screen').toBeGreaterThan(3);
+  expect(maxAnimals, 'Phase 2 animals in at once').toBeGreaterThanOrEqual(12);
+  expect(cpu.n).toBeGreaterThan(30);
+  expect(
+    report.harvestMsPerFrame,
+    'Harvest view ms per frame, Phase 2, 4× throttle',
+  ).toBeLessThanOrEqual(0.3);
+  expect(cpu.avg, 'CPU cost per frame (ms), the Harvest Phase 2, 4× throttle').toBeLessThanOrEqual(
+    BUDGET_MS,
+  );
+  expect(errors).toEqual([]);
+});
+
 // v1.4 B (D-039): Namibië on the Pixel 7 profile — the mirage on (Tuesday) and the weavers kept
 // out the whole hunt (the family nest shot every 2 s), same method and budget as the smoke.
 test('perf: Namibië mirage and angry weavers at 4× CPU throttle (Pixel 7)', async ({

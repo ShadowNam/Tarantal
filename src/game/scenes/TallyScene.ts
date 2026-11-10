@@ -51,6 +51,8 @@ export interface HarvestTally {
   /** The local best after this hunt (null: unranked and never played). */
   readonly best: number | null;
   readonly newBest: boolean;
+  /** v1.18 (D-081): Phase 2's lines (label text, value), before the best. */
+  readonly phase2?: readonly (readonly [string, string])[];
 }
 
 /** v1.11 (D-068): what the braai's story needs beyond the result (absent: no braai). */
@@ -364,6 +366,7 @@ export class TallyScene extends Phaser.Scene {
               'tally.harvest_bystanders',
               hv.bystanderPenalty > 0 ? `-${formatScore(hv.bystanderPenalty)}` : '0',
             ],
+            ...(hv.phase2 ?? []).map(([a, b]): [I18nKey, string] => [a as I18nKey, b]),
             ['tally.harvest_best_row', hv.best === null ? '—' : formatScore(hv.best)],
           ]
         : [
@@ -384,7 +387,10 @@ export class TallyScene extends Phaser.Scene {
     // v1.7b (D-046): the power-ups used, as icons and names (a row of their own).
     const used = data.powerups ?? [];
     if (used.length > 0) rows.splice(rows.length - 1, 0, ['tally.powerups', '']);
-    if (this.ctx.hook) this.ctx.hook.tallyPowerups = [...used];
+    if (this.ctx.hook) {
+      this.ctx.hook.tallyPowerups = [...used];
+      this.ctx.hook.tallyRows = rows.map(([k, v]) => `${isI18nKey(k) ? t(k) : k}|${v}`);
+    }
     const rowH = Math.min(52, (panelH - 480) / rows.length);
     const rowFont = Math.min(36, Math.floor(rowH * 0.78));
     rows.forEach(([key, value], i) => {
@@ -394,7 +400,10 @@ export class TallyScene extends Phaser.Scene {
         key === 'tally.harvest_bystanders' && (hv?.bystanderPenalty ?? 0) > 0
           ? '#FF6B5A'
           : '#F3EAD3';
-      const label = this.add.text(px + 80, y, t(key), chalk(rowFont, '#F3EAD3', false)).setAlpha(0);
+      // v1.18 (D-081): Phase 2's lines come as text (lazy strings), the rest as keys.
+      const label = this.add
+        .text(px + 80, y, isI18nKey(key) ? t(key) : key, chalk(rowFont, '#F3EAD3', false))
+        .setAlpha(0);
       const val = this.add
         .text(px + panelW - 80, y, value, chalk(rowFont, color, false))
         .setOrigin(1, 0)

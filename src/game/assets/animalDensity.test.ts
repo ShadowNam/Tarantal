@@ -18,6 +18,10 @@ import {
   OSTRICH_SHEET_W,
 } from '../view/namib/ostrichSheet';
 
+import { HARVEST2_SHEET, HARVEST2_SHEET_W } from '../view/harvest/harvest2Keys';
+import { BABOON2_H } from '../view/harvest/harvest2Sheet';
+import { PIGLET_H, WARTHOG_H } from '../view/harvest/harvestSheet';
+
 type Img = { width: number; height: number };
 const images = std.images as Record<string, Img>;
 const hdImages = hd.images as Record<string, Img | undefined>;
@@ -66,5 +70,19 @@ describe('the true-size animals’ texture density (D-080)', () => {
       expect((f.res * k) / grown, f.name).toBeGreaterThanOrEqual(0.5);
       expect((f.res * kh) / grown, f.name).toBeGreaterThanOrEqual(1);
     }
+  });
+
+  it('the Harvest’s Phase 2 frames (v1.18, D-081): ≥ 0.85 texture px per px shown on the mid plane, no HD twin', () => {
+    const c = loadContent();
+    const file = images[HARVEST2_SHEET];
+    if (file === undefined) throw new Error('no Phase 2 sheet in the index');
+    expect(hdImages[HARVEST2_SHEET]).toBeUndefined();
+    const k = file.width / HARVEST2_SHEET_W;
+    const mid = c.scoring.planes.mid.scale;
+    const W = c.modes.modes.harvest.warthogs;
+    // Texture px over the px each is shown at (its true size on the mid plane).
+    expect((k * WARTHOG_H) / (W.heightPx * mid)).toBeGreaterThanOrEqual(0.85);
+    expect((k * PIGLET_H) / (W.heightPx * W.pigletScale * mid)).toBeGreaterThanOrEqual(0.85);
+    expect((k * BABOON2_H) / (c.birds.baboons.heightPx * mid)).toBeGreaterThanOrEqual(0.85);
   });
 });

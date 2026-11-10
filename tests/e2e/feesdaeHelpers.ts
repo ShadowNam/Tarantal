@@ -168,8 +168,11 @@ export async function reloadIfEmpty(page: Page, touch: boolean): Promise<void> {
 /**
  * Shoots at a lantern until it is dark; true when it went out. A Dubbelloop shot puts a mid
  * lantern out about 4 times in 10, and a seeded hunt's pellet patterns are the same every run, so
- * it gets up to `tries` shots; a shot is a miss once 20 ticks pass without the lantern going dark
- * (no long wait, so the short test hunt doesn't run out).
+ * it gets up to `tries` shots; a shot is a miss once 20 ticks pass without the lantern going dark.
+ *
+ * The whole loop (fire, wait, reload) runs in the page in one call. On CI's loaded Pixel 7 shard
+ * each Playwright round trip took seconds, so a try cost ~480 ticks and the 40 s hunt ended after
+ * 3 shots (D-081 review, logged on 5e2e0f26); in the page a try costs about 20–30 ticks.
  */
 export async function shootLanternOut(
   page: Page,
@@ -177,32 +180,97 @@ export async function shootLanternOut(
   id: number,
   tries = 16,
 ): Promise<boolean> {
-  for (let i = 0; i < tries; i++) {
-    await reloadIfEmpty(page, touch);
-    const before = await fireAt(page, touch, { id });
-    if (before === null) return false;
-    const out = await page
-      .waitForFunction(
-        ([lid, n]) => {
+  const out = await page.evaluate(
+    async ([lid, maxTries, isTouch]) => {
+      const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
+      const log: string[] = [];
+      if (canvas === null) return { dark: false, log: ['no canvas'] };
+      const w = window as unknown as { __spookPointer?: number };
+      const frame = (): Promise<void> =>
+        new Promise((resolve) =>
+          requestAnimationFrame(() => {
+            resolve();
+          }),
+        );
+      // Waits until `done` holds or `ticks` sim ticks pass (or 20 s of wall time, so it never hangs).
+      const waitTicks = async (ticks: number, done: () => boolean): Promise<boolean> => {
+        const t0 = window.__TM__?.tick ?? 0;
+        const wall = performance.now();
+        for (;;) {
+          if (done()) return true;
           const g = window.__TM__;
-          if (g === undefined || g.shots <= n) return null;
-          const w = window as unknown as { __lanternShotTick?: number };
-          w.__lanternShotTick ??= g.tick;
-          const t = g.spook?.things.find((x) => x.id === lid);
-          if (t?.dark === true) return 'dark';
-          return g.tick - w.__lanternShotTick >= 20 ? 'miss' : null;
-        },
-        [id, before.shots] as const,
-        { timeout: 20_000 },
-      )
-      .then((h) => h.jsonValue())
-      .catch(() => null);
-    await page.evaluate(() => {
-      delete (window as unknown as { __lanternShotTick?: number }).__lanternShotTick;
-    });
-    if (out === 'dark') return true;
-  }
-  return false;
+          if (g === undefined || g.over || g.tick - t0 >= ticks) return false;
+          if (performance.now() - wall > 20_000) return false;
+          await frame();
+        }
+      };
+      const press = (x: number, y: number, button: number): void => {
+        const g = window.__TM__;
+        if (g === undefined) return;
+        w.__spookPointer = (w.__spookPointer ?? 4400) + 1;
+        const r = canvas.getBoundingClientRect();
+        const init: PointerEventInit = {
+          clientX: r.left + (x / g.designWidth) * r.width,
+          clientY: r.top + (y / g.designHeight) * r.height,
+          pointerId: w.__spookPointer,
+          pointerType: isTouch ? 'touch' : 'mouse',
+          isPrimary: true,
+          button,
+          buttons: button === 2 ? 2 : 1,
+          bubbles: true,
+          cancelable: true,
+        };
+        canvas.dispatchEvent(new PointerEvent('pointerdown', init));
+        canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+      };
+      const lantern = () => window.__TM__?.spook?.things.find((x) => x.id === lid);
+      for (let i = 0; i < maxTries; i++) {
+        const g = window.__TM__;
+        if (g === undefined || g.over) {
+          log.push(`try ${String(i)}: the hunt is over`);
+          break;
+        }
+        if (g.shells === 0) {
+          // Reload: a tap on the shell belt on touch, a right-click with a mouse.
+          const belt = g.rects['belt'];
+          if (isTouch && belt !== undefined) press(belt.x + belt.w / 2, belt.y + belt.h / 2, 0);
+          else press(g.designWidth / 2, g.designHeight / 2, 2);
+          await waitTicks(240, () => (window.__TM__?.shells ?? 0) > 0);
+          continue;
+        }
+        const t = lantern();
+        if (t === undefined || t.x < 40 || t.x > g.designWidth - 40) {
+          log.push(`try ${String(i)}: not in view at tick ${String(g.tick)}`);
+          await waitTicks(30, () => false);
+          continue;
+        }
+        const shots = g.shots;
+        press(t.x, t.y, 0);
+        // The shot lands (cooldown or a reload can hold it back), then 20 ticks for the lantern.
+        if (!(await waitTicks(60, () => (window.__TM__?.shots ?? 0) > shots))) {
+          log.push(`try ${String(i)}: no shot at tick ${String(window.__TM__?.tick)}`);
+          continue;
+        }
+        if (await waitTicks(20, () => lantern()?.dark === true)) return { dark: true, log };
+        const h = window.__TM__;
+        const l = lantern();
+        log.push(
+          `try ${String(i)}: miss ${JSON.stringify({
+            tick: h?.tick,
+            left: h?.ticksLeft,
+            score: h?.score,
+            lantern: l === undefined ? null : { x: Math.round(l.x), y: Math.round(l.y) },
+            flocks: (h?.flockSpots ?? []).map((f) => [f.plane, Math.round(f.x), Math.round(f.y)]),
+          })}`,
+        );
+      }
+      return { dark: false, log };
+    },
+    [id, tries, touch] as const,
+  );
+  // CI-only failures (D-081 review): say what each miss looked like.
+  for (const line of out.log) console.log(`[lantern] ${line}`);
+  return out.dark;
 }
 
 /** Taps a hook rect (a menu button) in-page, like the shots (never page.touchscreen). */

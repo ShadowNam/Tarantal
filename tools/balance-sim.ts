@@ -80,6 +80,20 @@ export interface HuntRow {
   readonly cropBonus?: number;
   readonly workerHits?: number;
   readonly pigletHits?: number;
+  /** v1.18 (D-081): Phase 2 (absent: not unlocked): crop at its start and end, stopped of N,
+   *  its bonuses, how it ended. */
+  readonly p2?: {
+    readonly cropAtStart: number;
+    readonly crop: number;
+    readonly stopped: number;
+    readonly total: number;
+    readonly bonus: number;
+    readonly reason: 'clear' | 'time' | 'eaten';
+    /** The score when the rush ended (the unlock's measure). */
+    readonly rushScore: number;
+  };
+  /** v1.18 (D-081): the score when the rush ended (crop bonus in), Phase 2 or not. */
+  readonly rushScore?: number;
   /** v1.12 (D-069): Brakkie — hits on him aimed (they cost points) and stray (a pellet that struck
    *  him without aiming: the accidental hits the gate counts), his barks, flushes (a flock out)
    *  and fetches (0 on a hunt without him). */
@@ -146,6 +160,10 @@ export function playRows(job: Job): HuntRow[] {
     });
     const bot = createBot(job.bot, seed, content, job.input);
     let workerHits = 0;
+    let p2: HuntRow['p2'];
+    let rushScore: number | undefined;
+    /** v1.18 (D-081): the crop when the rush ends (Phase 2 eats into it after). */
+    let rushCrop: number | undefined;
     let pigletHits = 0;
     let raiders = 0;
     let dogAimed = 0;
@@ -164,6 +182,19 @@ export function playRows(job: Job): HuntRow[] {
           if (e.who === 'worker') workerHits++;
           else pigletHits++;
         } else if (e.type === 'baboonBagged') raiders++;
+        else if (e.type === 'harvestFenceClosed') {
+          rushScore = sim.snapshot().score;
+          rushCrop = e.crop;
+        } else if (e.type === 'phase2Ended')
+          p2 = {
+            cropAtStart: e.cropAtStart,
+            crop: e.crop,
+            stopped: e.stopped,
+            total: e.total,
+            bonus: e.cropBonus + e.perfectBonus + e.clearBonus,
+            reason: e.reason,
+            rushScore: rushScore ?? 0,
+          };
         else if (e.type === 'brakkieHit') {
           if (e.aimed) dogAimed++;
           else dogStray++;
@@ -222,12 +253,14 @@ export function playRows(job: Job): HuntRow[] {
       ...(hv === null
         ? {}
         : {
-            crop: hv.crop,
+            crop: rushCrop ?? hv.crop,
             warthogs: hv.warthogsBagged,
             raiders,
             cropBonus: hv.cropBonus,
             workerHits,
             pigletHits,
+            ...(rushScore === undefined ? {} : { rushScore }),
+            ...(p2 === undefined ? {} : { p2 }),
           }),
     };
   });
@@ -244,6 +277,25 @@ export function harvestTable(bots: readonly BotKind[], rows: readonly HuntRow[])
     const mean = (f: (r: HuntRow) => number): number => rs.reduce((t, r) => t + f(r), 0) / n;
     const crops = rs.map((r) => r.crop ?? 0).sort((a, c) => a - c);
     return `| ${b} | ${rs.length} | ${mean((r) => r.score).toFixed(0)} | ${mean((r) => r.crop ?? 0).toFixed(1)} % | ${quantile(crops, 0.25).toFixed(1)} % | ${quantile(crops, 0.75).toFixed(1)} % | ${mean((r) => r.cropBonus ?? 0).toFixed(0)} | ${mean((r) => r.warthogs ?? 0).toFixed(2)} | ${mean((r) => r.raiders ?? 0).toFixed(2)} | ${mean((r) => r.bagged).toFixed(1)} | ${mean((r) => r.workerHits ?? 0).toFixed(3)} | ${mean((r) => r.pigletHits ?? 0).toFixed(3)} |`;
+  });
+  return [head, sep, ...lines, '', phase2Table(bots, rows)].join('\n');
+}
+
+/** v1.18 (D-081): Phase 2 per bot: how often it unlocks, the crop it keeps, its bonus. */
+export function phase2Table(bots: readonly BotKind[], rows: readonly HuntRow[]): string {
+  const head =
+    '| bot | hunts | rush score p50 | Phase 2 unlocked | crop at start | crop at end | crop kept (end/start) | stopped (of N) | P2 bonus mean | all stopped | eaten |';
+  const sep = '|' + '---|'.repeat(11);
+  const lines = bots.map((b) => {
+    const rs = rows.filter((r) => r.bot === b);
+    const ps = rs.flatMap((r) => (r.p2 === undefined ? [] : [r.p2]));
+    const n = Math.max(1, ps.length);
+    const mean = (f: (p: NonNullable<HuntRow['p2']>) => number): number =>
+      ps.reduce((t, p) => t + f(p), 0) / n;
+    const rush = rs.map((r) => r.rushScore ?? 0).sort((a, c) => a - c);
+    const pct = (k: number): string => `${((100 * k) / Math.max(1, rs.length)).toFixed(0)} %`;
+    const kept = mean((p) => (p.cropAtStart > 0 ? p.crop / p.cropAtStart : 0));
+    return `| ${b} | ${rs.length} | ${quantile(rush, 0.5).toFixed(0)} | ${pct(ps.length)} | ${mean((p) => p.cropAtStart).toFixed(1)} % | ${mean((p) => p.crop).toFixed(1)} % | ${(kept * 100).toFixed(0)} % | ${mean((p) => p.stopped).toFixed(1)} | ${mean((p) => p.bonus).toFixed(0)} | ${pct(ps.filter((p) => p.reason === 'clear').length)} | ${pct(ps.filter((p) => p.reason === 'eaten').length)} |`;
   });
   return [head, sep, ...lines].join('\n');
 }

@@ -1196,7 +1196,14 @@ repaired." Numbers: `content/modes.json → harvest`; the map: `content/biomes/o
   (the usual flock rules; `rush.gapFlocksPerMin`, a few more start on the feeding spots near the
   gap), fly-overs (guineafowl, francolins and turtle doves) cross the field, warthogs trot in (through the gap on the mid plane, round the fence's end on
   the near plane; tails up) and dig, baboon raiders (§11.3d) come down for the mielies, early and
-  often. Rates ramp up over the 30 s (`rush.keyframes`, the biome's pacing); the dig, feeding
+  often. **v1.18 (D-081): the raid comes down in sight** — the raiders scramble down the koppie
+  behind the farm (a zig-zag over the rocks on the far ridge), run across the open veld, then dash
+  into the rows (1.6× their run); not targets until they reach the mid plane, then the raider rules
+  (`biomes/oes.json → baboons.descent`). **A second, small hole** low in the fence (a bay left of
+  the gap, away from the workers): yearlings (young warthogs, 0.7× an adult, one hit, 2× a
+  guineafowl's base, eating 0.7× a warthog's share) squeeze through it, two a rush (6 s and 21 s
+  in), each with a piglet 45 % of the time; the workers patch it at 80 % of the rush
+  (`harvest.hole`). Rates ramp up over the 30 s (`rush.keyframes`, the biome's pacing); the dig, feeding
   and raid spots sit in the gap's half of the field, where the camera starts, so the peak is busy
   on screen (the screenshot spec asserts ≥ 2 flocks, 3 warthogs and a raider).
 - **Warthogs:** 2 hits bag one (each shot that hits is one hit; the first sends it running back
@@ -1224,7 +1231,49 @@ repaired." Numbers: `content/modes.json → harvest`; the map: `content/biomes/o
   piglets, and the local best ("New Harvest best!"). [Again] plays the Harvest again.
 - **Not in it:** supply crates and charms (a 30-s rush keeps the field clear; the fence area stays
   free of falling crates); the Stampede (the rush is its own climax); the omen.
-- **Balance (docs/balance/v1.8c-harvest.md):** a competent player saves ~70 % of the crop.
+- **Balance (docs/balance/v1.8c-harvest.md, v1.18-harvest-defence.md):** a competent player saves
+  ~61 % of the crop in the rush (66 % before the small hole).
+
+#### 12.2.1 Phase 2 — "Defend the field" (v1.18, D-081)
+The owner (8 Nov): "when a certain amount of points get done in the HARVEST map, the map gets into
+a phase 2 where the fence is still intact, and the pigs and monkeys try to jump the fence to get in
+from all the sides and eat, and you just need to try keep them off the field … there should be a
+countdown of animals and a timer". Confirmed 9 Nov: the unlock about half a competent player's
+rushes, ~24 animals in 30 s, piglets scare-only, the three bonuses. Numbers:
+`modes.json → harvest.phase2`.
+- **Unlock:** when the rush ends (the fence whole, the crop bonus paid) with the Harvest score at or
+  over `unlockScore` (1850: the competent bot's median, so it gets there about half the time) and
+  some crop left (a rush that lost it all ends with the normal tally), the tally waits: "Bonus round: defend the field!" and Oupa's line, 2 s on sim time (no
+  shooting), then Phase 2. Under it: the normal Harvest tally.
+- **The set-up:** the fence whole all round (no gap, the small hole patched); the workers walk off
+  to the farmhouse within the banner (`workers.leaveSeconds`) and can't be hit once they set off
+  (nobody in the line of fire); the crop meter carries over. The field is Phase 2's alone (review,
+  D-081): from the unlock no baboon raid, guineafowl flock or pop-up starts — a raid at the field
+  runs off, one still on the koppie is called off — and the flocks the rush's end flushed fly off
+  the panorama instead of landing again. Fly-overs keep crossing the sky (they eat nothing).
+- **The attack:** a fixed list of 24 (`waves`: when, what, from where; ±0.4 s of seeded jitter and
+  where each crosses, its own stream) in three bursts of 8 (0.5, 9.5, 18.5 s): from both ends of
+  the panorama and up out of the veld behind the back fence on the mid plane — warthogs JUMP the
+  fence (a run-up and a jump arc), piglets squeeze UNDER it (low, slow), baboons CLIMB the fence
+  and drop in — and round the near plane's ends. Each that reaches the field eats (warthog 1.4,
+  piglet 0.7, baboon 1.6 % a second) until stopped.
+- **Stopping them:** warthogs as in the rush (2 hits bag one; the first sends it running out),
+  baboons as raiders, piglets are never targets: a shot landing within `pigletScarePx` of one
+  scares it back out (no points, no penalty), a shot aimed at one costs 15. Each one stopped
+  (bagged or driven out) counts down "Animals left: N".
+- **HUD:** the crop meter, a plate over the fence bar with the big "Animals left: N" and Phase 2's
+  own countdown (the clock top left shows it too), on phones the counter shrinks beside the clock.
+- **The end:** every one stopped, the clock out, or the crop gone ("They ate the lot!" — Phase 2
+  lost, the score so far stays). Then `cropBonusPerPercent` (10) × whole crop % left, plus "Field
+  defended!" (500) if the crop didn't drop in Phase 2, plus "All of them!" (750) if all were
+  stopped in time. Animals bagged score as in the rush (× Frenzy). The tally's "Crop saved" is
+  the rush's (as the fence closed) and "Workers and piglets" counts Phase 2's piglets too. The
+  Harvest tally adds
+  "Bonus round: stopped N / 24", the crop at the end and the bonuses; the local best is the
+  hunt's score, Phase 2 in. The music plays its Stampede stem in Phase 2 (the build stem in the
+  banner); grunts, squeals and the baboons' calls as they come.
+- **Balance (docs/balance/v1.18-harvest-defence.md):** the competent bot unlocks it about half the
+  time and keeps ~60 % of the crop it had in Phase 2; the plinker ~18–21 %.
 
 ## 13. Season Run (roguelite) in detail
 

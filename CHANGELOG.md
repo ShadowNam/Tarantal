@@ -3,6 +3,39 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.21.0] — v1.18: Die Oes, the raid and the bonus round (9 Nov 2026)
+
+Decision record D-081. The owner's requests of 8 Nov: the baboons climbing off the koppie, a small
+second hole in the fence, and a bonus round to defend the field.
+
+- **The baboons come down where you can see them:** in the Harvest a raid's baboons scramble down
+  the koppie behind the farm, run across the veld and dash into the mielies. Shoot them once they
+  reach the rows (as before).
+- **A small hole in the fence:** left of the big gap, low down. Now and then a young warthog
+  squeezes through it, sometimes with a piglet behind it; one shot bags a young one. The workers
+  patch it near the end of the rush.
+- **Bonus round — "Defend the field!":** score 1,850 or more in the rush and the Harvest goes on.
+  The fence is whole, the workers go off to the farmhouse, and 24 animals come at the field from
+  every side in three waves: warthogs jump the fence, piglets squeeze under it, baboons climb over
+  it. Keep them out for 30 seconds: hit a warthog or baboon once to send it running (twice to bag
+  it), and shoot the ground near a piglet to scare it off (never at it). "Animals left" and the
+  clock count down; your crop meter carries on from the rush.
+- **Bonuses:** 10 points for every percent of the crop left, +500 "Field defended!" if they didn't
+  eat a thing, +750 "All of them!" if you stopped every one in time. If they eat it all, the round
+  ends ("They ate the lot!") but you keep your score.
+- **The Harvest tally** shows the bonus round: how many you stopped, the crop at the end, the
+  bonuses. Your Harvest best counts the bonus round too.
+- The music picks up for the bonus round; warthogs grunt, piglets squeal and the baboons call as
+  they come.
+- **The bonus round has the field to itself:** the workers are gone before the first animal comes
+  and can't be hit on their way out; no more baboon raids, guineafowl flocks or pop-ups start (a
+  raid under way runs off, the flushed flocks fly away); birds still fly over.
+- The bonus round only starts if the animals left you some crop to defend.
+- **The Harvest tally:** "Crop saved" is the crop you saved in the rush (the bonus round's crop
+  has its own line), and "Workers and piglets" counts the bonus round's piglets too.
+- Baboons climbing the fence are always drawn, and animals coming up from behind the fence can
+  only be hit once you can see them. Oupa's "All of them!" line fits what happened.
+
 ## [1.20.2] — v1.17c: animal sizes, the audit's fixes (9 Nov 2026)
 
 Decision record D-082. The owner asked again for the animals at their real-world size; an audit of

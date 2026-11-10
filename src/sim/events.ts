@@ -869,7 +869,54 @@ export type SimEvent =
       readonly warthogId: number;
       readonly plane: PlaneId;
       readonly piglets: number;
+      /** v1.18 (D-081): a yearling through the small hole. */
+      readonly young: boolean;
     }
+  /** v1.18 (D-081): the rush ended with the score at or over phase2.unlockScore: the banner. */
+  | { readonly type: 'phase2Unlocked'; readonly tick: number; readonly score: number }
+  /** v1.18 (D-081): Phase 2's clock starts (endTick: when it runs out). */
+  | {
+      readonly type: 'phase2Started';
+      readonly tick: number;
+      readonly total: number;
+      readonly endTick: number;
+    }
+  /** v1.18 (D-081): an animal of Phase 2's list comes at the field. */
+  | {
+      readonly type: 'phase2Entered';
+      readonly tick: number;
+      readonly animalId: number;
+      readonly kind: 'warthog' | 'piglet' | 'baboon';
+      readonly from: 'left' | 'right' | 'back';
+      readonly plane: PlaneId;
+      /** Where it starts (layer px). */
+      readonly x: number;
+    }
+  /** v1.18 (D-081): a shot landed near a piglet: it runs back out (no points). */
+  | {
+      readonly type: 'phase2Scared';
+      readonly tick: number;
+      readonly animalId: number;
+      readonly x: number;
+      readonly y: number;
+    }
+  /** v1.18 (D-081): Phase 2 is over — every one stopped (clear), the clock (time) or the crop
+   *  gone (eaten) — and its bonuses paid. */
+  | {
+      readonly type: 'phase2Ended';
+      readonly tick: number;
+      readonly reason: 'clear' | 'time' | 'eaten';
+      readonly total: number;
+      readonly stopped: number;
+      readonly bagged: number;
+      readonly cropAtStart: number;
+      readonly crop: number;
+      readonly cropBonus: number;
+      readonly perfectBonus: number;
+      readonly clearBonus: number;
+    }
+  /** v1.18 (D-081): the workers patched the fence's small hole. */
+  | { readonly type: 'harvestHolePatched'; readonly tick: number }
   /** v1.8c (D-063): a shot hit a warthog; hitsLeft 0 = bagged (warthogBagged follows). */
   | {
       readonly type: 'warthogHit';
