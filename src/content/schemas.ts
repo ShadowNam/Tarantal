@@ -1991,7 +1991,13 @@ const harvestSchema = modeSetupSchema.extend({
     fleeMul: pos,
     jump: obj({ seconds: pos, heightPx: pos, lengthPx: pos }),
     squeezeSeconds: pos,
-    climb: obj({ upSeconds: pos, dropSeconds: pos }),
+    /** Review: how far in a piglet's squeeze under the wire takes it (across, plane scale 1). */
+    squeezePx: pos,
+    /** A baboon's climb up a post and its drop down inside, dropPx in across (plane scale 1). */
+    climb: obj({ upSeconds: pos, dropSeconds: pos, dropPx: pos }),
+    /** Review: one hit or bagged off the fence (mid-jump, on a post) falls to this far below its
+     *  ground line (layer px). */
+    knockDownPx: nonNeg,
     /** Where they land inside the fence (below its ground line) and the eating spots' jitter. */
     landPx: pos,
     eatJitterPx: nonNeg,

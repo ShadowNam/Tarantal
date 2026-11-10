@@ -190,7 +190,7 @@ export function createPhase2(
     list: readonly { readonly x: number; readonly y: number }[],
     x: number,
   ): { x: number; y: number } {
-    let best = list[0] ?? { x, y: geo.fenceY + 60 };
+    let best = list[0] ?? { x, y: geo.fenceY + P.landPx };
     for (const s of list) if (Math.abs(s.x - x) < Math.abs(best.x - x)) best = s;
     return { x: best.x, y: best.y };
   }
@@ -278,7 +278,7 @@ export function createPhase2(
       a.by = land;
       setPhase(a, 'jump', jumpTicks);
     } else if (a.kind === 'piglet') {
-      a.bx = a.x + dir * 30 * k;
+      a.bx = a.x + dir * P.squeezePx * k;
       a.by = land;
       setPhase(a, 'squeeze', squeezeTicks);
     } else {
@@ -297,7 +297,8 @@ export function createPhase2(
     const off = P.entryPx * a.p.scale;
     a.bx = a.x < a.p.width / 2 ? -off : a.p.width + off;
     // Off the fence (mid-air or on top) it drops to the ground line it was making for.
-    if (a.phase === 'jump' || a.phase === 'climb' || a.phase === 'drop') a.y = geo.fenceY + 4;
+    if (a.phase === 'jump' || a.phase === 'climb' || a.phase === 'drop')
+      a.y = geo.fenceY + P.knockDownPx;
     a.by = a.y;
     a.facing = a.bx >= a.x ? 1 : -1;
     setPhase(a, 'flee');
@@ -332,7 +333,7 @@ export function createPhase2(
           // Over the top: the drop down inside.
           a.ax = a.x;
           a.ay = a.y;
-          a.bx = a.x + a.facing * 60 * a.p.scale;
+          a.bx = a.x + a.facing * P.climb.dropPx * a.p.scale;
           a.by = geo.fenceY + P.landPx * a.p.scale;
           setPhase(a, 'drop', dropTicks);
         }
@@ -533,7 +534,8 @@ export function createPhase2(
       }
       bagged++;
       // Bagged off the fence: it falls to the ground line.
-      if (a.phase === 'jump' || a.phase === 'climb' || a.phase === 'drop') a.y = geo.fenceY + 4;
+      if (a.phase === 'jump' || a.phase === 'climb' || a.phase === 'drop')
+        a.y = geo.fenceY + P.knockDownPx;
       setPhase(a, 'tumble');
       const base = host.basePoints(a.p.plane);
       if (a.kind === 'warthog') {
