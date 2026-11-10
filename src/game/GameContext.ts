@@ -813,9 +813,19 @@ export interface TestHook {
   runStatus?: string | null;
   /** v1.7b (D-046): the Gun Shed's Power-ups tab: each card as drawn, and the list's scroll. */
   shedPowerups?: {
-    cards: { id: string; name: string; effect: string; found: boolean; icon: boolean }[];
+    cards: {
+      id: string;
+      name: string;
+      effect: string;
+      found: boolean;
+      icon: boolean;
+      /** v1.19 (D-084): the icon's centre and half-size (list coordinates, design px). */
+      iconAt?: { x: number; y: number; r: number };
+    }[];
     scroll: number;
     maxScroll: number;
+    /** v1.19 (D-084): the list's top on screen (screen y = list y − scroll). */
+    viewY?: number;
   };
   /** M9: the Padstal help card's text bottom and OK button top (no overlap: textBottom < okTop). */
   helpCard?: { textBottom: number; okTop: number };

@@ -603,7 +603,15 @@ export class ShedScene extends Phaser.Scene {
         list.add(icon);
       }
       cardRects.push({ x: view.x, y, w: view.w, h });
-      hookCards.push({ id: c.id, name: c.name, effect: c.effect, found: c.found, icon: hasIcon });
+      hookCards.push({
+        id: c.id,
+        name: c.name,
+        effect: c.effect,
+        found: c.found,
+        icon: hasIcon,
+        // v1.19 (D-084, e2e pixels): the icon's centre and half-size in list coordinates.
+        iconAt: { x: cx, y: cy, r: (iconBox - 28) / 2 },
+      });
       y += h + gap;
     }
     const maxScroll = Math.max(0, y - gap - (view.y + view.h));
@@ -612,7 +620,8 @@ export class ShedScene extends Phaser.Scene {
     const cam = this.cameras.add(view.x * s, view.y * s, view.w * s, view.h * s);
     cam.setOrigin(0, 0).setZoom(s);
     const publish = (): void => {
-      if (this.ctx.hook) this.ctx.hook.shedPowerups = { cards: hookCards, scroll, maxScroll };
+      if (this.ctx.hook)
+        this.ctx.hook.shedPowerups = { cards: hookCards, scroll, maxScroll, viewY: view.y };
     };
     let menuRef: Menu | null = null;
     const setScroll = (v: number): void => {
@@ -621,6 +630,9 @@ export class ShedScene extends Phaser.Scene {
       menuRef?.refresh();
       publish();
     };
+    // e2e only (v1.19, D-084): scroll the list to a point (screen y = list y − scroll).
+    if (this.ctx.hook)
+      (window as { __TM_SHED_SCROLL__?: (v: number) => void }).__TM_SHED_SCROLL__ = setScroll;
     // Each card is a menu item (keyboard focus walks the list); its rect is the part on screen.
     cards.forEach((c, i) => {
       items.push({
