@@ -56,7 +56,7 @@ interface Coat {
 }
 
 /** Chacma colours (the far frames get the same; the far haze is the layer's tint). */
-const MALE: Coat = {
+export const MALE: Coat = {
   // v1.15 review: more contrast — a lighter olive-grey lit back, a darker belly and muzzle.
   coat: '#776650',
   lit: '#B2A47E',
@@ -121,7 +121,7 @@ interface Pose {
 }
 
 /** Quadruped stance: the four feet's phase (−1 back … +1 forward) for a gait frame. */
-function walkPose(phase: number, run = false, open = false): Pose {
+export function walkPose(phase: number, run = false, open = false): Pose {
   const s = Math.sin(phase);
   const c = Math.cos(phase);
   const stride = run ? 0.2 : 0.13;
@@ -315,6 +315,9 @@ export const POSES: Readonly<
   walk_d: walkPose((3 * Math.PI) / 2),
   run_a: walkPose(0.4, true),
   run_b: walkPose(0.4 + Math.PI, true),
+  // v1.18 (D-081): scrambling down the koppie at the ridge's size (drawFrame tips it head-down).
+  r_climb_a: walkPose(0.9),
+  r_climb_b: walkPose(0.9 + Math.PI),
   // Oupa's hat: on its head, scratching under it.
   hat_a: sitPose({
     hatOn: true,
@@ -1167,7 +1170,14 @@ function baby(p: Pose, k = 1): string[] {
 }
 
 /** One baboon in `pose` (units: a sitting male's height = 1), facing right, feet at 0. */
-export function drawBaboon(p: Pose, coat: Coat, small: boolean, seed: number): string {
+export function drawBaboon(
+  p: Pose,
+  coat: Coat,
+  small: boolean,
+  seed: number,
+  /** v1.18 (D-081): false off the ground (on a fence, in a drop). */
+  shadowed = true,
+): string {
   const defs: string[] = [];
   const parts: string[] = [];
   const far = shade(coat.coat, -0.32);
@@ -1179,7 +1189,7 @@ export function drawBaboon(p: Pose, coat: Coat, small: boolean, seed: number): s
   const ARM_FAR = [0.09, 0.06, 0.046];
   const ARM_NEAR = [0.1, 0.066, 0.05];
   // Contact shadow (not while tumbling, nor for a bust behind the ridge's edge).
-  if (!bust && (p.spin === undefined || Math.abs(p.spin) < 30)) {
+  if (shadowed && !bust && (p.spin === undefined || Math.abs(p.spin) < 30)) {
     const xs = [
       ...p.arms.flatMap((a) => a.map((q) => q[0])),
       ...p.legs.flatMap((l) => l.map((q) => q[0])),
@@ -1560,6 +1570,9 @@ function rockArt(): string {
   );
 }
 
+/** v1.18 (D-081): how far a climbing-down raider tips forward (degrees). */
+const CLIMB_TIP_DEG = 26;
+
 /** One frame's drawing in design px (feet at 0). */
 export function drawFrame(frame: BaboonFrame, seed: number): string {
   if (frame === 'r_rock') return rockArt();
@@ -1587,7 +1600,13 @@ export function drawFrame(frame: BaboonFrame, seed: number): string {
   }
   const ridge = frame.startsWith('r_');
   const k = ridge ? RIDGE_H : RAIDER_H;
-  return g({ transform: `scale(${k})` }, drawBaboon(POSES[frame], coatOf(frame), ridge, seed));
+  // v1.18 (D-081): on the way down the slope the body tips forward, head first, round the feet.
+  // The origin sits between the hind and the front feet (on the slope under it).
+  const tip = frame.startsWith('r_climb') ? ` translate(0 -0.09) rotate(${CLIMB_TIP_DEG})` : '';
+  return g(
+    { transform: `scale(${k})${tip}` },
+    drawBaboon(POSES[frame], coatOf(frame), ridge, seed),
+  );
 }
 
 /** A frame's fur seed (stable whatever the packing order). */

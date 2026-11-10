@@ -27,6 +27,8 @@ export const BABOON_BOXES = {
   r_bark_a: { w: 54, h: 79, ox: 26, oy: 74 },
   r_bark_b: { w: 55, h: 78, ox: 26, oy: 73 },
   r_rock: { w: 480, h: 120, ox: 240, oy: 113 },
+  r_climb_a: { w: 76, h: 69, ox: 30, oy: 61 },
+  r_climb_b: { w: 79, h: 68, ox: 32, oy: 61 },
   fx_fruit: { w: 24, h: 27, ox: 12, oy: 15 },
   fx_water: { w: 61, h: 42, ox: 4, oy: 7 },
 } as const;

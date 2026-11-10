@@ -88,6 +88,7 @@ import { CAMEO_SPECIES, cameoCalling } from '../cameos/cameoAnim';
 import { StoryFactsLog } from '../braai/storyFacts';
 import type { HarvestView } from '../view/harvest/HarvestView';
 import type { HarvestTally } from './TallyScene';
+import { harvestTallyNumbers } from '../view/harvest/harvestTally';
 import { playPotjieSound } from '../view/potjieSounds';
 import { playMeerkatSound } from '../audio/meerkatSounds';
 import { largestTextures, textureBytes } from '../assets/textureBytes';
@@ -2658,6 +2659,25 @@ export class HuntScene extends Phaser.Scene {
               warthogsBagged: hv.warthogsBagged,
               cropBonus: hv.cropBonus,
               bystanderPenalty: hv.bystanderPenalty,
+              hole: hv.hole,
+              phase2:
+                hv.phase2 === null
+                  ? null
+                  : {
+                      total: hv.phase2.total,
+                      left: hv.phase2.left,
+                      ticksLeft: hv.phase2.ticksLeft,
+                      cropAtStart: hv.phase2.cropAtStart,
+                      result: hv.phase2.result,
+                      animals: hv.phase2.animals.map((a) => ({
+                        id: a.id,
+                        kind: a.kind,
+                        phase: a.phase,
+                        x: a.x,
+                        y: a.y,
+                        from: a.from,
+                      })),
+                    },
             };
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
@@ -2874,6 +2894,10 @@ export class HuntScene extends Phaser.Scene {
           this.manifest,
           this.ctx.content.modes.modes.harvest,
           this.ctx.hook !== null,
+          {
+            heightPx: this.ctx.content.birds.baboons.heightPx,
+            ...this.ctx.content.birds.baboons.hitboxes,
+          },
         );
       })
       .catch(() => {
@@ -3293,13 +3317,13 @@ export class HuntScene extends Phaser.Scene {
       }));
     return {
       birds: result.bagged,
-      warthogs: h?.warthogsBagged ?? 0,
+      warthogs: this.harvest?.warthogsBagged ?? h?.warthogsBagged ?? 0,
       baboons: this.harvest?.baboonsBagged ?? 0,
-      crop: Math.max(0, Math.floor(h?.crop ?? 0)),
-      cropBonus: h?.cropBonus ?? 0,
-      bystanderPenalty: h?.bystanderPenalty ?? 0,
+      // v1.18 (D-081, review): the rush's crop (as the fence closed), not Phase 2's end crop.
+      ...harvestTallyNumbers(h),
       best: newBest ? result.score : before,
       newBest,
+      phase2: this.harvest?.phase2Rows(h, (k) => guideString(getLanguage(), k) ?? k) ?? [],
     };
   }
 

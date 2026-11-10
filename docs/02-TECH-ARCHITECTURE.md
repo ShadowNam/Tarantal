@@ -613,7 +613,25 @@ sprite per actor plus the gap's panel and the sign, properties set on change onl
 sprites hidden, its own `harvestMs` timer; the HUD's `HarvestBars` (crop and repair) redraw on a
 whole-percent change. The sheet `oes/harvest` is in the map's own lazy group `oes` (+ `oes-hd`):
 the Harvest waits only for its area, like any area; Classic and a resumed Season Run load as before.
-Test flags (test builds only): `?harvestDuck=<s>` (a struck worker stays down), `?harvestRush=1`
+**v1.18 (D-081): Harvest phases.** `HarvestPhase` is `intro → rush → outro`, or, when the rush
+ends with `host.score() ≥ phase2.unlockScore`, `intro → rush → banner → defend → outro`: the
+fence closing extends the hunt (`HarvestHost.extendBy(banner + Phase 2)`), and Phase 2's early end
+(all stopped, the crop gone) moves it (`HarvestHost.endAt(tick + outro)`). Phase 2 is
+`src/sim/harvest/phase2.ts` (`createPhase2`): its own stream `harvestPhase2` (the wave list's
+jitter and crossings, drawn in list order at unlock), animals in stable spawn order through
+`approach → jump | squeeze | climb → drop → go → eat`, `flee`, `tumble`; hit extras of kind
+`harvest` (warthogs and baboons with the plane's floor; piglets bystanders); `landed(aimOn)` on
+every shot scares a piglet near it. Events `phase2Unlocked`, `phase2Started`, `phase2Entered`,
+`phase2Scared`, `phase2Ended` (reason, stopped, crop, bonuses), and the rush's `warthogHit`,
+`warthogBagged`, `baboonHit`, `baboonBagged` for its warthogs and baboons (the same sounds, FX,
+counts); fire is blocked in the banner. The snapshot's `harvest.phase2` (counter, clock, animals,
+result) and `harvest.hole`. The raid's descent is in the baboon system (`descentPose`: pure
+arithmetic, no trig), the small hole in the Harvest's (`holeSpots`, `harvestHolePatched`).
+Phase 2's HUD is its own lazy chunk (`src/game/ui/Phase2Hud.ts`), its strings in the lazy guide
+tables, its art the second sheet `oes/harvest2` (Standard in HD, `STANDARD_IN_HD_KEYS`).
+Test flags (test builds only): `?harvestPhase2=1` (Phase 2 from the start),
+`?harvestPhase2Seconds=<s>`, `?harvestShots=1` (the screenshot spec: a slow raid down the koppie,
+a busy small hole). Test flags (v1.8c): `?harvestDuck=<s>` (a struck worker stays down), `?harvestRush=1`
 (the peak rate from the start); `?huntSeconds` shortens the rush.
 
 ### 3.13 Juggle bodies: tin cans and makalani nuts (v1.8, D-050; 1.9.3, D-056)

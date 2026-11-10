@@ -7,9 +7,11 @@ import type { Biome, ContentBundle } from '../../content/schemas';
 import { secondsToTicks } from '../clock';
 import type { BonusId, SimEvent } from '../events';
 import type { RandomStream } from '../rng';
-import type { BaboonsView, PlaneId } from '../types';
+import type { BaboonsView, DescenderView, PlaneId } from '../types';
 import { pointInOccluder, type HitExtra } from '../weapons/hitTest';
 import {
+  descentPose,
+  type Raid,
   bagRaider,
   createBaboons,
   findMember,
@@ -21,6 +23,7 @@ import {
   roleScale,
   scareTroop,
   stepBaboons,
+  holdRaids,
   type BaboonCtx,
   type BaboonsState,
 } from './baboons';
@@ -62,6 +65,9 @@ export interface BaboonSystem {
   acting(): number;
   /** v1.8c (D-063): the id is a raider down at its spot (a target), not a ridge member. */
   isRaider(id: number): boolean;
+  /** v1.18 (D-081, review): no more raids this hunt (the Harvest's Phase 2); the raid in hand
+   *  ends cleanly (holdRaids). */
+  holdRaids(): void;
 }
 
 export type BaboonSystemFactory = (
@@ -298,6 +304,31 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
     }
   }
 
+  /** v1.18 (D-081): the raid's raiders on their way down in sight. */
+  function descenders(raid: Raid): DescenderView[] {
+    if (state.descent === null) return [];
+    const troop = state.troops.find((t) => t.id === raid.troopId);
+    if (troop === undefined) return [];
+    const out: DescenderView[] = [];
+    raid.memberIds.forEach((id, i) => {
+      const p = descentPose(state, raid, i, bb);
+      if (p === null) return;
+      out.push({
+        id,
+        raidId: raid.id,
+        layerId: p.layerId,
+        plane: troop.plane,
+        scale: troop.scale,
+        x: p.x,
+        y: p.y,
+        facing: p.facing,
+        pose: p.pose,
+        t: raid.t,
+      });
+    });
+    return out;
+  }
+
   function view(): BaboonsView {
     const raid = state.raid;
     return {
@@ -340,7 +371,9 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
                 t: r.t,
                 dur: r.dur,
                 hits: r.hits,
+                dash: raid.dash,
               })),
+      descenders: raid === null ? [] : descenders(raid),
       raid:
         raid === null
           ? null
@@ -365,5 +398,16 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
 
   const isRaider = (id: number): boolean => findRaider(state, id) !== null;
 
-  return { extras, plane, shot, step, view, acting, isRaider };
+  return {
+    extras,
+    plane,
+    shot,
+    step,
+    view,
+    acting,
+    isRaider,
+    holdRaids: () => {
+      holdRaids(state, bb);
+    },
+  };
 };

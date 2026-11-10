@@ -98,6 +98,8 @@ export interface BaboonSheetSource {
 }
 
 const SHEET_POLL_FRAMES = 30;
+/** v1.18 (D-081): ticks per step scrambling down the koppie. */
+const CLIMB_TICKS = 9;
 
 const alt = (t: number, every: number): boolean => Math.floor(t / every) % 2 === 0;
 
@@ -125,6 +127,8 @@ export function ridgeFrame(m: SimBaboon): BaboonFrame | null {
 export function raiderFrame(r: RaiderView, tumbleTicks: number): BaboonFrame {
   switch (r.phase) {
     case 'approach': {
+      // v1.18 (D-081): a raid that came down in sight dashes in for the rows.
+      if (r.dash) return alt(r.t, RUN_TICKS) ? 'run_a' : 'run_b';
       const i = Math.floor(r.t / WALK_TICKS) % 4;
       return i === 0 ? 'walk_a' : i === 1 ? 'walk_b' : i === 2 ? 'walk_c' : 'walk_d';
     }
@@ -428,6 +432,32 @@ export class BaboonView {
     let fruitAt: { x: number; y: number; layerId: string; scale: number } | null = null;
     let waterAt: { x: number; y: number; layerId: string; scale: number; flip: boolean } | null =
       null;
+    // v1.18 (D-081): raiders on their way down in sight: scrambling down the koppie (the ridge's
+    // size), then running across the veld (a raider's frames at the far plane's size). Same slots
+    // as the raiders (one id is on its way down or at its spot, never both).
+    for (const d of b.descenders) {
+      let s = this.raiders.get(d.id);
+      if (s === undefined || s.layerId !== d.layerId) {
+        s?.img.destroy();
+        const made = this.newSlot(d.layerId, 'r_climb_a', d.id, 'descender');
+        if (made === null) continue;
+        s = made;
+        this.raiders.set(d.id, s);
+      }
+      s.seen = true;
+      const climb = d.pose === 'climb';
+      const frame: BaboonFrame = climb
+        ? alt(d.t, CLIMB_TICKS)
+          ? 'r_climb_a'
+          : 'r_climb_b'
+        : alt(d.t, RUN_TICKS)
+          ? 'run_a'
+          : 'run_b';
+      const scale = (d.scale * T.heightPx) / (climb ? RIDGE_H : RAIDER_H);
+      const show = this.place(s, frame, d.x, d.y, scale, d.facing === -1, 1);
+      this.hookOf(s, show, d.x, d.y, d.y);
+      if (this.hooks) this.hookList[n++] = s.hook;
+    }
     for (const r of b.raiders) {
       let s = this.raiders.get(r.id);
       if (s === undefined || s.layerId !== r.layerId) {
@@ -542,6 +572,10 @@ export class BaboonView {
           1,
           this.levelDb(e.plane),
         );
+      } else if (e.type === 'phase2Entered' && e.kind === 'baboon') {
+        // v1.18 (D-081): a Phase 2 baboon comes at the Harvest's fence calling.
+        this.calls.warn(tick);
+        this.call('wahoo', e.plane, e.x, audio, width);
       } else if (e.type === 'troopFled' && e.cause === 'loud') {
         this.calls.warn(tick);
         this.call('wahoo', e.plane, e.x, audio, width);

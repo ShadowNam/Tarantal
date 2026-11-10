@@ -102,6 +102,13 @@ describe('intensity (M10)', () => {
     ).toBe('build');
     expect(stemFor(state({ stampedeActive: true }), rules)).toBe('stampede');
   });
+  it('v1.18 (D-081): the Harvest’s Phase 2 plays the stampede stem, its banner the build', () => {
+    const rules = { buildAtFrenzy: 2 };
+    const h = (phase: string) => ({ harvest: { phase } }) as unknown as Partial<SimState>;
+    expect(stemFor(state(h('defend')), rules)).toBe('stampede');
+    expect(stemFor(state(h('banner')), rules)).toBe('build');
+    expect(stemFor(state(h('rush')), rules)).toBe('calm');
+  });
   it('rises at once, calms down only after the hold', () => {
     const h = new StemHold(4000);
     expect(h.next('build', 0)).toBe('build');

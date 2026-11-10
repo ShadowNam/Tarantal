@@ -123,6 +123,43 @@ describe('sim performance budget', () => {
     expect(mean).toBeLessThan(1.5);
   });
 
+  // v1.18 (D-081): the Harvest's Phase 2 with all 24 of its wave list in at once (the list's
+  // times squeezed to the first 2 s, no drain so it runs its clock), with shooting every few ticks.
+  it('step() averages ≤ 1.5 ms in the Harvest Phase 2 with the whole wave list in', () => {
+    const content = structuredClone(loadContent());
+    const h = content.modes.modes.harvest;
+    h.phase2.direct = true;
+    h.phase2.waves = h.phase2.waves.map((w, i) => ({ ...w, at: (i % 8) * 0.25 }));
+    h.phase2.drainPerSecond = { warthog: 0, piglet: 0, baboon: 0 };
+    const oes = content.biomes.find((b) => b.id === h.biome);
+    if (oes === undefined) throw new Error('no Harvest map');
+    for (const k of oes.pacing.keyframes) k.flyoversPerMin = 60;
+    const sim = createSim({ seed: 4, content, mode: { id: 'harvest' }, inputKind: 'touch' });
+    for (let i = 0; i < 200; i++) sim.step([]);
+    sim.drainEvents();
+    let total = 0;
+    let steps = 0;
+    let maxAnimals = 0;
+    for (let i = 0; i < 1200 && !sim.isOver(); i++) {
+      const cmds: Command[] = [];
+      if (i % 5 === 0)
+        cmds.push({ t: 'fire', dx: ((i * 37) % 1600) - 800, sy: 650 + ((i * 53) % 350) });
+      if (i % 30 === 0) cmds.push({ t: 'reload' });
+      if (i % 200 === 0) cmds.push({ t: 'cameraTarget', cx: 960 + ((i * 7) % 3200) });
+      const t0 = performance.now();
+      sim.step(cmds);
+      total += performance.now() - t0;
+      steps++;
+      sim.drainEvents();
+      const s = sim.snapshot();
+      maxAnimals = Math.max(maxAnimals, s.birds.length + (s.harvest?.phase2?.animals.length ?? 0));
+    }
+    const mean = total / steps;
+    console.log(`harvest phase 2 step(): mean ${(mean * 1000).toFixed(1)} µs, up to ${maxAnimals}`);
+    expect(maxAnimals).toBeGreaterThanOrEqual(20);
+    expect(mean).toBeLessThan(1.5);
+  });
+
   // v1.10 (D-067): Reënbui's swarm at its peak — 4 columns, every flock feeding, the extra flocks
   // in, 60 birds (flocks and fly-overs) — with shooting every few ticks.
   it('step() averages ≤ 1.5 ms with 60 birds in the Reënbui swarm', () => {

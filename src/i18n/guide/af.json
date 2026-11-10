@@ -187,5 +187,19 @@
   "guide.journal.nudge.weapon": "Oupa: Toets een wapenverandering by die Skietbaan.",
   "guide.journal.goals.updated": "Hierdie rekords gebruik vorige reëls. Voltooi ’n nuwe jag met dié opstelling vir huidige doelwitte.",
   "guide.journal.mode.classic": "Klassiek",
-  "guide.journal.mode.daily": "Daagliks"
+  "guide.journal.mode.daily": "Daagliks",
+  "guide.harvest2.banner": "Bonusrondte: verdedig die land!",
+  "guide.harvest2.left": "Diere oor: {n}",
+  "guide.harvest2.start": "Hier kom hulle, van alle kante! Hou hulle uit die mielies uit!",
+  "guide.harvest2.clear": "Almal van hulle!",
+  "guide.harvest2.clear_oupa": "Nie een is meer in die rye nie. Dis nou skiet!",
+  "guide.harvest2.perfect": "Land verdedig!",
+  "guide.harvest2.perfect_oupa": "Nie ’n enkele kop verloor nie. Die land is veilig!",
+  "guide.harvest2.time": "Tyd!",
+  "guide.harvest2.time_oupa": "Tyd is verby. Ons het die meeste gered, nè?",
+  "guide.harvest2.eaten": "Hulle het alles opgevreet!",
+  "guide.harvest2.eaten_oupa": "Ag nee, hulle het die hele land opgevreet!",
+  "guide.harvest2.tally_stopped": "Bonusrondte: gekeer",
+  "guide.harvest2.tally_crop": "Oes aan die einde",
+  "guide.harvest2.tally_bonus": "Bonusrondte-oesbonus"
 }

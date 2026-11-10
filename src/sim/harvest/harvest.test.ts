@@ -168,6 +168,11 @@ describe('workers and piglets are never targets (aimed-at rule)', () => {
         flocksOn: () => 0,
         gapFlock: () => false,
         scatterFlocks: () => {},
+        score: () => 0,
+        extendBy: () => {},
+        endAt: () => {},
+        phase2Rng: createRng(4).stream('harvestPhase2'),
+        baboonTuning: content.birds.baboons,
       },
     );
     if (sys === null) throw new Error('no harvest');

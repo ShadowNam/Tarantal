@@ -2,7 +2,7 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|christmas|newyear|blikkies|makalani|treelife|colony|namiblife|tells|baboons|reenbui|braai
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|christmas|newyear|blikkies|makalani|treelife|colony|namiblife|tells|baboons|reenbui|braai|harvest|harvest2
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
 //                         range = the Skietbaan's steel plate (24 Oct update),
@@ -67,6 +67,8 @@ import { renderBaboonSheet } from './baboons';
 import { BABOON_GROUP, BABOON_SHEET } from '../../src/game/view/baboon/baboonKeys';
 import { renderHarvestSheet } from './harvest';
 import { HARVEST_SHEET } from '../../src/game/view/harvest/harvestKeys';
+import { HARVEST2_SHEET } from '../../src/game/view/harvest/harvest2Keys';
+import { renderHarvest2Sheet } from './harvest2';
 import { TELL_SHEET } from '../../src/game/view/tell/tellSheet';
 import { renderColonySheet } from './colony';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
@@ -888,6 +890,20 @@ if (wants('harvest') && !hdOnly) {
     );
     rmSync(join(hdSrc, 'sprites', `${HARVEST_SHEET}.png`), { force: true });
     console.log(`sprites/${HARVEST_SHEET}`);
+  }
+}
+if ((wants('harvest') || only === 'harvest2') && !hdOnly) {
+  // v1.18 (D-081): the Harvest's Phase 2 sheet at 1× in the Harvest map's own group, no HD twin
+  // (STANDARD_IN_HD_KEYS: ≥ 0.86 texture px per px on screen; the Harvest's HD hunt is tight).
+  const png = join(src, 'sprites', `${HARVEST2_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${HARVEST2_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderHarvest2Sheet(1), HARVEST_COLOURS));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
+    );
+    console.log(`sprites/${HARVEST2_SHEET}`);
   }
 }
 if (wants('treelife') && !hdOnly) {
