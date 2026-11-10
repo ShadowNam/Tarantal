@@ -7,6 +7,8 @@ import type { SimState } from '../../../sim/types';
 import { coreWidth } from '../../../sim/world';
 import type { ParallaxView } from '../ParallaxView';
 import { windBars } from '../../ui/windMeter';
+import { designSize } from '../../layout';
+import { inViewX, VIEW_CULL_MARGIN_PX } from '../viewCull';
 import { grassLean } from './windGrass';
 
 export interface WindGrassOptions {
@@ -21,6 +23,8 @@ export interface WindGrassOptions {
 
 const SPACING = 300;
 const BLADES = 5;
+/** How far a tuft reaches either side of its foot, bowed right over (design px). */
+const TUFT_REACH = 80;
 
 export class WindGrassView {
   private readonly tufts: Phaser.GameObjects.Graphics[] = [];
@@ -59,10 +63,15 @@ export class WindGrassView {
     const show = w !== null;
     const lean = w === null ? null : grassLean(w.dir, w.strength, this.o.exponent);
     const sec = this.o.now() / 1000;
+    // Perf: a tuft off screen isn't drawn (a Graphics re-strokes its blades every frame it is).
+    const root = this.o.parallax.plane('near').root;
+    const k = root.scaleX;
+    const width = designSize().width;
     for (let i = 0; i < this.tufts.length; i++) {
       const g = this.tufts[i];
       if (g === undefined) continue;
-      g.setVisible(show);
+      const on = show && inViewX(root.x + g.x * k, TUFT_REACH * k, width, VIEW_CULL_MARGIN_PX);
+      if (g.visible !== on) g.setVisible(on);
       if (lean === null) continue;
       const flutter = this.o.reducedMotion
         ? 0
