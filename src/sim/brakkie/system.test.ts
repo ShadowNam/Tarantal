@@ -829,6 +829,24 @@ describe('the Jag, Brakkie! card (v1.20, D-085)', () => {
     expect(r.sys.canJag()).toBe(false);
   });
 
+  it('the clock counts his hunting time: it runs while he looks and chases, holds while he fetches', () => {
+    const r = rig(49);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.sys.jag(3);
+    // Looking round (no prey yet): the clock runs.
+    expect(r.sys.jagHeld()).toBe(false);
+    // A shot bird: he fetches it, the card's clock holds.
+    r.sys.bagged('near', towardCentre(r));
+    r.until((v) => v.phase === 'fetch', 60 * 5);
+    expect(r.sys.jagHeld()).toBe(true);
+    r.until((v) => v.phase === 'away', 60 * 20);
+    expect(r.sys.jagHeld()).toBe(true);
+    // Back out with prey about: the chase counts.
+    withPrey(r);
+    r.until((v) => v.phase === 'hunt', 60 * 20);
+    expect(r.sys.jagHeld()).toBe(false);
+  });
+
   it('is deterministic: the same seed and prey give the same events', () => {
     const go = (): string => {
       const r = rig(48);

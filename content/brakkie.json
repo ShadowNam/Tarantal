@@ -65,7 +65,7 @@
   "react": { "seconds": 0.8, "minGapSeconds": 8, "tiltMisses": 3 },
   "jag": {
     "creatures": ["tarentaal", "tarentaal_wit", "tarentaal_lavendel"],
-    "maxDxPx": 700,
+    "maxDxPx": 1400,
     "sprintPx": 1250,
     "pouncePx": 110,
     "pounceSeconds": 0.45,
