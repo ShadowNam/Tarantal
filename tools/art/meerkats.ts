@@ -11,6 +11,19 @@
 //   catch-light, a pale brow, a short tapering muzzle with a small nose and a mouth line, low
 //   crescent ears and full, fluffy cheeks;
 // - the pup is rounder and fluffier, with a bigger head.
+// v1.19 (D-084) pass (the owner: "the meerkat needs to get better graphics"), same frames, cells
+// and anchors:
+// - the sentinel stands slim and upright on its hind feet, a pear-shaped body (full at the belly,
+//   narrow at the chest), the tail lying on the sand behind as the third leg of a tripod, its
+//   dark tip turned up; the elbows bent and the hands held at the chest, wrists drooping, with
+//   small dark claws;
+// - the "sunglasses": a dark patch round each eye drawn out toward the nose, the eye a small dark
+//   almond with a catch-light, a pale brow; small dark crescent ears set low at the back of the
+//   head; a long tapering snout with a darker bridge and a dark nose;
+// - a pale cream face, chest and belly, a darker grizzled back and flanks, and ragged dark bands
+//   across the lower back (shorter toward the shoulders);
+// - slimmer legs and arms, haunches without a highlight (they sit back into the body), and every
+//   tail kept inside its cell.
 // Coordinates: design px at the near plane, the feet (or a hole's rim) at (0, 0), facing right,
 // y down.
 import {
@@ -30,17 +43,17 @@ import { el, ellipseD, g, polyD, prng, r2, smoothD, svgDoc } from './svg';
 type P = readonly [number, number];
 
 const C = {
-  furLit: '#E6C493',
-  fur: '#BC966A',
-  furMid: '#A0805C',
-  furShade: '#735C45',
+  furLit: '#ECD3A6',
+  fur: '#C29E74',
+  furMid: '#97795A',
+  furShade: '#6A5440',
   furDark: '#5A4635',
   edge: '#4A3628',
-  band: '#4C3A2B',
-  cream: '#F5E8CE',
+  band: '#3B2C20',
+  cream: '#F8EDD6',
   creamShade: '#DCC6A0',
   brow: '#F7EEDB',
-  mask: '#231912',
+  mask: '#1E1510',
   ear: '#2E2119',
   nose: '#1A130E',
   eye: '#2B1A0E',
@@ -197,6 +210,8 @@ interface Part {
   readonly under?: readonly string[];
   /** Drawn inside the part, over the fur strokes (bands). */
   readonly over?: readonly string[];
+  /** Skip the top-left highlight (a haunch that should sit back into the body). */
+  readonly unlit?: boolean;
   readonly seed: number;
 }
 
@@ -274,7 +289,7 @@ function layer(parts: readonly Part[]): string {
       g(
         { 'clip-path': `url(#${id})` },
         fill(d, 'url(#shade)'),
-        fill(d, 'url(#lit)'),
+        ...(p.unlit === true ? [] : [fill(d, 'url(#lit)')]),
         ...(p.under ?? []),
         strokes(p),
         ...(p.over ?? []),
@@ -413,26 +428,38 @@ function torso(t: Torso): Part {
     const vw = prof(t.belly, s);
     back.push(add(p, mul(nb, prof(t.back, s))));
     belly.push(add(p, mul(nb, -vw)));
-    creamIn.push(add(p, mul(nb, -vw * (0.9 - 0.95 * s))));
+    creamIn.push(add(p, mul(nb, -vw * (0.55 - 0.7 * s))));
   }
   const { p: r0, d: rd } = bez(t.hip, t.mid, t.chest, 0);
   const rump = add(r0, mul(rd, -Math.max(t.back[0], t.belly[0]) * 0.9));
   const { p: c0, d: cd } = bez(t.hip, t.mid, t.chest, 1);
   const cap = add(c0, mul(cd, Math.max(t.back[2], t.belly[2]) * 0.75));
+  // Dark transverse bands across the lower back (the hip end), fading toward the shoulders,
+  // and a darker flank between the back and the pale belly.
   const bands: string[] = [];
+  const flank: P[] = [];
   const nb = t.bands ?? 6;
+  const brnd = prng(t.seed + 71);
   for (let i = 0; i < nb; i++) {
-    const s = 0.18 + (i / Math.max(1, nb - 1)) * 0.6;
+    const s = 0.06 + (i / Math.max(1, nb - 1)) * 0.46 + (brnd() - 0.5) * 0.03;
     const { p, d } = bez(t.hip, t.mid, t.chest, s);
     const n: P = [d[1], -d[0]];
     const w = prof(t.back, s);
+    // Shorter bands toward the shoulders; each a little ragged.
+    const reach = 0.25 + (1 - i / Math.max(1, nb - 1)) * 0.35 + brnd() * 0.15;
     bands.push(
       quad(
-        add(p, mul(n, w * 1.1)),
-        add(add(p, mul(n, w * 0.65)), mul(d, 1.6)),
-        add(add(p, mul(n, w * 0.2)), mul(d, -2)),
+        add(p, mul(n, w * 1.15)),
+        add(add(p, mul(n, w * (1.1 - reach * 0.6))), mul(d, 1.2 + brnd())),
+        add(add(p, mul(n, w * (1.1 - reach))), mul(d, -1.4)),
       ),
     );
+  }
+  const backLine: P[] = [];
+  for (let i = 0; i <= N; i++) {
+    const { p, d } = bez(t.hip, t.mid, t.chest, i / N);
+    flank.push(add(p, mul([-d[1], d[0]], prof(t.belly, i / N) * 0.15)));
+    backLine.push(add(p, mul([d[1], -d[0]], prof(t.back, i / N) * 0.85)));
   }
   const cream = smoothD(
     [...creamIn.slice(1), cap, ...[...belly].reverse().slice(0, N - 1)],
@@ -445,8 +472,13 @@ function torso(t: Torso): Part {
     flow: norm(sub(t.hip, t.chest)),
     seed: t.seed,
     axis: { a: t.chest, b: t.hip, half: Math.max(...t.back, ...t.belly), n: 38 },
-    under: [fill(cream, 'url(#cream)', { filter: 'url(#soft)' })],
-    over: [line(bands.join(''), C.band, 2, 0.42)],
+    under: [
+      // The grizzled darker back, then the darker flank above the pale belly.
+      line(smoothD(backLine, false, 1), C.furShade, Math.max(...t.back) * 0.8, 0.38),
+      line(smoothD(flank, false, 1), C.furShade, Math.max(...t.belly) * 0.5, 0.3),
+      fill(cream, 'url(#cream)', { filter: 'url(#soft)' }),
+    ],
+    over: [line(bands.join(''), C.band, 2.4, 0.68)],
   };
 }
 
@@ -464,49 +496,71 @@ interface HeadOpts {
   readonly amp?: number;
 }
 
-/** A teardrop mask round an eye, its point sloping down toward the nose; the almond eye with a
- *  catch-light, and the pale brow above. Local coordinates (the caller places them). */
-function eyeParts(T: (pts: readonly P[]) => P[], centre: P, toNose: P, k: number): string {
+/** The "sunglasses": a dark patch round the eye, round at the back and drawn out toward the
+ *  nose; inside it a small dark almond eye with a bright catch-light, and the pale brow above.
+ *  Local coordinates (the caller places them). */
+function eyeParts(
+  T: (pts: readonly P[]) => P[],
+  centre: P,
+  toNose: P,
+  k: number,
+  size = 1,
+): string {
   const q = (p: P): P => T([p])[0] ?? centre;
   const [cx, cy] = centre;
   const [nx, ny] = toNose;
-  // The teardrop: round over the eye, pointed toward the nose.
+  const nl = Math.hypot(nx, ny) || 1;
+  const [ux, uy] = [nx / nl, ny / nl];
+  // Across the patch (perpendicular to the eye → nose line).
+  const [vx, vy] = [-uy, ux];
+  const at = (u: number, v: number): P => [
+    cx + (ux * u + vx * v) * size,
+    cy + (uy * u + vy * v) * size,
+  ];
   const mask = T([
-    [cx - nx * 0.6 - 1.2, cy - 3.2],
-    [cx + 1.6 - nx * 0.2, cy - 3.6],
-    [cx + 3.2 - nx * 0.3, cy - 1.2],
-    [cx + nx * 0.9, cy + ny * 0.9 + 1],
-    [cx + nx * 1.25, cy + ny * 1.25],
-    [cx - 2.6, cy + 1.4],
-    [cx - 3.4 - nx * 0.2, cy - 1.2],
+    at(-3.6, 0),
+    at(-2.8, -2.9),
+    at(0, -3.6),
+    at(2.9, -3),
+    at((nl * 0.85) / size, -1.4),
+    at((nl * 1.15) / size, 0.2),
+    at((nl * 0.75) / size, 1.9),
+    at(2.4, 3.2),
+    at(-0.6, 3.5),
+    at(-3, 2.4),
   ]);
   const eye = q(centre);
-  const glint = q([cx - 0.6, cy - 0.7]);
-  const browA = q([cx - 3.6, cy - 4.4]);
-  const browC = q([cx, cy - 5.8]);
-  const browB = q([cx + 3.4, cy - 4.4]);
-  const tilt = (Math.atan2(ny, nx) * 180) / Math.PI;
+  const eyeAng = q(at(1, 0));
+  const glint = q([cx - 0.5, cy - 0.75]);
+  const browA = q([cx - 3.8, cy - 3.4]);
+  const browC = q([cx + 0.2, cy - 6.2]);
+  const browB = q([cx + 4, cy - 3.8]);
+  const ang = (Math.atan2(eyeAng[1] - eye[1], eyeAng[0] - eye[0]) * 180) / Math.PI;
   return g(
     {},
-    line(quad(browA, browC, browB), C.brow, 1.2, 0.95),
+    line(quad(browA, browC, browB), C.brow, 1.7 * k, 0.95),
     fill(smoothD(mask, true, 1), C.mask),
     el('ellipse', {
       cx: eye[0],
       cy: eye[1],
-      rx: 1.9 * k,
-      ry: 1.2 * k,
+      rx: 1.85 * k,
+      ry: 1.25 * k,
       fill: C.eye,
-      transform: `rotate(${r2(tilt * 0.35)} ${r2(eye[0])} ${r2(eye[1])})`,
+      stroke: '#5A3B22',
+      'stroke-width': 0.35,
+      transform: `rotate(${r2(ang * 0.5)} ${r2(eye[0])} ${r2(eye[1])})`,
     }),
-    fill(ellipseD(glint[0], glint[1], 0.62 * k, 0.62 * k), C.glint),
+    fill(ellipseD(glint[0], glint[1], 0.7 * k, 0.7 * k), C.glint),
   );
 }
 
-/** A small crescent ear, set low at the side of the head. */
+/** A small dark crescent ear, set low at the side of the head (opening forward). */
 function ear(at: P, s: number, k: number): string {
   const [x, y] = at;
+  const X = (u: number): string => r2(x + s * u * k);
+  const Y = (v: number): string => r2(y + v * k);
   return fill(
-    `M${r2(x)} ${r2(y - 3 * k)}Q${r2(x + s * 3.6 * k)} ${r2(y - 0.4 * k)} ${r2(x + s * 0.4 * k)} ${r2(y + 3 * k)}Q${r2(x + s * 1.6 * k)} ${r2(y)} ${r2(x)} ${r2(y - 3 * k)}Z`,
+    `M${X(0.6)} ${Y(-3.4)}Q${X(-3.8)} ${Y(-2)} ${X(-1.4)} ${Y(3.2)}Q${X(-0.9)} ${Y(-0.2)} ${X(0.6)} ${Y(-3.4)}Z`,
     C.ear,
   );
 }
@@ -571,12 +625,12 @@ function head(o: HeadOpts): { parts: Part[]; face: string } {
     const mouthB = q([1.8, 5.2]);
     const face = g(
       {},
-      ear(q([-12.6, -8]), -1, k),
-      ear(q([12.6, -8]), 1, k),
+      ear(q([-11.4, -7]), 1, k * 1.2),
+      ear(q([11.4, -7]), -1, k * 1.2),
       // Darker fur down the bridge of the nose.
       line(quad(q([0, -14]), q([0.4, -6]), q([0, 0.6])), C.furMid, 2.2 * k, 0.55),
-      eyeParts(T, [-5.2, -9], [3.4, 5.2], k),
-      eyeParts(T, [5.2, -9], [-3.4, 5.2], k),
+      eyeParts(T, [-5, -9.4], [2.2, 4.6], k, 0.82),
+      eyeParts(T, [5, -9.4], [-2.2, 4.6], k, 0.82),
       fill(smoothD([q([-2, 1.8]), q([2, 1.8]), q([0.9, 3.8]), q([-0.9, 3.8])], true, 1), C.nose),
       fill(ellipseD(nose[0] - 0.5 * k, nose[1] - 0.6 * k, 0.5 * k, 0.35 * k), C.glint, {
         opacity: 0.5,
@@ -593,40 +647,45 @@ function head(o: HeadOpts): { parts: Part[]; face: string } {
   }
   const T = (pts: readonly P[]): P[] => place(pts, o.at, o.tilt, k, o.dir);
   const q = (p: P): P => T([p])[0] ?? o.at;
+  // A round crown, then a long, tapering, slightly up-tilted snout to the nose.
   const skull = T([
-    [-7, -2],
-    [-8, -10],
-    [-3, -15],
-    [5, -14.5],
-    [11, -10.5],
-    [15.6, -6.4],
-    [19, -2.8],
-    [19.8, -0.6],
-    [17.4, 1.8],
-    [11, 3.6],
-    [3, 5],
-    [-4.6, 3.4],
+    [-6, -1],
+    [-8, -8],
+    [-5, -14.5],
+    [2, -17],
+    [8.5, -15],
+    [13, -10.5],
+    [18, -7],
+    [22.4, -4.4],
+    [22.6, -2.4],
+    [20.4, -1],
+    [15, 0.8],
+    [9, 3],
+    [2, 5],
+    [-4, 3.6],
   ]);
   const parts: Part[] = [
     {
       pts: skull,
-      // The muzzle (its front third) stays smooth; crown, nape and cheek are fluffy.
-      amp: (p) => ((p[0] - o.at[0]) * o.dir > 12 * k ? 0 : amp),
+      // The snout stays smooth; crown, nape and cheek are fluffy.
+      amp: (p) => ((p[0] - o.at[0]) * o.dir > 11 * k ? 0 : amp),
       flow: rot([-o.dir, 0.5], o.tilt * o.dir),
       seed: o.seed,
-      axis: { a: q([14, -6]), b: q([-6, -4]), half: 7 * k, n: 12 },
+      axis: { a: q([12, -10]), b: q([-6, -6]), half: 6 * k, n: 12 },
       under: [
+        // The pale face: cheek, jaw and the underside of the snout.
         fill(
           smoothD(
             T([
-              [0, -3],
-              [8, -6],
-              [14, -5.4],
-              [19.4, -1.4],
-              [17, 1.6],
-              [10, 3.4],
-              [2, 4.6],
-              [-3, 2],
+              [-1, -4],
+              [6, -6],
+              [13, -6.2],
+              [19, -4],
+              [22.4, -2.6],
+              [20, -0.8],
+              [13, 1.4],
+              [5, 4.4],
+              [-2, 3],
             ]),
             true,
             1,
@@ -634,64 +693,95 @@ function head(o: HeadOpts): { parts: Part[]; face: string } {
           'url(#cream)',
           { filter: 'url(#soft)' },
         ),
+        // A darker bridge down the top of the snout.
+        line(
+          smoothD(
+            T([
+              [8, -14.6],
+              [14, -10.2],
+              [21.6, -4.6],
+            ]),
+            false,
+            1,
+          ),
+          C.furMid,
+          2 * k,
+          0.6,
+        ),
       ],
     },
-    // A full, fluffy cheek behind the jaw.
+    // A full, fluffy pale cheek behind the jaw.
     {
-      ...oval(q([2, 1]), 6.2 * k, 4.6 * k, 0, o.seed + 3, amp * 1.1, [-o.dir, 0.6]),
+      ...oval(q([2, 0.5]), 5.6 * k, 4.4 * k, 0, o.seed + 3, amp * 1.1, [-o.dir, 0.6]),
       base: 'url(#cream)',
     },
   ];
-  const nose = q([19, -1.2]);
+  const nose = q([22, -3.2]);
   const face = g(
     {},
-    ear(q([-3.2, -6.6]), -o.dir, k),
-    eyeParts(T, [8.4, -7.6], [4.4, 3.6], k),
-    fill(ellipseD(nose[0], nose[1], 1.7 * k, 1.4 * k), C.nose),
+    ear(q([-2.4, -6.4]), o.dir, k * 1.25),
+    eyeParts(T, [9.4, -8.6], [6.4, 3.4], k),
+    fill(
+      smoothD([q([20.4, -4.8]), q([22.9, -4.6]), q([23.2, -2.2]), q([21, -1.8])], true, 1),
+      C.nose,
+    ),
+    fill(ellipseD(nose[0], nose[1] - 1 * k, 0.5 * k, 0.32 * k), C.glint, { opacity: 0.45 }),
     o.mouth === true
-      ? fill(ellipseD(q([15.6, 2.6])[0], q([15.6, 2.6])[1], 2.6 * k, 1.8 * k), C.mouth)
-      : line(quad(q([17.6, 1.4]), q([15.6, 2.6]), q([13.2, 2.4])), C.mouth, 0.7),
+      ? fill(ellipseD(q([17.4, 1])[0], q([17.4, 1])[1], 2.6 * k, 1.7 * k), C.mouth)
+      : line(quad(q([20.6, -0.9]), q([18, 0.6]), q([14.6, 1.2])), C.mouth, 0.7),
   );
   return { parts, face };
 }
 
 // --- poses ---------------------------------------------------------------------------------------
 
-/** Standing tall (the sentinel and a dash's halfway stop): chin up, paws together at the belly. */
+/** Standing tall (the sentinel and a dash's halfway stop): up on the hind feet, the tail
+ *  resting on the sand behind as the third leg of a tripod, the body a slim pear (full at the
+ *  belly, narrow at the chest), chin up, the elbows bent and the hands held at the chest. */
 function upright(look: -1 | 0 | 1, seed: number, opts: { mouth?: boolean } = {}): string {
   const body = torso({
-    hip: [-3, -22],
-    mid: [-3, -58],
-    chest: [2, -92],
-    back: [15, 13, 9],
-    belly: [10, 12, 9],
+    hip: [-4, -20],
+    mid: [-3, -56],
+    chest: [3, -90],
+    back: [14, 11, 7.5],
+    belly: [12.5, 12.5, 7.5],
     seed,
   });
-  const neck: Part = { ...oval([3, -96], 8, 10, 0, seed + 1, 1.4, [0, 1]), base: 'url(#fur)' };
+  const neck: Part = { ...oval([4, -95], 7, 9, 6, seed + 1, 1.3, [0, 1]), base: 'url(#fur)' };
   const view = look === 0 ? 'front' : 'side';
   const dir: 1 | -1 = look < 0 ? -1 : 1;
   const h = head({
-    at: view === 'front' ? [3, -100] : [dir > 0 ? 2 : 5, -103],
-    tilt: view === 'front' ? 0 : -16,
+    at: view === 'front' ? [4, -100] : [dir > 0 ? 3 : 6, -102],
+    tilt: view === 'front' ? 0 : -14,
     view,
     dir,
     seed: seed + 2,
     ...(opts.mouth === true ? { mouth: true } : {}),
   });
-  const tail = tailPart([-10, -9], [-30, 0], [-56, -3], 5.4, seed + 4);
+  // The tail leaves the rump low and lies on the sand, its dark tip turned up a little.
+  const tail = tailPart([-12, -12], [-28, 0.5], [-46, -3.5], 5.6, seed + 4);
   // The haunch: a fur oval that blends into the body (same layer, no outline between).
-  const haunch = oval([-4, -21], 10, 14, 8, seed + 5, 1.8, [0.2, 1]);
-  const foot = limbPart([0, -6], [5, -3], [13, -1.5], 6, 4, seed + 6, 'url(#fur)');
-  const armFar = limbPart([2, -84], [10, -73], [6, -64], 6.2, 4.4, seed + 7);
-  const armNear = limbPart([9, -84], [15, -74], [10, -63], 6.6, 4.6, seed + 8);
+  const haunch: Part = {
+    ...oval([-6, -16], 8, 10.5, 14, seed + 5, 1.6, [0.2, 1]),
+    unlit: true,
+  };
+  // The long hind foot flat on the sand, toes forward.
+  const foot = limbPart([-4, -5], [4, -2.6], [14, -1.6], 6, 3.8, seed + 6, 'url(#fur)');
+  // Arms: shoulder, a bent elbow low and forward, the hand up at the chest with the wrist
+  // drooping (the far arm a shade darker).
+  const armFar = limbPart([4, -82], [8, -71], [14, -75], 4.2, 2.6, seed + 7, C.furMid);
+  const armNear: Part = {
+    ...limbPart([7, -84], [11, -71], [17.5, -74.5], 4.6, 2.8, seed + 8, C.fur),
+    unlit: true,
+  };
   return g(
     {},
-    shadow(24),
+    shadow(26, -8),
     figure([tail.part, foot, body, haunch, neck, ...h.parts], [armFar, armNear]),
     tail.tip,
-    claws([13, -1.4], 0),
-    claws([6.6, -62.4], 70, 0.9),
-    claws([10.6, -61.6], 80, 0.9),
+    claws([14.4, -1.4], 0),
+    claws([14.6, -74], 110, 0.6),
+    claws([18, -73.6], 105, 0.65),
     h.face,
   );
 }
@@ -699,37 +789,41 @@ function upright(look: -1 | 0 | 1, seed: number, opts: { mouth?: boolean } = {})
 /** Front-facing, for the photo row: shorter than the side view, the cream belly softly shaded,
  *  haunches and hind feet, the tail curled round on the sand, paws together, eyes on the camera. */
 function front(seed: number, opts: { mouth?: boolean } = {}): string {
+  // A slim pear: full at the belly, narrow at the chest and neck.
   const body: Part = {
     pts: [
       [-10, -2],
-      [-17, -16],
-      [-18, -38],
-      [-15, -62],
-      [-10, -80],
-      [-6, -86],
-      [6, -86],
-      [10, -80],
-      [15, -62],
-      [18, -38],
-      [17, -16],
+      [-16, -14],
+      [-17.5, -34],
+      [-14.5, -58],
+      [-10, -76],
+      [-6.5, -86],
+      [6.5, -86],
+      [10, -76],
+      [14.5, -58],
+      [17.5, -34],
+      [16, -14],
       [10, -2],
     ],
     amp: 1.7,
     flow: [0, 1],
     seed,
-    axis: { a: [0, -84], b: [0, -6], half: 16, n: 44 },
+    axis: { a: [0, -84], b: [0, -6], half: 15, n: 44 },
     under: [
+      // Darker, grizzled sides.
+      fill(ellipseD(-13, -44, 6, 34), C.furShade, { opacity: 0.45, filter: 'url(#soft)' }),
+      fill(ellipseD(13, -44, 6, 34), C.furShade, { opacity: 0.55, filter: 'url(#soft)' }),
       fill(
         smoothD(
           [
-            [-8, -8],
-            [-11, -36],
-            [-9, -64],
+            [-7, -8],
+            [-10, -34],
+            [-8, -60],
             [-4, -82],
             [4, -82],
-            [9, -64],
-            [11, -36],
-            [8, -8],
+            [8, -60],
+            [10, -34],
+            [7, -8],
           ],
           true,
           1,
@@ -737,16 +831,14 @@ function front(seed: number, opts: { mouth?: boolean } = {}): string {
         'url(#cream)',
         { filter: 'url(#soft)' },
       ),
-      // Soft shading down the belly's sides.
-      fill(ellipseD(-10, -40, 4, 26), C.furShade, { opacity: 0.25, filter: 'url(#soft)' }),
-      fill(ellipseD(10, -40, 4, 26), C.furShade, { opacity: 0.35, filter: 'url(#soft)' }),
     ],
   };
-  const hl = oval([-11, -12], 8, 11, -10, seed + 5, 1.8, [0, 1]);
-  const hr = oval([11, -12], 8, 11, 10, seed + 6, 1.8, [0, 1]);
-  const fl = limbPart([-8, -4], [-9, -2], [-12, -1], 7, 6, seed + 9, 'url(#fur)');
-  const fr = limbPart([8, -4], [9, -2], [12, -1], 7, 6, seed + 10, 'url(#fur)');
-  const tail = tailPart([9, -5], [30, 1], [46, -4], 5, seed + 4);
+  const hl: Part = { ...oval([-11, -11], 7, 10, -10, seed + 5, 1.6, [0, 1]), unlit: true };
+  const hr: Part = { ...oval([11, -11], 7, 10, 10, seed + 6, 1.6, [0, 1]), unlit: true };
+  const fl = limbPart([-8, -4], [-9, -2], [-12, -1], 6.4, 5.4, seed + 9, 'url(#fur)');
+  const fr = limbPart([8, -4], [9, -2], [12, -1], 6.4, 5.4, seed + 10, 'url(#fur)');
+  // The tail comes round on the sand behind one foot (the tripod's third leg).
+  const tail = tailPart([9, -5], [28, 1], [42, -3.5], 5, seed + 4);
   const h = head({
     at: [0, -88],
     tilt: 0,
@@ -755,8 +847,9 @@ function front(seed: number, opts: { mouth?: boolean } = {}): string {
     seed: seed + 2,
     ...(opts.mouth === true ? { mouth: true } : {}),
   });
-  const armL = limbPart([-10, -76], [-12, -64], [-3, -56], 6.4, 4.6, seed + 7);
-  const armR = limbPart([10, -76], [12, -64], [3, -56], 6.4, 4.6, seed + 8);
+  // Elbows out and low, the hands drooping together at the chest.
+  const armL = limbPart([-9, -76], [-11, -64], [-3, -66], 5, 3.4, seed + 7);
+  const armR = limbPart([9, -76], [11, -64], [3, -66], 5, 3.4, seed + 8);
   return g(
     {},
     shadow(24),
@@ -764,8 +857,8 @@ function front(seed: number, opts: { mouth?: boolean } = {}): string {
     tail.tip,
     claws([-13, -1], 180, 0.9),
     claws([13, -1], 0, 0.9),
-    claws([-2, -55], 90, 0.85),
-    claws([2, -55], 90, 0.85),
+    claws([-2.6, -64.6], 95, 0.6),
+    claws([2.6, -64.6], 85, 0.6),
     h.face,
   );
 }
@@ -792,11 +885,11 @@ function sit(seed: number, k = 1, pup = false): string {
     seed: seed + 2,
     amp: pup ? 2.2 : 1.4,
   });
-  const tail = tailPart([-18, -6], [-36, 0], [-56, -2], 5, seed + 4);
-  const haunch = oval([-8, -14], 12, 10, -20, seed + 5, amp, [0.4, 1]);
+  const tail = tailPart([-16, -8], [-32, 0.5], [-47, -3], 5, seed + 4);
+  const haunch: Part = { ...oval([-8, -14], 12, 10, -20, seed + 5, amp, [0.4, 1]), unlit: true };
   const hind = limbPart([-8, -6], [0, -2], [6, -1.5], 7, 4.4, seed + 6, 'url(#fur)');
-  const far = limbPart([12, -34], [17, -18], [18, -1.5], 6, 4.2, seed + 7, C.furMid);
-  const near = limbPart([16, -36], [21, -18], [23, -1.5], 6.2, 4.4, seed + 8);
+  const far = limbPart([12, -34], [15, -18], [18, -1.5], 4.8, 3.2, seed + 7, C.furMid);
+  const near = limbPart([16, -36], [19, -18], [23, -1.5], 5, 3.4, seed + 8);
   return g(
     { transform: k === 1 ? '' : `scale(${k})` },
     shadow(26),
@@ -819,10 +912,10 @@ function sunbathe(seed: number): string {
     seed,
   });
   const h = head({ at: [-10, -66], tilt: -38, view: 'side', dir: 1, seed: seed + 2 });
-  const tail = tailPart([-10, -6], [-30, 0], [-52, -2], 5, seed + 4);
-  const haunch = oval([-2, -12], 12, 9, -10, seed + 5, 1.8, [0.3, 1]);
+  const tail = tailPart([-10, -7], [-28, 0.5], [-46, -3], 5, seed + 4);
+  const haunch: Part = { ...oval([-2, -12], 12, 9, -10, seed + 5, 1.8, [0.3, 1]), unlit: true };
   const hind = limbPart([2, -8], [8, -3], [15, -1.5], 7, 4.4, seed + 6, 'url(#fur)');
-  const arm = limbPart([-6, -54], [6, -46], [8, -35], 6, 4.2, seed + 7);
+  const arm = limbPart([-6, -54], [5, -46], [8, -35], 5, 3.4, seed + 7);
   return g(
     {},
     shadow(26),
@@ -846,11 +939,11 @@ function dig(phase: 0 | 1, seed: number): string {
     seed,
   });
   const h = head({ at: [18, -22], tilt: 34, view: 'side', dir: 1, seed: seed + 2 });
-  const tail = tailPart([-24, -32], [-40, -30], [-56, -16], 5, seed + 4);
-  const haunch = oval([-13, -24], 10, 11, 20, seed + 5, 1.8, [0.3, 1]);
-  const hind = limbPart([-14, -18], [-19, -9], [-12, -1.5], 7.4, 4.4, seed + 6, 'url(#fur)');
-  const far = limbPart([10, -18], [18, -12], [22 - reach, -1.5], 6, 4.2, seed + 7, C.furMid);
-  const near = limbPart([14, -18], [24 + reach, -11], [27 + reach, -1.5], 6.4, 4.4, seed + 8);
+  const tail = tailPart([-22, -32], [-38, -33], [-48, -20], 5, seed + 4);
+  const haunch: Part = { ...oval([-13, -24], 10, 11, 20, seed + 5, 1.8, [0.3, 1]), unlit: true };
+  const hind = limbPart([-14, -18], [-19, -9], [-12, -1.5], 6.4, 3.6, seed + 6, 'url(#fur)');
+  const far = limbPart([10, -18], [18, -12], [22 - reach, -1.5], 4.8, 3.2, seed + 7, C.furMid);
+  const near = limbPart([14, -18], [24 + reach, -11], [27 + reach, -1.5], 5.2, 3.4, seed + 8);
   return g(
     {},
     shadow(30),
@@ -959,13 +1052,13 @@ function run(phase: number, seed: number, k = 1, pup = false): string {
     figure(
       [
         tail.part,
-        limbPart(ha, hm, hb, 8, 4, seed + 6, C.furMid),
-        limbPart(fa, fm, fb, 6, 3.8, seed + 7, C.furMid),
+        limbPart(ha, hm, hb, 6.6, 3.2, seed + 6, C.furMid),
+        limbPart(fa, fm, fb, 4.8, 3, seed + 7, C.furMid),
         body,
         oval([-16, y + 1], 10, 9, 10, seed + 5, amp, [0.4, 1]),
         ...h.parts,
       ],
-      [limbPart(na, nm, nbp, 9, 4.2, seed + 8), limbPart(ea, em, eb, 6.4, 4, seed + 9)],
+      [limbPart(na, nm, nbp, 7.4, 3.4, seed + 8), limbPart(ea, em, eb, 5.2, 3.2, seed + 9)],
     ),
     tail.tip,
     claws(nbp, 0, 0.8),
