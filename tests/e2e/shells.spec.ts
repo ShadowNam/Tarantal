@@ -80,9 +80,16 @@ interface Fired {
  * tap when the gun is empty), watching the shell's chip and the effects' counters every frame.
  * Bounded by the goal and by frames.
  */
-async function fireShells(page: Page, touch: boolean, id: string, n: number): Promise<Fired> {
+async function fireShells(
+  page: Page,
+  touch: boolean,
+  id: string,
+  n: number,
+  /** Before this shot (0-based), spend the flash budget (__TM_SPEND_FLASHES__): it must be small. */
+  spendBefore = -1,
+): Promise<Fired> {
   return page.evaluate(
-    ([isTouch, want, count]) =>
+    ([isTouch, want, count, spendAt]) =>
       new Promise<Fired>((resolve, reject) => {
         const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
         const h = window.__TM__;
@@ -151,14 +158,17 @@ async function fireShells(page: Page, touch: boolean, id: string, n: number): Pr
           if (out.shots < count && h.shellFx !== undefined && h.tick - lastTick >= 8) {
             lastTick = h.tick;
             if (h.shells === 0 && !h.reloading) tap(belt.x + belt.w / 2, belt.y + belt.h / 2);
-            else if (!h.reloading)
+            else if (!h.reloading) {
+              if (out.shots === spendAt)
+                (window as { __TM_SPEND_FLASHES__?: () => void }).__TM_SPEND_FLASHES__?.();
               tap(h.designWidth * (0.38 + 0.06 * (out.shots % 4)), h.designHeight * 0.3);
+            }
           }
           requestAnimationFrame(loop);
         };
         loop();
       }),
-    [touch, id, n] as const,
+    [touch, id, n, spendBefore] as const,
   );
 }
 
@@ -173,8 +183,13 @@ test("Dragon's Breath: its chip counts the shells, each shot throws the flame co
   await startHunt(page, touch);
   await pickUp(page, touch, 'dragon_breath');
   const n = shellsOf('dragon_breath');
-  const r = await fireShells(page, touch, 'dragon_breath', n);
+  // The last shell follows three large flashes in the same second (spent by the test hook): the
+  // limiter must draw it small, however fast or slow the machine is.
+  const r = await fireShells(page, touch, 'dragon_breath', n, n - 1);
   expect(r.shots).toBe(n);
+  expect(r.small, 'the cone after three large flashes in a second is small').toBeGreaterThanOrEqual(
+    1,
+  );
   expect(r.icon).toBe('ui/pu_dragon_breath');
   expect(r.counts[0]).toBe(`×${n}`);
   expect(r.counts.length).toBeGreaterThan(1);

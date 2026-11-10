@@ -3205,6 +3205,12 @@ export class HuntScene extends Phaser.Scene {
     if (this.shellFx !== null || this.shellFxLoading) return;
     this.shellFxLoading = true;
     const hook = this.ctx.hook;
+    // e2e only (v1.19, D-084): this second's large flashes spent (as lightning would), so the
+    // next cone within a second must be the small one, whatever the machine's speed.
+    if (hook)
+      (window as { __TM_SPEND_FLASHES__?: () => void }).__TM_SPEND_FLASHES__ = () => {
+        this.ctx.flashes.exhaust(performance.now());
+      };
     void import('../view/shells/ShellFx').then((m) => {
       this.shellFxLoading = false;
       if (!this.sys.isActive()) return;

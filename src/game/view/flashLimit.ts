@@ -24,6 +24,14 @@ export class FlashLimiter {
     this.last = { at: nowMs, granted };
     return granted;
   }
+
+  /** e2e only (v1.19, D-084): this second's budget is spent now (as N strikes would): every
+   *  start in the next second is refused. */
+  exhaust(nowMs: number): void {
+    while (this.starts.length > 0 && nowMs - (this.starts[0] ?? 0) >= 1000) this.starts.shift();
+    while (this.starts.length < this.maxPerSecond) this.starts.push(nowMs);
+    this.last = { at: nowMs, granted: false };
+  }
 }
 
 /**
