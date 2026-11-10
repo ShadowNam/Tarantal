@@ -4929,6 +4929,86 @@ art's top on the canvas ~10 % higher above its feet, Save, reload, back, the tog
 ⇲ 1 in the game. Screenshots: `docs/art-preview/compare/sizes-admin-*.png`
 (`tests/e2e/art-preview-sizes-admin.spec.ts`, ART_PREVIEW=1).
 
+### D-087 — v1.22.2 The test hook's probes out of the measured frame; HD memory read live (10 Nov 2026)
+
+(D-083 is PR #127's, D-085 the v1.20 Brakkie job's.)
+
+**Why.** Two intermittent CI failures on main. (1) The Pixel 7 perf job's Christmas and New Year
+hunts on the Okavango (`perf: a Christmas in the sun hunt…`, `perf: a New Year countdown hunt…`)
+went over the 16.67 ms CPU budget at 4× throttle on 2 of 3 runs: Christmas 17.25 / 17.37 ms, New
+Year 18.51 / 17.73 ms (jobs 130011732496, 129903498851; the same tests read 13.4–13.7 ms on PR
+#130's run — CI runners differ by ~30 %). (2) `HD texture memory, title → hunt: namibie` (the
+cameo sheet "missing") and `…a Reënbui hunt on its heaviest map (okavango)` (Brakkie's sheet
+"missing", `brakkie undefined`) failed on PR #130's first run and on PR #133.
+
+**Measured (1).** A CDP CPU profile of main's Christmas hunt at 4× throttle on the
+pixel7-landscape project (a sourcemapped copy of the test build): of HuntScene.update's 2.8 s
+over ~360 frames, the test hook's texture sample (`sampleTextures`: on-screen boxes 101 ms, the
+far-herd probe 36, texture bytes 31, the largest textures 30, the HD count 10) took 221 ms and the
+crates' `drawn` check (`WorldView.crateDrawn` → `countShowing`, a walk of the whole display list per
+crate per frame) 175 ms. performance.now buckets (a local instrumented build) put the rest of the
+hook block — the on-screen spots of birds, flocks, secrets and crates, the special day's things and
+hats, the fruit, the crosshair's extent and the gun's bounds — at 0.44–0.63 ms a frame more. None
+of it is game work: `cpuFrameMs` (Phaser pre-step → post-render) counted it because it ran inside
+the frame. Muting every shape object's draw changed nothing (13.6 vs 13.6 ms), and the special
+days' own views stay cheap (Christmas 0.06, New Year 0.18 ms a frame), so no game-side cut was made.
+
+**Root cause (2).** The same texture sample ran only on frames whose sim tick was a multiple of 30.
+With several ticks a frame (software GL: ~15 at 4×; a few on CI's HD runs) a frame's tick can skip
+the multiples of 30 for long stretches — for good with an even step and an odd offset — so
+`textureTop`, `textureBytes`, `cameoTexture` and `brakkieTexture` could date from before the cameo
+or Brakkie sheet loaded, or from before the Karoo title's HD layers were purged. Then either the
+sample read 4 s later was stale (namibie in 18.9 s: 212.6 MB instead of ~230, no cameo sheet), or
+the spec's bounded wait for "two refreshes and no other area's HD layers" never saw a fresh
+`textureTop`, ran out after 90 s (`.catch(() => undefined)`), and the sample was taken on the tally
+of the 60 s hunt, after `finish()` had released Brakkie's and the cameos' sheets (the 1.4–1.6 min
+runs). The purge itself (refreshHd every 30 rendered frames, `purgeRetired`) was not at fault.
+
+**Decision.**
+- Hook entries that cost real work are worked out when a spec reads them (`src/game/lazyHook.ts`;
+  the hook exists only in test builds). A read happens between frames (a `page.evaluate`, a
+  `waitForFunction` poll, a page rAF callback), when the views hold what the last frame drew, so it
+  gets what the frame would have stored. `defineLazy` (read afresh on every read, title and tally
+  too): `textureBytes`, `textureTop`, `brakkieTexture`, `cameoTexture`, `gunAtlases`, `fauna`,
+  `graphics.hdTextures`, `graphics.bounds`. `LazyEntries` (at most once per hunt frame, from that
+  frame's state and views; a write — the resets at a hunt's start — reads back until the next
+  frame; when the hunt scene shuts down they keep the last frame's values, or their initial value
+  if the views are already gone): `verBirds`, `farBirds`, `targetBirds`, `flockSpots`,
+  `secretSpots`, `crateSpots` (with `drawn`), `specialBirds`, `harvestFlyovers`, `potjie`,
+  `hdProps`, `meerkats`, `cans`, `farCans`, `nuts`, `spook`, `fruit`, `treeLife`, `namibLife`,
+  `harvest`, `crosshair`, `gunRect`. The tally's and the shed's own writes of the texture entries
+  (the same texture manager) are gone. Cheap scalars, the zoom view (read by the frame counters) and
+  the views' own hook objects stay stored in the frame. Nothing the game draws or does changes; the
+  budget (16.67 ms) and the 4× throttle stay.
+- The HD memory specs (`perf.spec.ts`: the five areas, the Harvest, Christmas, New Year, Reënbui)
+  wait through one helper, `waitHdSettled`, which fails with what it saw (refreshes, scene, over,
+  the other areas' HD layers) when its 90 s run out, instead of sampling later; their hunts run
+  240 s (longer than every bounded wait) and each asserts the hunt is still running when sampled.
+  The assertions (≤ 256 MB, the sheet present, no other area's HD layers) are unchanged.
+
+**Results** (pixel7-landscape, `--workers=1`, this machine; main's build and this one interleaved,
+four runs each, CPU ms a frame at 4×):
+
+| Hunt | main | this change | |
+| --- | --- | --- | --- |
+| Christmas in the sun (Okavango, medium tier) | 15.12 (15.00, 15.28, 15.19, 15.02) | 14.07 (14.51, 14.32, 13.99, 13.46) | −1.05 |
+| New Year, fireworks at their most (Okavango, medium) | 15.03 (15.42, 15.02, 14.93, 14.76) | 13.39 (13.40, 13.63, 13.08, 13.43) | −1.64 |
+| Namibië mirage and angry weavers (low tier) | 17.60 (17.87, 17.79, 17.58, 17.18: all over) | 15.66 (15.44, 15.90, 15.83, 15.48) | −1.94 |
+
+The texture sample and the crates' check alone (an earlier step, three runs each) took Christmas
+from 15.75 to 14.84 and New Year from 15.34 to 14.38. CI's runners are ~15–25 % slower than this
+machine on these hunts and vary by ~30 % between runs, so the cut is ~1–2.3 ms there; a run as
+slow as the worst failing one (New Year 18.51 ms) would read ~16.5 ms. The HD memory specs read
+the same memory as before (namibie 230.8 MB, Reënbui 245.0 MB with Brakkie's sheet, Christmas
+240.3, New Year 241.5) and now settle in 12–25 s.
+
+**Specs re-run** (locally, `--workers=1 --retries=0`). All of `perf.spec.ts` on pixel7-landscape
+(29 passed: every 4× perf hunt, the nine HD memory tests, the braai tally's). Every spec that reads
+a changed entry (43 files, pixel7-landscape): all pass but `harvest.spec.ts` "from the title…",
+which fails the same way on main's build here (the Harvest's music and ambience not yet in
+`assets.recorded`; untouched by this change). Desktop Chromium: see the PR. Unit tests:
+`lazyHook.test.ts` (read on demand, once per frame, freeze, a view gone at freeze, writes).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
