@@ -361,6 +361,35 @@ describe('stopping them (v1.18, D-081)', () => {
   });
 });
 
+describe('coming up out of the veld (v1.18, D-081, review)', () => {
+  it('a back arrival has no hit shapes while it fades in (backFadeSeconds), then it has', () => {
+    const fade = secondsToTicks(P.backFadeSeconds);
+    for (const kind of ['warthog', 'piglet', 'baboon'] as const) {
+      // Far behind the fence, so the whole fade-in is on the approach.
+      const r = standalone([{ at: 0, kind, from: 'back', plane: 'mid' }]);
+      const shapes = (): number => {
+        let n = 0;
+        r.sys.extras(() => {
+          n++;
+        });
+        return n;
+      };
+      let seenHittable = false;
+      for (let i = 0; i < 60; i++) {
+        const a = r.step()[0];
+        if (a === undefined) throw new Error('no arrival');
+        const fading = a.phase === 'approach' && a.t < fade;
+        if (fading) expect(shapes(), `${kind} t=${String(a.t)}`).toBe(0);
+        else {
+          expect(shapes(), `${kind} t=${String(a.t)} ${a.phase}`).toBeGreaterThan(0);
+          seenHittable = true;
+        }
+      }
+      expect(seenHittable).toBe(true);
+    }
+  });
+});
+
 describe('the end and the bonuses (v1.18, D-081)', () => {
   it('pays crop × cropBonusPerPercent, perfect if the crop held, clear if all stopped in time', () => {
     expect(phase2Bonuses(P, 80, 80, true, 'clear')).toEqual({

@@ -53,9 +53,8 @@ const texOf = (f: AnyFrame): string =>
     : (BABOON_BORROWED as readonly string[]).includes(f)
       ? BABOON_SHEET
       : HARVEST_SHEET;
-/** v1.18 (D-081): ticks per climbing step; back arrivals fade in over this many ticks. */
+/** v1.18 (D-081): ticks per climbing step (back arrivals fade in over phase2.backFadeSeconds). */
 const CLIMB_TICKS = 10;
-const FADE_TICKS = 20;
 
 /** Ticks per frame: trotting, running, digging, working, a worker's run. */
 const TROT_TICKS = 7;
@@ -127,6 +126,39 @@ interface Slot {
 }
 
 const alt = (t: number, every: number): boolean => Math.floor(t / every) % 2 === 0;
+
+/**
+ * v1.18 (D-081): a Phase 2 baboon's frame and alpha for what it is doing. Review: until the lazy
+ * Phase 2 sheet is in (`ready2`), a climb or a drop borrows a run frame from the baboon sheet
+ * (never an invisible baboon the sim can hit).
+ */
+export function phase2BaboonFrame(
+  phase: Phase2AnimalView['phase'],
+  t: number,
+  ready2: boolean,
+  tumbleTicks: number,
+): { readonly frame: Harvest2Frame | BorrowedFrame; readonly alpha: number } {
+  const run: BorrowedFrame = alt(t, RUN_TICKS) ? 'run_a' : 'run_b';
+  switch (phase) {
+    case 'climb':
+      return {
+        frame: ready2 ? (alt(t, CLIMB_TICKS) ? 'bb_climb_a' : 'bb_climb_b') : run,
+        alpha: 1,
+      };
+    case 'drop':
+      return { frame: ready2 ? 'bb_drop' : run, alpha: 1 };
+    case 'eat':
+      return { frame: alt(t, DIG_TICKS) ? 'mielie_a' : 'mielie_b', alpha: 1 };
+    case 'tumble': {
+      const f = t / tumbleTicks;
+      if (f < TUMBLE_SHARE) return { frame: 'tumble', alpha: 1 };
+      return { frame: 'down', alpha: Math.max(0, 1 - (f - TUMBLE_SHARE) / (1 - TUMBLE_SHARE)) };
+    }
+    default:
+      return { frame: run, alpha: 1 };
+  }
+}
+
 interface Ellipse {
   readonly rx: number;
   readonly ry: number;
@@ -153,6 +185,8 @@ export class HarvestView {
   /** Milliseconds the last update took (perf.spec: harvestMs). */
   lastMs = 0;
   private readonly tumbleTicks: number;
+  /** Review (D-081): a back arrival fades in over this many ticks (the sim holds its hits). */
+  private readonly fadeTicks: number;
   /** e2e only: every actor hidden (__TM_HARVEST_HIDE__). */
   private hidden = false;
 
@@ -174,6 +208,7 @@ export class HarvestView {
     } | null = null,
   ) {
     this.tumbleTicks = Math.max(1, Math.round(tuning.warthogs.tumbleSeconds * 60));
+    this.fadeTicks = Math.max(1, Math.round(tuning.phase2.backFadeSeconds * 60));
     // e2e only (test hooks on): hide every Harvest actor, so a spec can grab the same held tick
     // with and without them (review round 3: the drawn art must sit on the hit ellipses).
     if (hooks)
@@ -712,25 +747,9 @@ export class HarvestView {
     } else {
       height = this.baboon?.heightPx ?? W.heightPx;
       drawn = BABOON2_H;
-      switch (a.phase) {
-        case 'climb':
-          frame = ready2 ? (alt(a.t, CLIMB_TICKS) ? 'bb_climb_a' : 'bb_climb_b') : null;
-          break;
-        case 'drop':
-          frame = ready2 ? 'bb_drop' : null;
-          break;
-        case 'eat':
-          frame = alt(a.t, DIG_TICKS) ? 'mielie_a' : 'mielie_b';
-          break;
-        case 'tumble': {
-          const f = a.t / this.tumbleTicks;
-          frame = f < TUMBLE_SHARE ? 'tumble' : 'down';
-          if (f >= TUMBLE_SHARE) alpha = Math.max(0, 1 - (f - TUMBLE_SHARE) / (1 - TUMBLE_SHARE));
-          break;
-        }
-        default:
-          frame = alt(a.t, RUN_TICKS) ? 'run_a' : 'run_b';
-      }
+      const bf = phase2BaboonFrame(a.phase, a.t, ready2, this.tumbleTicks);
+      frame = bf.frame;
+      alpha = bf.alpha;
       const bb = this.baboon;
       box =
         bb === null
@@ -743,7 +762,7 @@ export class HarvestView {
     }
     // Coming up out of the veld behind the fence: it fades in.
     if (a.from === 'back' && a.phase === 'approach')
-      alpha = Math.min(alpha, Math.min(1, a.t / FADE_TICKS));
+      alpha = Math.min(alpha, Math.min(1, a.t / this.fadeTicks));
     const s = this.slotFor(a, `p2-${a.kind}`, 'wh_trot_a');
     if (s === null) return;
     const shown = this.place(s, frame, a.x, a.y, (height * a.scale) / drawn, a.facing < 0, alpha);

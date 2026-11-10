@@ -184,6 +184,12 @@ export function createPhase2(
   const tumbleTicks = secondsToTicks(W.tumbleSeconds);
   const pigletCooldown = secondsToTicks(H.workers.cooldownSeconds);
 
+  const fadeTicks = secondsToTicks(P.backFadeSeconds);
+  /** Review: coming up out of the veld behind the fence it fades in (the view draws it so): no
+   *  hit shapes until it is all there. */
+  const fadingIn = (a: Animal): boolean =>
+    a.from === 'back' && a.phase === 'approach' && a.t < fadeTicks;
+
   const speed = (a: Animal, mul = 1): number => (P.speeds[a.kind] * a.p.scale * mul) / 60;
 
   function nearestOf(
@@ -436,9 +442,7 @@ export function createPhase2(
   }
 
   const hittable = (a: Animal): boolean =>
-    a.phase !== 'tumble' &&
-    a.phase !== 'gone' &&
-    !(a.from === 'back' && a.t < 1 && a.phase === 'approach');
+    a.phase !== 'tumble' && a.phase !== 'gone' && !fadingIn(a);
 
   function extras(add: (layerId: string, e: HitExtra) => void): void {
     // Targets first (warthogs, baboons), then the piglets (bystanders), front to back in order.

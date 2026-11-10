@@ -1985,6 +1985,9 @@ const harvestSchema = modeSetupSchema.extend({
      *  backStartPx behind it (coming up out of the veld). */
     behindPx: pos,
     backStartPx: pos,
+    /** Review: a `back` arrival fades in over this long coming up out of the veld (the view
+     *  draws it so); it has no hit shapes until then. */
+    backFadeSeconds: pos,
     /** Off the panorama's end before they come in. */
     entryPx: pos,
     speeds: obj({ warthog: pos, piglet: pos, baboon: pos }),

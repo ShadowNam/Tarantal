@@ -327,6 +327,7 @@
         "crossU": { "left": [0.08, 0.4], "right": [0.6, 0.92], "back": [0.15, 0.85] },
         "behindPx": 40,
         "backStartPx": 150,
+        "backFadeSeconds": 0.33,
         "entryPx": 300,
         "speeds": { "warthog": 1000, "piglet": 900, "baboon": 1200 },
         "fleeMul": 1.5,
