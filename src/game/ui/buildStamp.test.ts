@@ -20,6 +20,14 @@ describe('build stamp (v1.6, D-042)', () => {
     );
   });
 
+  it("v1.22.1 (D-086): marks the owner's sizes in use (⇲ n) after his text edits (✎ n)", () => {
+    expect(buildLine({ ...info, sizes: 3 })).toBe('v1.6.0 · 1219b9d · 25 Oct 08:40 · ⇲ 3');
+    expect(buildLine({ ...info, edits: 2, sizes: 1 })).toBe(
+      'v1.6.0 · 1219b9d · 25 Oct 08:40 · ✎ 2 · ⇲ 1',
+    );
+    expect(buildLine({ ...info, sizes: 0 })).toBe('v1.6.0 · 1219b9d · 25 Oct 08:40');
+  });
+
   it('names the weekday of a UTC day and shortens an area name', () => {
     // 25 Oct 2026 is a Sunday: day 20751.
     expect(weekdayKey(Date.UTC(2026, 9, 25) / 86_400_000)).toBe('sun');

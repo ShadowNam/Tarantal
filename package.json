@@ -1,6 +1,6 @@
 {
   "name": "tarantal-madness",
-  "version": "1.22.0",
+  "version": "1.22.1",
   "private": true,
   "type": "module",
   "description": "Tarantal Madness — a panning shooting gallery starring the helmeted guineafowl.",
@@ -37,6 +37,7 @@
     "audio:interim": "tsx tools/audio/interim.ts",
     "audio:voice": "tsx tools/audio/voice.ts",
     "text:apply": "tsx tools/text-apply.ts",
+    "sizes:apply": "tsx tools/sizes-apply.ts",
     "audio:preview": "tsx tools/audio/preview.ts",
     "fonts:build": "tsx tools/make-fonts.ts",
     "portal:shots": "VITE_TEST_HOOKS=1 npm run build && tsx tools/portal-shots.ts",

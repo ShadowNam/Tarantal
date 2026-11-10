@@ -12,6 +12,7 @@ import {
   storeTextEdits,
   type TextEditStore,
 } from '../../meta/textEdits';
+import { loadSizeEdits, storeSizeEdits } from '../../meta/sizeEdits';
 import type { AdminPanel } from '../admin/AdminPanel';
 import { projectHref, projectRequested } from '../admin/adminProject';
 import type { GameContext } from '../GameContext';
@@ -98,6 +99,20 @@ export class AdminScene extends Phaser.Scene {
                         },
                       },
                       audio: this.ctx.audio,
+                      build: { version: buildInfo().version, commit: buildInfo().sha },
+                      hook,
+                    },
+                  }
+                : {}),
+              // v1.22.1 (D-086): the Sizes tab (list page; web builds only, like the texts).
+              ...(data.view === 'list' &&
+              import.meta.env.VITE_PLATFORM !== 'poki' &&
+              import.meta.env.VITE_PLATFORM !== 'crazygames' &&
+              import.meta.env.VITE_PLATFORM !== 'capacitor'
+                ? {
+                    sizes: {
+                      feel: this.ctx.feel,
+                      edits: { load: loadSizeEdits, save: storeSizeEdits },
                       build: { version: buildInfo().version, commit: buildInfo().sha },
                       hook,
                     },

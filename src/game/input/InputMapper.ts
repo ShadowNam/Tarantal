@@ -209,6 +209,16 @@ export class InputMapper {
   }
 
   /** Commands for the next sim tick (camera from drag/inertia/keys/edges). */
+  /** v1.22.1 (D-086): the pan's camera centre now (the size editor pans a held hunt's view). */
+  get panCameraX(): number {
+    return this.pan.cameraX;
+  }
+
+  /** v1.22.1 (D-086): the size editor's mouse drag pans like a finger (dx screen design px). */
+  panDrag(dx: number): void {
+    this.pan.drag(dx);
+  }
+
   perTick(): Command[] {
     if (!this.enabled) return [];
     const pending = this.pendingHold;

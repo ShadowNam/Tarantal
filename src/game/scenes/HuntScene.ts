@@ -51,6 +51,8 @@ import { FtueDirector, type FtueStep } from '../ftue/FtueDirector';
 import type { GameContext, TestHook } from '../GameContext';
 import { HuntRunner } from '../HuntRunner';
 import { InputMapper, inputKindOf } from '../input/InputMapper';
+import type { SizeEditor } from '../sizes/SizeEditor';
+import { loadSizeEdits, storeSizeEdits } from '../../meta/sizeEdits';
 import { BirdView } from '../view/BirdView';
 import { FONT, Fx } from '../view/Fx';
 import {
@@ -262,6 +264,8 @@ export class HuntScene extends Phaser.Scene {
    *  with their feet at screen points (design px), each on a plane at that plane's size. View
    *  only: never in the sim. */
   private rulers: (() => DrawBird[]) | null = null;
+  /** v1.22.1 (D-086): the size editor over this hunt (`?admin=1&sizes=<area>`), once its chunk is in. */
+  private sizeEditor: SizeEditor | null = null;
   /** v1.4 (#56): e2e only (__TM_TOOLS__.scopeCull): the zoomed view's culling, on by default. */
   static cullZoomed = true;
   private runner: HuntRunner | null = null;
@@ -485,6 +489,7 @@ export class HuntScene extends Phaser.Scene {
     this.parallax = new ParallaxView(this, mapBiome, this.manifest, this.ctx.prefs.mergeLayers, {
       idle: this.ctx.feel.fauna.idle,
       ticksPerSecond: TICKS_PER_SECOND,
+      sizeMul: this.ctx.feel.fauna.sizeMul,
       before: this.ctx.faunaBefore,
       debug: this.ctx.faunaDebug,
       still: this.ctx.faunaStill,
@@ -1078,10 +1083,55 @@ export class HuntScene extends Phaser.Scene {
     if (this.ctx.hook) this.ctx.hook.scene = 'start';
   }
 
+  // --- size editor (D-086) -------------------------------------------------------------------
+
+  /** v1.22.1 (D-086): the size editor's chunk (web builds' admin page only), over this hunt. */
+  private openSizeEditor(): void {
+    // The raw flag (a literal after Vite's replacement): a portal or store build drops the chunk.
+    const flag = import.meta.env.VITE_PLATFORM;
+    if (flag === 'poki' || flag === 'crazygames' || flag === 'capacitor') return;
+    const sizes = this.ctx.sizes;
+    if (sizes === null) return;
+    this.scene.setVisible(false, 'Hud');
+    const runner = this.runner;
+    void import('../sizes/SizeEditor').then(
+      (m) => {
+        if (!this.sys.isActive() || this.runner !== runner || runner === null) return;
+        const editor = new m.SizeEditor({
+          scene: this,
+          parallax: this.parallax,
+          area: sizes.area,
+          content: { bundle: this.ctx.content, feel: this.ctx.feel },
+          store: { load: loadSizeEdits, save: storeSizeEdits },
+          setRulers: (draw) => {
+            this.rulers = draw;
+          },
+          panDrag: (dx) => {
+            this.mapper?.panDrag(dx);
+          },
+          hook: this.ctx.hook,
+        });
+        this.sizeEditor = editor;
+        this.cleanups.push(() => {
+          editor.destroy();
+          if (this.sizeEditor === editor) this.sizeEditor = null;
+        });
+      },
+      () => {
+        // Offline before its chunk was cached: the hunt stays, without the editor.
+      },
+    );
+  }
+
   // --- admin page (D-034) ---------------------------------------------------------------------
 
   private showAdmin(): void {
     const setup = this.ctx.admin?.setup ?? null;
+    // v1.22.1 (D-086): the size editor's hunt starts at once (no card: it needs no sound).
+    if (setup !== null && this.ctx.sizes !== null) {
+      this.begin(inputKindOf(this.ctx.coarsePointer ? 'touch' : 'mouse'), null, setup.mode);
+      return;
+    }
     const data: AdminData =
       setup === null
         ? {
@@ -2016,6 +2066,8 @@ export class HuntScene extends Phaser.Scene {
       });
     }
     this.game.canvas.style.cursor = kind === 'pointer' ? 'none' : '';
+    // v1.22.1 (D-086): the size editor over this hunt.
+    if (this.ctx.sizes !== null && range === null) this.openSizeEditor();
 
     const hook = this.ctx.hook;
     if (hook) {
@@ -2140,7 +2192,15 @@ export class HuntScene extends Phaser.Scene {
       hook.simFrameMs.push(performance.now() - simStart);
       hook.simFrameSteps.push(steps);
     }
-    const state = runner.state;
+    // v1.22.1 (D-086): the size editor's hunt holds still, but its view still pans: the pan is
+    // advanced here and the views drawn from that camera (the held sim's camera stays put).
+    let sizeCam: number | null = null;
+    if (this.sizeEditor !== null && runner.held && this.mapper !== null) {
+      const ticks = Math.min(4, Math.max(1, Math.round((delta * TICKS_PER_SECOND) / 1000)));
+      for (let i = 0; i < ticks; i++) this.mapper.perTick();
+      sizeCam = this.mapper.panCameraX;
+    }
+    const state = sizeCam === null ? runner.state : { ...runner.state, cameraX: sizeCam };
     if (events.length > 0) this.handleEvents(events, width, state);
     this.range?.frame(events, state);
     this.applyCapture(runner, state.cameraX, delta);
@@ -2206,7 +2266,7 @@ export class HuntScene extends Phaser.Scene {
     }
 
     const alpha = runner.alpha;
-    const cam = interpolateCamera(runner.prev, state, alpha);
+    const cam = sizeCam ?? interpolateCamera(runner.prev, state, alpha);
     // v1.3 (D-036): a raised rifle sight zooms the world around the aim point (zoomView.ts).
     const { height } = designSize();
     // The hunt is over: the sight comes down (the tally never opens over a frozen scope view).
@@ -2351,6 +2411,8 @@ export class HuntScene extends Phaser.Scene {
           sightingAlpha: JOURNAL.sightingAlpha,
           onSighted: (id) => this.sighted(id),
           hooks: this.ctx.hook !== null,
+          // v1.22.1 (D-086): the owner's sizes (content) show on the drawn art too.
+          sizeMul: (kind) => this.ctx.content.cameos.kinds[kind].sizeMul,
         });
     }
     if (this.cameos !== null) {
@@ -2436,6 +2498,15 @@ export class HuntScene extends Phaser.Scene {
       if (this.ftue) hud.setFtuePrompt(this.ftuePrompt(), this.ftueHand(state));
     }
 
+    // v1.22.1 (D-086): the size editor's pass, outline and yardstick, after every view drew.
+    if (this.sizeEditor !== null) {
+      // The gun and the HUD stay out of the way (the bar is at the top).
+      this.weapon.setVisible(false);
+      this.weapon.hideReticle();
+      this.weapon.crosshair.root.setVisible(false);
+      if (hud.sys.isVisible()) this.scene.setVisible(false, 'Hud');
+      this.sizeEditor.frame();
+    }
     if (hook) {
       hook.tick = state.tick;
       const fxPops = this.fx.popStats();
@@ -2965,6 +3036,7 @@ export class HuntScene extends Phaser.Scene {
           fauna: {
             idle: this.ctx.feel.fauna.idle,
             ticksPerSecond: TICKS_PER_SECOND,
+            sizeMul: this.ctx.feel.fauna.sizeMul,
             still: this.ctx.faunaStill,
           },
           lightIds: () => this.lightIds,
@@ -2975,6 +3047,7 @@ export class HuntScene extends Phaser.Scene {
             far: this.ctx.content.scoring.planes.far.scale,
             ver: this.ctx.content.scoring.planes.ver.scale,
           },
+          ostrichHenScale: this.ctx.content.birds.ostriches.henScale,
         });
       })
       .catch(() => {

@@ -3,6 +3,25 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.22.1] — Sizes: set the animals' sizes by eye (10 Nov 2026)
+
+Decision record D-086. The owner (10 Nov): the animals still look the wrong size in the test demo,
+especially the ostrich that runs past — so he can now set them himself.
+
+- **A Sizes tab on the admin page:** every area (Karoo, Bushveld, Kalahari, Okavango, Namibië, Die
+  Oes) with its animals — the real size each stands for, its size in the game now, and yours.
+- **Open in game:** the area's hunt with every animal out at once, standing still; drag to look
+  around. Tap an animal: it is outlined and named with how tall it is, and a guineafowl (0.5 m)
+  stands beside it. −10 % · −2 % · +2 % · +10 % · Reset change it straight away; Save keeps it on
+  your device (the page asks before you leave with changes unsaved).
+- **Use my sizes in the game** (off by default): your sizes in every hunt on that device — the
+  animals are hit where they are drawn. Those hunts don't count (no Daily result, streak or
+  challenge links) and the build line shows ⇲ and the number of animals changed.
+- **Send them:** Download sizes (or Copy, or Share on a phone) and put the file in Dropbox
+  `/AI-DEV/Tarantal-Madness/size-edits/`; the developer applies it with `npm run sizes:apply`.
+- The far herds, the veld cameos and the ostrich hen now always show at their content size (so a
+  changed size never leaves the drawing and the hit area apart).
+
 ## [1.22.0] — v1.19: The Gun Shed, meerkats and two special shells (10 Nov 2026)
 
 Decision record D-084. The owner's requests of 8 Nov (night): better gun pictures in the Gun Shed,

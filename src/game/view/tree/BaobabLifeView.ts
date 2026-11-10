@@ -25,6 +25,16 @@ import {
 } from './baobabResidents';
 import { HOLLOWS } from './baobabShape';
 import { RESIDENT_SHEET, residentFrames, residentTexelsPerPx } from './residentSheet';
+import { sizeFactor } from '../../sizes/sizeFactor';
+
+/** v1.22.1 (D-086): the owner's size of a resident (its frames are drawn at residentTrueSize.ts
+ *  RESIDENT_TRUE_MUL; an owner-set size shows × sizeFactor until the art is redrawn). */
+function residentSize(frame: string): number {
+  if (frame.startsWith('owl_fly')) return sizeFactor('baobab_owl');
+  if (frame.startsWith('hornbill_')) return sizeFactor('baobab_hornbill');
+  if (frame.startsWith('galago_')) return sizeFactor('baobab_galago');
+  return 1;
+}
 
 /** The prop the residents live in. */
 export const BAOBAB_ASSET = 'bushveld/baobab';
@@ -186,7 +196,7 @@ export class BaobabLifeView {
       // The origin at the frame's anchor, flipped or not (a custom pivot: footOrigin.ts).
       setFootOrigin(img, sp.flip);
       img
-        .setScale(1 / this.k)
+        .setScale(residentSize(sp.frame) / this.k)
         .setPosition(this.x + sp.x, this.y + sp.y)
         .setFlipX(sp.flip)
         .setRotation(sp.rot)

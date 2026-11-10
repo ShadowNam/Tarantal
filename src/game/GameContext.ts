@@ -36,6 +36,8 @@ import type { DailyFlow } from './daily/DailyFlow';
 import type { Insets } from './layout';
 import type { Rect } from './ui/hudLayout';
 import type { AdminContext } from './admin/AdminContext';
+import type { SizeArea } from './sizes/sizeAreas';
+import type { SizeEditStore } from '../meta/sizeEdits';
 import type { SoundscapeHook } from './audio/soundscapeRuntime';
 
 /** v1.3x (D-037) Skietbaan state for Playwright (filled by the lazy range chunk). */
@@ -122,6 +124,35 @@ export interface RangeHookState {
   };
 }
 
+/** v1.22.1 (D-086): the Sizes tab (admin page) or the size editor (in the game), for the e2e. */
+export interface SizesHook {
+  view: 'tab' | 'editor';
+  /** The area shown (the tab: the one picked; the editor: its hunt's). */
+  area: string | null;
+  /** Knobs listed (the tab) or in this area (the editor). */
+  knobs: number;
+  /** The animal picked in the editor, or null. */
+  selected: string | null;
+  /** Its working factor (1 = as shipped), its value then, and the height it shows as (m). */
+  factor: number;
+  value: number | null;
+  shownM: number | null;
+  /** Its sprites on screen now (design px): their union box, and the tapped sprite's box. */
+  bounds: { x: number; y: number; w: number; h: number } | null;
+  sprite: { x: number; y: number; w: number; h: number } | null;
+  /** The tapped sprite's origin on screen (its feet, for a sprite drawn standing). */
+  feet: { x: number; y: number } | null;
+  /** Per knob on screen now: a point to tap (design px, the sprite's middle). */
+  spots: Record<string, { x: number; y: number }>;
+  /** Knobs with a factor other than 1; unsaved changes. */
+  changed: number;
+  dirty: boolean;
+  /** "Use my sizes in the game". */
+  apply: boolean;
+  /** The last exported sizes file (Download / Copy / Share), or null. */
+  lastExport: string | null;
+}
+
 /** Read by Playwright (dev/test builds and ?e2e=1 only). */
 export interface TestHook {
   ready: boolean;
@@ -135,6 +166,8 @@ export interface TestHook {
   scene: 'start' | 'hunt' | 'tally' | 'run' | 'challenge' | 'admin' | 'skietbaan' | 'range';
   /** v1.2x (D-034): the admin page on screen (list or play card), or null. */
   admin: { view: 'list' | 'play'; selected: string | null; entries: number } | null;
+  /** v1.22.1 (D-086): the admin page's Sizes tab or the size editor in the game (null: neither). */
+  sizes: SizesHook | null;
   /** v1.14 (D-076): the admin page's Texts & voices tab (null until it opens). */
   adminTexts: {
     /** Lines listed in all, and on the page after the search and filters. */
@@ -956,6 +989,9 @@ export interface GameContext {
   readonly sightOverride: string | undefined;
   /** v1.2x (D-034): the playtest admin page (`?admin=1`, web builds), or null. */
   readonly admin: AdminContext | null;
+  /** v1.22.1 (D-086): the size editor's area and the owner's saved sizes (`?admin=1&sizes=<area>`),
+   *  or null. */
+  readonly sizes: { readonly area: SizeArea; readonly store: SizeEditStore } | null;
   /** Device hint before the first touch: coarse pointer → touch hints on the start card. */
   readonly coarsePointer: boolean;
   readonly reducedMotion: boolean;
