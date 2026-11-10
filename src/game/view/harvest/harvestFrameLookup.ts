@@ -19,13 +19,15 @@ export type BorrowedFrame = (typeof BABOON_BORROWED)[number];
 /** Any frame a Harvest slot draws: the Harvest sheet's, the Phase 2 sheet's, a borrowed one. */
 export type AnyFrame = HarvestFrame | Harvest2Frame | BorrowedFrame;
 
-const TEX = new Map<string, string>();
-for (const f of HARVEST2_FRAME_NAMES) TEX.set(f, HARVEST2_SHEET);
-for (const f of BABOON_BORROWED) TEX.set(f, BABOON_SHEET);
+/** The Phase 2 and borrowed frames' textures (texOf: any other frame is on the Harvest sheet). */
+export const FRAME_TEX: ReadonlyMap<string, string> = new Map<string, string>([
+  ...HARVEST2_FRAME_NAMES.map((f): [string, string] => [f, HARVEST2_SHEET]),
+  ...BABOON_BORROWED.map((f): [string, string] => [f, BABOON_SHEET]),
+]);
 
 /** The texture a frame is cut on (the Harvest sheet unless it is a Phase 2 or borrowed frame). */
 export function texOf(f: AnyFrame): string {
-  return TEX.get(f) ?? HARVEST_SHEET;
+  return FRAME_TEX.get(f) ?? HARVEST_SHEET;
 }
 
 const alt = (t: number, every: number): boolean => Math.floor(t / every) % 2 === 0;
