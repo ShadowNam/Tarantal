@@ -150,6 +150,50 @@ async function rareMorphsOnGpu(page: Page): Promise<void> {
   );
 }
 
+/**
+ * v1.7d (D-059, CI run 40842297447): the HD layers go in, and the Karoo title's HD layers are
+ * purged, in refreshHd, which runs every 30 RENDERED frames, not on a clock. On CI's software GL a
+ * heavy area's 30 frames took longer than a fixed 4 s, so the sample caught both areas' layers on
+ * the GPU. Waits (bounded) for two refreshes after the HD pack was in (D-080: the fauna stays
+ * Standard) and for no other area's HD layers in the sample; the assertions after it still judge
+ * the sample.
+ * v1.22.2 (D-087): a wait that runs out fails here, saying what it saw, instead of sampling later.
+ * On CI (PR #130, #133) the hook's texture sample was refreshed only on frames whose sim tick was
+ * a multiple of 30, so with several ticks a frame it could stay stale for most of a hunt: the wait
+ * ran out after the 60 s hunt had ended, and the sample was taken on the tally, after the hunt had
+ * released Brakkie's and the cameos' sheets. The hook now reads the textures when it is read.
+ */
+async function waitHdSettled(page: Page, own: string): Promise<void> {
+  const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
+  const settled = page.waitForFunction(
+    ([from, area]) => {
+      const tm = window.__TM__;
+      if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
+      return !tm.textureTop.some(
+        (t) =>
+          t.key.includes('/hd/') && t.key.includes('layer/') && !t.key.includes(`layer/${area}/`),
+      );
+    },
+    [r0, own] as const,
+    { timeout: 90_000 },
+  );
+  if (await settled.then(() => true).catch(() => false)) return;
+  const seen = await page.evaluate((area) => {
+    const tm = window.__TM__;
+    return {
+      refreshes: tm?.graphics.refreshes,
+      scene: tm?.scene,
+      over: tm?.over,
+      others: (tm?.textureTop ?? [])
+        .map((t) => t.key)
+        .filter((k) => k.includes('/hd/') && k.includes('layer/') && !k.includes(`layer/${area}/`)),
+    };
+  }, own);
+  throw new Error(
+    `HD refresh/purge wait ran out (90 s, refreshes from ${r0}): ${JSON.stringify(seen)}`,
+  );
+}
+
 // D-054: every area's HD hunt within the medium tier's texture budget (Tech §9: 256 MB) on the
 // Pixel 7 profile, reached the way players reach it: boot on the Karoo title, then a Classic hunt
 // in the chosen area (the save's area choice). This path left the title's Karoo HD layers on the
@@ -187,7 +231,7 @@ for (const biome of AREAS)
     // No ?biome=: the title is the Karoo, as for players. v1.13 (D-075, lesson 42): with the
     // area's cameos out in view at once (their sheet adds to the hunt's peak), measured once the
     // sheet is on the GPU (the Okavango has none: the far elephants answer).
-    await boot(page, `seed=3&huntSeconds=60&graphics=hd&cameos=1&cameoPreview=all`);
+    await boot(page, `seed=3&huntSeconds=240&graphics=hd&cameos=1&cameoPreview=all`);
     await startHunt(page, isTouchProject(info));
     await page.waitForFunction(
       (want) => {
@@ -207,33 +251,14 @@ for (const biome of AREAS)
       biome,
       { timeout: 180_000 },
     );
-    // v1.7d (D-059, CI run 40842297447): the HD layers go in, and the Karoo title's HD layers
-    // are purged, in refreshHd, which runs every 30 RENDERED frames, not on a clock. On CI's
-    // software GL a heavy area's 30 frames took longer than a fixed 4 s, so the sample caught
-    // both areas' layers on the GPU. Wait (bounded) for two refreshes after the HD pack was in (D-080: the fauna stays Standard)
-    // and for no other area's HD layers in the sample; the assertions below still judge it.
     const area = biome.split('-')[0] ?? biome;
-    const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
-    await page
-      .waitForFunction(
-        ([from, own]) => {
-          const tm = window.__TM__;
-          if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
-          return !tm.textureTop.some(
-            (t) =>
-              t.key.includes('/hd/') &&
-              t.key.includes('layer/') &&
-              !t.key.includes(`layer/${own}/`),
-          );
-        },
-        [r0, area] as const,
-        { timeout: 90_000 },
-      )
-      .catch(() => undefined);
-    // A few texture samples (the hook updates about twice a second), and a frame or two of play.
+    await waitHdSettled(page, area);
+    // A frame or two of play (the hook reads the textures when it is read: D-087).
     await rareMorphsOnGpu(page);
     await page.waitForTimeout(4000);
     const h = await hook(page);
+    // D-087: sampled while the hunt runs (its lazy sheets go when it ends).
+    expect(h.over, 'the hunt still running when sampled').toBe(false);
     const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
     console.log(`[perf] ${biome} HD texture memory (title → hunt) ${mb} MB`);
     await info.attach(`hd-memory-${biome}.json`, {
@@ -282,24 +307,12 @@ test('HD texture memory, title → the Harvest (oes)', async ({ page, browserNam
     null,
     { timeout: 180_000 },
   );
-  const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
-  await page
-    .waitForFunction(
-      (from) => {
-        const tm = window.__TM__;
-        if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
-        return !tm.textureTop.some(
-          (t) =>
-            t.key.includes('/hd/') && t.key.includes('layer/') && !t.key.includes('layer/oes/'),
-        );
-      },
-      r0,
-      { timeout: 90_000 },
-    )
-    .catch(() => undefined);
+  await waitHdSettled(page, 'oes');
   await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
+  // D-087: sampled while the hunt runs (its lazy sheets go when it ends).
+  expect(h.over, 'the hunt still running when sampled').toBe(false);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
   console.log(`[perf] oes (the Harvest) HD texture memory (title → hunt) ${mb} MB`);
   await info.attach('hd-memory-oes.json', {
@@ -330,7 +343,7 @@ test('HD texture memory, a Christmas hunt on its heaviest map (okavango)', async
   await emulateCores(page);
   await boot(
     page,
-    'feesdag=christmas&today=2026-12-27&layout=none&seed=3&huntSeconds=60&graphics=hd&omen=0',
+    'feesdag=christmas&today=2026-12-27&layout=none&seed=3&huntSeconds=240&graphics=hd&omen=0',
   );
   await page.waitForFunction(() => window.__TM__?.rects['daily'] !== undefined, null, {
     timeout: 60_000,
@@ -353,26 +366,12 @@ test('HD texture memory, a Christmas hunt on its heaviest map (okavango)', async
     null,
     { timeout: 180_000 },
   );
-  const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
-  await page
-    .waitForFunction(
-      (from) => {
-        const tm = window.__TM__;
-        if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
-        return !tm.textureTop.some(
-          (t) =>
-            t.key.includes('/hd/') &&
-            t.key.includes('layer/') &&
-            !t.key.includes('layer/okavango/'),
-        );
-      },
-      r0,
-      { timeout: 90_000 },
-    )
-    .catch(() => undefined);
+  await waitHdSettled(page, 'okavango');
   await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
+  // D-087: sampled while the hunt runs (its lazy sheets go when it ends).
+  expect(h.over, 'the hunt still running when sampled').toBe(false);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
   console.log(`[perf] christmas (okavango) HD texture memory (title → hunt) ${mb} MB`);
   await info.attach('hd-memory-christmas-okavango.json', {
@@ -491,7 +490,7 @@ test('HD texture memory, a New Year hunt on its heaviest map (okavango)', async 
   await emulateCores(page);
   await boot(
     page,
-    'feesdag=newyear&today=2026-12-31&layout=none&seed=3&huntSeconds=60&graphics=hd&omen=0',
+    'feesdag=newyear&today=2026-12-31&layout=none&seed=3&huntSeconds=240&graphics=hd&omen=0',
   );
   await page.waitForFunction(() => window.__TM__?.rects['daily'] !== undefined, null, {
     timeout: 60_000,
@@ -514,26 +513,12 @@ test('HD texture memory, a New Year hunt on its heaviest map (okavango)', async 
     null,
     { timeout: 180_000 },
   );
-  const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
-  await page
-    .waitForFunction(
-      (from) => {
-        const tm = window.__TM__;
-        if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
-        return !tm.textureTop.some(
-          (t) =>
-            t.key.includes('/hd/') &&
-            t.key.includes('layer/') &&
-            !t.key.includes('layer/okavango/'),
-        );
-      },
-      r0,
-      { timeout: 90_000 },
-    )
-    .catch(() => undefined);
+  await waitHdSettled(page, 'okavango');
   await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
+  // D-087: sampled while the hunt runs (its lazy sheets go when it ends).
+  expect(h.over, 'the hunt still running when sampled').toBe(false);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
   console.log(`[perf] new year (okavango) HD texture memory (title → hunt) ${mb} MB`);
   await info.attach('hd-memory-newyear-okavango.json', {
@@ -649,7 +634,7 @@ test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async 
   // v1.12 (D-069): with Brakkie out (his sheet adds to the hunt: 254.8 + 0.5 = 255.3 MB).
   await boot(
     page,
-    'biome=okavango-spring&layout=none&seed=3&huntSeconds=60&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm&brakkie=1&cameos=1&cameoPreview=elephants',
+    'biome=okavango-spring&layout=none&seed=3&huntSeconds=240&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm&brakkie=1&cameos=1&cameoPreview=elephants',
   );
   await startHunt(page, isTouchProject(info));
   await page.waitForFunction(
@@ -671,26 +656,12 @@ test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async 
     null,
     { timeout: 240_000 },
   );
-  const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
-  await page
-    .waitForFunction(
-      (from) => {
-        const tm = window.__TM__;
-        if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
-        return !tm.textureTop.some(
-          (t) =>
-            t.key.includes('/hd/') &&
-            t.key.includes('layer/') &&
-            !t.key.includes('layer/okavango/'),
-        );
-      },
-      r0,
-      { timeout: 90_000 },
-    )
-    .catch(() => undefined);
+  await waitHdSettled(page, 'okavango');
   await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
+  // D-087: sampled while the hunt runs (its lazy sheets go when it ends).
+  expect(h.over, 'the hunt still running when sampled').toBe(false);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
   console.log(
     `[perf] reenbui (okavango) HD texture memory (title → hunt) ${mb} MB (brakkie ${h.brakkie?.sheet})`,
