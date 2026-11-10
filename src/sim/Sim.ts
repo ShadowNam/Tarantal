@@ -2267,7 +2267,13 @@ export function createSim(config: SimConfig): Sim {
               reachesVer: true,
               windSensitivity: shell.windSensitivity,
             }
-          : { ...base, pellets: Math.max(1, Math.round(base.pellets * shell.pelletsMul)) };
+          : {
+              ...base,
+              pellets: Math.max(
+                1,
+                Math.min(shell.maxPellets, Math.round(base.pellets * shell.pelletsMul)),
+              ),
+            };
     // Rooi Patrone / Laaste Patroon: the shell's place in the belt (primary shells only).
     const shellIndex =
       !usingCrate && timing.magazine >= 0 && !fx.infiniteAmmo ? timing.magazine - shellsLeft : null;
@@ -2317,12 +2323,13 @@ export function createSim(config: SimConfig): Sim {
       how === 'hip' && !usingCrate && !blast && shell?.kind !== 'slug'
         ? (weapon.aim?.hipSpreadPx ?? 0)
         : 0;
-    const flameMul = shell?.kind === 'dragon_breath' ? shell.spreadMul : 1;
-    const offsets = pelletOffsets(
-      shot.pellets,
-      (shot.spreadPx + hip) * fx.spreadMul * flameMul,
-      rng.stream('pellets'),
-    );
+    // Dragon's Breath widens the pattern up to its cap (a gun already wider keeps its own).
+    const own = shot.spreadPx + hip;
+    const flamed =
+      shell?.kind === 'dragon_breath'
+        ? Math.min(own * shell.spreadMul, Math.max(own, shell.maxSpreadPx))
+        : own;
+    const offsets = pelletOffsets(shot.pellets, flamed * fx.spreadMul, rng.stream('pellets'));
     // Dragon's Breath: the flame stops at its reach (layers behind it are out of range).
     const flame = (g: ShotGeometry): ShotGeometry =>
       shell?.kind === 'dragon_breath' ? flameReach(g, shell.reach) : g;

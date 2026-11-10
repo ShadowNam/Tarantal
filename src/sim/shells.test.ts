@@ -128,6 +128,20 @@ describe("Dragon's Breath in the sim (D-084)", () => {
     expect(ofType(after, 'pelletImpact')).toHaveLength(dubbelloop?.pellets ?? 0);
   });
 
+  it("caps the Voorlaaier's blast: never more than maxPellets, its own pattern kept", () => {
+    const sim = loaded(quiet(), 'dragon_breath', { rental: 'voorlaaier' });
+    run(sim, 1, [{ t: 'consumable', slot: 2 }]);
+    const ev = run(sim, 20, [{ t: 'fire', dx: 0, sy: 500 }]);
+    expect(ofType(ev, 'shotFired')).toMatchObject([
+      { weapon: 'voorlaaier', shell: 'dragon_breath' },
+    ]);
+    const impacts = ofType(ev, 'pelletImpact');
+    expect(impacts).toHaveLength(dragon?.effect.dragonBreath?.maxPellets ?? 0);
+    // The pattern stays the Voorlaaier's own (300 px), not 2.4× it.
+    const own = base.weapons.weapons.find((w) => w.id === 'voorlaaier')?.spreadPx ?? 0;
+    for (const p of impacts) expect(Math.hypot(p.dx, p.sy - 500)).toBeLessThanOrEqual(own + 1);
+  });
+
   it('the flame never reaches a far bird', () => {
     const c = withFlocks(quiet(), { far: 1 });
     const sim = loaded(c, 'dragon_breath');

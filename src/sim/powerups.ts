@@ -107,6 +107,8 @@ export type SpecialShell =
       readonly pelletsMul: number;
       readonly spreadMul: number;
       readonly reach: 'near' | 'mid';
+      readonly maxPellets: number;
+      readonly maxSpreadPx: number;
     }
   | { readonly id: string; readonly kind: 'slug'; readonly windSensitivity: number };
 

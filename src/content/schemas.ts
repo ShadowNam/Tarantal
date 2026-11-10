@@ -1057,6 +1057,10 @@ export const PowerupsSchema = obj({
                 spreadMul: z.number().min(1).max(4),
                 /** The farthest plane the flame reaches. */
                 reach: z.enum(['near', 'mid']),
+                /** Never more pellets than this (the Voorlaaier's blast stays a cone). */
+                maxPellets: posInt,
+                /** The pattern grows to at most this (design px), or the gun's own if wider. */
+                maxSpreadPx: pos,
               }).optional(),
               /** v1.19 (D-084) Slug: a shotgun shell with one heavy projectile: no spread (hip
                *  or not), reaches far and Ver like a rifle, drifts with the wind by
