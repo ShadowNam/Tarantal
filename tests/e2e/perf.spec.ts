@@ -20,6 +20,7 @@ import {
   tapRect,
   waitTicks,
 } from './helpers';
+import { JAG_BASE, pickUpCrate } from './jagHelpers';
 
 const BUDGET_MS = 1000 / 60;
 
@@ -1653,6 +1654,78 @@ test('perf: Brakkie the companion — point, marker, whistle, reaction at 4× CP
     0.3,
   );
   expect(cpu.avg, 'CPU cost per frame (ms), the companion, 4× throttle').toBeLessThanOrEqual(
+    BUDGET_MS,
+  );
+  expect(errors).toEqual([]);
+});
+
+// v1.20 (D-085): Brakkie hunting on the Jag card on the Pixel 7 profile at 4× CPU throttle: the
+// card from the first crate (?crate=brakkie_jag, reaching every foraging guineafowl:
+// ?brakkiePreview=jag), then ~25 s of his sprints, pounces (the leap's arc) and carries while the
+// view watches. His view (brakkieMs per scenery frame) ≤ 0.3 ms, ≤ 40 Phaser calls a frame, the
+// frame within the budget.
+test('perf: Brakkie hunting on the Jag card at 4× CPU throttle (Pixel 7)', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await emulateCores(page);
+  await boot(page, `${JAG_BASE}&huntSeconds=60&brakkiePreview=jag`);
+  await startHunt(page, touch);
+  await page.waitForFunction(() => window.__TM__?.brakkie?.sheet != null, null, {
+    timeout: 120_000,
+  });
+  await pickUpCrate(page, touch, 'brakkie_jag');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  const first = await hook(page);
+  const until = first.tick + 25 * 60;
+  let shown = 0;
+  let maxCalls = 0;
+  const phases = new Set<string>();
+  for (let i = 0; i < 2000; i++) {
+    const h = await hook(page);
+    if (h.over || h.tick >= until) break;
+    if (h.brakkie?.visible === true) shown++;
+    maxCalls = Math.max(maxCalls, h.brakkie?.calls ?? 0);
+    if (h.brakkie != null) phases.add(h.brakkie.phase);
+    await waitTicks(page, 10);
+  }
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const frames = Math.max(1, h.sceneryFrames - first.sceneryFrames);
+  const cpu = stats(h.cpuFrameMs.slice(30));
+  const report = {
+    project: info.project.name,
+    tier: h.quality.tier,
+    throttle: 4,
+    frames,
+    brakkieMsPerFrame: (h.brakkieMs - first.brakkieMs) / frames,
+    maxCallsPerFrame: maxCalls,
+    samplesShown: shown,
+    phases: [...phases].sort(),
+    catches: h.brakkie?.catches ?? 0,
+    cpuFrameMs: cpu,
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf-brakkie-jag.json'), JSON.stringify(report, null, 2));
+  expect(shown, 'Brakkie was drawn on screen').toBeGreaterThan(0);
+  expect(
+    report.phases.some((p) => p === 'hunt' || p === 'pounce'),
+    'he hunted (a hunt or pounce phase was seen)',
+  ).toBe(true);
+  expect(maxCalls).toBeLessThanOrEqual(40);
+  expect(
+    report.brakkieMsPerFrame,
+    'Brakkie view ms per frame (hunting), 4× throttle',
+  ).toBeLessThanOrEqual(0.3);
+  expect(cpu.avg, 'CPU cost per frame (ms), the Jag card, 4× throttle').toBeLessThanOrEqual(
     BUDGET_MS,
   );
   expect(errors).toEqual([]);

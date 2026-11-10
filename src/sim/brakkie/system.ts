@@ -210,6 +210,9 @@ interface Dog {
   nextLook: number;
   catches: number;
   pounceLive: boolean;
+  queuedTick: number | null;
+  fetchTick: number | null;
+  catchPoints: number;
 }
 
 /** His id in hit results (one dog). */
@@ -296,11 +299,16 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     nextLook: 0,
     catches: 0,
     pounceLive: false,
+    queuedTick: null,
+    fetchTick: null,
+    catchPoints: 0,
   };
   dog.nextBark = dog.dur + rangeTicks(B.bark.everySeconds);
   dog.nextFlush = rangeTicks(B.flush.firstSeconds);
   /** Test builds only (?brakkiePreview=fetch): when he fetches a bird placed beside him. */
   let demoTick = B.demoFetchSeconds === undefined ? null : ticks(B.demoFetchSeconds);
+  /** Test builds only (?brakkiePreview=bag): when a bird joins his queue beside him. */
+  let demoBag = B.demoBagSeconds === undefined ? null : ticks(B.demoBagSeconds);
   /** Test builds only (?brakkiePreview=react): when he does a proud hop. */
   let demoProud = B.demoProudSeconds === undefined ? null : ticks(B.demoProudSeconds);
 
@@ -594,6 +602,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     }
     dog.jagCatches++;
     dog.catches++;
+    dog.catchPoints += caught.points;
     dog.carrying = true;
     host.emit({
       type: 'brakkieCaught',
@@ -611,6 +620,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   }
 
   function startFetch(f: Fetch): void {
+    dog.fetchTick = host.tick();
     host.emit({
       type: 'brakkieFetchStarted',
       tick: host.tick(),
@@ -859,6 +869,19 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     dog.t++;
     // Test builds only: the screenshot spec's fetch, a bird placed beside him (no bag needed).
     if (demoProud !== null && tick >= demoProud && tryReact('proud')) demoProud = null;
+    // Test builds only: a bag beside him, towards the view's centre, through the real queue.
+    if (
+      demoBag !== null &&
+      tick >= demoBag &&
+      dog.phase === 'rest' &&
+      dog.plane === 'near' &&
+      !dog.carrying &&
+      Math.abs(dxOf('near', dog.x)) <= B.roam.viewHalfPx
+    ) {
+      demoBag = null;
+      const toCentre = dxOf('near', dog.x) > 0 ? -1 : 1;
+      bagged('near', dog.x + 260 * k('near') * toCentre);
+    }
     if (demoTick !== null && tick >= demoTick && idle() && dog.plane === 'near' && !dog.carrying) {
       demoTick = null;
       const x = dog.x + 260 * k('near') * dog.facing;
@@ -1085,6 +1108,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     // same for every Daily player).
     const ready = host.tick() + ticks(B.fetch.delaySeconds);
     dog.queue.push({ plane, x, readyTick: ready, giveUpTick: null });
+    dog.queuedTick = host.tick();
   }
 
   function view(): BrakkieView {
@@ -1144,6 +1168,9 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       whistles: dog.whistles,
       jag: dog.jagOn ? { catches: dog.jagCatches, maxCatches: dog.jagMax } : null,
       catches: dog.catches,
+      queuedTick: dog.queuedTick,
+      fetchTick: dog.fetchTick,
+      catchPoints: dog.catchPoints,
     };
   }
 

@@ -313,6 +313,11 @@ export interface BrakkieView {
    *  every catch this hunt. */
   readonly jag: { readonly catches: number; readonly maxCatches: number } | null;
   readonly catches: number;
+  /** v1.20 (D-085), for tests: the tick the last bird joined his queue and the last fetch began
+   *  (null: none yet), and the points his catches paid this hunt. */
+  readonly queuedTick: number | null;
+  readonly fetchTick: number | null;
+  readonly catchPoints: number;
 }
 
 /** v1.10 (D-067): a Reënbui as drawn (phase ticks, the alate columns, the swarm's bags). */

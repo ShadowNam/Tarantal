@@ -222,6 +222,10 @@ export interface BrakkieHook {
   jag: { catches: number; maxCatches: number } | null;
   catches: number;
   lift: number;
+  /** The sim's ticks: the last bird queued and the last fetch begun; his catches' points. */
+  queuedTick: number | null;
+  fetchTick: number | null;
+  catchPoints: number;
 }
 
 /** v1.20 (D-085): the pounce's leap at its top (design px at his scale 1). */
@@ -322,6 +326,9 @@ export class BrakkieView {
     jag: null,
     catches: 0,
     lift: 0,
+    queuedTick: null,
+    fetchTick: null,
+    catchPoints: 0,
   };
 
   constructor(private readonly s: BrakkieViewSetup) {
@@ -651,6 +658,9 @@ export class BrakkieView {
     h.jag = d.jag === null ? null : { catches: d.jag.catches, maxCatches: d.jag.maxCatches };
     h.catches = d.catches;
     h.lift = Math.round(this.lift);
+    h.queuedTick = d.queuedTick;
+    h.fetchTick = d.fetchTick;
+    h.catchPoints = d.catchPoints;
     h.word = this.word.visible ? this.wordText : null;
     const ml = this.markerLayer === null ? undefined : this.s.parallax.layer(this.markerLayer);
     h.marker =

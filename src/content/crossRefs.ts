@@ -559,6 +559,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   }
   if (brakkie.demoFetchSeconds !== undefined)
     err('brakkie.json', 'demoFetchSeconds is for test builds only (?brakkiePreview=fetch)');
+  if (brakkie.demoBagSeconds !== undefined)
+    err('brakkie.json', 'demoBagSeconds is for test builds only (?brakkiePreview=bag)');
   if (brakkie.demoProudSeconds !== undefined)
     err('brakkie.json', 'demoProudSeconds is for test builds only (?brakkiePreview=react)');
   {
