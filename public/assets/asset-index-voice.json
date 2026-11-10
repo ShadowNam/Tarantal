@@ -2215,60 +2215,6 @@
       "lufs": -16,
       "peakDb": -2.3
     },
-    "voice/af/guide.brakkie.caught": {
-      "group": "voice-af",
-      "origin": "interim",
-      "kind": "voice",
-      "ogg": {
-        "path": "assets/voice-af/audio/voice/af-guide_brakkie_caught.321a1533465b.ogg",
-        "bytes": 15493,
-        "hash": "321a1533465b"
-      },
-      "mp3": {
-        "path": "assets/voice-af/audio/voice/af-guide_brakkie_caught.6798ed0b3e3a.mp3",
-        "bytes": 18872,
-        "hash": "6798ed0b3e3a"
-      },
-      "loop": false,
-      "lufs": -18.4,
-      "peakDb": -1
-    },
-    "voice/af/guide.brakkie.fetch_hint_key": {
-      "group": "voice-af",
-      "origin": "interim",
-      "kind": "voice",
-      "ogg": {
-        "path": "assets/voice-af/audio/voice/af-guide_brakkie_fetch_hint_key.64899f28d542.ogg",
-        "bytes": 32612,
-        "hash": "64899f28d542"
-      },
-      "mp3": {
-        "path": "assets/voice-af/audio/voice/af-guide_brakkie_fetch_hint_key.102969ccfe2f.mp3",
-        "bytes": 44085,
-        "hash": "102969ccfe2f"
-      },
-      "loop": false,
-      "lufs": -18.8,
-      "peakDb": -1
-    },
-    "voice/af/guide.brakkie.fetch_hint_touch": {
-      "group": "voice-af",
-      "origin": "interim",
-      "kind": "voice",
-      "ogg": {
-        "path": "assets/voice-af/audio/voice/af-guide_brakkie_fetch_hint_touch.2cf8bbd7f687.ogg",
-        "bytes": 31850,
-        "hash": "2cf8bbd7f687"
-      },
-      "mp3": {
-        "path": "assets/voice-af/audio/voice/af-guide_brakkie_fetch_hint_touch.cbb88851311e.mp3",
-        "bytes": 41434,
-        "hash": "cbb88851311e"
-      },
-      "loop": false,
-      "lufs": -19,
-      "peakDb": -1
-    },
     "voice/af/guide.brakkie.fetched": {
       "group": "voice-af",
       "origin": "interim",
@@ -2285,24 +2231,6 @@
       },
       "loop": false,
       "lufs": -20.2,
-      "peakDb": -1
-    },
-    "voice/af/guide.brakkie.jag_start": {
-      "group": "voice-af",
-      "origin": "interim",
-      "kind": "voice",
-      "ogg": {
-        "path": "assets/voice-af/audio/voice/af-guide_brakkie_jag_start.fed34e0a70b6.ogg",
-        "bytes": 11863,
-        "hash": "fed34e0a70b6"
-      },
-      "mp3": {
-        "path": "assets/voice-af/audio/voice/af-guide_brakkie_jag_start.9852dd0fdcad.mp3",
-        "bytes": 12595,
-        "hash": "9852dd0fdcad"
-      },
-      "loop": false,
-      "lufs": -16.8,
       "peakDb": -1
     },
     "voice/af/guide.brakkie.scold": {
@@ -4249,60 +4177,6 @@
       "lufs": -16,
       "peakDb": -7.4
     },
-    "voice/de/guide.brakkie.caught": {
-      "group": "voice-de",
-      "origin": "interim",
-      "kind": "voice",
-      "ogg": {
-        "path": "assets/voice-de/audio/voice/de-guide_brakkie_caught.6e2d2287818c.ogg",
-        "bytes": 21762,
-        "hash": "6e2d2287818c"
-      },
-      "mp3": {
-        "path": "assets/voice-de/audio/voice/de-guide_brakkie_caught.6b7ae01c3f26.mp3",
-        "bytes": 23352,
-        "hash": "6b7ae01c3f26"
-      },
-      "loop": false,
-      "lufs": -16,
-      "peakDb": -5.5
-    },
-    "voice/de/guide.brakkie.fetch_hint_key": {
-      "group": "voice-de",
-      "origin": "interim",
-      "kind": "voice",
-      "ogg": {
-        "path": "assets/voice-de/audio/voice/de-guide_brakkie_fetch_hint_key.2ae1a242679a.ogg",
-        "bytes": 36078,
-        "hash": "2ae1a242679a"
-      },
-      "mp3": {
-        "path": "assets/voice-de/audio/voice/de-guide_brakkie_fetch_hint_key.5579a96b4b82.mp3",
-        "bytes": 40928,
-        "hash": "5579a96b4b82"
-      },
-      "loop": false,
-      "lufs": -16,
-      "peakDb": -5
-    },
-    "voice/de/guide.brakkie.fetch_hint_touch": {
-      "group": "voice-de",
-      "origin": "interim",
-      "kind": "voice",
-      "ogg": {
-        "path": "assets/voice-de/audio/voice/de-guide_brakkie_fetch_hint_touch.4233827e5303.ogg",
-        "bytes": 37011,
-        "hash": "4233827e5303"
-      },
-      "mp3": {
-        "path": "assets/voice-de/audio/voice/de-guide_brakkie_fetch_hint_touch.b92110b0778c.mp3",
-        "bytes": 41786,
-        "hash": "b92110b0778c"
-      },
-      "loop": false,
-      "lufs": -16,
-      "peakDb": -3.8
-    },
     "voice/de/guide.brakkie.fetched": {
       "group": "voice-de",
       "origin": "interim",
@@ -4320,24 +4194,6 @@
       "loop": false,
       "lufs": -16,
       "peakDb": -6.7
-    },
-    "voice/de/guide.brakkie.jag_start": {
-      "group": "voice-de",
-      "origin": "interim",
-      "kind": "voice",
-      "ogg": {
-        "path": "assets/voice-de/audio/voice/de-guide_brakkie_jag_start.95ac705949a8.ogg",
-        "bytes": 17539,
-        "hash": "95ac705949a8"
-      },
-      "mp3": {
-        "path": "assets/voice-de/audio/voice/de-guide_brakkie_jag_start.d6a9c865b838.mp3",
-        "bytes": 17918,
-        "hash": "d6a9c865b838"
-      },
-      "loop": false,
-      "lufs": -16,
-      "peakDb": -7.5
     },
     "voice/de/guide.brakkie.scold": {
       "group": "voice-de",
@@ -6283,60 +6139,6 @@
       "lufs": -16,
       "peakDb": -2.6
     },
-    "voice/en/guide.brakkie.caught": {
-      "group": "voice-en",
-      "origin": "interim",
-      "kind": "voice",
-      "ogg": {
-        "path": "assets/voice-en/audio/voice/en-guide_brakkie_caught.d4bbcbf7fcdd.ogg",
-        "bytes": 16452,
-        "hash": "d4bbcbf7fcdd"
-      },
-      "mp3": {
-        "path": "assets/voice-en/audio/voice/en-guide_brakkie_caught.e5da7d278fe8.mp3",
-        "bytes": 18688,
-        "hash": "e5da7d278fe8"
-      },
-      "loop": false,
-      "lufs": -17.1,
-      "peakDb": -1
-    },
-    "voice/en/guide.brakkie.fetch_hint_key": {
-      "group": "voice-en",
-      "origin": "interim",
-      "kind": "voice",
-      "ogg": {
-        "path": "assets/voice-en/audio/voice/en-guide_brakkie_fetch_hint_key.d8e679fceb9f.ogg",
-        "bytes": 30516,
-        "hash": "d8e679fceb9f"
-      },
-      "mp3": {
-        "path": "assets/voice-en/audio/voice/en-guide_brakkie_fetch_hint_key.43011d4eeed9.mp3",
-        "bytes": 38986,
-        "hash": "43011d4eeed9"
-      },
-      "loop": false,
-      "lufs": -17.8,
-      "peakDb": -1
-    },
-    "voice/en/guide.brakkie.fetch_hint_touch": {
-      "group": "voice-en",
-      "origin": "interim",
-      "kind": "voice",
-      "ogg": {
-        "path": "assets/voice-en/audio/voice/en-guide_brakkie_fetch_hint_touch.a8c20e283a9e.ogg",
-        "bytes": 30529,
-        "hash": "a8c20e283a9e"
-      },
-      "mp3": {
-        "path": "assets/voice-en/audio/voice/en-guide_brakkie_fetch_hint_touch.c12858ff28e8.mp3",
-        "bytes": 39063,
-        "hash": "c12858ff28e8"
-      },
-      "loop": false,
-      "lufs": -19.3,
-      "peakDb": -1
-    },
     "voice/en/guide.brakkie.fetched": {
       "group": "voice-en",
       "origin": "interim",
@@ -6353,24 +6155,6 @@
       },
       "loop": false,
       "lufs": -17,
-      "peakDb": -1
-    },
-    "voice/en/guide.brakkie.jag_start": {
-      "group": "voice-en",
-      "origin": "interim",
-      "kind": "voice",
-      "ogg": {
-        "path": "assets/voice-en/audio/voice/en-guide_brakkie_jag_start.fec47af465fd.ogg",
-        "bytes": 12504,
-        "hash": "fec47af465fd"
-      },
-      "mp3": {
-        "path": "assets/voice-en/audio/voice/en-guide_brakkie_jag_start.f15afa8304e7.mp3",
-        "bytes": 13327,
-        "hash": "f15afa8304e7"
-      },
-      "loop": false,
-      "lufs": -17.2,
       "peakDb": -1
     },
     "voice/en/guide.brakkie.scold": {

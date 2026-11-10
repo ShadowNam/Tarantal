@@ -1,5 +1,5 @@
 import { setBraaiFlags } from './game/braai/braaiChunk';
-import { BONUS_MAP_IDS, WEEKDAY_IDS, type Biome } from './content/schemas';
+import { BONUS_MAP_IDS, WEEKDAY_IDS, type Biome, type ContentBundle } from './content/schemas';
 // Boot: save (settings + progress) → i18n → content (validated) → platform adapter →
 // placeholder assets → Phaser game with the flexible-width layout (Tech §5). Opens on the title
 // over the live panorama: one giant START HUNT, so the first shot is seconds away (GDD §16).
@@ -11,29 +11,6 @@ import { DailyFlow } from './game/daily/DailyFlow';
 import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector, browserAudioEnv } from './game/audio/AudioDirector';
 import { BarkDirector } from './game/audio/barks';
-import {
-  isPlaneScalePreset,
-  withDoppies,
-  withEarlySpook,
-  withNearPresents,
-  withNoBirds,
-  withMakalaniPreview,
-  withBaboonRaid,
-  withBaboonPeek,
-  BABOON_PEEKS,
-  type BaboonPeek,
-  withNoBaboons,
-  withReenbuiParams,
-  withBrakkieParams,
-  withCameoParams,
-  withWindParams,
-  withAgamaBefore,
-  withHarvestPreview,
-  withNoPalms,
-  withPlaneScales,
-  withQuotaMul,
-  withTestCrate,
-} from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import {
   designSize,
@@ -109,7 +86,7 @@ import {
   type AdminSave,
 } from './meta/admin';
 import type { AdminContext } from './game/admin/AdminContext';
-import { adminHuntSetup, type AdminHuntSetup } from './game/admin/adminPlay';
+import type { AdminHuntSetup } from './game/admin/adminPlay';
 import { AdminScene } from './game/scenes/AdminScene';
 import { AdBreaks } from './game/ads/AdBreaks';
 import { PrivacyScene } from './game/scenes/PrivacyScene';
@@ -572,9 +549,6 @@ hook.boot['script'] = performance.now();
 // v1.6 (D-042): which build this is, first thing in the console.
 console.info(`[build] ${buildLine(buildInfo())}`);
 const loaded = loadGameContent();
-// e2e/dev only (D-049 "before" screenshots): ?planeScale=v17 — the old plane scales.
-const planeScaleParam = testHooks ? params.get('planeScale') : null;
-const planePreset = isPlaneScalePreset(planeScaleParam) ? planeScaleParam : null;
 // e2e/dev only: ?maxSteps=30 raises the loop's sim catch-up per frame (feel.loop.maxStepsPerFrame),
 // so a hunt on a slow, software-rendered test machine keeps to real time and ends when a wall-clock
 // wait expects it. Client feel only: the content hash and every replay are unchanged.
@@ -585,59 +559,6 @@ const feel =
     : loaded.feel;
 // M10: the final-asset index, fetched while the platform SDK starts (absent = all placeholders).
 const indexLoad = fetchAssetIndex(feel.assets.indexTimeoutMs);
-const crateParam = testHooks ? params.get('crate') : null;
-const shipped = planePreset === null ? loaded.bundle : withPlaneScales(loaded.bundle, planePreset);
-const withCrate = crateParam === null ? shipped : withTestCrate(shipped, crateParam);
-// e2e/dev only: ?quotaMul=0 makes every Season Run quota reachable (short e2e runs).
-const quotaMul = testHooks && params.has('quotaMul') ? Number(params.get('quotaMul')) : NaN;
-const withQuota =
-  Number.isFinite(quotaMul) && quotaMul >= 0 ? withQuotaMul(withCrate, quotaMul) : withCrate;
-// e2e/dev only: ?doppies=1 — a run with (almost) no Doppies, to show Padstal offers it can't buy.
-const doppiesParam = testHooks && params.has('doppies') ? Number(params.get('doppies')) : NaN;
-const withDop =
-  Number.isInteger(doppiesParam) && doppiesParam >= 0
-    ? withDoppies(withQuota, doppiesParam)
-    : withQuota;
-// e2e/dev only (v1.7 meerkat previews): ?birds=0 — no birds or world events, colonies only.
-const noBirds = testHooks && params.get('birds') === '0' ? withNoBirds(withDop) : withDop;
-// e2e/dev only (D-048): ?spook=early brings the special day's owls and bats in early.
-// e2e/dev only (1.9.3, D-056): ?palms=0 — the layouts without their makalani palms (the art
-// previews' "before").
-const noPalms = testHooks && params.get('palms') === '0' ? withNoPalms(noBirds) : noBirds;
-// e2e/dev only (review M14): ?makalaniPreview=juggle|pop — easy air hits, or every hit pops.
-const nutPreview = testHooks ? params.get('makalaniPreview') : null;
-const withNuts = nutPreview === null ? noPalms : withMakalaniPreview(noPalms, nutPreview);
-const earlySpook =
-  testHooks && params.get('spook') === 'early' ? withEarlySpook(withNuts) : withNuts;
-// e2e/dev only (D-064): ?presents=near — Christmas's two presents either side of the tinsel tree.
-const devSpook =
-  testHooks && params.get('presents') === 'near' ? withNearPresents(earlySpook) : earlySpook;
-// e2e/dev only (v1.8b, D-062): ?baboonRaid=<action>|any — a raid of that kind within seconds.
-const raidPreview = testHooks ? params.get('baboonRaid') : null;
-const withRaidOnly = raidPreview === null ? devSpook : withBaboonRaid(devSpook, raidPreview);
-// e2e/dev only (v1.16, D-078): ?baboonPeek=peek|sentinel|long — the ridge's peeks within seconds.
-const peekPreview = testHooks ? params.get('baboonPeek') : null;
-const withRaid =
-  peekPreview !== null && (BABOON_PEEKS as readonly string[]).includes(peekPreview)
-    ? withBaboonPeek(withRaidOnly, peekPreview as BaboonPeek)
-    : withRaidOnly;
-// e2e only (v1.8b, D-062): ?baboons=0 — no baboon troops (specs that don't test them).
-const noTroops = testHooks && params.get('baboons') === '0' ? withNoBaboons(withRaid) : withRaid;
-// e2e/dev only (v1.10, D-067): ?reenbui=1 forces a Reënbui, ?reenbuiPhase= holds a phase,
-// ?reenbui=0 turns it off (specs that pin a seed, lesson 17). Nothing else changes the content:
-// `?e2e` alone keeps the real content hash (the Daily seed, challenge links, Node replays).
-const withRainOnly = testHooks ? withReenbuiParams(noTroops, params) : noTroops;
-// e2e/dev only (v1.12, D-069): ?brakkie=0 no Brakkie (specs that pin a seed, lesson 17), ?brakkie=1
-// out at once and fetching every bag, ?brakkiePreview=bark|flush that moment within seconds.
-const withBrakkie = testHooks ? withBrakkieParams(withRainOnly, params) : withRainOnly;
-// e2e/dev only (v1.13, D-075): ?cameos=0 no cameos (specs that pin a seed, lesson 17), ?cameos=1
-// sooner and more often, ?cameoPreview=all|<kinds>[&cameoReact=<s>] out in view at once.
-const withCameo = testHooks ? withCameoParams(withBrakkie, params) : withBrakkie;
-// e2e/dev only (v1.17, D-079): ?wind=strong — full wind with long gusts on the wind maps.
-const withDog = testHooks ? withWindParams(withCameo, params) : withCameo;
-// art previews only (v1.12 polish b): ?agamaBefore=1 — the agama on its old seat.
-const withRain =
-  testHooks && params.get('agamaBefore') === '1' ? withAgamaBefore(withDog) : withDog;
 // e2e/dev only (v1.11, D-068): ?braai=0 — the plain slate (specs that don't test the braai);
 // ?braaiDance=1 — Oupa dances whatever the result; ?braaiAt=<ms> holds the braai's clock there.
 if (testHooks) {
@@ -648,42 +569,122 @@ if (testHooks) {
     at: Number.isFinite(at) && at >= 0 ? at : null,
   });
 }
-// e2e/dev only (v1.8c, D-063): ?harvestDuck=<seconds> (a struck worker stays down that long) and
-// ?harvestRush=1 (the rush's peak from the start), for the Harvest's screenshots.
-const duckParam = testHooks ? Number(params.get('harvestDuck') ?? NaN) : NaN;
-const rushParam = testHooks && params.get('harvestRush') === '1';
-// v1.18 (D-081): ?harvestPhase2=1 (Phase 2 from the start), ?harvestPhase2Seconds=<s>.
-const phase2Param = testHooks && params.get('harvestPhase2') === '1';
-const shotsParam = testHooks && params.get('harvestShots') === '1';
-const phase2Secs = testHooks ? Number(params.get('harvestPhase2Seconds') ?? NaN) : NaN;
-const devBundle =
-  (Number.isFinite(duckParam) && duckParam > 0) || rushParam || phase2Param || shotsParam
-    ? withHarvestPreview(withRain, {
-        ...(Number.isFinite(duckParam) && duckParam > 0 ? { duckSeconds: duckParam } : {}),
-        rush: rushParam,
-        phase2: phase2Param,
-        shots: shotsParam,
-        ...(Number.isFinite(phase2Secs) && phase2Secs > 0 ? { phase2Seconds: phase2Secs } : {}),
-      })
-    : withRain;
-// D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
+
+/** v1.20 (D-085): the e2e/dev content tweaks (URL parameters, devContent.ts) — a lazy chunk,
+ *  loaded only when test hooks are on, so the first download never carries them. */
+function devContentOf(dev: typeof import('./game/devContent')): ContentBundle {
+  // e2e/dev only (D-049 "before" screenshots): ?planeScale=v17 — the old plane scales.
+  const planeScaleParam = testHooks ? params.get('planeScale') : null;
+  const planePreset = dev.isPlaneScalePreset(planeScaleParam) ? planeScaleParam : null;
+  const crateParam = testHooks ? params.get('crate') : null;
+  const shipped =
+    planePreset === null ? loaded.bundle : dev.withPlaneScales(loaded.bundle, planePreset);
+  const withCrate = crateParam === null ? shipped : dev.withTestCrate(shipped, crateParam);
+  // e2e/dev only: ?quotaMul=0 makes every Season Run quota reachable (short e2e runs).
+  const quotaMul = testHooks && params.has('quotaMul') ? Number(params.get('quotaMul')) : NaN;
+  const withQuota =
+    Number.isFinite(quotaMul) && quotaMul >= 0 ? dev.withQuotaMul(withCrate, quotaMul) : withCrate;
+  // e2e/dev only: ?doppies=1 — a run with (almost) no Doppies, to show Padstal offers it can't buy.
+  const doppiesParam = testHooks && params.has('doppies') ? Number(params.get('doppies')) : NaN;
+  const withDop =
+    Number.isInteger(doppiesParam) && doppiesParam >= 0
+      ? dev.withDoppies(withQuota, doppiesParam)
+      : withQuota;
+  // e2e/dev only (v1.7 meerkat previews): ?birds=0 — no birds or world events, colonies only.
+  const noBirds = testHooks && params.get('birds') === '0' ? dev.withNoBirds(withDop) : withDop;
+  // e2e/dev only (D-048): ?spook=early brings the special day's owls and bats in early.
+  // e2e/dev only (1.9.3, D-056): ?palms=0 — the layouts without their makalani palms (the art
+  // previews' "before").
+  const noPalms = testHooks && params.get('palms') === '0' ? dev.withNoPalms(noBirds) : noBirds;
+  // e2e/dev only (review M14): ?makalaniPreview=juggle|pop — easy air hits, or every hit pops.
+  const nutPreview = testHooks ? params.get('makalaniPreview') : null;
+  const withNuts = nutPreview === null ? noPalms : dev.withMakalaniPreview(noPalms, nutPreview);
+  const earlySpook =
+    testHooks && params.get('spook') === 'early' ? dev.withEarlySpook(withNuts) : withNuts;
+  // e2e/dev only (D-064): ?presents=near — Christmas's two presents either side of the tinsel tree.
+  const devSpook =
+    testHooks && params.get('presents') === 'near' ? dev.withNearPresents(earlySpook) : earlySpook;
+  // e2e/dev only (v1.8b, D-062): ?baboonRaid=<action>|any — a raid of that kind within seconds.
+  const raidPreview = testHooks ? params.get('baboonRaid') : null;
+  const withRaidOnly = raidPreview === null ? devSpook : dev.withBaboonRaid(devSpook, raidPreview);
+  // e2e/dev only (v1.16, D-078): ?baboonPeek=peek|sentinel|long — the ridge's peeks within seconds.
+  const peekPreview = testHooks ? params.get('baboonPeek') : null;
+  const withRaid =
+    peekPreview !== null && (dev.BABOON_PEEKS as readonly string[]).includes(peekPreview)
+      ? dev.withBaboonPeek(withRaidOnly, peekPreview as import('./game/devContent').BaboonPeek)
+      : withRaidOnly;
+  // e2e only (v1.8b, D-062): ?baboons=0 — no baboon troops (specs that don't test them).
+  const noTroops =
+    testHooks && params.get('baboons') === '0' ? dev.withNoBaboons(withRaid) : withRaid;
+  // e2e/dev only (v1.10, D-067): ?reenbui=1 forces a Reënbui, ?reenbuiPhase= holds a phase,
+  // ?reenbui=0 turns it off (specs that pin a seed, lesson 17). Nothing else changes the content:
+  // `?e2e` alone keeps the real content hash (the Daily seed, challenge links, Node replays).
+  const withRainOnly = testHooks ? dev.withReenbuiParams(noTroops, params) : noTroops;
+  // e2e/dev only (v1.12, D-069): ?brakkie=0 no Brakkie (specs that pin a seed, lesson 17), ?brakkie=1
+  // out at once and fetching every bag, ?brakkiePreview=bark|flush that moment within seconds.
+  const withBrakkie = testHooks ? dev.withBrakkieParams(withRainOnly, params) : withRainOnly;
+  // e2e/dev only (v1.13, D-075): ?cameos=0 no cameos (specs that pin a seed, lesson 17), ?cameos=1
+  // sooner and more often, ?cameoPreview=all|<kinds>[&cameoReact=<s>] out in view at once.
+  const withCameo = testHooks ? dev.withCameoParams(withBrakkie, params) : withBrakkie;
+  // e2e/dev only (v1.17, D-079): ?wind=strong — full wind with long gusts on the wind maps.
+  const withDog = testHooks ? dev.withWindParams(withCameo, params) : withCameo;
+  // art previews only (v1.12 polish b): ?agamaBefore=1 — the agama on its old seat.
+  const withRain =
+    testHooks && params.get('agamaBefore') === '1' ? dev.withAgamaBefore(withDog) : withDog;
+  // e2e/dev only (v1.8c, D-063): ?harvestDuck=<seconds> (a struck worker stays down that long) and
+  // ?harvestRush=1 (the rush's peak from the start), for the Harvest's screenshots.
+  const duckParam = testHooks ? Number(params.get('harvestDuck') ?? NaN) : NaN;
+  const rushParam = testHooks && params.get('harvestRush') === '1';
+  // v1.18 (D-081): ?harvestPhase2=1 (Phase 2 from the start), ?harvestPhase2Seconds=<s>.
+  const phase2Param = testHooks && params.get('harvestPhase2') === '1';
+  const shotsParam = testHooks && params.get('harvestShots') === '1';
+  const phase2Secs = testHooks ? Number(params.get('harvestPhase2Seconds') ?? NaN) : NaN;
+  const devBundle =
+    (Number.isFinite(duckParam) && duckParam > 0) || rushParam || phase2Param || shotsParam
+      ? dev.withHarvestPreview(withRain, {
+          ...(Number.isFinite(duckParam) && duckParam > 0 ? { duckSeconds: duckParam } : {}),
+          rush: rushParam,
+          phase2: phase2Param,
+          shots: shotsParam,
+          ...(Number.isFinite(phase2Secs) && phase2Secs > 0 ? { phase2Seconds: phase2Secs } : {}),
+        })
+      : withRain;
+  return devBundle;
+}
+
+// v1.20 (D-085): the hunt content (the shipped bundle, or with the e2e/dev tweaks and the admin's
+// Play setup, both lazy chunks) is ready once boot() has awaited prepareContent(); until then these
+// hold the shipped bundle (nothing reads them before).
+let bundle: ContentBundle = loaded.bundle;
 let adminSave: AdminSave | null = adminOn ? loadAdminSave() : null;
-const adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];
-const adminPlay = adminSave?.play ?? null;
-const adminEntry =
-  params.get('play') === '1' && adminPlay !== null
-    ? adminList.find((e) => e.id === adminPlay.entry)
-    : undefined;
-const adminSetup: AdminHuntSetup | null =
-  adminEntry === undefined || adminPlay === null
-    ? null
-    : adminHuntSetup(adminEntry, adminPlay.options, devBundle);
-const bundle = adminSetup?.content ?? devBundle;
-hook.boot['content'] = performance.now();
-const biomeId = bundle.modes.modes.classic.biome;
-const foundBiome = bundle.biomes.find((b) => b.id === biomeId);
-if (foundBiome === undefined) throw new Error(`classic biome ${biomeId} missing`);
-const biome: Biome = foundBiome;
+let adminList: ReturnType<typeof adminEntries> = [];
+let adminSetup: AdminHuntSetup | null = null;
+let biome: Biome = classicBiomeOf(bundle);
+
+function classicBiomeOf(b: ContentBundle): Biome {
+  const biomeId = b.modes.modes.classic.biome;
+  const found = b.biomes.find((x) => x.id === biomeId);
+  if (found === undefined) throw new Error(`classic biome ${biomeId} missing`);
+  return found;
+}
+
+async function prepareContent(): Promise<void> {
+  const devBundle = testHooks ? devContentOf(await import('./game/devContent')) : loaded.bundle;
+  // D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
+  adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];
+  const adminPlay = adminSave?.play ?? null;
+  const adminEntry =
+    params.get('play') === '1' && adminPlay !== null
+      ? adminList.find((e) => e.id === adminPlay.entry)
+      : undefined;
+  if (adminEntry !== undefined && adminPlay !== null) {
+    const { adminHuntSetup } = await import('./game/admin/adminPlay');
+    adminSetup = adminHuntSetup(adminEntry, adminPlay.options, devBundle);
+  }
+  bundle = adminSetup?.content ?? devBundle;
+  hook.boot['content'] = performance.now();
+  biome = classicBiomeOf(bundle);
+}
 
 const initialDesign = designSizeFor(viewport().width, viewport().height);
 let portrait = isPortrait(viewport().width, viewport().height);
@@ -724,6 +725,7 @@ platform.loadingProgress(0);
 // entry back into it only when no module uses top-level await (v1.3x, D-037: the Skietbaan's lazy
 // chunk would otherwise split the first download in two).
 async function boot(): Promise<void> {
+  await prepareContent();
   hook.boot['platformStart'] = performance.now();
   await platform.init();
   hook.boot['platform'] = performance.now();
