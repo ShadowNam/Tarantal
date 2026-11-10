@@ -3,6 +3,13 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.22.0] — v1.19: The Gun Shed, meerkats and two special shells (in progress)
+
+Decision record D-084. The owner's requests of 8 Nov (night): better gun pictures in the Gun Shed,
+better meerkats, and two special shotgun shells (Dragon's Breath and the Slug).
+
+- Work in progress.
+
 ## [1.21.0] — v1.18: Die Oes, the raid and the bonus round (9 Nov 2026)
 
 Decision record D-081. The owner's requests of 8 Nov: the baboons climbing off the koppie, a small
