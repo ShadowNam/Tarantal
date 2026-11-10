@@ -99,22 +99,65 @@ export interface HarvestSheetSource {
   upgrade(textures: Phaser.Textures.TextureManager, key: string): void;
 }
 
-/** A hook entry as the view keeps it (updated in place; read by the e2e specs). */
-type Mutable<T> = { -readonly [K in keyof T]: T[K] };
-type SlotHook = Mutable<HarvestHook>;
-type Body = { x: number; y: number; rx: number; ry: number };
+/** What a hook entry is worked out from (as the update left it). */
+type HookActor = Pick<HarvestActorView, 'x' | 'y' | 'scale' | 'facing'>;
+
+/** v1.18 perf: a layer's root transform, read once per update (the root's scale is a getter). */
+interface LayerXf {
+  readonly node: LayerNode;
+  /** The update it was read in. */
+  frame: number;
+  x: number;
+  y: number;
+  kx: number;
+  ky: number;
+}
+
+/** v1.18 perf: what a fixture (the gap's panel, the sign, the hole's patch) was drawn from last
+ *  update (stillAsBefore). */
+interface Memo {
+  frame: AnyFrame | null | undefined;
+  x: number;
+  y: number;
+  extra: number;
+  rx: number;
+  ry: number;
+  kx: number;
+  ky: number;
+  width: number;
+  kGen: number;
+}
+const newMemo = (): Memo => ({
+  frame: undefined,
+  x: NaN,
+  y: NaN,
+  extra: NaN,
+  rx: NaN,
+  ry: NaN,
+  kx: NaN,
+  ky: NaN,
+  width: NaN,
+  kGen: NaN,
+});
 
 interface Slot {
   readonly img: Phaser.GameObjects.Image;
   readonly layerId: string;
   /** v1.18 perf: the layer node (the parallax layers are built once, with the view). */
   readonly layer: LayerNode;
+  /** v1.18 perf: its root transform this update (shared by the layer's slots). */
+  readonly xf: LayerXf;
+  /** v1.18 perf: a fixture's last inputs (stillAsBefore). */
+  readonly memo: Memo;
   /** The actor it draws now (a pooled slot is reused for the next one on its layer). */
   id: number;
   role: string;
   frame: AnyFrame;
   /** v1.18 (D-081): the texture under the slot's image. */
   tex: string;
+  /** v1.18 perf: texture px per design px of `frame` (kOf), valid while `kGen` is the view's. */
+  k: number;
+  kGen: number;
   x: number;
   y: number;
   scale: number;
@@ -124,9 +167,16 @@ interface Slot {
   shown: boolean;
   /** The update (frame number) that last drew it. */
   seen: number;
-  readonly hook: SlotHook;
-  /** The hook's body ellipse (reused; hook.body is it or null). */
-  readonly body: Body;
+  /** e2e: its hook entry (null without hooks): worked out when read, from the fields below. */
+  hook: HarvestHook | null;
+  /** e2e: what hookOf was last given (feet, ground line, shown, hit box on actor `ha`, phase). */
+  hx: number;
+  hy: number;
+  hg: number;
+  hshow: boolean;
+  hbox: { readonly body: Ellipse } | null;
+  ha: HookActor | null;
+  hphase: string | undefined;
 }
 
 const alt = (t: number, every: number): boolean => (Math.floor(t / every) & 1) === 0;
@@ -192,6 +242,9 @@ const P2_ROLE: Readonly<Record<Phase2AnimalView['kind'], string>> = {
 
 export class HarvestView {
   private readonly slots = new Map<number, Slot>();
+  /** v1.18 perf: the slots in `slots`, in the order they came (walked with an index: no
+   *  iterator objects per frame, which unoptimised code would allocate). */
+  private readonly active: Slot[] = [];
   private gap: Slot | null = null;
   private sign: Slot | null = null;
   /** v1.18 (D-081): the small hole's patch. */
@@ -216,6 +269,12 @@ export class HarvestView {
   private cullW = 0;
   private babTex: Phaser.Textures.Texture | null = null;
   private kBab = 0;
+  /** v1.18 perf: each layer's root transform this update. */
+  private readonly xfs = new Map<string, LayerXf>();
+  /** v1.18 perf: bumped whenever kOf's answers may change (a sheet cut or swapped). */
+  private kGen = 1;
+  /** v1.18 perf: the Phase 2 sheet is in (sheet2Ready, asked once per update). */
+  private ready2 = false;
   /** v1.18 perf: images made with the view (hidden, on no layer), for the first slots: a burst
    *  of arrivals takes these instead of building new game objects mid-hunt. */
   private readonly spares: Phaser.GameObjects.Image[] = [];
@@ -302,6 +361,7 @@ export class HarvestView {
     }
     const was = this.k;
     this.k = k;
+    this.kGen++;
     for (const s of this.all()) {
       if (s.tex !== HARVEST_SHEET) continue;
       s.img.setTexture(HARVEST_SHEET, s.frame);
@@ -337,6 +397,7 @@ export class HarvestView {
     }
     this.k2 = k;
     this.sheet2 = tex;
+    this.kGen++;
     return true;
   }
 
@@ -359,6 +420,71 @@ export class HarvestView {
     if (this.hole !== null) yield this.hole;
   }
 
+  /** v1.18 perf: the transform cache of a layer (one per layer). */
+  private xfOf(node: LayerNode): LayerXf {
+    let xf = this.xfs.get(node.id);
+    if (xf === undefined) {
+      xf = { node, frame: -1, x: 0, y: 0, kx: 1, ky: 1 };
+      this.xfs.set(node.id, xf);
+    }
+    return xf;
+  }
+
+  /** v1.18 perf: a slot's layer transform as of this update. */
+  private xfNow(s: Slot): LayerXf {
+    const xf = s.xf;
+    if (xf.frame !== this.frameNo) {
+      const r = xf.node.root;
+      xf.x = r.x;
+      xf.y = r.y;
+      xf.kx = r.scaleX;
+      xf.ky = r.scaleY;
+      xf.frame = this.frameNo;
+    }
+    return xf;
+  }
+
+  /**
+   * v1.18 perf: true when a fixture would be drawn exactly as last update (so its sprite and hook
+   * entry are as they are): the same frame, place and `extra` (the sign's swing, the patch's
+   * state), its layer unmoved, the same design width and sheets, and not hidden since. Else it
+   * remembers these and says false.
+   */
+  private stillAsBefore(
+    s: Slot,
+    frame: AnyFrame | null,
+    x: number,
+    y: number,
+    extra: number,
+  ): boolean {
+    const xf = this.xfNow(s);
+    const m = s.memo;
+    if (
+      m.frame === frame &&
+      m.x === x &&
+      m.y === y &&
+      m.extra === extra &&
+      m.rx === xf.x &&
+      m.ry === xf.y &&
+      m.kx === xf.kx &&
+      m.ky === xf.ky &&
+      m.width === this.cullW &&
+      m.kGen === this.kGen
+    )
+      return true;
+    m.frame = frame;
+    m.x = x;
+    m.y = y;
+    m.extra = extra;
+    m.rx = xf.x;
+    m.ry = xf.y;
+    m.kx = xf.kx;
+    m.ky = xf.ky;
+    m.width = this.cullW;
+    m.kGen = this.kGen;
+    return false;
+  }
+
   /** A new slot on a layer, its image showing `want` if that frame can be drawn now (else a
    *  Harvest sheet frame until place() sets one): a prewarmed image if any is left. */
   private newSlot(layerId: string, want: AnyFrame, id: number, role: string): Slot | null {
@@ -377,14 +503,18 @@ export class HarvestView {
     if (tint !== 0xffffff) img.setTint(tint);
     layer.fixtures.add(img);
     this.listDirty = true;
-    return {
+    const slot: Slot = {
       img,
       layerId,
       layer,
+      xf: this.xfOf(layer),
+      memo: newMemo(),
       id,
       role,
       frame,
       tex,
+      k: 0,
+      kGen: 0,
       x: 0,
       y: 0,
       scale: 1,
@@ -393,29 +523,70 @@ export class HarvestView {
       flip: false,
       shown: false,
       seen: 0,
-      hook: {
-        id,
-        role,
-        frame: null,
-        x: 0,
-        y: 0,
-        groundY: 0,
-        visible: false,
-        facing: 1,
-        body: null,
-        // Present from the start, so every hook entry keeps one shape.
-        phase: undefined,
-      },
-      body: { x: 0, y: 0, rx: 0, ry: 0 },
+      hook: null,
+      hx: 0,
+      hy: 0,
+      hg: 0,
+      hshow: false,
+      hbox: null,
+      ha: null,
+      hphase: undefined,
     };
+    if (this.hooks) slot.hook = this.hookEntry(slot);
+    return slot;
   }
 
-  /** v1.18 perf: a gone actor's slot: hidden and kept for the next actor on its layer. */
-  private release(s: Slot): void {
-    if (s.shown) {
+  /**
+   * e2e: a slot's hook entry. Its fields are worked out when a spec reads them (getters), from
+   * what the last update gave hookOf and its layer's transform then, so the update itself only
+   * stores a few values (the hooks are test builds only; the perf specs time the update).
+   */
+  private hookEntry(s: Slot): HarvestHook {
+    const xf = s.xf;
+    const at = (v: () => unknown): PropertyDescriptor => ({ enumerable: true, get: v });
+    const entry = {};
+    Object.defineProperties(entry, {
+      id: at(() => s.id),
+      role: at(() => s.role),
+      frame: at(() => (s.hshow ? s.frame : null)),
+      x: at(() => Math.round(xf.x + s.hx * xf.kx)),
+      y: at(() => Math.round(xf.y + s.hy * xf.ky)),
+      groundY: at(() => Math.round(xf.y + s.hg * xf.ky)),
+      visible: at(() => s.hshow),
+      facing: at(() => (s.flip ? -1 : 1)),
+      body: at(() => {
+        const box = s.hbox;
+        const a = s.ha;
+        if (box === null || a === null) return null;
+        // The body ellipse on its layer as the sim builds it (× scale, mirrored by facing), then
+        // on screen.
+        const e = box.body;
+        const as = a.scale;
+        return {
+          x: xf.x + (a.x + e.ox * as * a.facing) * xf.kx,
+          y: xf.y + (a.y + e.oy * as) * xf.ky,
+          rx: e.rx * as * xf.kx,
+          ry: e.ry * as * xf.ky,
+        };
+      }),
+      phase: at(() => s.hphase),
+    });
+    return entry as HarvestHook;
+  }
+
+  /** Hides a slot's image (if any and shown). */
+  private hide(s: Slot | null | undefined): void {
+    if (s !== null && s !== undefined && s.shown) {
       s.img.setVisible(false);
       s.shown = false;
+      s.memo.width = NaN;
     }
+  }
+
+  /** v1.18 perf: a gone actor's slot: hidden and kept for the next actor on its layer (the
+   *  caller takes it out of `active`). */
+  private release(s: Slot): void {
+    this.hide(s);
     this.slots.delete(s.id);
     let p = this.pool.get(s.layerId);
     if (p === undefined) {
@@ -442,54 +613,65 @@ export class HarvestView {
     alpha: number,
     rot = 0,
   ): boolean {
+    // (Each field read once into a local: until the JIT has warmed up, every read is a call.)
     let show = false;
     let k = 0;
+    const was = s.frame;
     let tex = s.tex;
     if (frame !== null && alpha > 0) {
-      const r = s.layer.root;
-      const sx = r.x + x * r.scaleX;
+      const xf = this.xfNow(s);
+      const sx = xf.x + x * xf.kx;
       if (sx >= -CULL_PX && sx <= this.cullW + CULL_PX) {
-        if (frame !== s.frame) tex = texOf(frame);
-        k = this.kOf(frame, tex);
+        if (frame === was && s.kGen === this.kGen) k = s.k;
+        else {
+          if (frame !== was) tex = texOf(frame);
+          k = this.kOf(frame, tex);
+        }
         show = k > 0;
       }
     }
+    const img = s.img;
     if (show !== s.shown) {
-      s.img.setVisible(show);
+      img.setVisible(show);
       s.shown = show;
     }
     if (!show || frame === null) return false;
+    s.k = k;
+    s.kGen = this.kGen;
+    let turned = false;
     if (tex !== s.tex) {
-      s.img.setTexture(tex, frame);
+      img.setTexture(tex, frame);
       s.tex = tex;
       s.frame = frame;
-      this.origin(s);
-    } else if (frame !== s.frame) {
-      s.img.setFrame(frame);
+      turned = true;
+    } else if (frame !== was) {
+      img.setFrame(frame);
       s.frame = frame;
-      this.origin(s);
+      turned = true;
     }
     if (flip !== s.flip) {
-      s.img.setFlipX(flip);
+      img.setFlipX(flip);
       s.flip = flip;
-      this.origin(s);
+      turned = true;
     }
+    // The origin at the frame's feet; a custom-pivot frame is mirrored round it (footOrigin.ts).
+    if (turned) setFootOrigin(img, flip);
     const sc = scale / k;
     if (sc !== s.scale) {
-      s.img.setScale(sc);
+      img.setScale(sc);
       s.scale = sc;
     }
     if (x !== s.x || y !== s.y) {
-      s.img.setPosition(x, y);
+      img.setPosition(x, y);
       s.x = x;
       s.y = y;
     }
     if (alpha !== s.alpha) {
-      s.img.setAlpha(alpha);
+      img.setAlpha(alpha);
       s.alpha = alpha;
     }
     if (rot !== s.rot) {
-      s.img.setRotation(rot);
+      img.setRotation(rot);
       s.rot = rot;
     }
     return true;
@@ -503,31 +685,19 @@ export class HarvestView {
     groundY: number,
     /** The hit box whose body ellipse the hook shows (on actor `a`), or null. */
     box: { readonly body: Ellipse } | null = null,
-    a: Pick<HarvestActorView, 'x' | 'y' | 'scale' | 'facing'> | null = null,
+    a: HookActor | null = null,
     phase?: string,
   ): void {
     if (!this.hooks) return;
-    const r = s.layer.root;
-    const h = s.hook;
-    h.x = Math.round(r.x + x * r.scaleX);
-    h.y = Math.round(r.y + y * r.scaleY);
-    h.groundY = Math.round(r.y + groundY * r.scaleY);
-    h.visible = show;
-    h.frame = show ? s.frame : null;
-    h.facing = s.flip ? -1 : 1;
-    h.phase = phase;
-    if (box === null || a === null) h.body = null;
-    else {
-      // The body ellipse on its layer as the sim builds it (× scale, mirrored by facing), then
-      // on screen.
-      const e = box.body;
-      const b = s.body;
-      b.x = r.x + (a.x + e.ox * a.scale * a.facing) * r.scaleX;
-      b.y = r.y + (a.y + e.oy * a.scale) * r.scaleY;
-      b.rx = e.rx * a.scale * r.scaleX;
-      b.ry = e.ry * a.scale * r.scaleY;
-      h.body = b;
-    }
+    // (The layer's transform as of this update: the entry reads it from there.)
+    this.xfNow(s);
+    s.hx = x;
+    s.hy = y;
+    s.hg = groundY;
+    s.hshow = show;
+    s.hbox = box;
+    s.ha = a;
+    s.hphase = phase;
   }
 
   private slotFor(
@@ -544,8 +714,6 @@ export class HarvestView {
       if (reuse !== undefined) {
         reuse.id = a.id;
         reuse.role = role;
-        reuse.hook.id = a.id;
-        reuse.hook.role = role;
         reuse.layer.fixtures.bringToTop(reuse.img);
         this.listDirty = true;
         s = reuse;
@@ -555,6 +723,7 @@ export class HarvestView {
         s = made;
       }
       this.slots.set(a.id, s);
+      this.active.push(s);
     }
     s.seen = this.frameNo;
     return s;
@@ -580,11 +749,13 @@ export class HarvestView {
   private baboonSheet(): void {
     const tx = this.scene.textures;
     if (!tx.exists(BABOON_SHEET)) {
+      if (this.babTex !== null) this.kGen++;
       this.babTex = null;
       return;
     }
     const t = tx.get(BABOON_SHEET);
     if (t !== this.babTex) {
+      this.kGen++;
       this.babTex = t;
       this.kBab = Math.max(1, Math.round(t.getSourceImage().width / BABOON_SHEET_W));
     }
@@ -606,23 +777,28 @@ export class HarvestView {
     const t0 = this.now();
     const h = state.harvest;
     if (h === null || !this.sheetReady()) {
-      for (const s of this.all())
-        if (s.shown) {
-          s.img.setVisible(false);
-          s.shown = false;
-        }
+      // (Pooled slots are hidden already.)
+      for (let i = 0; i < this.active.length; i++) this.hide(this.active[i]);
+      this.hide(this.gap);
+      this.hide(this.sign);
+      this.hide(this.hole);
       this.lastMs = this.now() - t0;
       return;
     }
     const no = ++this.frameNo;
     this.cullW = designSize().width;
+    const ready2 = this.sheet2Ready();
+    this.ready2 = ready2;
     if (h.phase2 !== null) this.baboonSheet();
     const W = this.tuning.warthogs;
-    for (const w of h.warthogs) {
+    const hogs = h.warthogs;
+    for (let i = 0; i < hogs.length; i++) {
+      const w = hogs[i];
+      if (w === undefined) continue;
       const wf = this.warthogFrame(w.phase, w.t);
       const alpha = this.wfAlpha;
       // v1.18 (D-081): head down, pushing through the small hole.
-      const frame: AnyFrame = w.squeeze && this.sheet2Ready() ? 'wh_squeeze' : wf;
+      const frame: AnyFrame = w.squeeze && ready2 ? 'wh_squeeze' : wf;
       const s = this.slotFor(w, 'warthog', frame);
       if (s === null) continue;
       const shown = this.place(
@@ -636,9 +812,12 @@ export class HarvestView {
       );
       this.hookOf(s, shown, w.x, w.y, w.y, w.phase === 'dig' ? W.hitboxes.dig : W.hitboxes.trot, w);
     }
-    for (const p of h.piglets) {
+    const piglets = h.piglets;
+    for (let i = 0; i < piglets.length; i++) {
+      const p = piglets[i];
+      if (p === undefined) continue;
       const frame: AnyFrame =
-        p.squeeze && this.sheet2Ready()
+        p.squeeze && ready2
           ? 'pg_squeeze'
           : p.running
             ? 'pg_run'
@@ -659,7 +838,10 @@ export class HarvestView {
       this.hookOf(s, shown, p.x, p.y, p.y);
     }
     const K = this.tuning.workers;
-    for (const k of h.workers) {
+    const workers = h.workers;
+    for (let i = 0; i < workers.length; i++) {
+      const k = workers[i];
+      if (k === undefined) continue;
       const frame = workerFrame(k.look, k.phase, k.t, WORKER_RUN_TICKS, WORK_TICKS);
       const s = this.slotFor(k, 'worker', frame);
       if (s === null) continue;
@@ -683,25 +865,38 @@ export class HarvestView {
       );
     }
     // v1.18 (D-081): Phase 2's animals.
-    if (h.phase2 !== null) for (const a of h.phase2.animals) this.drawPhase2(a);
-    // Gone actors: their slots go back to the pool.
-    for (const s of this.slots.values()) if (s.seen !== no) this.release(s);
+    if (h.phase2 !== null) {
+      const animals = h.phase2.animals;
+      for (let i = 0; i < animals.length; i++) {
+        const a = animals[i];
+        if (a !== undefined) this.drawPhase2(a);
+      }
+    }
+    // Gone actors: their slots go back to the pool (the rest keep their order).
+    const act = this.active;
+    for (let i = 0; i < act.length; i++) {
+      const s = act[i];
+      if (s !== undefined && s.seen !== no) {
+        this.release(s);
+        act.splice(i, 1);
+        i--;
+      }
+    }
     // The gap's panel (drawn 1:1 on its layer) and the sign hanging in it.
     this.gap ??= this.newSlot(h.gap.layerId, 'gap_4', -1, 'gap');
-    if (this.gap !== null) {
-      const shown = this.place(
-        this.gap,
-        this.gapFrame(h, state.tick),
-        h.gap.x,
-        h.gap.y,
-        1,
-        false,
-        1,
-      );
-      this.hookOf(this.gap, shown, h.gap.x, h.gap.y, h.gap.y);
+    const gap = this.gap;
+    const gx = h.gap.x;
+    const gy = h.gap.y;
+    if (gap !== null) {
+      const gf = this.gapFrame(h, state.tick);
+      if (!this.stillAsBefore(gap, gf, gx, gy, 0)) {
+        const shown = this.place(gap, gf, gx, gy, 1, false, 1);
+        this.hookOf(gap, shown, gx, gy, gy);
+      }
     }
     this.sign ??= this.newSlot(h.gap.layerId, 'sign_oes', -2, 'sign');
-    if (this.sign !== null) {
+    const sign = this.sign;
+    if (sign !== null) {
       const since = state.tick - h.breakTick;
       const swing =
         h.phase === 'intro' && since < 0
@@ -713,58 +908,43 @@ export class HarvestView {
               Math.cos((since / SIGN_PERIOD) * Math.PI * 2);
       // The sign hangs from the gap's top wire (a little above the fence's middle); D-080: the
       // true-size fence's, and the sign twice its v1.8c size with it (~0.6 m).
-      const sy = h.gap.y - 62 * FENCE_K - 8;
-      const shown = this.place(
-        this.sign,
-        'sign_oes',
-        h.gap.x,
-        sy,
-        2,
-        false,
-        1,
-        Math.round(swing * 100) / 100,
-      );
-      this.hookOf(this.sign, shown, h.gap.x, sy, h.gap.y);
+      const sy = gy - 62 * FENCE_K - 8;
+      const rot = Math.round(swing * 100) / 100;
+      if (!this.stillAsBefore(sign, 'sign_oes', gx, sy, rot)) {
+        const shown = this.place(sign, 'sign_oes', gx, sy, 2, false, 1, rot);
+        this.hookOf(sign, shown, gx, sy, gy);
+      }
     }
     // v1.18 (D-081): the small hole's patch, once the workers have mended it.
     if (h.hole !== null) {
       this.hole ??= this.newSlot(h.gap.layerId, 'gap_4', -3, 'hole');
-      if (this.hole !== null) {
-        const ready = this.sheet2Ready();
-        const shown = this.place(
-          this.hole,
-          h.hole.patched && ready ? 'hole_patch' : null,
-          h.hole.x,
-          h.hole.y,
-          1,
-          false,
-          1,
-        );
-        this.hookOf(
-          this.hole,
-          shown,
-          h.hole.x,
-          h.hole.y,
-          h.hole.y,
-          null,
-          null,
-          h.hole.patched ? 'patched' : 'open',
-        );
+      const hole = this.hole;
+      if (hole !== null) {
+        const patched = h.hole.patched;
+        const hf = patched && ready2 ? 'hole_patch' : null;
+        const hx = h.hole.x;
+        const hy = h.hole.y;
+        if (!this.stillAsBefore(hole, hf, hx, hy, patched ? 1 : 0)) {
+          const shown = this.place(hole, hf, hx, hy, 1, false, 1);
+          this.hookOf(hole, shown, hx, hy, hy, null, null, patched ? 'patched' : 'open');
+        }
       }
     }
     // (The actors only: the gap's panel and the sign stay, so a with/without pair shows the actors.)
     if (this.hidden)
-      for (const s of this.slots.values()) {
+      for (let i = 0; i < act.length; i++) {
+        const s = act[i];
+        if (s === undefined) continue;
         s.img.setVisible(false);
         s.shown = false;
       }
     // The hook entries are updated in place: the list changes only when the slots do.
     if (this.hooks && this.listDirty) {
       const list: HarvestHook[] = [];
-      for (const s of this.slots.values()) list.push(s.hook);
-      if (this.gap !== null) list.push(this.gap.hook);
-      if (this.sign !== null) list.push(this.sign.hook);
-      if (this.hole !== null) list.push(this.hole.hook);
+      for (const s of act) if (s.hook !== null) list.push(s.hook);
+      if (this.gap?.hook) list.push(this.gap.hook);
+      if (this.sign?.hook) list.push(this.sign.hook);
+      if (this.hole?.hook) list.push(this.hole.hook);
       this.hookList = list;
       this.listDirty = false;
     }
@@ -773,74 +953,72 @@ export class HarvestView {
 
   /** v1.18 (D-081): one Phase 2 animal: its frame for what it is doing, on its layer. */
   private drawPhase2(a: Phase2AnimalView): void {
+    // (The animal's fields read once into locals: until the JIT has warmed up, every read is a
+    // call.)
     const W = this.tuning.warthogs;
-    let frame: AnyFrame | null;
+    const kind = a.kind;
+    const phase = a.phase;
+    const t = a.t;
+    let frame: AnyFrame;
     let alpha = 1;
     let height = W.heightPx;
     let drawn = WARTHOG_H;
     let box: { readonly body: Ellipse } | null = null;
-    const ready2 = this.sheet2Ready();
-    if (a.kind === 'warthog') {
-      if (a.phase === 'jump')
-        frame = ready2 ? (a.t < a.dur / 2 ? 'wh_jump_a' : 'wh_jump_b') : 'wh_run_a';
+    const ready2 = this.ready2;
+    if (kind === 'warthog') {
+      if (phase === 'jump')
+        frame = ready2 ? (t < a.dur / 2 ? 'wh_jump_a' : 'wh_jump_b') : 'wh_run_a';
       else {
         const p =
-          a.phase === 'eat'
+          phase === 'eat'
             ? 'dig'
-            : a.phase === 'flee'
+            : phase === 'flee'
               ? 'run'
-              : a.phase === 'tumble'
+              : phase === 'tumble'
                 ? 'tumble'
                 : 'trot';
-        frame = this.warthogFrame(p, a.t);
+        frame = this.warthogFrame(p, t);
         alpha = this.wfAlpha;
       }
-      box = a.phase === 'eat' ? W.hitboxes.dig : W.hitboxes.trot;
-    } else if (a.kind === 'piglet') {
+      box = phase === 'eat' ? W.hitboxes.dig : W.hitboxes.trot;
+    } else if (kind === 'piglet') {
       drawn = PIGLET_H;
       frame =
-        a.phase === 'squeeze' && ready2
+        phase === 'squeeze' && ready2
           ? 'pg_squeeze'
-          : a.phase === 'flee'
+          : phase === 'flee'
             ? 'pg_run'
-            : a.phase === 'eat' && ready2
-              ? alt(a.t, DIG_TICKS)
+            : phase === 'eat' && ready2
+              ? alt(t, DIG_TICKS)
                 ? 'pg_squeeze'
                 : 'pg_trot_a'
-              : alt(a.t, TROT_TICKS)
+              : alt(t, TROT_TICKS)
                 ? 'pg_trot_a'
                 : 'pg_trot_b';
     } else {
-      height = this.baboon?.heightPx ?? W.heightPx;
-      drawn = BABOON2_H;
-      frame = baboonFrame(a.phase, a.t, ready2, this.tumbleTicks);
-      if (a.phase === 'tumble') alpha = tumbleAlpha(a.t, this.tumbleTicks);
       const bb = this.baboon;
+      height = bb?.heightPx ?? W.heightPx;
+      drawn = BABOON2_H;
+      frame = baboonFrame(phase, t, ready2, this.tumbleTicks);
+      if (phase === 'tumble') alpha = tumbleAlpha(t, this.tumbleTicks);
       box =
         bb === null
           ? null
-          : a.phase === 'climb' || a.phase === 'drop'
+          : phase === 'climb' || phase === 'drop'
             ? bb.stand
-            : a.phase === 'eat'
+            : phase === 'eat'
               ? bb.sit
               : bb.walk;
     }
     // Coming up out of the veld behind the fence: it fades in.
-    if (a.from === 'back' && a.phase === 'approach')
-      alpha = Math.min(alpha, Math.min(1, a.t / this.fadeTicks));
-    const s = this.slotFor(a, P2_ROLE[a.kind], frame);
+    if (phase === 'approach' && a.from === 'back')
+      alpha = Math.min(alpha, Math.min(1, t / this.fadeTicks));
+    const s = this.slotFor(a, P2_ROLE[kind], frame);
     if (s === null) return;
-    const shown = this.place(s, frame, a.x, a.y, (height * a.scale) / drawn, a.facing < 0, alpha);
-    this.hookOf(
-      s,
-      shown,
-      a.x,
-      a.y,
-      a.phase === 'jump' || a.phase === 'climb' || a.phase === 'drop' ? a.y : a.y,
-      a.kind === 'piglet' ? null : box,
-      a,
-      a.phase,
-    );
+    const x = a.x;
+    const y = a.y;
+    const shown = this.place(s, frame, x, y, (height * a.scale) / drawn, a.facing < 0, alpha);
+    this.hookOf(s, shown, x, y, y, box, a, phase);
   }
 
   /** Baboon raiders bagged this hunt (for the tally; the sim counts the warthogs). */
@@ -915,6 +1093,7 @@ export class HarvestView {
   destroy(): void {
     for (const s of this.all()) s.img.destroy();
     this.slots.clear();
+    this.active.length = 0;
     this.pool.clear();
     for (const img of this.spares) img.destroy();
     this.spares.length = 0;
