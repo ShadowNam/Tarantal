@@ -1329,10 +1329,10 @@ function puDragonBreath(p: SpriteCtx): string {
   );
 }
 
-/** v1.19 (D-084) Slug icon: a green shell cut away at the top so the heavy grey lead slug shows,
+/** v1.19 (D-084) Slug icon: a blue plastic shell cut away at the top so the heavy grey lead slug shows,
  *  its rifled ribs and hollow base, a speed streak behind it. */
 function puSlug(p: SpriteCtx): string {
-  const hull = tone('#3F6E4A', 0.3, 0.32);
+  const hull = tone('#2B78C4', 0.3, 0.32);
   const lead = tone('#7E858C', 0.35, 0.35);
   const gold = tone('#D7A93A', 0.3, 0.35);
   return g(

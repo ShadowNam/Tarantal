@@ -608,7 +608,7 @@ scenery so haze never fades it) and on the box's planked front, where the stenci
 canopy's canvas patch and the stencil are gone from the art). About 3 KB each (PNG-8); all eight 26 KB, in the first download.
 v1.19 (D-084): the special shells, in the same style and the late group: **Dragon's Breath** — a
 deep red shell with a gold band and a gold flame mark, a tongue of orange-yellow fire licking out
-of its crimp; **Slug** — a green hull cut open at the top so the grey lead slug shows, its angled
+of its crimp; **Slug** — a blue plastic hull (it reads as a shell at chip size, not grey lead) cut open at the top so the grey lead slug shows, its angled
 ribs and round nose, a speed streak off it.
 
 
