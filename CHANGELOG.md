@@ -5,7 +5,24 @@ Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (
 
 ## [1.23.0] — v1.20: Brakkie fetches sooner, and the "Jag, Brakkie!" card (10 Nov 2026)
 
-Decision record D-085. The owner's request of 10 Nov (afternoon). Work in progress.
+Decision record D-085. The owner's request of 10 Nov (afternoon): Brakkie should collect the shot
+birds, and a card should send him hunting guineafowl on the ground.
+
+- **Brakkie fetches sooner:** he runs out about 1.5 s after a bird falls, even while you keep
+  shooting (he used to wait for 6 s of quiet), and remembers up to 3 birds. He still only goes
+  where no live bird is near and never into the line of fire. The first time he fetches, Oupa tells
+  you that he does it by himself and that F (or the whistle button on a phone) sends him at once.
+- **New power-up: "Jag, Brakkie!" (Hunt, Brakkie!):** from supply crates and the Farm Stall, only
+  in hunts Brakkie comes along to. He sprints at guineafowl feeding on the ground, pounces and
+  catches up to 3 in 10 seconds of hunting — each counts as your bag with its normal points, and he
+  brings it to the bakkie for his Bring bonus. The rest of the flock flies up: wing shots. Never
+  shoot at him: it costs 25 and ends the card. Its chip shows the seconds and the catches; Oupa
+  cheers him on (text for now, voices later).
+- **The Gun Shed's Power-ups tab** has the new card with its picture: Brakkie's head with a paw.
+- **Scores:** a dog who fetches more earns more Bring bonuses (about +130 points a hunt); the card
+  itself is worth about as much as Blitslaai. Details: docs/balance/v1.20-jag.md.
+- **Smaller first download:** the test-only content switches now load only in test runs
+  (2,999.7 → 2,998.6 KB).
 
 ## [1.22.0] — v1.19: The Gun Shed, meerkats and two special shells (10 Nov 2026)
 

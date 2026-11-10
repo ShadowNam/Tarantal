@@ -4840,6 +4840,79 @@ is measured by perf.spec (Pixel 7, 4× throttle, ≤ 0.3 ms per cone frame).
 **Golden replays** re-recorded twice: the two crate-table entries change the crate rolls and the
 content hash (49 replays); the caps changed the hash only (every replay kept its score and events).
 
+### D-085 — v1.20 Brakkie fetches sooner, and the "Jag, Brakkie!" card (10 Nov 2026)
+
+**Why.** The owner, 10 Nov (afternoon): "i think the dog needs to have 2 things. firstly if he is
+around he can go collect the shot down guineafowls, or if u have a joker card or so, he can go and
+hunt and catch some guineafowls that are on the ground which help you with your points etc". Asked
+to choose, he picked (1) "Fetch sooner" and (2) "a power-up card from crates and the Padstal".
+
+**1. Fetch sooner.** v1.17's quiet rule (D-079: he ran out only after 6 s without a shot, a sight
+or fire held) is **replaced by a short after-the-bag delay**: he runs out `fetch.delaySeconds`
+(0.9 → **1.5 s**) after a bird falls, shooting or not; `fetch.quietSeconds` is gone; the queue holds
+**3** (`queueMax` 2 → 3). Unchanged: he goes only to a spot `clearPx` from every live bird, along a
+clear path, never into the line of fire; −25 for a shot aimed at him; the Bring streak breaks for
+a shot aimed within `clear.aimPx` while he carries; Bring +15, Goeie hond +30. The whistle sends
+him for any queued bird at once (before its delay). He stays low on the near plane and goes onto
+the mid plane only to fetch, as before. A first-time hint, once per save (`SaveData.notices`
+`brakkieFetchHint`), on his first fetch: "Brakkie fetches your birds by himself. Press F to whistle
+him out at once!" (on touch: "Tap the whistle…"), en/af/de/nl.
+
+**2. The card** — `brakkie_jag`, "Hunt, Brakkie!" / "Jag, Brakkie!" / "Fang, Brakkie!" /
+"Jaag, Brakkie!" (renameable in Texts & voices), `powerups.json` (`effect.brakkieJag.maxCatches`
+3, `durationMs` 10 000, `padstalPrice` 3, `needsBrakkie`), crate weight 10.
+- *Where:* crates (Classic, the Daily, bonus maps) only in hunts where Brakkie comes along (D-069's
+  modes and areas; never the Harvest, the Skietbaan, boss hunts or Oupa se Les), and only while he
+  can take it (not bolted from a hit, no wide-spread crate gun out): otherwise the crate rolls
+  again without it (`crates` stream). The Padstal offers it in every Season Run; a bought card waits
+  in its slot in a hunt he isn't out in (as a special shell waits for a shotgun, D-084). Daily: the
+  same table for everyone.
+- *What:* he sprints (`jag.sprintPx` 1 250 px/s) at a guineafowl (`jag.creatures`: the three
+  tarentaal) **walking in a foraging flock** on the near plane or the mid ground within
+  `jag.maxDxPx` **1 400** screen px of the view's centre — never a bird in the air, another species
+  or a penalty animal (cross-checked in `crossRefs.ts`) — pounces from `pouncePx` 110 (a crouch and a
+  leap, `pounceSeconds` 0.45) and, if it is still on the ground within `reachPx` 170, has it: a bag
+  of that bird (`targetBagged` with `byDog`, no shot: its normal score × Frenzy × Stampede, no
+  feathers, no poof, no struggle — simply caught). The rest of its flock flushes (wing shots). He
+  carries it home at his sprint like a fetch: Bring +15 on delivery, and catches count toward
+  Goeie hond. Up to 3 catches.
+- *The clock:* the 10 s count **only his hunting time** (looking round, crossing out for a bird,
+  the chase, the pounce); it holds while he fetches a shot bird, carries, or is at the bakkie. In
+  bot hunts the first version (clock always running, 700 px reach) caught 0.14 birds a card: the
+  clock ran down while he fetched, and the bots had spooked the flocks near the view.
+- *Ends early:* any hit on him ends it (aimed at him: −25 as ever; a stray pellet: the yelp and
+  bolt), and a wide-spread crate gun coming out. Deterministic on his stream `dog`.
+- *HUD and voice:* the chip shows its icon, the seconds and the catches ("7 s · 1/3"); Oupa says
+  "Jag, Brakkie, jag!" when it starts and "He's got one! Good dog, Brakkie!" for each catch —
+  text-only for now ("voices later": interim clips put the German pack over its 1.5 MB budget).
+- *Art:* a new icon (Brakkie's head with a raised paw, a red collar, a blue guineafowl feather);
+  the pounce reuses his frames (the proud hop's crouch, then a stretched run frame lifted in an
+  arc by the view, up to 46 px): no new dog frames, no new texture in the hunt.
+
+**Balance** (docs/balance/v1.20-jag.md; 250 seeds per bot, five areas, pointer and touch). The
+card itself: −0.5 % to +1.2 %; worth per card +77 (competent) / +172 (plinker) against Blitslaai's
++115 / −20. Fetch sooner raises the mean by +2–9 % (competent) and +0.5–15 % (plinker): about five
+more deliveries a hunt and longer Bring streaks (+130 points a hunt, Bring 28 → 108, Goeie hond
+5 → 53 for the plinker). That is above the brief's "≤ ~5 % per area", but Bring +15 and Goeie
+hond +30 stay as the owner asked; Bring +10 would trim only ~1.5 points of it. **Open for the
+owner:** keep it, or Goeie hond every 5th delivery instead of every 3rd.
+
+**Sizes.** First download 2,999.7 → 2,998.6 KB gz: the card's code costs ~1 KB, and main.ts no
+longer carries the e2e/dev content tweaks (`devContent.ts`) and the admin's Play setup — they are
+lazy chunks that boot() awaits only when test hooks or the admin's Play ask for them. The icon is
+in the late group (Standard 128 px, HD 256 px: +0.25 MB HD texture memory, tightest hunt
+~245.5 → ~245.8 MB of 256). Voice packs unchanged.
+
+**Tests.** Unit: the fetch delay while shooting, the queue of 3, the clear rules, the whistle;
+the card (only foraging ground guineafowl, ≤ maxCatches, the clock, a bird that takes off, the mid
+plane, −25 and the end on a hit, time out, canJag, determinism) and a whole hunt (`brakkieJag.test.ts`:
+a crate gives it, the score rises by exactly the catch + Bring, no crate card without him, a
+Padstal card waits in its slot, the Padstal offers it). e2e `brakkie-jag.spec.ts` (test flags
+`?brakkiePreview=bag|jag`), the Power-ups tab's twelve cards and the icon's pixels, a perf.spec
+case (hunting at 4× throttle on Pixel 7). Golden replays re-recorded: he fetches more, and the
+crate table gained an entry.
+
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
