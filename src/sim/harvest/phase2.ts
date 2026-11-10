@@ -87,17 +87,21 @@ export interface Phase2Result {
 }
 
 /** The list's arrival ticks after Phase 2 starts (jittered by ±jitterSeconds, never < 0),
- *  and where each mid arrival crosses the fence (u), drawn in list order. */
+ *  and where each mid arrival crosses the fence (u), drawn in list order; sorted by arrival
+ *  (review: the jitter can swap entries closer than 2 × jitterSeconds; ties keep list order). */
 export function waveSchedule(
   P: Phase2Setup,
   rng: RandomStream,
 ): { readonly at: number; readonly crossU: number; readonly wave: Wave }[] {
-  return P.waves.map((wave) => {
-    const j = rng.range(-P.jitterSeconds, P.jitterSeconds);
-    const r = P.crossU[wave.from];
-    const u = rng.range(r[0], r[1]);
-    return { at: Math.max(0, secondsToTicks(Math.max(0, wave.at + j))), crossU: u, wave };
-  });
+  return P.waves
+    .map((wave, index) => {
+      const j = rng.range(-P.jitterSeconds, P.jitterSeconds);
+      const r = P.crossU[wave.from];
+      const u = rng.range(r[0], r[1]);
+      return { at: Math.max(0, secondsToTicks(Math.max(0, wave.at + j))), crossU: u, wave, index };
+    })
+    .sort((a, b) => a.at - b.at || a.index - b.index)
+    .map(({ at, crossU, wave }) => ({ at, crossU, wave }));
 }
 
 /** The Phase 2 end bonuses for the crop left (whole percent), the crop at the start, and

@@ -184,16 +184,60 @@ describe('the wave list (v1.18, D-081)', () => {
     expect(a).toEqual(b);
     expect(a).not.toEqual(c);
     expect(a).toHaveLength(P.waves.length);
-    a.forEach((x, i) => {
-      const w = P.waves[i];
-      if (w === undefined) throw new Error('no wave');
+    // Every wave of the list once (sorted by arrival: review).
+    expect(new Set(a.map((x) => x.wave))).toEqual(new Set(P.waves));
+    for (const x of a) {
+      const w = x.wave;
       expect(Math.abs(x.at - secondsToTicks(w.at))).toBeLessThanOrEqual(
         secondsToTicks(P.jitterSeconds) + 1,
       );
       const r = P.crossU[w.from];
       expect(x.crossU).toBeGreaterThanOrEqual(r[0]);
       expect(x.crossU).toBeLessThanOrEqual(r[1]);
-    });
+    }
+  });
+
+  it('review: they arrive in time order, each on its own scheduled tick (the jitter can swap two)', () => {
+    let swapped = 0;
+    for (let seed = 1; seed <= 40; seed++) {
+      const sched = waveSchedule(P, createRng(seed).stream('harvestPhase2'));
+      // The jitter (±0.4 s) is wider than the list's spacing: some seeds swap two entries.
+      if (
+        sched.some(
+          (x, i) =>
+            i > 0 && P.waves.indexOf(x.wave) < P.waves.indexOf(sched[i - 1]?.wave ?? x.wave),
+        )
+      )
+        swapped++;
+      for (let i = 1; i < sched.length; i++)
+        expect(sched[i]?.at ?? 0).toBeGreaterThanOrEqual(sched[i - 1]?.at ?? 0);
+      // The real spawns: each animal enters on its scheduled tick after the start.
+      let tick = 0;
+      const entered: number[] = [];
+      const sys = createPhase2(
+        H,
+        base.birds.baboons,
+        geo,
+        createRng(seed).stream('harvestPhase2'),
+        {
+          tick: () => tick,
+          emit: (e) => {
+            if (e.type === 'phase2Entered') entered.push(e.tick);
+          },
+          awardBonus: (_b, b) => b,
+          basePoints: () => 10,
+          penalty: () => {},
+        },
+        (() => {
+          let n = 1;
+          return () => n++;
+        })(),
+      );
+      sys.start(80);
+      for (; tick < SECONDS; tick++) sys.step();
+      expect(entered, `seed ${String(seed)}`).toEqual(sched.map((x) => x.at));
+    }
+    expect(swapped).toBeGreaterThan(0);
   });
 
   it('about two dozen animals in 30 s, from every side; piglets, warthogs and baboons', () => {
