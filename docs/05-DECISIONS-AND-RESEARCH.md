@@ -4910,10 +4910,11 @@ those rows to their record and every other row to ±15 %, so the test passes on 
 being loosened for everyone. The art-density tests now allow content within 1.5× of the size the
 art is drawn at (a redraw is due beyond that).
 
-**Size.** First download 2,999.7 → ~3,002 KB gzip (+2.3 KB: the store, the override and its path
-reader, the camera hold, the build-line marker; `npm run size -- --strict` OK). The tab (2.8 KB),
-the editor (5.0 KB) and the knobs (`sizeWork`, 2.8 KB) are lazy chunks; Poki and CrazyGames builds
-drop the store and the editor (the raw `VITE_PLATFORM` flag), as with the texts.
+**Size.** First download (web) 2,999.7 → 3,002.0 KB gzip (+2.3 KB: the store, the override and its
+path reader, the camera hold, the build-line marker; `npm run size -- --strict` OK). The tab (2.8
+KB), the editor (5.0 KB) and the knobs (`sizeWork`, 2.8 KB) are lazy chunks; Poki and CrazyGames
+builds drop the store and the editor (the raw `VITE_PLATFORM` flag), as with the texts: Poki 2,991.6
+KB, CrazyGames 2,991.7 KB, all OK under `npm run size -- --strict`.
 
 **Tests.** Unit: the store (device namespace, a malformed store), the override (values, hit boxes,
 array items, stale and code edits), the size paths, the knobs against the true-size table (every
