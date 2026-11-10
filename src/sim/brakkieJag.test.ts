@@ -93,9 +93,22 @@ describe('the Jag, Brakkie! card in a hunt (v1.20, D-085)', () => {
       caught.some((x) => x.birdId === e.birdId),
     );
     for (const x of caught) expect(awards.find((a) => a.birdId === x.birdId)?.award).toBe(x.points);
-    // The rest of a caught bird's flock flushes (wing shots).
-    const flushed = ofType(later, 'flockStateChanged').filter((e) => e.to === 'flush');
-    for (const b of bags) expect(flushed.some((f) => f.flockId === b.flockId)).toBe(true);
+    // The rest of a caught bird's flock reacts as to a threat: alert, then run (then flush when
+    // its window is open) — never straight to flush.
+    for (const b of bags) {
+      const at = caught.find((x) => x.birdId === b.birdId)?.tick ?? 0;
+      const ch = ofType(later, 'flockStateChanged').filter(
+        (e) => e.flockId === b.flockId && e.tick >= at && e.cause === 'threat',
+      );
+      const threats = ofType(later, 'flockThreatened').filter(
+        (e) => e.flockId === b.flockId && e.source === 'dog',
+      );
+      expect(threats.length).toBeGreaterThanOrEqual(1);
+      const order = ch.map((e) => e.to);
+      if (order.length > 0 && order.includes('flush'))
+        expect(order.indexOf('run')).toBeLessThan(order.indexOf('flush'));
+      expect(order[0], JSON.stringify(ch)).toBe('alert');
+    }
     // Delivered: Bring! (+15, × Frenzy × Stampede: 1 here).
     const brought = ofType(later, 'brakkieFetched');
     expect(brought.length).toBeGreaterThanOrEqual(1);

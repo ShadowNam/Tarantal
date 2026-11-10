@@ -2472,7 +2472,8 @@ export const BrakkieSchema = obj({
    *  px) at a guineafowl of `creatures` foraging on the ground on the near or mid plane within
    *  maxDxPx of the view's centre (screen px), pounces from pouncePx, and after pounceSeconds
    *  catches it if it is still on the ground within reachPx (a bag of that bird, carried home
-   *  like a fetch); the rest of its flock flushes. lookSeconds: how often he looks for one. */
+   *  like a fetch); the rest of its flock reacts as to a threat (alarm…). lookSeconds: how often
+   *  he looks for one. */
   jag: obj({
     creatures: z.array(id).min(1),
     maxDxPx: pos,
@@ -2481,6 +2482,10 @@ export const BrakkieSchema = obj({
     pounceSeconds: pos,
     reachPx: pos,
     lookSeconds: pos,
+    /** v1.20 review: the rest of the caught bird's flock hears `alarmThreats` threats from the
+     *  catch, alarmEverySeconds apart (one at the catch): alert → run → flush, as the bark's. */
+    alarmThreats: posInt,
+    alarmEverySeconds: pos,
   }),
   /** Test builds only (?brakkiePreview=fetch, the screenshot spec): this many seconds in he
    *  fetches a bird placed beside him (visual only). Never in shipped content (cross-refs). */

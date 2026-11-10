@@ -1204,7 +1204,7 @@ export function createSim(config: SimConfig): Sim {
           if (b === undefined || !onGround(b)) return null;
           return { plane: b.plane === 'near' ? 'near' : 'mid', x: b.x };
         },
-        jagCatch: (birdId) => dogCatch(birdId, dogRng),
+        jagCatch: (birdId) => dogCatch(birdId),
         jagEnded: () => {
           const ids = powerups.filter((p) => p.def.effect.brakkieJag !== undefined);
           for (const p of ids) {
@@ -3298,8 +3298,7 @@ export function createSim(config: SimConfig): Sim {
    *  flushes (wing shots for the gun). */
   function dogCatch(
     birdId: number,
-    dogRng: RandomStream,
-  ): { creature: string; y: number; points: number } | null {
+  ): { creature: string; y: number; points: number; flockId: number | null } | null {
     const bird = birds.find((b) => b.id === birdId);
     if (bird === undefined || !onGround(bird)) return null;
     const c = bird.creature;
@@ -3350,12 +3349,9 @@ export function createSim(config: SimConfig): Sim {
     birds = birds.filter((b) => !gone.has(b.id));
     emit({ type: 'birdDespawned', tick, birdId: bird.id, reason: 'bagged' });
     pruneFlocks(gone, 'bagged');
-    const f = flocks.find((x) => x.id === flockId);
-    if (f !== undefined && f.members.length > 0 && f.state !== 'flush') {
-      emit({ type: 'flockThreatened', tick, flockId: f.id, source: 'dog' });
-      emitTransition(f, forceState(f, 'flush', bird.x, 'event', fParams, dogRng));
-    }
-    return { creature: c.id, y: bird.y, points: s.award };
+    // v1.20 review: the rest of the flock reacts as to a threat (alert → run → flush): the dog
+    // system threatens it from the catch, a few times (host.threaten, like the bark).
+    return { creature: c.id, y: bird.y, points: s.award, flockId };
   }
 
   // --- crates ------------------------------------------------------------------------------

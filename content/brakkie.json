@@ -70,7 +70,9 @@
     "pouncePx": 110,
     "pounceSeconds": 0.45,
     "reachPx": 170,
-    "lookSeconds": 0.25
+    "lookSeconds": 0.25,
+    "alarmThreats": 3,
+    "alarmEverySeconds": 0.35
   },
   "hit": { "penalty": 25, "cooldownSeconds": 2, "yelpSeconds": 0.45, "awaySeconds": [12, 18] }
 }

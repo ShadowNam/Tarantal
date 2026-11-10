@@ -98,7 +98,7 @@ function rig(seed = 3, homeSide: 1 | -1 = -1): Rig {
       if (i < 0) return null;
       state.prey.splice(i, 1);
       state.caught.push(birdId);
-      return { creature: 'tarentaal', y: 900, points: 10 };
+      return { creature: 'tarentaal', y: 900, points: 10, flockId: 7 };
     },
     jagEnded: () => {
       state.jagEnded++;
@@ -675,15 +675,57 @@ describe('Brakkie fetches sooner (v1.20, D-085)', () => {
     expect(r.sys.view().queued).toBe(3);
   });
 
-  it('the clear rules still hold while shooting: a busy spot waits, then is left', () => {
-    const r = rig(34);
+  /** He rests at screen dx −540 (the view moved, not him); a bird down at screen dx +640. */
+  function farSpot(r: Rig): { dogX: number; spot: number } {
     r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    const dogX = r.sys.view().x;
+    r.state.cameraX = dogX + 540;
+    return { dogX, spot: r.state.cameraX + 640 };
+  }
+
+  it('the spot rule while shooting: a live bird near the spot holds him, then the bird is left', () => {
+    const r = rig(34);
+    const { spot } = farSpot(r);
     r.state.gunUp = true;
-    r.state.busy = () => true;
-    r.sys.bagged('near', towardCentre(r));
+    // Only round the spot (the path is clear).
+    r.state.busy = (_p, x, px) => Math.abs(x - (spot + 300)) <= px && px > B.clear.pathPx;
+    r.sys.bagged('near', spot);
     r.run(secondsToTicks(B.fetch.delaySeconds + B.fetch.waitSeconds) + 30);
     expect(r.events.some((e) => e.type === 'brakkieFetchStarted')).toBe(false);
     expect(r.sys.view().queued).toBe(0);
+  });
+
+  it('the path rule while shooting: a live bird between him and a clear spot holds him', () => {
+    const r = rig(35);
+    const { dogX, spot } = farSpot(r);
+    r.state.gunUp = true;
+    // A bird 400 px ahead of him: clear of him (> clear.aimPx) and of the spot (> fetch.clearPx),
+    // but on his way.
+    const bird = dogX + 400;
+    expect(spot - bird).toBeGreaterThan(B.fetch.clearPx);
+    expect(bird - dogX).toBeGreaterThan(B.clear.aimPx);
+    r.state.busy = (_p, x, px) => Math.abs(x - bird) <= px;
+    r.sys.bagged('near', spot);
+    r.run(secondsToTicks(B.fetch.delaySeconds + B.fetch.waitSeconds) + 30);
+    expect(r.events.some((e) => e.type === 'brakkieFetchStarted')).toBe(false);
+    // The control: the same bag with the way clear sends him.
+    const c = rig(35);
+    const far = farSpot(c);
+    c.sys.bagged('near', far.spot);
+    c.until((v) => v.phase === 'fetch', 60 * 5);
+  });
+
+  it('a run out that meets something aimed at is given up: the bird goes back to the queue', () => {
+    const r = rig(36);
+    const { spot } = farSpot(r);
+    r.sys.bagged('near', spot);
+    r.until((v) => v.phase === 'fetch', 60 * 5);
+    // A pop-up comes up just ahead of him.
+    const at = r.sys.view().x + 300;
+    r.state.busy = (_p, x, px) => Math.abs(x - at) <= px;
+    r.run(secondsToTicks(B.clear.checkSeconds) + 2);
+    expect(r.sys.view().phase).not.toBe('fetch');
+    expect(r.sys.view().queued).toBe(1);
   });
 
   it('"Soek!": with a bird down the whistle sends him for it at once, gun busy or not', () => {
@@ -729,6 +771,24 @@ describe('the Jag, Brakkie! card (v1.20, D-085)', () => {
     r.until((v) => v.phase === 'away', 60 * 20);
     expect(r.bonuses.filter((b) => b.id === 'bring')).toHaveLength(1);
     expect(r.sys.view().streak).toBe(1);
+  });
+
+  it("the caught bird's flock hears alarmThreats threats from the catch, alarmEverySeconds apart", () => {
+    const r = rig(51);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    withPrey(r);
+    r.sys.jag(1);
+    r.until((v) => v.carrying, 60 * 10);
+    const caughtAt = r.events.find((e) => e.type === 'brakkieCaught')?.tick ?? -1;
+    r.run(secondsToTicks(J.alarmEverySeconds * J.alarmThreats) + 5);
+    const t = r.threats.filter((x) => x.flockId === 7).map((x) => x.tick);
+    expect(J.alarmThreats).toBe(3);
+    expect(t).toEqual(
+      Array.from(
+        { length: J.alarmThreats },
+        (_, i) => caughtAt + i * secondsToTicks(J.alarmEverySeconds),
+      ),
+    );
   });
 
   it('catches at most maxCatches, then the card ends (jagEnded); the streak counts them', () => {
@@ -845,6 +905,24 @@ describe('the Jag, Brakkie! card (v1.20, D-085)', () => {
     withPrey(r);
     r.until((v) => v.phase === 'hunt', 60 * 20);
     expect(r.sys.jagHeld()).toBe(false);
+  });
+
+  it('a wide-spread gun ends the card in any phase (chasing, or away at the bakkie)', () => {
+    for (const where of ['hunt', 'away'] as const) {
+      const r = rig(50);
+      r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+      withPrey(r);
+      r.sys.jag(3);
+      if (where === 'hunt') r.until((v) => v.phase === 'hunt', 60);
+      else r.until((v) => v.phase === 'away', 60 * 40);
+      r.state.wide = true;
+      r.run(2);
+      expect(r.sys.view().jag, where).toBeNull();
+      expect(r.sys.jagHeld()).toBe(false);
+      const end = r.events.find((e) => e.type === 'brakkieJagEnded');
+      expect(end?.type === 'brakkieJagEnded' && end.why).toBe('gun');
+      expect(r.state.jagEnded).toBe(1);
+    }
   });
 
   it('is deterministic: the same seed and prey give the same events', () => {
