@@ -15,7 +15,7 @@ import { coreWidth } from '../../../sim/world';
 import type { AssetManifest } from '../../assets/AssetManifest';
 import { TEX } from '../../assets/AssetManifest';
 import type { AudioDirector } from '../../audio/AudioDirector';
-import type { ParallaxView } from '../ParallaxView';
+import type { LayerNode, ParallaxView } from '../ParallaxView';
 import {
   fruitShot,
   fruitAim,
@@ -55,6 +55,10 @@ interface Fruit {
   readonly frame: string;
   readonly stalkFrame: string;
   readonly layerId: string;
+  /** Its layer (the parallax's layers live as long as this view). */
+  readonly node: LayerNode;
+  /** Room for the fruit's reach past the screen's edges (layer px, before the layer's scale). */
+  readonly pad: number;
   readonly factor: number;
   /** Where the spot's pivot is on the layer (prop position added). */
   readonly x: number;
@@ -116,6 +120,14 @@ export class FruitView {
   private waiting: boolean;
   /** Frames drawn while waiting (the sheet is looked for every 30). */
   private frames = 0;
+  /** The fruit the last pass left busy (moving, puffing, or a landing to sound). */
+  private readonly busy: Fruit[] = [];
+  /** The next update poses every fruit (a hit, an upgrade, a reset or a move since). */
+  private fullPass = true;
+  /** The layers fruit hang on, once each, and the screen width and their x and scale last
+   *  update (viewMoved). */
+  private readonly nodes: LayerNode[] = [];
+  private readonly viewKey: number[] = [];
   /** Hits counted this hunt (all fruit), for the hook. */
   hitCount = 0;
   dropCount = 0;
@@ -179,6 +191,8 @@ export class FruitView {
         stalk,
         shadow,
         layerId,
+        node: layer,
+        pad: Math.max(spot.fh, spot.stalk?.fh ?? 0) + spot.fw + 80,
         factor: def.scrollFactor,
         x: x + spot.x,
         y: y + spot.y,
@@ -187,7 +201,9 @@ export class FruitView {
         puff,
         state: RESTING,
         still: false,
-        shown: false,
+        // Built visible: the first update hides the fruit off screen (perf: with `false` here,
+        // fruit never seen on screen stayed visible and was drawn every frame off screen).
+        shown: true,
         hitTick: null,
         thudAt: null,
       });
@@ -205,6 +221,7 @@ export class FruitView {
         place(i, spot, prop.layer, prop.u * coreWidth(def.scrollFactor), prop.y);
       }
     });
+    for (const f of this.fruit) if (!this.nodes.includes(f.node)) this.nodes.push(f.node);
   }
 
   get count(): number {
@@ -244,6 +261,7 @@ export class FruitView {
     }
     this.waiting = false;
     for (const f of this.fruit) f.still = false;
+    this.fullPass = true;
   }
 
   /** Pellet impacts of this batch of events: hits, near misses, drops, sounds. */
@@ -311,6 +329,7 @@ export class FruitView {
         // A drop works its fall out once (poses reuse it every frame).
         f.state = withFall(f.spot, next, this.tuning, this.reduced);
         f.still = false;
+        this.fullPass = true;
       }
       if (knocked !== null) playFruitSound(this.audio, 'thock', this.pan(knocked, width));
     }
@@ -344,86 +363,138 @@ export class FruitView {
     const t = this.tuning;
     const puffTicks = Math.max(1, Math.round(t.puffSeconds * 60));
     const settleTicks = (t.swingSeconds + t.rollSeconds * 5) * 60;
-    for (const f of this.fruit) {
-      // A thud once, when it first lands (not again on a replayed or held tick), seen or not.
-      if (f.state.dropTick !== null) {
-        const land = landTick(f.spot, f.state, t, this.reduced);
-        if (land !== null && f.thudAt !== land && this.lastTick < land && s.tick >= land) {
-          f.thudAt = land;
-          if (s.tick - land < 10) playFruitSound(this.audio, 'thud', this.pan(f, width));
-        }
-      }
-      if (!this.onScreen(f, width)) {
-        if (f.shown) this.hide(f);
-        continue;
-      }
-      if (!f.shown) {
-        f.shown = true;
-        f.still = false;
-      }
-      if (f.still) continue;
-      const pose = fruitPose(f.spot, f.state, at, t, this.reduced);
-      const bx = f.x + pose.bx;
-      const by = f.y + pose.by;
-      f.img
-        .setPosition(bx, by)
-        .setRotation(pose.angle)
-        .setAlpha(pose.alpha)
-        .setVisible(!this.waiting && pose.alpha > 0);
-      f.stalk?.setRotation(pose.stalkAngle).setVisible(!this.waiting);
-      // The body's centre (the dust and the shadow sit under it, not under a long stalk).
-      const body = rotate(
-        { x: bx - f.spot.ox + f.spot.fw / 2, y: by - f.spot.oy + f.spot.fh / 2 },
-        bx,
-        by,
-        pose.angle,
-      );
-      if (pose.landedTicks !== null && !this.waiting) {
-        // Lying: as wide as it lies, flattened; it fades with the fruit.
-        const across = Math.abs(Math.sin(pose.angle));
-        const w = (f.spot.fw * (1 - across) + f.spot.fh * across) * 0.95;
-        const lift = Math.max(0, f.ground - (by + (f.spot.fh - f.spot.oy) * (1 - across)));
-        f.shadow
-          .setPosition(body.x, f.ground - 1)
-          .setSize(w, Math.max(3, w * 0.14))
-          .setAlpha(pose.alpha * Math.max(0.1, 0.32 - lift * 0.01))
-          .setVisible(pose.alpha > 0);
-      } else f.shadow.setVisible(false);
-      // The puff: leaves on a hit, dust where it lands (small and local; scaled on sim time).
-      const since =
-        pose.landedTicks !== null ? pose.landedTicks : f.hitTick !== null ? at - f.hitTick : null;
-      const puffing = since !== null && since >= 0 && since < puffTicks;
-      if (!puffing) f.puff.setVisible(false);
-      else {
-        const p = since / puffTicks;
-        const landed = pose.landedTicks !== null;
-        const size = t.puffPx * (0.4 + p * 0.8) * (landed ? 1 : 0.7);
-        f.puff
-          .setTexture(landed ? TEX.dust : TEX.leaf)
-          .setPosition(body.x, landed ? f.ground - 4 : body.y)
-          .setDisplaySize(size, size * (landed ? 0.55 : 1))
-          .setRotation(landed ? 0 : p * 2)
-          .setAlpha((1 - p) * 0.8)
-          .setVisible(true);
-      }
-      // Nothing more will move it: at rest, faded out, or its swing and roll have died down.
-      const last = f.state.hits[f.state.hits.length - 1];
-      f.still =
-        !puffing &&
-        !this.waiting &&
-        (f.state === RESTING ||
-          (f.state.dropTick !== null && pose.alpha === 0) ||
-          (f.state.dropTick === null && last !== undefined && at - last.tick > settleTicks));
+    // Perf: with the camera and the screen as at the last full pass, and no hit, upgrade or
+    // reset since, a fruit that pass left hidden off screen or at rest on screen stays exactly
+    // so: only the busy ones (moving, puffing, or a landing still to sound) are posed. The same
+    // drawing as posing them all.
+    const busy = this.busy;
+    if (this.viewMoved(width)) this.fullPass = true;
+    if (this.fullPass) {
+      this.fullPass = false;
+      busy.length = 0;
+      for (const f of this.fruit)
+        if (this.poseFruit(f, s, width, at, puffTicks, settleTicks)) busy.push(f);
+    } else {
+      let n = 0;
+      for (const f of busy)
+        if (this.poseFruit(f, s, width, at, puffTicks, settleTicks)) busy[n++] = f;
+      busy.length = n;
     }
     this.lastTick = s.tick;
   }
 
+  /** Whether the fruit's layers or the screen width moved since the last call. */
+  private viewMoved(width: number): boolean {
+    const last = this.viewKey;
+    let moved = last[0] !== width;
+    last[0] = width;
+    let i = 1;
+    for (const node of this.nodes) {
+      const r = node.root;
+      const x = r.x;
+      const k = r.scaleX;
+      if (last[i] !== x || last[i + 1] !== k) moved = true;
+      last[i] = x;
+      last[i + 1] = k;
+      i += 2;
+    }
+    return moved;
+  }
+
+  /**
+   * Poses one fruit (or hides it off screen); true while it is busy: moving or puffing on
+   * screen, or with a landing still to sound.
+   */
+  private poseFruit(
+    f: Fruit,
+    s: SimState,
+    width: number,
+    at: number,
+    puffTicks: number,
+    settleTicks: number,
+  ): boolean {
+    const t = this.tuning;
+    let landing = false;
+    // A thud once, when it first lands (not again on a replayed or held tick), seen or not.
+    if (f.state.dropTick !== null) {
+      const land = landTick(f.spot, f.state, t, this.reduced);
+      if (land !== null && f.thudAt !== land && this.lastTick < land && s.tick >= land) {
+        f.thudAt = land;
+        if (s.tick - land < 10) playFruitSound(this.audio, 'thud', this.pan(f, width));
+      }
+      landing = land !== null && f.thudAt !== land && s.tick < land;
+    }
+    if (!this.onScreen(f, width)) {
+      if (f.shown) this.hide(f);
+      return landing;
+    }
+    if (!f.shown) {
+      f.shown = true;
+      f.still = false;
+    }
+    if (f.still) return landing;
+    const pose = fruitPose(f.spot, f.state, at, t, this.reduced);
+    const bx = f.x + pose.bx;
+    const by = f.y + pose.by;
+    f.img
+      .setPosition(bx, by)
+      .setRotation(pose.angle)
+      .setAlpha(pose.alpha)
+      .setVisible(!this.waiting && pose.alpha > 0);
+    f.stalk?.setRotation(pose.stalkAngle).setVisible(!this.waiting);
+    // The body's centre (the dust and the shadow sit under it, not under a long stalk).
+    const body = rotate(
+      { x: bx - f.spot.ox + f.spot.fw / 2, y: by - f.spot.oy + f.spot.fh / 2 },
+      bx,
+      by,
+      pose.angle,
+    );
+    if (pose.landedTicks !== null && !this.waiting) {
+      // Lying: as wide as it lies, flattened; it fades with the fruit.
+      const across = Math.abs(Math.sin(pose.angle));
+      const w = (f.spot.fw * (1 - across) + f.spot.fh * across) * 0.95;
+      const lift = Math.max(0, f.ground - (by + (f.spot.fh - f.spot.oy) * (1 - across)));
+      f.shadow
+        .setPosition(body.x, f.ground - 1)
+        .setSize(w, Math.max(3, w * 0.14))
+        .setAlpha(pose.alpha * Math.max(0.1, 0.32 - lift * 0.01))
+        .setVisible(pose.alpha > 0);
+    } else f.shadow.setVisible(false);
+    // The puff: leaves on a hit, dust where it lands (small and local; scaled on sim time).
+    const since =
+      pose.landedTicks !== null ? pose.landedTicks : f.hitTick !== null ? at - f.hitTick : null;
+    const puffing = since !== null && since >= 0 && since < puffTicks;
+    if (!puffing) f.puff.setVisible(false);
+    else {
+      const p = since / puffTicks;
+      const landed = pose.landedTicks !== null;
+      const size = t.puffPx * (0.4 + p * 0.8) * (landed ? 1 : 0.7);
+      f.puff
+        .setTexture(landed ? TEX.dust : TEX.leaf)
+        .setPosition(body.x, landed ? f.ground - 4 : body.y)
+        .setDisplaySize(size, size * (landed ? 0.55 : 1))
+        .setRotation(landed ? 0 : p * 2)
+        .setAlpha((1 - p) * 0.8)
+        .setVisible(true);
+    }
+    // Nothing more will move it: at rest, faded out, or its swing and roll have died down.
+    const last = f.state.hits[f.state.hits.length - 1];
+    f.still =
+      !puffing &&
+      !this.waiting &&
+      (f.state === RESTING ||
+        (f.state.dropTick !== null && pose.alpha === 0) ||
+        (f.state.dropTick === null && last !== undefined && at - last.tick > settleTicks));
+    return landing || !f.still;
+  }
+
   /** Inside the view (with room for the fruit's reach) on its layer now. */
   private onScreen(f: Fruit, width: number): boolean {
-    const node = this.parallax.layer(f.layerId);
-    if (node === undefined) return false;
-    const pad = (Math.max(f.spot.fh, f.spot.stalk?.fh ?? 0) + f.spot.fw + 80) * node.root.scaleX;
-    const x = node.root.x + f.x * node.root.scaleX;
+    // Its layer and reach were looked up once (perf: 150-odd fruit are asked every frame).
+    const root = f.node.root;
+    const k = root.scaleX;
+    const pad = f.pad * k;
+    const x = root.x + f.x * k;
     return x > -pad && x < width + pad;
   }
 
@@ -483,6 +554,7 @@ export class FruitView {
     this.lastTick = -1;
     this.hitCount = 0;
     this.dropCount = 0;
+    this.fullPass = true;
   }
 
   /** The views were rebuilt (another biome or map): drop the sprites. */
