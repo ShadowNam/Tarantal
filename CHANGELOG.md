@@ -27,6 +27,14 @@ second hole in the fence, and a bonus round to defend the field.
   bonuses. Your Harvest best counts the bonus round too.
 - The music picks up for the bonus round; warthogs grunt, piglets squeal and the baboons call as
   they come.
+- **The bonus round has the field to itself:** the workers are gone before the first animal comes
+  and can't be hit on their way out; no more baboon raids, guineafowl flocks or pop-ups start (a
+  raid under way runs off, the flushed flocks fly away); birds still fly over.
+- The bonus round only starts if the animals left you some crop to defend.
+- **The Harvest tally:** "Crop saved" is the crop you saved in the rush (the bonus round's crop
+  has its own line), and "Workers and piglets" counts the bonus round's piglets too.
+- Baboons climbing the fence are always drawn, and animals coming up from behind the fence can
+  only be hit once you can see them. Oupa's "All of them!" line fits what happened.
 
 ## [1.20.2] — v1.17c: animal sizes, the audit's fixes (9 Nov 2026)
 

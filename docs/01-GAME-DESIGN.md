@@ -1242,11 +1242,15 @@ countdown of animals and a timer". Confirmed 9 Nov: the unlock about half a comp
 rushes, ~24 animals in 30 s, piglets scare-only, the three bonuses. Numbers:
 `modes.json → harvest.phase2`.
 - **Unlock:** when the rush ends (the fence whole, the crop bonus paid) with the Harvest score at or
-  over `unlockScore` (1850: the competent bot's median, so it gets there about half the time),
-  the tally waits: "Bonus round: defend the field!" and Oupa's line, 2 s on sim time (no
+  over `unlockScore` (1850: the competent bot's median, so it gets there about half the time) and
+  some crop left (a rush that lost it all ends with the normal tally), the tally waits: "Bonus round: defend the field!" and Oupa's line, 2 s on sim time (no
   shooting), then Phase 2. Under it: the normal Harvest tally.
 - **The set-up:** the fence whole all round (no gap, the small hole patched); the workers walk off
-  to the farmhouse (not in the field: nobody in the line of fire); the crop meter carries over.
+  to the farmhouse within the banner (`workers.leaveSeconds`) and can't be hit once they set off
+  (nobody in the line of fire); the crop meter carries over. The field is Phase 2's alone (review,
+  D-081): from the unlock no baboon raid, guineafowl flock or pop-up starts — a raid at the field
+  runs off, one still on the koppie is called off — and the flocks the rush's end flushed fly off
+  the panorama instead of landing again. Fly-overs keep crossing the sky (they eat nothing).
 - **The attack:** a fixed list of 24 (`waves`: when, what, from where; ±0.4 s of seeded jitter and
   where each crosses, its own stream) in three bursts of 8 (0.5, 9.5, 18.5 s): from both ends of
   the panorama and up out of the veld behind the back fence on the mid plane — warthogs JUMP the
@@ -1262,12 +1266,14 @@ rushes, ~24 animals in 30 s, piglets scare-only, the three bonuses. Numbers:
 - **The end:** every one stopped, the clock out, or the crop gone ("They ate the lot!" — Phase 2
   lost, the score so far stays). Then `cropBonusPerPercent` (10) × whole crop % left, plus "Field
   defended!" (500) if the crop didn't drop in Phase 2, plus "All of them!" (750) if all were
-  stopped in time. Animals bagged score as in the rush (× Frenzy). The Harvest tally adds
+  stopped in time. Animals bagged score as in the rush (× Frenzy). The tally's "Crop saved" is
+  the rush's (as the fence closed) and "Workers and piglets" counts Phase 2's piglets too. The
+  Harvest tally adds
   "Bonus round: stopped N / 24", the crop at the end and the bonuses; the local best is the
   hunt's score, Phase 2 in. The music plays its Stampede stem in Phase 2 (the build stem in the
   banner); grunts, squeals and the baboons' calls as they come.
 - **Balance (docs/balance/v1.18-harvest-defence.md):** the competent bot unlocks it about half the
-  time and keeps ~62 % of the crop it had in Phase 2; the plinker ~22 %.
+  time and keeps ~60 % of the crop it had in Phase 2; the plinker ~18–21 %.
 
 ## 13. Season Run (roguelite) in detail
 

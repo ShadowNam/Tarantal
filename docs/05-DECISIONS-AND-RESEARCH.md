@@ -4569,6 +4569,44 @@ competent bot's), and a lower bar would give the competent player Phase 2 most o
 rush itself: 60–61 % of the crop saved for the competent bot (main 66 %): the small hole's two
 yearlings cost ~5 points. Worker-hit gate (< 0.1 a run, plinker and competent): PASS (≤ 0.06).
 
+**Review fixes (10 Nov).** An independent review found Phase 2 did not have the field to itself.
+Decided:
+- *The workers* walk off to the farmhouse in `workers.leaveSeconds` (1.8 s; the schema refuses more
+  than `phase2.bannerSeconds`), so they are gone before the first arrival, and a worker who has set
+  off has no hit shapes (the walk at running pace took ~7 s and they were hittable while the first
+  burst crossed the same stretch).
+- *The rush's spawners stop at the unlock* (to the hunt's end): no new baboon raid; the raid in hand
+  ends cleanly (`holdRaids`: raiders at the field run off, a raid still out of sight — the bark, an
+  unseen climb or walk — is called off and its raiders go back up the ridge, raiders already coming
+  down in sight run straight back out on reaching the field). No new flock or pop-up (pop-ups up
+  duck; the pop-up clock waits). The flocks the rush's end flushed used to land again in the field:
+  now they fly off to the nearer end at `phase2.flockLeavePxPerSec` (1,500) and leave within the
+  banner. *Fly-overs stay* as sky dressing: they eat nothing, cross and leave, and are shot as
+  ever (points as in the rush).
+- *Phase 2 unlocks only with crop > 0* (a rush that lost the whole crop got the banner and then
+  "They ate the lot!" at once).
+- *The tally's "Crop saved"* (and the braai story and share card that read it) is the rush's crop
+  as the fence closed (the view's `rushCrop`), beside the rush's crop bonus; Phase 2's row keeps
+  its end crop. *Phase 2's piglet penalties* count in "Workers and piglets" (the row is the score
+  drop).
+- *No animal is hittable while drawn invisible:* a climbing or dropping baboon borrows a run frame
+  from the baboon sheet until the lazy Phase 2 sheet is in; a back arrival has no hit shapes while
+  it fades in (`phase2.backFadeSeconds` 0.33 s, the view's fade from the same number).
+- The wave schedule is sorted by arrival (the ±0.4-s jitter can swap entries 0.2 s apart); the
+  squeeze, drop and knock-down distances are content (`phase2.squeezePx`, `climb.dropPx`,
+  `knockDownPx`); Oupa's clear-verdict line now reads "Not one of them is left in the rows"
+  (Phase 2's lines are subtitles only: no clip to regenerate).
+
+Balance before → after (500 seeds; `docs/balance/v1.18-harvest-defence.md`): the rush and the
+unlock rates are unchanged to the digit (competent 52 % / 53 %, strong 66 % / 69 %, plinker
+19 % / 24 %, pointer / touch), so `unlockScore` stays 1,850. Phase 2 crop kept: competent
+62 → 60 % (pointer) and 63 → 60 % (touch), strong 75 → 74 % / 75 → 75 %, plinker 22 → 18 % /
+22 → 21 %; score mean −45 to −60 (no more raiders and birds coming in Phase 2: 0.71 → 0.64
+raiders and 42.1 → 40.1 birds a run, competent pointer). Aimed worker hits a run fall (competent
+0.032 → 0.022, strong 0.026 → 0.010): those were Phase 2 shots at the workers walking off.
+Golden replays: only harvest-63 (3,699 → 3,628) and harvest-65 (4,349 → 4,329) change events;
+both still clear all 24.
+
 **Budgets.** First download (web, gzip) 3,024.1 → 3,025.9 KB of 3,072 (+1.8 KB: the Phase 2 HUD's
 loader, the music stem, the tally's rows, the test hooks; everything else is lazy: Phase 2's HUD
 is its own chunk, its strings in the lazy guide tables, the sim in the lazy systems chunk, the art
