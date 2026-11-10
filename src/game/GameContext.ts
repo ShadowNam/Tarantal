@@ -368,17 +368,18 @@ export interface TestHook {
   readonly masterGain: number | null;
   /** Manifest textures missing when the last hunt started (must be 0). */
   missingTextures: string[];
-  /** D-029: RGBA bytes of all textures (GPU memory estimate) during a hunt, and when the
-   *  Skiet-Skuur opens (D-035 review); 0 before. */
+  /** D-029: RGBA bytes of all textures (GPU memory estimate); 0 before the hunt scene's first
+   *  run. v1.22.2 (D-087): this and the texture entries below are read from the texture manager
+   *  when a spec reads them (accessors, `lazyHook.ts`), not sampled in the frame. */
   textureBytes: number;
-  /** v1.12 (D-069): Brakkie's sheet is in the texture manager (sampled with textureBytes; the
+  /** v1.12 (D-069): Brakkie's sheet is in the texture manager (read like textureBytes; the
    *  tally must show false: it goes with the hunt, lesson 40). */
   brakkieTexture: boolean;
-  /** v1.13 (D-075): a cameo sheet is in the texture manager (sampled with textureBytes). */
+  /** v1.13 (D-075): a cameo sheet is in the texture manager (read like textureBytes). */
   cameoTexture: boolean;
-  /** D-053: the largest textures (key, MB), sampled with textureBytes. */
+  /** D-053: the largest textures (key, MB), read like textureBytes. */
   textureTop: { key: string; mb: number }[];
-  /** v1.3: delivered gun atlases in the texture manager (sampled with textureBytes). */
+  /** v1.3: delivered gun atlases in the texture manager (read like textureBytes). */
   gunAtlases: string[];
   /** Boot milestones in ms since navigation start (content parsed, textures built, ready). */
   boot: Record<string, number>;
@@ -404,7 +405,8 @@ export interface TestHook {
     icon: string | null;
     /** 1.9.2 (D-055): on screen (own transforms, then the camera): where the icon belongs (the
      *  canopy or box front through the crate image), the picture's centre, and how many
-     *  pictures of its icon the whole hunt scene shows (1; R4). */
+     *  pictures of its icon the whole hunt scene shows (1; R4). Like the other spots
+     *  (D-087), worked out when read, from the crate art as the last frame drew it. */
     drawn: {
       spot: { x: number; y: number };
       tag: { x: number; y: number } | null;
@@ -543,13 +545,15 @@ export interface TestHook {
   /** D-051: props with an HD texture: their origin on screen (design px), HD showing yet. */
   hdProps: { id: string; hd: boolean; x: number; y: number }[];
   /** D-054: every far-animal part drawn: its herd, animal index, part, on-screen box (design px),
-   *  its frame's cut (texture px) and pivot, and its texture's source size. */
+   *  its frame's cut (texture px) and pivot, and its texture's source size (read when read,
+   *  D-087). */
   fauna: FaunaProbe[];
   /**
    * D-053: Standard or HD. `card`: the loading screen asked this launch (`pick`: its
    * recommendation); `loading`: the area's HD pack behind the loading screen; `bounds`: on-screen
    * boxes of sampled scenery and HUD images (design px, rounded), the same with Standard and HD;
-   * `hdTextures`: HD textures in the texture manager; `epoch`: the hunt manifest's hdEpoch;
+   * `hdTextures`: HD textures in the texture manager (both read when read, D-087); `epoch`: the
+   * hunt manifest's hdEpoch;
    * `refreshes`: HD refreshes run this page (every 30 rendered frames, v1.7d e2e).
    */
   graphics: {
