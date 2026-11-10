@@ -405,7 +405,13 @@ test('the Kalahari: the meerkat colony close-up, a Slug at a far bird', async ({
         'slug-2x',
         info,
         scaled(
-          crop(s, x0, y0, Math.min(s.width - x0, 400 * kk), Math.min(s.height - y0, 240 * kk)),
+          crop(
+            s,
+            x0,
+            y0,
+            Math.min(s.width - x0, Math.round(400 * kk)),
+            Math.min(s.height - y0, Math.round(240 * kk)),
+          ),
           2,
         ),
       );
