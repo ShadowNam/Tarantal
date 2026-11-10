@@ -85,7 +85,8 @@ async function fireShells(
   touch: boolean,
   id: string,
   n: number,
-  /** Before this shot (0-based), spend the flash budget (__TM_SPEND_FLASHES__): it must be small. */
+  /** Before this shot (0-based), arm __TM_SPEND_FLASHES__: the next cone finds the flash budget
+   *  spent the moment it asks, so the limiter must draw it small. */
   spendBefore = -1,
 ): Promise<Fired> {
   return page.evaluate(
@@ -183,8 +184,8 @@ test("Dragon's Breath: its chip counts the shells, each shot throws the flame co
   await startHunt(page, touch);
   await pickUp(page, touch, 'dragon_breath');
   const n = shellsOf('dragon_breath');
-  // The last shell follows three large flashes in the same second (spent by the test hook): the
-  // limiter must draw it small, however fast or slow the machine is.
+  // The last shell's cone finds this second's large flashes spent the moment it asks (the test
+  // hook, as lightning would): the limiter must draw it small, however slow the machine is.
   const r = await fireShells(page, touch, 'dragon_breath', n, n - 1);
   expect(r.shots).toBe(n);
   expect(r.small, 'the cone after three large flashes in a second is small').toBeGreaterThanOrEqual(

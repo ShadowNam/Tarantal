@@ -251,6 +251,8 @@ export class HuntScene extends Phaser.Scene {
   /** v1.19 (D-084): the special shells' effects (a lazy chunk, loaded with the first shell). */
   private shellFx: ShellFx | null = null;
   private shellFxLoading = false;
+  /** e2e only (v1.19, D-084): spend the flash budget just before the next cone. */
+  private spendBeforeCone = false;
   /** Dragon's Breath shots whose bags get a singed puff (the last few). */
   private dragonShots: number[] = [];
   private sight!: SightView;
@@ -3213,11 +3215,12 @@ export class HuntScene extends Phaser.Scene {
     if (this.shellFx !== null || this.shellFxLoading) return;
     this.shellFxLoading = true;
     const hook = this.ctx.hook;
-    // e2e only (v1.19, D-084): this second's large flashes spent (as lightning would), so the
-    // next cone within a second must be the small one, whatever the machine's speed.
+    // e2e only (v1.19, D-084): the next cone finds this second's large flashes spent (as
+    // lightning would spend them, at that very moment), so the limiter must draw it small on any
+    // machine, however long the shot takes to reach the view.
     if (hook)
       (window as { __TM_SPEND_FLASHES__?: () => void }).__TM_SPEND_FLASHES__ = () => {
-        this.ctx.flashes.exhaust(performance.now());
+        this.spendBeforeCone = true;
       };
     void import('../view/shells/ShellFx').then((m) => {
       this.shellFxLoading = false;
@@ -3250,6 +3253,10 @@ export class HuntScene extends Phaser.Scene {
     if (this.dragonShots.length > 8) this.dragonShots.shift();
     const m = this.weapon.muzzle();
     if (m.hidden) return;
+    if (this.spendBeforeCone && this.shellFx !== null) {
+      this.spendBeforeCone = false;
+      this.ctx.flashes.exhaust(performance.now());
+    }
     this.shellFx?.dragon(m, { x: half + e.dx, y: e.sy }, pan);
   }
 
