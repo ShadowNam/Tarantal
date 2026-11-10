@@ -91,11 +91,11 @@ async function fire(
         x = Math.min(g.designWidth * 0.85, Math.max(...os.map((o) => o.x)) + 260);
         y = Math.max(...os.map((o) => o.y)) - 4;
       } else {
-        // A standing bird's body, inside the screen's middle, the cock first. Aimed at the body's
-        // upper part (70 % up from the feet; the body spans ~43–77 % of a standing bird): D-082
-        // made the hen 0.73 of the cock, her body ~90 px lower and nearer the foraging
-        // guineafowl, and a target within hit.guardPx (260) of the aim point gets the benefit of
-        // the doubt (no penalty).
+        // A standing bird's body, inside the screen's middle, the cock first: about 58 % up his
+        // frame. D-082 made the hen 0.73 of the cock, her body ~90 px lower and nearer the
+        // foraging guineafowl; a target within hit.guardPx (260) of the aim point gets the
+        // benefit of the doubt (no penalty), so aim higher on her body: 70 % up her frame (still
+        // inside her body; 58 % kept landing in the guard, 70 % on him is above his).
         const o = os
           .filter(
             (b) =>
@@ -107,7 +107,7 @@ async function fire(
           .sort((a, b) => Number(b.male) - Number(a.male))[0];
         if (o === undefined) return null;
         x = o.x;
-        y = o.y - o.h * 0.7;
+        y = o.y - o.h * (o.male ? 0.58 : 0.7);
       }
       // On touch the crosshair sits aimOffsetPx above the finger: tap that much lower.
       if (isTouch) y += g.aimOffsetPx;
