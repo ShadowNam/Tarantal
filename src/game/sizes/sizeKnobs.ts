@@ -1,7 +1,9 @@
 // v1.22.1 (D-086): every non-target animal whose size the owner can set by eye (admin page → Sizes,
 // and the size editor in the game), from tools/sizes.ts' true-size table: the far and Ver herds,
 // the cameos, Namibië's ostriches, the baboons, the meerkats, Brakkie, the Harvest's warthogs,
-// piglets and workers, the weaver colony, the angry weavers, the tells and the baobab's residents.
+// piglets and workers, the weaver colony, the angry weavers, the tells and the baobab's residents;
+// v1.23.1 (D-083): and the birds drawn at a sizeMul (the Harvest's turtle dove and spurfowl, the
+// kwêvoël, the fish eagle).
 // A knob is one size: the content value(s) it changes (or a code constant), the hit box sets drawn
 // in px that grow with it, the real size it stands for, and how the editor finds its sprites (the
 // texture key and frame name). Lazy (the Sizes tab and the editor); the boot reader needs none of
@@ -125,6 +127,28 @@ const tell = (
   live: 'pass',
   tex: /^tells\/sheet$/,
   frame: new RegExp(`^${species}_(rest|act_a|act_b|flee)$`),
+});
+
+/** v1.23.1 (D-083): a bird drawn at its birds.json sizeMul (its drawing and, in the sim, its hit
+ *  shapes; its final atlas `final:bird/<id>/<plane>@nx` or its placeholder `bird/<id>/<plane>/…`). */
+const bird = (
+  creature: string,
+  areas: readonly SizeArea[],
+  realM: number,
+  plane: PlaneId,
+  mPerUnit: number,
+): SizeKnob => ({
+  id: `bird_${creature}`,
+  areas,
+  targets: [`${BIRDS}#creatures[id=${creature}].sizeMul`],
+  unit: 'x',
+  realM,
+  measure: 'length',
+  plane,
+  mPerUnit,
+  live: 'pass',
+  tex: new RegExp(`^(final:)?bird/${creature}/`),
+  frame: /./,
 });
 
 const resident = (
@@ -327,6 +351,10 @@ export const SIZE_KNOBS: readonly SizeKnob[] = [
     tex: /^fx\/weaver_(up|down)$/,
     frame: /./,
   },
+  bird('visarend', ['okavango'], 0.69, 'far', 0.79278),
+  bird('kwevoel', ['karoo', 'bushveld', 'kalahari', 'okavango'], 0.525, 'mid', 0.64449),
+  bird('fisant', ['oes'], 0.355, 'mid', 0.59316),
+  bird('tortelduif', ['oes'], 0.265, 'mid', 0.59506),
   resident('baobab_owl', 'owlFly', 0.87, 'wingspan', 0.31201, /^owl_fly/),
   resident('baobab_hornbill', 'hornbill', 0.54, 'length', 0.25585, /^hornbill_/),
   resident('baobab_galago', 'galago', 0.06, 'head', 0.089806, /^galago_/),
