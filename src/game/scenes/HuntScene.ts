@@ -22,6 +22,7 @@ import { texturesInUse } from '../assets/textureUse';
 import { hdTextureCount } from '../assets/AssetManifest';
 import { megabytes } from '../assets/graphicsChoice';
 import { sampleBounds, type BoundsSource } from './boundsSample';
+import { defineLazy, LazyEntries } from '../lazyHook';
 import { captureHintAlpha, type CaptureState } from '../capture';
 import { showDontShootBadge } from '../prefs';
 import { TierFilters } from '../quality/TierFilters';
@@ -381,9 +382,12 @@ export class HuntScene extends Phaser.Scene {
       this.biome.id === this.ctx.biome.id ? this.ctx.manifest : this.ctx.manifestFor(this.biome);
     this.swapManifest();
     this.releaseGuns(data);
-    // The test hook reads texture memory right after the release (not 30 frames later, which is
-    // seconds under software GL on CI).
-    if (this.ctx.hook) this.sampleTextures(this.ctx.hook);
+    // The test hook reads texture memory when a spec reads it (D-087): right after the release
+    // too (not 30 frames later, which is seconds under software GL on CI).
+    if (this.ctx.hook) {
+      this.installHookSamples(this.ctx.hook);
+      this.installHookEntries(this.ctx.hook);
+    }
     this.ctx.huntBiome = this.biome;
     this.ctx.audio.setBiome(this.biome.id);
     this.ctx.audio.resetIntensity();
@@ -912,21 +916,332 @@ export class HuntScene extends Phaser.Scene {
     }
   }
 
-  /** D-029 texture memory for the test hook, and (v1.3) which gun atlases are on the GPU. */
-  private sampleTextures(hook: TestHook): void {
-    hook.textureBytes = textureBytes(this.textures);
-    hook.brakkieTexture = this.textures.exists(BRAKKIE_SHEET);
-    hook.cameoTexture = Object.values(CAMEO_SHEETS).some((k) => this.textures.exists(k));
-    hook.textureTop = largestTextures(this.textures, 15);
+  /**
+   * D-029 texture memory for the test hook, and (v1.3) which gun atlases are on the GPU.
+   * v1.22.2 (D-087): read when a spec reads them (accessors on the hook), not sampled in the
+   * frame every 30 ticks: the sample cost counted toward the perf specs' frame time (about
+   * 0.7 ms a frame at 4× throttle on the Pixel 7 profile) and could be up to 30 ticks old.
+   * Every scene that wrote these (the tally, the shed) read the same texture manager, so the
+   * hook now always answers from it. Defined once; the getters read this scene's current run.
+   */
+  private installHookSamples(hook: TestHook): void {
+    if (this.hookSamples) return;
+    this.hookSamples = true;
+    const tx = (): Phaser.Textures.TextureManager => this.game.textures;
+    defineLazy(hook, 'textureBytes', () => textureBytes(tx()));
+    defineLazy(hook, 'brakkieTexture', () => tx().exists(BRAKKIE_SHEET));
+    defineLazy(hook, 'cameoTexture', () => Object.values(CAMEO_SHEETS).some((k) => tx().exists(k)));
+    defineLazy(hook, 'textureTop', () => largestTextures(tx(), 15));
     // D-053: HD textures in the texture manager, and sampled on-screen boxes (the same with
     // Standard and HD).
-    hook.graphics.hdTextures = hdTextureCount(this.textures);
-    hook.graphics.bounds = sampleBounds(this.boundsSource);
-    // The create-time sample runs before this run's views exist (boundsSource is null until the
-    // ParallaxView is built; `parallax` is unset on the first run): no herds to probe yet.
-    hook.fauna = this.boundsSource === null ? [] : this.parallax.faunaProbe();
-    hook.gunAtlases = this.textures.getTextureKeys().filter((k) => k.startsWith('final:gun/'));
+    defineLazy(hook.graphics, 'hdTextures', () => hdTextureCount(tx()));
+    defineLazy(hook.graphics, 'bounds', () => sampleBounds(this.boundsSource));
+    // boundsSource is null until this run's ParallaxView is built (and from teardown on): no
+    // herds to probe then.
+    defineLazy(hook, 'fauna', () => (this.boundsSource === null ? [] : this.parallax.faunaProbe()));
+    defineLazy(hook, 'gunAtlases', () =>
+      tx()
+        .getTextureKeys()
+        .filter((k) => k.startsWith('final:gun/')),
+    );
   }
+
+  /** v1.22.2 (D-087): the hook's texture entries are accessors (installHookSamples). */
+  private hookSamples = false;
+
+  /**
+   * v1.22.2 (D-087): the hook's spots and views' entries, worked out when a spec reads them (at
+   * most once per frame) from the last hunt frame's state and views, instead of in every frame:
+   * at 4× throttle on the Pixel 7 profile they cost about 0.6 ms a frame (the perf specs time the
+   * frame). Teardown keeps them as the last frame showed them (`freeze`), as the stored values did.
+   */
+  private installHookEntries(hook: TestHook): void {
+    if (this.hookEntries !== null) return;
+    const e = new LazyEntries(hook);
+    this.hookEntries = e;
+    e.define('crosshair', () => {
+      const c = this.weapon.crosshair;
+      return {
+        weapon: c.weaponId,
+        extent: Math.round(crosshairExtent(c.prims)),
+        visible: c.root.visible && c.root.alpha > 0,
+        x: Math.round(c.root.x),
+        y: Math.round(c.root.y),
+      };
+    });
+    // D-064 (screenshot spec): the gun's rect, so a close-up can keep the barrel off it. Not in
+    // `rects` (HUD-only: hud.spec checks each against the safe area; the gun runs off the edge).
+    e.define('gunRect', () => this.weapon.gunRect());
+    e.define('verBirds', () => {
+      const { state, width } = this.hookNow();
+      const ver = this.ctx.content.scoring.planes.ver;
+      const body = this.hookBody();
+      return state.birds
+        .filter((b) => b.plane === 'ver' && b.hittable)
+        .map((b) => ({
+          id: b.id,
+          x:
+            width / 2 +
+            planeToDx(
+              state.cameraX,
+              ver.scrollFactor,
+              b.x + (body?.ox ?? 0) * ver.scale * b.facing,
+            ),
+          y: b.y + (body?.oy ?? 0) * ver.scale,
+        }));
+    });
+    e.define('farBirds', () => {
+      const { state, width } = this.hookNow();
+      const far = this.ctx.content.scoring.planes.far;
+      const body = this.hookBody();
+      return state.birds
+        .filter((b) => b.plane === 'far' && b.hittable && b.kind === 'target')
+        .map((b) => ({
+          id: b.id,
+          x:
+            width / 2 +
+            planeToDx(
+              state.cameraX,
+              far.scrollFactor,
+              b.x + (body?.ox ?? 0) * far.scale * b.facing,
+            ),
+          y: b.y + (body?.oy ?? 0) * far.scale,
+        }));
+    });
+    e.define('targetBirds', () => {
+      const { state, width } = this.hookNow();
+      const planesNow = this.ctx.content.scoring.planes;
+      const body = this.hookBody();
+      return state.birds
+        .filter((b) => b.hittable && b.kind === 'target' && b.plane !== 'ver')
+        .map((b) => {
+          const pl = planesNow[b.plane];
+          const c = this.ctx.content.birds.creatures.find((x) => x.id === b.creature);
+          const hb = c !== undefined && 'hitbox' in c ? c.hitbox.body : body;
+          return {
+            id: b.id,
+            plane: b.plane,
+            x:
+              width / 2 +
+              planeToDx(state.cameraX, pl.scrollFactor, b.x + (hb?.ox ?? 0) * pl.scale * b.facing),
+            y: b.y + (hb?.oy ?? 0) * pl.scale,
+          };
+        })
+        .filter((b) => b.x > 0 && b.x < width)
+        .sort((a, b) =>
+          a.plane === b.plane
+            ? a.id - b.id
+            : a.plane === 'near'
+              ? -1
+              : b.plane === 'near'
+                ? 1
+                : a.plane === 'mid'
+                  ? -1
+                  : 1,
+        );
+    });
+    // v1.10 (D-067): feeding at a Reënbui column.
+    e.define('flockSpots', () => {
+      const { state } = this.hookNow();
+      return state.flocks.map((f) => {
+        const members = state.birds.filter((b) => b.flockId === f.id);
+        const n = Math.max(1, members.length);
+        const x = members.reduce((t, b) => t + this.parallax.screenX(b.plane, b.x), 0) / n;
+        const y = members.reduce((t, b) => t + b.y, 0) / n;
+        return {
+          id: f.id,
+          state: f.state,
+          alive: f.alive,
+          x,
+          y,
+          plane: f.plane,
+          ...(f.feeding === true ? { feeding: true } : {}),
+        };
+      });
+    });
+    e.define('secretSpots', () => {
+      const { state } = this.hookNow();
+      return state.secrets.flatMap((sec) => {
+        const layer = this.parallax.layer(sec.layerId);
+        if (layer === undefined) return [];
+        return sec.parts
+          .filter((p) => !p.hit)
+          .map((p) => ({
+            propId: sec.propId,
+            partId: p.id,
+            x: layer.root.x + p.x,
+            y: p.y,
+            ready: sec.ready,
+          }));
+      });
+    });
+    e.define('crateSpots', () => {
+      const { state } = this.hookNow();
+      return state.crates.map((c) => {
+        const id = c.id;
+        return {
+          id,
+          x: this.parallax.screenX(c.plane, c.x),
+          y: c.y,
+          item: c.item,
+          icon: this.world.crateIcon(id),
+          drawn: this.world.crateDrawn(id),
+        };
+      });
+    });
+    e.define('specialBirds', () => {
+      const { state } = this.hookNow();
+      return state.birds
+        .filter((b) => b.motion === 'perch' || b.motion === 'boss' || b.motion === 'hop')
+        .map((b) => ({
+          id: b.id,
+          creature: b.creature,
+          phase: b.phase,
+          x: this.parallax.screenX(b.plane, b.x),
+          y: b.y,
+        }));
+    });
+    e.define('harvestFlyovers', () => {
+      const { state } = this.hookNow();
+      return state.harvest === null
+        ? []
+        : state.birds
+            .filter((b) => b.motion === 'flyover')
+            .map((b) => ({
+              id: b.id,
+              creature: b.creature,
+              plane: b.plane,
+              x: this.parallax.screenX(b.plane, b.x),
+              y: b.y,
+            }));
+    });
+    e.define('potjie', () => this.world.potjie.hook);
+    e.define('hdProps', () => this.parallax.hdSpots());
+    e.define('meerkats', () => this.meerkats.spots());
+    e.define('cans', () => {
+      const { state } = this.hookNow();
+      return state.cans === undefined
+        ? null
+        : { plane: state.cans.plane, spots: this.cans.spots(), bestChain: state.cans.bestChain };
+    });
+    e.define('farCans', () => {
+      const { state } = this.hookNow();
+      return state.farCans === undefined
+        ? null
+        : {
+            plane: state.farCans.plane,
+            spots: this.farCans.spots(),
+            bestChain: state.farCans.bestChain,
+          };
+    });
+    e.define('nuts', () => {
+      const { state } = this.hookNow();
+      return state.nuts === undefined
+        ? null
+        : {
+            ...(this.makalani?.spots() ?? { nuts: [], palms: [], layers: [] }),
+            bestChain: state.nuts.bestChain,
+          };
+    });
+    // The special day's things (D-065, New Year: the blue hour, stars and fireworks as drawn).
+    e.define('spook', () => {
+      const { state } = this.hookNow();
+      return state.feesdag === undefined || this.spookView === null
+        ? null
+        : {
+            id: state.feesdag.id,
+            lanternsLit: state.feesdag.lanternsLit,
+            lanternsTotal: state.feesdag.lanternsTotal,
+            things: this.spookView.spots(),
+            final: this.spookView.final,
+            hats: this.birds.hatSpots().map((p) => ({
+              x: Math.round(this.parallax.screenX(p.plane, p.x)),
+              y: Math.round(p.y),
+              plane: p.plane,
+            })),
+            ...(state.feesdag.presentsTotal === undefined
+              ? {}
+              : {
+                  presentsClosed: state.feesdag.presentsClosed ?? 0,
+                  presentsTotal: state.feesdag.presentsTotal,
+                  ...('tinsel' in this.spookView && typeof this.spookView.tinsel === 'function'
+                    ? { tinsel: (this.spookView as KersfeesHook).tinsel() }
+                    : {}),
+                  heat: this.world.heatOn() ? this.world.heat : 0,
+                }),
+            ...('newYear' in this.spookView && typeof this.spookView.newYear === 'function'
+              ? { newYear: (this.spookView as { newYear(): NewYearHook }).newYear() }
+              : {}),
+          };
+    });
+    e.define('fruit', () =>
+      this.fruit === null
+        ? null
+        : {
+            count: this.fruit.count,
+            hits: this.fruit.hitCount,
+            drops: this.fruit.dropCount,
+            swinging: this.fruit.swinging,
+            spots: this.fruit.spots(),
+          },
+    );
+    e.define('treeLife', () => this.treeLife?.hook() ?? null);
+    e.define('namibLife', () => this.namibLife?.hook() ?? null);
+    e.define('harvest', () => {
+      const { state } = this.hookNow();
+      const hv = state.harvest;
+      return hv === null
+        ? null
+        : {
+            phase: hv.phase,
+            crop: hv.crop,
+            repair: hv.repair,
+            clockTicksLeft: hv.clockTicksLeft,
+            warthogs: hv.warthogs.length,
+            piglets: hv.piglets.length,
+            workers: hv.workers.map((w) => ({ id: w.id, phase: w.phase, x: w.x, y: w.y })),
+            warthogsBagged: hv.warthogsBagged,
+            cropBonus: hv.cropBonus,
+            bystanderPenalty: hv.bystanderPenalty,
+            hole: hv.hole,
+            phase2:
+              hv.phase2 === null
+                ? null
+                : {
+                    total: hv.phase2.total,
+                    left: hv.phase2.left,
+                    ticksLeft: hv.phase2.ticksLeft,
+                    cropAtStart: hv.phase2.cropAtStart,
+                    result: hv.phase2.result,
+                    animals: hv.phase2.animals.map((a) => ({
+                      id: a.id,
+                      kind: a.kind,
+                      phase: a.phase,
+                      x: a.x,
+                      y: a.y,
+                      from: a.from,
+                    })),
+                  },
+          };
+    });
+  }
+
+  /** D-087: the last hunt frame's state and design width (installHookEntries). */
+  private hookNow(): { state: SimState; width: number } {
+    // Safe: entries are only worked out after frame(), which follows setting hookState.
+    const state = this.hookState as SimState;
+    return { state, width: this.hookWidth };
+  }
+
+  /** D-087: the guineafowl's body offset (the Ver and far spots aim at its centre). */
+  private hookBody(): { ox: number; oy: number } | null {
+    const t = this.ctx.content.birds.creatures.find((c) => c.id === 'tarentaal');
+    return t !== undefined && 'hitbox' in t ? t.hitbox.body : null;
+  }
+
+  private hookEntries: LazyEntries<TestHook> | null = null;
+  private hookState: SimState | null = null;
+  private hookWidth = 0;
 
   /**
    * v1.3: on the low tier, leaving a hunt (this scene restarts for the title, [Again] or the next
@@ -2169,8 +2484,7 @@ export class HuntScene extends Phaser.Scene {
         if (this.texturesDone && this.ctx.hook)
           this.ctx.hook.boot['allTextures'] ??= performance.now();
       }
-      // v1.3: texture memory on the title too (after a hunt), about twice a second.
-      if (this.ctx.hook && this.game.loop.frame % 30 === 0) this.sampleTextures(this.ctx.hook);
+      // v1.3: texture memory on the title too (after a hunt): the hook reads it (D-087).
       return;
     }
     const paused = this.ctx.paused();
@@ -2451,17 +2765,7 @@ export class HuntScene extends Phaser.Scene {
       reloadBoostsOf(state.powerups, this.ctx.content.powerups.powerups).fast,
     );
     if (this.ctx.hook) {
-      const c = this.weapon.crosshair;
-      this.ctx.hook.crosshair = {
-        weapon: c.weaponId,
-        extent: Math.round(crosshairExtent(c.prims)),
-        visible: c.root.visible && c.root.alpha > 0,
-        x: Math.round(c.root.x),
-        y: Math.round(c.root.y),
-      };
-      // D-064 (screenshot spec): the gun's rect, so a close-up can keep the barrel off it. Not in
-      // `rects` (HUD-only: hud.spec checks each against the safe area; the gun runs off the edge).
-      this.ctx.hook.gunRect = this.weapon.gunRect();
+      // D-087: the crosshair and the gun's rect are read when read (installHookEntries).
       // v1.3: the rifle zoom view (the reticle is where a release fires, on screen).
       const z = this.zoomView;
       this.ctx.hook.zoom = {
@@ -2520,8 +2824,8 @@ export class HuntScene extends Phaser.Scene {
       hook.shells = state.weapon.shells;
       hook.cooldownTicks = state.weapon.cooldownTicks;
       hook.aimOffsetPx = this.ctx.prefs.crosshairOffsetPx;
-      // D-029: GPU texture memory (RGBA bytes of every texture source), sampled twice a second.
-      if (state.tick % 30 === 0) this.sampleTextures(hook);
+      // D-029: GPU texture memory (RGBA bytes of every texture source): read when a spec reads
+      // it (installHookSamples, D-087).
       hook.magazine = state.weapon.magazine;
       hook.reloading = state.weapon.reloading;
       hook.stones = state.projectiles.length;
@@ -2532,192 +2836,15 @@ export class HuntScene extends Phaser.Scene {
       hook.birds = state.birds.length;
       hook.gadgetCharges = state.gadget?.charges ?? 0;
       hook.flocks = state.flocks.map((f) => `${f.id}:${f.state}`);
-      const ver = this.ctx.content.scoring.planes.ver;
-      const tarentaal = this.ctx.content.birds.creatures.find((c) => c.id === 'tarentaal');
-      const body = tarentaal !== undefined && 'hitbox' in tarentaal ? tarentaal.hitbox.body : null;
-      hook.verBirds = state.birds
-        .filter((b) => b.plane === 'ver' && b.hittable)
-        .map((b) => ({
-          id: b.id,
-          x:
-            width / 2 +
-            planeToDx(
-              state.cameraX,
-              ver.scrollFactor,
-              b.x + (body?.ox ?? 0) * ver.scale * b.facing,
-            ),
-          y: b.y + (body?.oy ?? 0) * ver.scale,
-        }));
-      const far = this.ctx.content.scoring.planes.far;
-      hook.farBirds = state.birds
-        .filter((b) => b.plane === 'far' && b.hittable && b.kind === 'target')
-        .map((b) => ({
-          id: b.id,
-          x:
-            width / 2 +
-            planeToDx(
-              state.cameraX,
-              far.scrollFactor,
-              b.x + (body?.ox ?? 0) * far.scale * b.facing,
-            ),
-          y: b.y + (body?.oy ?? 0) * far.scale,
-        }));
-      // D-065 (e2e): hittable target birds on screen at their body centre (design px), every
-      // plane but the Ver, nearest plane first — what a spec aims at (a flock's mean position can
-      // fall between its birds once it runs or flushes).
-      const planesNow = this.ctx.content.scoring.planes;
-      hook.targetBirds = state.birds
-        .filter((b) => b.hittable && b.kind === 'target' && b.plane !== 'ver')
-        .map((b) => {
-          const pl = planesNow[b.plane];
-          const c = this.ctx.content.birds.creatures.find((x) => x.id === b.creature);
-          const hb = c !== undefined && 'hitbox' in c ? c.hitbox.body : body;
-          return {
-            id: b.id,
-            plane: b.plane,
-            x:
-              width / 2 +
-              planeToDx(state.cameraX, pl.scrollFactor, b.x + (hb?.ox ?? 0) * pl.scale * b.facing),
-            y: b.y + (hb?.oy ?? 0) * pl.scale,
-          };
-        })
-        .filter((b) => b.x > 0 && b.x < width)
-        .sort((a, b) =>
-          a.plane === b.plane
-            ? a.id - b.id
-            : a.plane === 'near'
-              ? -1
-              : b.plane === 'near'
-                ? 1
-                : a.plane === 'mid'
-                  ? -1
-                  : 1,
-        );
-      hook.flockSpots = state.flocks.map((f) => {
-        const members = state.birds.filter((b) => b.flockId === f.id);
-        const n = Math.max(1, members.length);
-        const x = members.reduce((t, b) => t + this.parallax.screenX(b.plane, b.x), 0) / n;
-        const y = members.reduce((t, b) => t + b.y, 0) / n;
-        return {
-          id: f.id,
-          state: f.state,
-          alive: f.alive,
-          x,
-          y,
-          plane: f.plane,
-          // v1.10 (D-067): feeding at a Reënbui column.
-          ...(f.feeding === true ? { feeding: true } : {}),
-        };
-      });
-      hook.secretSpots = state.secrets.flatMap((sec) => {
-        const layer = this.parallax.layer(sec.layerId);
-        if (layer === undefined) return [];
-        return sec.parts
-          .filter((p) => !p.hit)
-          .map((p) => ({
-            propId: sec.propId,
-            partId: p.id,
-            x: layer.root.x + p.x,
-            y: p.y,
-            ready: sec.ready,
-          }));
-      });
-      hook.crateSpots = state.crates.map((c) => ({
-        id: c.id,
-        x: this.parallax.screenX(c.plane, c.x),
-        y: c.y,
-        item: c.item,
-        icon: this.world.crateIcon(c.id),
-        drawn: this.world.crateDrawn(c.id),
-      }));
-      hook.specialBirds = state.birds
-        .filter((b) => b.motion === 'perch' || b.motion === 'boss' || b.motion === 'hop')
-        .map((b) => ({
-          id: b.id,
-          creature: b.creature,
-          phase: b.phase,
-          x: this.parallax.screenX(b.plane, b.x),
-          y: b.y,
-        }));
-      hook.harvestFlyovers =
-        state.harvest === null
-          ? []
-          : state.birds
-              .filter((b) => b.motion === 'flyover')
-              .map((b) => ({
-                id: b.id,
-                creature: b.creature,
-                plane: b.plane,
-                x: this.parallax.screenX(b.plane, b.x),
-                y: b.y,
-              }));
+      // D-087: the spots and the views' entries are worked out when a spec reads them
+      // (installHookEntries), from this frame's state and views.
+      this.hookState = state;
+      this.hookWidth = width;
+      this.hookEntries?.frame();
       hook.weapon = state.weapon.id;
       hook.powerups = state.powerups.map((p) => p.id);
       hook.wind = state.wind;
       hook.weavers = this.treeLife?.weaverCount ?? 0;
-      hook.potjie = this.world.potjie.hook;
-      hook.hdProps = this.parallax.hdSpots();
-      hook.meerkats = this.meerkats.spots();
-      hook.cans =
-        state.cans === undefined
-          ? null
-          : { plane: state.cans.plane, spots: this.cans.spots(), bestChain: state.cans.bestChain };
-      hook.farCans =
-        state.farCans === undefined
-          ? null
-          : {
-              plane: state.farCans.plane,
-              spots: this.farCans.spots(),
-              bestChain: state.farCans.bestChain,
-            };
-      hook.nuts =
-        state.nuts === undefined
-          ? null
-          : {
-              ...(this.makalani?.spots() ?? { nuts: [], palms: [], layers: [] }),
-              bestChain: state.nuts.bestChain,
-            };
-      hook.spook =
-        state.feesdag === undefined || this.spookView === null
-          ? null
-          : {
-              id: state.feesdag.id,
-              lanternsLit: state.feesdag.lanternsLit,
-              lanternsTotal: state.feesdag.lanternsTotal,
-              things: this.spookView.spots(),
-              final: this.spookView.final,
-              hats: this.birds.hatSpots().map((p) => ({
-                x: Math.round(this.parallax.screenX(p.plane, p.x)),
-                y: Math.round(p.y),
-                plane: p.plane,
-              })),
-              ...(state.feesdag.presentsTotal === undefined
-                ? {}
-                : {
-                    presentsClosed: state.feesdag.presentsClosed ?? 0,
-                    presentsTotal: state.feesdag.presentsTotal,
-                    ...('tinsel' in this.spookView && typeof this.spookView.tinsel === 'function'
-                      ? { tinsel: (this.spookView as KersfeesHook).tinsel() }
-                      : {}),
-                    heat: this.world.heatOn() ? this.world.heat : 0,
-                  }),
-              // D-065 (New Year): the blue hour, stars and fireworks as drawn now.
-              ...('newYear' in this.spookView && typeof this.spookView.newYear === 'function'
-                ? { newYear: (this.spookView as { newYear(): NewYearHook }).newYear() }
-                : {}),
-            };
-      hook.fruit =
-        this.fruit === null
-          ? null
-          : {
-              count: this.fruit.count,
-              hits: this.fruit.hitCount,
-              drops: this.fruit.dropCount,
-              swinging: this.fruit.swinging,
-              spots: this.fruit.spots(),
-            };
-      hook.treeLife = this.treeLife?.hook() ?? null;
-      hook.namibLife = this.namibLife?.hook() ?? null;
       hook.tells = this.tells?.tells ?? null;
       hook.baboons = this.baboons?.baboons ?? null;
       hook.baboonCalls = this.baboons?.callCounts ?? null;
@@ -2730,41 +2857,6 @@ export class HuntScene extends Phaser.Scene {
       // v1.11 (D-068): the braai's chunk and sheet are in (the tally will show it).
       hook.braaiLoaded = braaiReady() !== null;
       hook.reenbuiDraw = this.reenbui?.hook ?? null;
-      const hv = state.harvest;
-      hook.harvest =
-        hv === null
-          ? null
-          : {
-              phase: hv.phase,
-              crop: hv.crop,
-              repair: hv.repair,
-              clockTicksLeft: hv.clockTicksLeft,
-              warthogs: hv.warthogs.length,
-              piglets: hv.piglets.length,
-              workers: hv.workers.map((w) => ({ id: w.id, phase: w.phase, x: w.x, y: w.y })),
-              warthogsBagged: hv.warthogsBagged,
-              cropBonus: hv.cropBonus,
-              bystanderPenalty: hv.bystanderPenalty,
-              hole: hv.hole,
-              phase2:
-                hv.phase2 === null
-                  ? null
-                  : {
-                      total: hv.phase2.total,
-                      left: hv.phase2.left,
-                      ticksLeft: hv.phase2.ticksLeft,
-                      cropAtStart: hv.phase2.cropAtStart,
-                      result: hv.phase2.result,
-                      animals: hv.phase2.animals.map((a) => ({
-                        id: a.id,
-                        kind: a.kind,
-                        phase: a.phase,
-                        x: a.x,
-                        y: a.y,
-                        from: a.from,
-                      })),
-                    },
-            };
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
@@ -3699,6 +3791,10 @@ export class HuntScene extends Phaser.Scene {
   }
 
   private teardown(): void {
+    // D-087: the hook's bounds and herds are read lazily: none from views being torn down; its
+    // spots keep what the last frame showed.
+    this.boundsSource = null;
+    this.hookEntries?.freeze();
     this.range?.detach();
     this.scale.off(Phaser.Scale.Events.RESIZE, this.relayout);
     for (const fn of this.cleanups) fn();

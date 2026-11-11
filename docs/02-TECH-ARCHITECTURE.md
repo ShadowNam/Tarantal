@@ -1116,6 +1116,14 @@ export interface PlatformAdapter {
   Dailies are practice (no attempt, streak or best saved), no tally offers [Share], and `?c=`
   links are ignored. `tests/e2e/daily-public.spec.ts` (CI job `public`, `E2E_BUILD=public`)
   proves it on the build Pages ships.
+  v1.22.2 (D-087): hook entries that cost real work are accessors computed when a spec reads
+  them (`src/game/lazyHook.ts`), never in the game's frame: the perf specs time the frame
+  (`cpuFrameMs`), and a read between frames sees what the last frame drew. Texture memory and the
+  largest textures, the HD texture count, on-screen boxes, the far-herd probe and the gun atlases
+  are read afresh on every read (`defineLazy`); the on-screen spots (birds, flocks, crates with
+  their drawn check, secrets), the special day's things, the crosshair, the gun's rect and the
+  views' entries are worked out at most once per hunt frame (`LazyEntries`) and keep the last
+  frame's values once the hunt scene shuts down.
 - **Release aim (D-052, 27 Oct 2026):** friends on the web test build first, then the Apple App Store and
   Google Play through Capacitor. Poki and CrazyGames are no longer targets; their adapters and builds
   stay until they are removed on purpose. The portal notes below are kept for reference.
@@ -1417,7 +1425,7 @@ The friends' Android app before any store account (docs/ANDROID-TEST-APP.md). Ca
     HD image under the same key with its frames reporting the standard size and the source's
     resolution 2 (`hdTexture.ts halveTexture`): Phaser draws the quad at cutWidth / resolution,
     so every view, origin, particle and hit area sees design px unchanged. The sim never sees any
-    of it; `HuntScene` samples on-screen boxes into the test hook (`graphics.bounds`).
+    of it; the test hook reads on-screen boxes (`graphics.bounds`) when a spec reads it (D-087).
   - **Swapping:** `AssetManifest.applyHd()` puts the chosen art under each key: the old texture is
     renamed and retired (never removed under an object, D-046), and `purgeRetired()` frees retired
     textures no object draws (`textureUse.ts` scans every scene) at the next scene change

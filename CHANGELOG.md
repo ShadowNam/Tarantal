@@ -26,6 +26,20 @@ birds, and a card should send him hunting guineafowl on the ground.
 - **Smaller first download:** the test-only content switches now load only in test runs
   (1 KB smaller than main).
 
+## [1.22.2] — Steadier performance checks (10 Nov 2026)
+
+Decision record D-087. No change to the game or how it looks; the automatic checks behind each
+release are steadier.
+
+- **The frame-time checks measure the game, not the test's own probes:** the test build worked
+  out its texture-memory report and the crates' screen positions in every frame, which counted as
+  game time (about 2 ms a frame on a slowed-down phone profile — enough to fail the Christmas and
+  New Year checks). Those reports are now worked out only when a test asks for them.
+- **The HD memory checks measure during the hunt:** their texture report could stay minutes old,
+  so a check sometimes measured after the hunt had ended and missed Brakkie's or the animals'
+  pictures. It is now always current, and a check that can't settle says why instead of measuring
+  late.
+
 ## [1.22.1] — Sizes: set the animals' sizes by eye (10 Nov 2026)
 
 Decision record D-086. The owner (10 Nov): the animals still look the wrong size in the test demo,
