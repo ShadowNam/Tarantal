@@ -71,6 +71,7 @@ import type { ShellFx } from '../view/shells/ShellFx';
 /** v1.19 (D-084): the special shells' ids (their effects chunk loads with the first). */
 const isShellId = (id: string): boolean => id === 'dragon_breath' || id === 'slug';
 import { planeToDx } from '../../sim/camera';
+import { birdHitbox } from '../../sim/birds/size';
 import { crosshairExtent, reloadBoostsOf, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
 import { MeerkatView } from '../view/MeerkatView';
@@ -1017,7 +1018,8 @@ export class HuntScene extends Phaser.Scene {
         .map((b) => {
           const pl = planesNow[b.plane];
           const c = this.ctx.content.birds.creatures.find((x) => x.id === b.creature);
-          const hb = c !== undefined && 'hitbox' in c ? c.hitbox.body : body;
+          // D-083: a bird's body as drawn (its sizeMul), before the plane's scale.
+          const hb = c !== undefined && 'hitbox' in c ? birdHitbox(c).body : body;
           return {
             id: b.id,
             plane: b.plane,
@@ -1233,10 +1235,11 @@ export class HuntScene extends Phaser.Scene {
     return { state, width: this.hookWidth };
   }
 
-  /** D-087: the guineafowl's body offset (the Ver and far spots aim at its centre). */
+  /** D-087: the guineafowl's body offset (the Ver and far spots aim at its centre), as drawn
+   *  (D-083: its sizeMul, 1). */
   private hookBody(): { ox: number; oy: number } | null {
     const t = this.ctx.content.birds.creatures.find((c) => c.id === 'tarentaal');
-    return t !== undefined && 'hitbox' in t ? t.hitbox.body : null;
+    return t !== undefined && 'hitbox' in t ? birdHitbox(t).body : null;
   }
 
   private hookEntries: LazyEntries<TestHook> | null = null;

@@ -8193,14 +8193,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/common/birds/kwevoel-mid@1x-0.c090f6196b31.png",
-                "bytes": 22004,
-                "hash": "c090f6196b31"
+                "path": "assets/common/birds/kwevoel-mid@1x-0.6748d1d5f7df.png",
+                "bytes": 21046,
+                "hash": "6748d1d5f7df"
               },
               "data": {
-                "path": "assets/common/birds/kwevoel-mid@1x-0.83e66a587b07.json",
-                "bytes": 1696,
-                "hash": "83e66a587b07"
+                "path": "assets/common/birds/kwevoel-mid@1x-0.90ef33b8fd83.json",
+                "bytes": 1697,
+                "hash": "90ef33b8fd83"
               }
             }
           ]
@@ -9439,14 +9439,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/okavango-spring/birds/visarend-far@1x-0.41f31bd1dba8.png",
-                "bytes": 4030,
-                "hash": "41f31bd1dba8"
+                "path": "assets/okavango-spring/birds/visarend-far@1x-0.a1a4da4399fe.png",
+                "bytes": 7416,
+                "hash": "a1a4da4399fe"
               },
               "data": {
-                "path": "assets/okavango-spring/birds/visarend-far@1x-0.62a8d0676364.json",
-                "bytes": 1464,
-                "hash": "62a8d0676364"
+                "path": "assets/okavango-spring/birds/visarend-far@1x-0.b7fd944fd809.json",
+                "bytes": 1481,
+                "hash": "b7fd944fd809"
               }
             }
           ]

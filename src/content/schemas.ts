@@ -205,6 +205,16 @@ const creatureCommon = {
   biomes: z.array(id).min(1).optional(),
 };
 
+/**
+ * v1.23.1 (D-083): a bird's true size beside the guineafowl. The art and the hitbox are drawn in
+ * the guineafowl's units (263 = its 0.5 m standing height); sizeMul scales both on every plane —
+ * the drawing, the body ellipse and head circle (radii and offsets), and the exit margins — so a
+ * smaller bird is drawn and hit smaller alike. Absent = 1 (the guineafowl and the bosses never
+ * set it). The planes' minHitRadiusPx floor and the touch aim assist's px pad are applied after
+ * it, unchanged. tools/sizes.ts holds each set value to ±15 % of the species' real size.
+ */
+const sizeMulSchema = z.number().positive().max(2).optional();
+
 const targetCreatureSchema = obj({
   ...creatureCommon,
   kind: z.literal('target'),
@@ -214,6 +224,7 @@ const targetCreatureSchema = obj({
   pelletsToBag: posInt,
   speeds: fullSpeedsSchema,
   hitbox: hitboxSchema,
+  sizeMul: sizeMulSchema,
   spawnWeight: nonNeg,
   maxPerHunt: posInt.optional(),
 });
@@ -240,6 +251,11 @@ const nonTargetCreatureSchema = obj({
   alertsAllFlocks: z.boolean().optional(),
   speeds: partialSpeedsSchema.optional(),
   hitbox: hitboxSchema,
+  sizeMul: sizeMulSchema,
+  /** v1.23.1 (D-083): a percher's feet below its sim position (art units at sizeMul 1): a bird
+   *  drawn at sizeMul ≠ 1 is scaled about its feet on the perch, not about its middle (its home
+   *  point moves down by perchFeetOy × the plane's scale × (1 − sizeMul)). Absent = 0. */
+  perchFeetOy: nonNeg.optional(),
   /** v1.7d (D-059): drifts instead of flying over (hot-air balloons): 1–3 of them, high in the
    *  sky (skyY: design y of the hitbox centre, above the birds' lanes), entering offViewPx
    *  beside the view on the upwind side (the layout's wind if it has one) and barely bobbing. */

@@ -9,6 +9,7 @@
 // falls back along CLIP_FALLBACK, then to the placeholder frames.
 import * as Phaser from 'phaser';
 import type { ContentBundle } from '../../content/schemas';
+import { birdHitbox, sizeMulOf } from '../../sim/birds/size';
 import type { PlaneId } from '../../sim/types';
 import type { BirdClip } from '../assets/assetIndex';
 import { artPlaneFor, type ArtPlaneId } from '../assets/artPlane';
@@ -104,6 +105,9 @@ export class BirdView {
   /** v1.3: the rifle zoom view's zoom (Ver birds pick sharper art when zoomed in). */
   private viewZoom = 1;
   private readonly artScales: Readonly<Record<ArtPlaneId, number>>;
+  /** v1.23.1 (D-083): each creature's true size on top of its plane's scale (birds.json sizeMul;
+   *  the sim scales its hit shapes the same way). */
+  private readonly sizeMul: ReadonlyMap<string, number>;
   /** D-048: hats on a special day (null = none). Set before the hunt's first frame. */
   hats: HatSource | null = null;
 
@@ -124,6 +128,7 @@ export class BirdView {
     this.drifters = new Set(content.birds.creatures.filter((c) => 'drift' in c).map((c) => c.id));
     const p = content.scoring.planes;
     this.artScales = { near: p.near.scale, mid: p.mid.scale, far: p.far.scale };
+    this.sizeMul = new Map(content.birds.creatures.map((c) => [c.id, sizeMulOf(c)]));
   }
 
   /** v1.3: the zoom the world is drawn at now (1 = no sight up). */
@@ -151,7 +156,7 @@ export class BirdView {
   /** Where a boss's helmet sits: on top of the head hitbox (plane px, scaled). */
   private headTop(v: DrawBird['view'], x: number, y: number): { x: number; y: number } {
     const c = this.content.birds.creatures.find((k) => k.id === v.creature);
-    const head = c !== undefined && 'hitbox' in c ? c.hitbox.head : undefined;
+    const head = c !== undefined && 'hitbox' in c ? birdHitbox(c).head : undefined;
     const s = this.content.scoring.planes[v.plane].scale;
     if (head === undefined) return { x, y: y - 100 * s };
     return { x: x + head.ox * s * v.facing, y: y + (head.oy - head.r * 0.55) * s };
@@ -240,7 +245,10 @@ export class BirdView {
         d.frame = key;
       }
       // Ver birds draw another plane's art scaled down to the Ver size (ratio ≤ 1).
-      const s = playable ? final.scale * this.finalRatio(v.plane, final, ratio) : ratio;
+      // D-083: × the creature's true size (birds.json sizeMul; 1 for the guineafowl).
+      const s =
+        (playable ? final.scale * this.finalRatio(v.plane, final, ratio) : ratio) *
+        (this.sizeMul.get(v.creature) ?? 1);
       // Placeholder frames get a drawn walk bob and running lean; delivered clips animate it.
       const bob =
         !playable &&
@@ -316,7 +324,8 @@ export class BirdView {
     /** Its bird is drawn (on screen or not: the hat's own visibility is as before culling). */
     shown: boolean,
   ): void {
-    const ps = this.content.scoring.planes[v.plane].scale;
+    // D-083: the head anchors are in the guineafowl's units, × the creature's true size.
+    const ps = this.content.scoring.planes[v.plane].scale * (this.sizeMul.get(v.creature) ?? 1);
     // A delivered clip (its key starts "final:") shows its frames; else the placeholder art.
     const anim = d.frame.startsWith('final:') ? d.sprite.anims.currentFrame : null;
     // Delivered clips: "final:<creature>/<plane>/<clip>", frames "<clip>/<nn>".
@@ -372,7 +381,8 @@ export class BirdView {
       if (final.entry.clips.hit_poof === undefined) continue;
       const key = this.ensureAnim(e.creature, art, final, 'hit_poof');
       if ((this.scene.anims.get(key)?.frames.length ?? 0) === 0) continue;
-      const k = final.scale * this.finalRatio(e.plane, final, ratio);
+      const k =
+        final.scale * this.finalRatio(e.plane, final, ratio) * (this.sizeMul.get(e.creature) ?? 1);
       const face = this.drawn.get(e.birdId)?.sprite.scaleX ?? k;
       const poof = this.scene.add
         .sprite(e.x, e.y, final.atlasKey)

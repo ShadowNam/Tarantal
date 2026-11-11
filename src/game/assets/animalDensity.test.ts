@@ -1,11 +1,15 @@
 // v1.17b (D-080, review 4): the true-size cameos and ostriches stay crisp — every frame on their
 // sheets has at least 0.5 texture px per drawn design px in Standard and, where an HD twin is
 // packed, at least 1.0 in HD (it is the Standard file at 2×). The first pass drew the cameos at
-// 0.25 and showed the ostriches 2.8× their 1.5× sheet (0.54): blurry.
+// 0.25 and showed the ostriches 2.8× their 1.5× sheet (0.54): blurry. v1.23.1 (D-083): the birds
+// drawn at a sizeMul (the fly-overs and the kwêvoël) keep that density too; smaller than the
+// guineafowl's units, they get crisper, and the fish eagle, drawn at a third of its size in the
+// bird box (rig.json boxShrink), is packed three times larger.
 import { describe, expect, it } from 'vitest';
 import std from '../../../public/assets/asset-index.json' with { type: 'json' };
 import hd from '../../../public/assets/asset-index-hd.json' with { type: 'json' };
 import { loadContent } from '../../../tools/testContent';
+import { sizeMulOf } from '../../sim/birds/size';
 import { BRAKKIE_SHEET, BRAKKIE_SHEET_W } from '../brakkie/brakkieKeys';
 import { BRAKKIE_DRAWN_MUL, brakkieFrames } from '../brakkie/brakkieSheet';
 import { CAMEO_SHEETS, CAMEO_SHEET_AREAS, CAMEO_SHEET_SIZE } from '../cameos/cameoKeys';
@@ -25,6 +29,12 @@ import { PIGLET_H, WARTHOG_H } from '../view/harvest/harvestSheet';
 type Img = { width: number; height: number };
 const images = std.images as Record<string, Img>;
 const hdImages = hd.images as Record<string, Img | undefined>;
+type BirdPlane = { scale: number; x1: { pages: unknown[] } };
+const birds = std.birds as Record<string, Partial<Record<string, BirdPlane>>>;
+const hdBirds = hd.birds as Record<
+  string,
+  Partial<Record<string, { pages: unknown[] }>> | undefined
+>;
 
 describe('the true-size animals’ texture density (D-080)', () => {
   for (const area of CAMEO_SHEET_AREAS)
@@ -54,6 +64,24 @@ describe('the true-size animals’ texture density (D-080)', () => {
     expect(twin, 'the ostriches’ HD twin').toBeDefined();
     if (twin !== undefined)
       expect(twin.width / OSTRICH_SHEET_W / OSTRICH_DRAWN_MUL).toBeGreaterThanOrEqual(1);
+  });
+
+  it('D-083: the birds drawn at a sizeMul, ≥ 0.5 (Standard) and ≥ 1.0 (HD) per drawn px', () => {
+    const sized = loadContent().birds.creatures.filter((c) => sizeMulOf(c) !== 1);
+    expect(sized.map((c) => c.id).sort()).toEqual(['fisant', 'kwevoel', 'tortelduif', 'visarend']);
+    for (const c of sized) {
+      const planes = birds[c.id];
+      if (planes === undefined) throw new Error(`no ${c.id} in the index`);
+      for (const plane of c.planes) {
+        const e = planes[plane];
+        if (e === undefined) throw new Error(`no ${c.id} ${plane} atlas`);
+        // Texture px per drawn design px: 1 / (the atlas's own scale × sizeMul); HD is 2×.
+        const d = 1 / (e.scale * sizeMulOf(c));
+        expect(d, `${c.id} ${plane}`).toBeGreaterThanOrEqual(0.5);
+        expect(hdBirds[c.id]?.[plane], `${c.id} ${plane} HD`).toBeDefined();
+        expect(2 * d, `${c.id} ${plane} HD`).toBeGreaterThanOrEqual(1);
+      }
+    }
   });
 
   it('Brakkie: his frames drawn for his true size, ≥ 0.5 (Standard) and ≥ 1.0 (HD twin) per drawn px', () => {

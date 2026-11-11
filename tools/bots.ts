@@ -1,6 +1,7 @@
 // Headless players for tools (run-hunt, golden replays, the M3 balance sim). Bots see only
 // snapshot() — like the renderer — and answer with Commands. Their randomness is their own.
 // The human-like plinker and competent bots live in humanBots.ts.
+import { birdHitbox } from '../src/sim/birds/size';
 import type { ContentBundle } from '../src/content/schemas';
 import { planeToDx } from '../src/sim/camera';
 import { createStream, fnv1a32 } from '../src/sim/rng';
@@ -681,7 +682,8 @@ function aimBot(seed: number, content: ContentBundle): Bot {
   const aimPoint = (b: BirdView, cx: number, weapon: string): { dx: number; sy: number } => {
     const p = planes[b.plane];
     const c = creatures.get(b.creature);
-    const body = c !== undefined && 'hitbox' in c ? c.hitbox.body : { ox: 0, oy: 0 };
+    // D-083: the body centre as drawn (× the creature's sizeMul).
+    const body = c !== undefined && 'hitbox' in c ? birdHitbox(c).body : { ox: 0, oy: 0 };
     const x = b.x + body.ox * p.scale * b.facing;
     // Stones never reach the Ver plane (v1.3): nothing to aim higher for there.
     const drop = b.plane === 'ver' ? 0 : (drops.get(weapon)?.[b.plane] ?? 0);

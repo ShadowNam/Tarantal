@@ -7,8 +7,12 @@
 // species to ±15 % and lists the ones left for the owner, each with its reason. v1.20.2 (D-082,
 // an audit of D-080): MEASURED_ART adds rows read from the art sources' opaque bounds (not
 // computed from the metres the art was drawn to), and tools/sizesArt.test.ts re-measures the PNGs
-// against them, so the table fails when the art drifts.
+// against them, so the table fails when the art drifts. v1.23.1 (D-083): the fly-overs and the
+// kwêvoël (birds.json sizeMul), measured in their bird frames: the turtle dove, the spurfowl, the
+// go-away-bird and the fish eagle (its body and, separately, its wings).
 import type { ContentBundle, Feel } from '../src/content/schemas';
+import type { ArtPlaneId } from '../src/game/assets/artPlane';
+import { sizeMulOf } from '../src/sim/birds/size';
 import type { CameoSheetArea } from '../src/game/cameos/cameoKeys';
 import { CAMEO_SIZE_MUL, frameKind, type CameoFrame } from '../src/game/cameos/cameoSheet';
 import { OSTRICH_HEN_SCALE } from '../src/game/view/namib/ostrichSheet';
@@ -171,6 +175,17 @@ export type ArtSource =
       readonly s?: number;
     }
   | {
+      /** v1.23.1 (D-083): a bird frame (art-source/birds/<creature>/planes/<plane>/<frame>.png,
+       *  the 620 × 400 bird box, sim position at (310, 230), facing right), in the creature's art
+       *  units (the guineafowl's: its rig.json boxShrink undone). `top`: the highest opaque pixel
+       *  above the sim position (a raised wing's tip above the body's centre line). */
+      readonly kind: 'flyer';
+      readonly creature: string;
+      readonly artPlane: ArtPlaneId;
+      readonly frame: string;
+      readonly extent: 'top' | 'width' | 'height';
+    }
+  | {
       readonly kind: 'ostrich' | 'brakkie' | 'harvest' | 'resident' | `cameo:${CameoSheetArea}`;
       readonly frame: string;
       readonly extent: 'top' | 'width' | 'height';
@@ -205,6 +220,29 @@ const fauna = (
   artPx,
   source: { kind: 'fauna', sheet, look, part, ...(s === 1 ? {} : { s }) },
 });
+
+/** v1.23.1 (D-083): half the fish eagle's wingspan (tools/art/flyers.ts EAGLE_WINGSPAN_M 2.1). */
+export const EAGLE_HALF_SPAN_M = 1.05;
+
+function flyer(
+  id: string,
+  plane: 'mid' | 'far',
+  creature: string,
+  frame: string,
+  extent: 'top' | 'width' | 'height',
+  realM: number,
+  artPx: number,
+  measure: string,
+): MeasuredArt {
+  return {
+    id,
+    realM,
+    measure,
+    plane,
+    artPx,
+    source: { kind: 'flyer', creature, artPlane: plane, frame, extent },
+  };
+}
 
 /**
  * v1.20.2 (D-082): sizes measured from the delivered art (opaque bounds, alpha ≥ 64), each against
@@ -494,6 +532,59 @@ export const MEASURED_ART: readonly MeasuredArt[] = [
     artPx: 112.5,
     source: { kind: 'resident', frame: 'hornbill_cling', extent: 'height' },
   },
+  // v1.23.1 (D-083): the fly-overs and the kwêvoël, in their bird frames × plane scale × sizeMul.
+  ...(['mid', 'far'] as const).flatMap((plane): MeasuredArt[] => [
+    flyer(
+      `flyover_tortelduif_${plane}`,
+      plane,
+      'tortelduif',
+      'glide/00',
+      'width',
+      0.265,
+      plane === 'mid' ? 313 : 320,
+      'bill to tail tip, gliding (a Cape turtle dove: 25–28 cm)',
+    ),
+    flyer(
+      `flyover_fisant_${plane}`,
+      plane,
+      'fisant',
+      'glide/00',
+      'width',
+      0.355,
+      plane === 'mid' ? 312 : 317,
+      "bill to tail tip, gliding (Swainson's spurfowl: a hen 33 cm, a cock 38 cm)",
+    ),
+  ]),
+  flyer(
+    'kwevoel_perched',
+    'mid',
+    'kwevoel',
+    'alert/03',
+    'height',
+    0.525,
+    339,
+    'crest tip to tail tip, perched and calling with its crest raised: a grey go-away-bird is 0.47–0.51 m bill to tail tip, less its bill and face ahead of the crown (~0.03 m), plus its raised 6–7 cm crest',
+  ),
+  flyer(
+    'visarend_body',
+    'far',
+    'visarend',
+    'glide/00',
+    'width',
+    0.69,
+    417,
+    'bill to tail tip, soaring (an African fish eagle: 63–75 cm)',
+  ),
+  flyer(
+    'visarend_wing',
+    'far',
+    'visarend',
+    'flap/00',
+    'top',
+    EAGLE_HALF_SPAN_M,
+    640,
+    'half its wingspan: the raised wing’s tip above its body’s centre line (a span of 2.0–2.4 m, 1.75–2.1 m in other guides; 2.1 m)',
+  ),
 ];
 
 /** The view's drawn design px per art px of a measured source (see MEASURED_ART). v1.22.1
@@ -502,6 +593,12 @@ export const MEASURED_ART: readonly MeasuredArt[] = [
  *  and the ostrich hen (OSTRICH_HEN_SCALE). */
 export function drawnPerArtPx(content: ContentBundle, s: ArtSource, feel?: Feel): number {
   switch (s.kind) {
+    case 'flyer': {
+      // D-083: the plane's scale × the creature's sizeMul (src/game/view/BirdView.ts).
+      const c = content.birds.creatures.find((x) => x.id === s.creature);
+      if (c === undefined) throw new Error(`no creature ${s.creature}`);
+      return content.scoring.planes[s.artPlane].scale * sizeMulOf(c);
+    }
     case 'ostrich': {
       // The sheet is at the mid plane's scale; the view × the family's scale ÷ it × sizeMul.
       const os = content.birds.ostriches;

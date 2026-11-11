@@ -372,6 +372,7 @@
       "hitsToBag": 3
     },
     {
+      "$comment": "v1.23.1 (D-083): sizeMul 0.85 brings the grey go-away-bird to its true 0.47–0.51 m bill to tail tip beside the guineafowl (drawn 0.57 m in the guineafowl's units); perchFeetOy keeps its feet on the perch (the art's feet are 122 units below its sim position). Its raised crest stays drawn longer than life (tools/sizes.ts).",
       "id": "kwevoel",
       "kind": "nonTarget",
       "planes": [
@@ -381,6 +382,8 @@
         "perchHigh"
       ],
       "penalty": -35,
+      "sizeMul": 0.85,
+      "perchFeetOy": 122,
       "firstSightingBadge": true,
       "hitbox": {
         "body": {
@@ -428,6 +431,7 @@
       }
     },
     {
+      "$comment": "v1.23.1 (D-083): sizeMul 0.87 brings the African fish eagle's body to its true 0.63–0.75 m (drawn 0.79 m in the guineafowl's units); its wings are redrawn to a true ~2.1 m span (tools/art/flyers.ts; the art is drawn at a third of its size in the bird box so they fit, rig.json boxShrink).",
       "id": "visarend",
       "kind": "nonTarget",
       "planes": [
@@ -440,6 +444,7 @@
         "okavango-spring"
       ],
       "penalty": -50,
+      "sizeMul": 0.87,
       "speeds": {
         "fly": 300
       },
@@ -525,7 +530,7 @@
       "grants": "meerkat_spotter"
     },
     {
-      "$comment": "v1.8c (D-063): Swainson's spurfowl (a francolin) whirring over the Harvest field; fly-overs only, the Harvest's map only.",
+      "$comment": "v1.8c (D-063): Swainson's spurfowl (a francolin) whirring over the Harvest field; fly-overs only, the Harvest's map only. v1.23.1 (D-083): sizeMul 0.59, its true 0.33–0.38 m bill to tail beside the guineafowl (drawn 0.60 m in the guineafowl's units); drawing and hit shapes alike.",
       "id": "fisant",
       "kind": "target",
       "planes": [
@@ -539,6 +544,7 @@
         "oes"
       ],
       "pelletsToBag": 1,
+      "sizeMul": 0.59,
       "speeds": {
         "walk": 30,
         "run": 150,
@@ -561,7 +567,7 @@
       "spawnWeight": 25
     },
     {
-      "$comment": "v1.8c (D-063): the Cape turtle dove, fast and small, over the Harvest field; fly-overs only, the Harvest's map only.",
+      "$comment": "v1.8c (D-063): the Cape turtle dove, fast and small, over the Harvest field; fly-overs only, the Harvest's map only. v1.23.1 (D-083): sizeMul 0.44, its true 0.25–0.28 m bill to tail beside the guineafowl (drawn 0.60 m in the guineafowl's units); drawing and hit shapes alike.",
       "id": "tortelduif",
       "kind": "target",
       "planes": [
@@ -575,6 +581,7 @@
         "oes"
       ],
       "pelletsToBag": 1,
+      "sizeMul": 0.44,
       "speeds": {
         "walk": 30,
         "run": 120,

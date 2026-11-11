@@ -2,5 +2,6 @@
   "origin": "interim",
   "x2": false,
   "encode": "png8",
+  "boxShrink": 3,
   "planeClips": { "far": ["flap", "glide", "forage_walk"] }
 }
