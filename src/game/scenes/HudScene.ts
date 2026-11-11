@@ -102,6 +102,11 @@ const SCORE_FEEDBACK: ReadonlySet<SimEvent['type']> = new Set([
   'comboChanged',
 ]);
 
+/** v1.20 (D-085): SaveData.notices entry — Brakkie's fetch hint was shown once. */
+const BRAKKIE_FETCH_NOTICE = 'brakkieFetchHint';
+/** v1.20 (D-085): the Jag, Brakkie! card's power-up id. */
+const JAG_CARD = 'brakkie_jag';
+
 export class HudScene extends Phaser.Scene {
   private readonly ctx: GameContext;
   private layoutNow: HudLayout | null = null;
@@ -995,6 +1000,28 @@ export class HudScene extends Phaser.Scene {
         // Oupa's scold.
         this.pushPop(formatAward(e.points), '#FF6B5A');
         this.oupa('guide.cameo.scold', banner);
+      } else if (
+        e.type === 'brakkieFetchStarted' &&
+        !this.ctx.save.data.notices.includes(BRAKKIE_FETCH_NOTICE)
+      ) {
+        // v1.20 (D-085): once per save, on his first fetch — he fetches by himself, and F (or the
+        // whistle button on touch) sends him at once.
+        this.ctx.save.update((d) =>
+          d.notices.includes(BRAKKIE_FETCH_NOTICE)
+            ? d
+            : { ...d, notices: [...d.notices, BRAKKIE_FETCH_NOTICE] },
+        );
+        this.oupa(
+          this.inputKind === 'pointer'
+            ? 'guide.brakkie.fetch_hint_key'
+            : 'guide.brakkie.fetch_hint_touch',
+          banner,
+        );
+      } else if (e.type === 'brakkieJagStarted') {
+        // v1.20 (D-085): "Jag, Brakkie, jag!" — and a proud line for every catch.
+        this.oupa('guide.brakkie.jag_start', banner);
+      } else if (e.type === 'brakkieCaught') {
+        this.oupa('guide.brakkie.caught', banner);
       } else if (e.type === 'brakkieFetched' && !this.brakkieProud) {
         // He's back at the bakkie with the bird: Oupa's proud line (once a hunt).
         this.brakkieProud = true;
@@ -1103,7 +1130,7 @@ export class HudScene extends Phaser.Scene {
       if (e.type === 'scoreAwarded')
         this.pushPop(`${popParts(e.points, e.mult)}  ${formatAward(e.award)}`, '#F3EAD3');
       else if (e.type === 'bonusAwarded') {
-        // v1.17 (D-079): Brakkie's bonuses pop with their word at the edge ("Bring! +15").
+        // v1.17 (D-079): Brakkie's bonuses pop with their word at the edge ("Bring! +4").
         const award = formatAward(e.award);
         const text = brakkieChunk()?.popText(e.bonus, award, (k) => this.lazy(k), this.ctx.hook);
         this.pushPop(text ?? award, text === undefined || text === award ? '#FFD25A' : '#FFE9A8');
@@ -1438,7 +1465,11 @@ export class HudScene extends Phaser.Scene {
         ending: ending(w.ticksLeft),
       });
     }
+    // v1.20 (D-085): the Jag card's chip shows its catches beside the seconds ("7 s · 1/3").
+    const jag = s.brakkie?.jag ?? null;
     for (const p of s.powerups) {
+      const catches =
+        jag !== null && p.id === JAG_CARD ? ` · ${jag.catches}/${jag.maxCatches}` : '';
       const frac =
         p.ticksLeft !== null && p.totalTicks !== null
           ? p.ticksLeft / p.totalTicks
@@ -1452,7 +1483,7 @@ export class HudScene extends Phaser.Scene {
         icon: iconOf(p.id),
         time:
           p.ticksLeft !== null
-            ? secs(p.ticksLeft)
+            ? secs(p.ticksLeft) + catches
             : p.shellsLeft !== null
               ? `×${p.shellsLeft}`
               : '',

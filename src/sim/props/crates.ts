@@ -26,8 +26,9 @@ export interface Crate {
   /** Hit ellipse on its plane (plane px). */
   readonly rx: number;
   readonly ry: number;
-  /** v1.7b (D-046): what it holds, rolled when it drops (its parachute shows it); null = empty. */
-  readonly item: CrateItem | null;
+  /** v1.7b (D-046): what it holds, rolled when it drops (its parachute shows it); null = empty.
+   *  v1.20 (D-085): a Jag card rolls again while Brakkie can't take it (the icon follows). */
+  item: CrateItem | null;
 }
 
 /** Spawn ticks for this hunt's crates (empty when the mode has none), in time order. */

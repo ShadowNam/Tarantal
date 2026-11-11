@@ -107,7 +107,7 @@ test('the Gun Shed shows every gun as a painted side view, locked ones in grey',
   expect(pics.filter((p) => !p.locked).length).toBeGreaterThan(0);
 });
 
-test('the Power-ups tab draws the two shell icons and the crate guns’ side views (pixels)', async ({
+test('the Power-ups tab draws the shell and Jag card icons and the crate guns’ side views (pixels)', async ({
   page,
 }, info) => {
   test.skip(!isLandscape(info), 'portrait shows the rotate card');
@@ -133,7 +133,7 @@ test('the Power-ups tab draws the two shell icons and the crate guns’ side vie
         ['voorlaaier', 'mielie_masjien'].every((id) =>
           pics.some((x) => x.id === id && x.source === 'side'),
         ) &&
-        ['dragon_breath', 'slug'].every((id) =>
+        ['dragon_breath', 'slug', 'brakkie_jag'].every((id) =>
           cards.some((c) => c.id === id && c.icon && c.iconAt !== undefined),
         ) &&
         h?.assets.lateDone['karoo-autumn'] === true
@@ -172,12 +172,13 @@ test('the Power-ups tab draws the two shell icons and the crate guns’ side vie
     const b = await toClient(page, x + w, top + hgt);
     return statsIn(png, a.x * dpr, a.y * dpr, b.x * dpr, b.y * dpr);
   };
-  for (const id of ['dragon_breath', 'slug']) {
+  // v1.20 (D-085): the Jag card's icon too (Brakkie's tan patches, red collar, a blue feather).
+  for (const id of ['dragon_breath', 'slug', 'brakkie_jag']) {
     const at = (await hook(page)).shedPowerups?.cards.find((c) => c.id === id)?.iconAt;
     if (at === undefined) throw new Error(`no ${id} icon`);
     const s = await sample(id, at.x - at.r, at.y - at.r, 2 * at.r, 2 * at.r);
     expect(s.covered, `${id}: the icon covers its disc`).toBeGreaterThan(0.1);
-    expect(s.colour, `${id}: a coloured shell`).toBeGreaterThan(0.05);
+    expect(s.colour, `${id}: a coloured icon`).toBeGreaterThan(0.05);
     expect(s.spread, `${id}: a drawn icon`).toBeGreaterThan(60);
   }
   for (const id of ['voorlaaier', 'mielie_masjien']) {

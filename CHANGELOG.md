@@ -3,6 +3,29 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.23.0] — v1.20: Brakkie fetches sooner, and the "Jag, Brakkie!" card (10 Nov 2026)
+
+Decision record D-085. The owner's request of 10 Nov (afternoon): Brakkie should collect the shot
+birds, and a card should send him hunting guineafowl on the ground.
+
+- **Brakkie fetches sooner:** he runs out about 1.5 s after a bird falls, even while you keep
+  shooting (he used to wait for 6 s of quiet), and remembers up to 3 birds. He still only goes
+  where no live bird is near and never into the line of fire. The first time he fetches, Oupa tells
+  you that he does it by himself and that F (or the whistle button on a phone) sends him at once.
+- **New power-up: "Jag, Brakkie!" (Hunt, Brakkie!):** from supply crates and the Farm Stall, only
+  in hunts Brakkie comes along to. He sprints at guineafowl feeding on the ground, pounces and
+  catches up to 3 in 10 seconds of hunting — each counts as your bag with its normal points, and he
+  brings it to the bakkie for his Bring bonus. The rest of the flock flies up: wing shots. Never
+  shoot at him: it costs 25 and ends the card. Its chip shows the seconds and the catches; Oupa
+  cheers him on (text for now, voices later).
+- **The Gun Shed's Power-ups tab** has the new card with its picture: Brakkie's head with a paw.
+- **Scores stay comparable (the owner: "Keep it near +5 %"):** he delivers about eight times as
+  many birds, so each delivery now pays "Bring!" +4 (was +15) and "Goeie hond!" pays +20 every 5th
+  in a row (was +30 every 3rd); scores land within about 5 % of before. The card itself is worth
+  about as much as Blitslaai. Details: docs/balance/v1.20-jag.md.
+- **Smaller first download:** the test-only content switches now load only in test runs
+  (1 KB smaller than main).
+
 ## [1.22.2] — Steadier performance checks (10 Nov 2026)
 
 Decision record D-087. No change to the game or how it looks; the automatic checks behind each

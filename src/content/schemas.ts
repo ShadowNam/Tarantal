@@ -1067,6 +1067,10 @@ export const PowerupsSchema = obj({
                *  windSensitivity (more than a rifle bullet) and bags what it hits in one (armour,
                *  a boss's hits, a two-hit warthog). */
               slug: obj({ windSensitivity: nonNeg }).optional(),
+              /** v1.20 (D-085) "Jag, Brakkie!": for durationMs of hunting (the clock holds while
+               *  he carries a catch home and is at the bakkie) Brakkie sprints at guineafowl
+               *  foraging on the ground (brakkie.json jag) and catches up to maxCatches. */
+              brakkieJag: obj({ maxCatches: posInt }).optional(),
             })
             .refine((e) => Object.keys(e).length > 0, 'effect needs at least one entry'),
           durationMs: posInt.optional(),
@@ -1081,6 +1085,9 @@ export const PowerupsSchema = obj({
            *  count down only on shotgun shots. Two special shells never stack: the newer one
            *  replaces the other. */
           needsShotgun: z.boolean().optional(),
+          /** v1.20 (D-085): only where Brakkie comes along (crates hold it only in his hunts;
+           *  a consumable waits in its slot while he can't hunt). */
+          needsBrakkie: z.boolean().optional(),
         })
         .refine((p) => p.durationMs !== undefined || p.durationShells !== undefined, {
           message: 'power-ups need durationMs or durationShells',
@@ -1093,6 +1100,12 @@ export const PowerupsSchema = obj({
             (p.effect.dragonBreath === undefined && p.effect.slug === undefined) ||
             (p.needsShotgun === true && p.durationShells !== undefined),
           { message: 'special shells need needsShotgun and durationShells (D-084)' },
+        )
+        .refine(
+          (p) =>
+            p.effect.brakkieJag === undefined ||
+            (p.needsBrakkie === true && p.durationMs !== undefined),
+          { message: 'the Jag card needs needsBrakkie and durationMs (D-085)' },
         ),
     )
     .min(1),
@@ -2396,7 +2409,8 @@ export const BrakkieSchema = obj({
   }),
   fetch: obj({
     planes: z.array(z.enum(['near', 'mid'])).min(1),
-    /** The bird is down after this. */
+    /** The bird is down after this. v1.20 (D-085): he runs out this long after the bag, shooting
+     *  or not (the after-the-bag delay replaced v1.17's quiet rule). */
     delaySeconds: nonNeg,
     /** He goes only when no live bird is within this of the spot (plane px; mid converts). */
     clearPx: pos,
@@ -2405,9 +2419,6 @@ export const BrakkieSchema = obj({
     waitSeconds: nonNeg,
     /** v1.16 (D-078): birds he means to fetch, one at a time in the order they fell. */
     queueMax: posInt,
-    /** v1.17 (D-079): like a real gundog he is sent once the shooting stops: he runs out for a
-     *  bird only after the gun has been quiet (no shot, no sight or fire held) this long. */
-    quietSeconds: nonNeg,
     /** Only for a bag this close to the view's centre (screen px). */
     maxDxPx: pos,
     pickupSeconds: pos,
@@ -2457,9 +2468,34 @@ export const BrakkieSchema = obj({
   /** v1.17 (D-079): a reaction lasts `seconds`, only from idle, at most one per minGapSeconds;
    *  the head tilt after tiltMisses shots in a row that hit nothing. */
   react: obj({ seconds: pos, minGapSeconds: pos, tiltMisses: posInt }),
+  /** v1.20 (D-085) "Jag, Brakkie!" (powerups.json brakkie_jag): he sprints (sprintPx/s, near-plane
+   *  px) at a guineafowl of `creatures` foraging on the ground on the near or mid plane within
+   *  maxDxPx of the view's centre (screen px), pounces from pouncePx, and after pounceSeconds
+   *  catches it if it is still on the ground within reachPx (a bag of that bird, carried home
+   *  like a fetch); the rest of its flock reacts as to a threat (alarm…). lookSeconds: how often
+   *  he looks for one. */
+  jag: obj({
+    creatures: z.array(id).min(1),
+    /** The mid ground's reach (screen px from the view's centre). */
+    maxDxPx: pos,
+    /** v1.20 review: the near plane's reach, inside the view (a catch and its flush in sight). */
+    nearMaxDxPx: pos,
+    sprintPx: pos,
+    pouncePx: pos,
+    pounceSeconds: pos,
+    reachPx: pos,
+    lookSeconds: pos,
+    /** v1.20 review: the rest of the caught bird's flock hears `alarmThreats` threats from the
+     *  catch, alarmEverySeconds apart (one at the catch): alert → run → flush, as the bark's. */
+    alarmThreats: posInt,
+    alarmEverySeconds: pos,
+  }),
   /** Test builds only (?brakkiePreview=fetch, the screenshot spec): this many seconds in he
    *  fetches a bird placed beside him (visual only). Never in shipped content (cross-refs). */
   demoFetchSeconds: pos.optional(),
+  /** v1.20 (D-085) test builds only (?brakkiePreview=bag): this many seconds in a bird joins his
+   *  queue beside him (a bag without a shot; the real delay and clear rules). Never shipped. */
+  demoBagSeconds: pos.optional(),
   /** v1.17 (D-079) test builds only (?brakkiePreview=react): a proud hop this many seconds in
    *  (when he is idle). Never in shipped content (cross-refs). */
   demoProudSeconds: pos.optional(),

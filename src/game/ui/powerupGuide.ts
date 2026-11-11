@@ -61,6 +61,8 @@ export function guideValues(
       out['x'] = num(e.dragonBreath.pelletsMul);
       out['w'] = num(e.dragonBreath.spreadMul);
     }
+    // v1.20 (D-085) the Jag card: how many he catches at most.
+    if (e.brakkieJag !== undefined) out['c'] = num(e.brakkieJag.maxCatches);
     return pu.padstalPrice === undefined ? out : { ...out, ...shopValues(tr, pu.padstalPrice) };
   }
   const w = content.weapons.weapons.find((x) => x.id === id && x.kind === 'crate');
@@ -165,12 +167,20 @@ export function guideCards(
     const rifle = content.powerups.powerups.some((p) => p.id === id && p.needsSight === true);
     // v1.19 (D-084): a special shell drops only while a shotgun is in hand.
     const shotgun = content.powerups.powerups.some((p) => p.id === id && p.needsShotgun === true);
+    // v1.20 (D-085): the Jag card drops only in a hunt Brakkie comes to.
+    const dog = content.powerups.powerups.some((p) => p.id === id && p.needsBrakkie === true);
     if (inCrates.has(id))
       how.push(
         filled(
           tr,
           lang,
-          rifle ? 'guide.how.crate_rifle' : shotgun ? 'guide.how.crate_shotgun' : 'guide.how.crate',
+          rifle
+            ? 'guide.how.crate_rifle'
+            : shotgun
+              ? 'guide.how.crate_shotgun'
+              : dog
+                ? 'guide.how.crate_brakkie'
+                : 'guide.how.crate',
           { ...values, guns: rifle ? sightedGuns(content, tr) : shotguns(content, tr) },
         ),
       );

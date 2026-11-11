@@ -1,5 +1,5 @@
 // v1.7b (D-046): power-ups explained, and Oupa's switch, on every landscape profile (desktop,
-// Pixel 7, iPhone 14). The Gun Shed's Power-ups tab shows all eleven cards (1.9.2: the Rooikol; v1.19: Dragon's Breath and the Slug) with their icons and
+// Pixel 7, iPhone 14). The Gun Shed's Power-ups tab shows all twelve cards (1.9.2: the Rooikol; v1.19: Dragon's Breath and the Slug; v1.20: Jag, Brakkie!) with their icons and
 // scrolls; a hunt with `?crate=boeretroos` picks up the first crate: its card says what it does
 // (the full sentence the first time, its numbers from content) and its chip counts down; with
 // Oupa's comments Off no bark is shown or voiced in a hunt; with Text only his bubble shows but
@@ -40,6 +40,8 @@ const ALL = [
   // v1.19 (D-084): the special shotgun shells.
   'dragon_breath',
   'slug',
+  // v1.20 (D-085): the Jag, Brakkie! card.
+  'brakkie_jag',
   'voorlaaier',
   'mielie_masjien',
 ];
@@ -126,7 +128,7 @@ test.beforeEach(({ browserName }, info) => {
   test.setTimeout(420_000);
 });
 
-test('the Gun Shed explains all eleven power-ups and crate guns, with icons', async ({
+test('the Gun Shed explains all twelve power-ups and crate guns, with icons', async ({
   page,
 }, info) => {
   const touch = isTouchProject(info);
@@ -170,8 +172,8 @@ test('the Gun Shed explains all eleven power-ups and crate guns, with icons', as
   if (p === undefined) throw new Error('no power-ups tab');
   expect(p.cards.map((c) => c.id)).toEqual(ALL);
   expect(p.cards.every((c) => c.icon)).toBe(true);
-  // v1.19 (D-084): the two shells have their icons like the others.
-  for (const id of ['dragon_breath', 'slug'])
+  // v1.19 (D-084): the two shells have their icons like the others; v1.20 (D-085) the Jag card.
+  for (const id of ['dragon_breath', 'slug', 'brakkie_jag'])
     expect(p.cards.find((c) => c.id === id)?.icon, `${id} icon`).toBe(true);
   // A fresh save has met none of them, and every card still explains itself.
   expect(p.cards.every((c) => !c.found)).toBe(true);

@@ -31,6 +31,12 @@ interface Rig {
     barkFlock: { flockId: number; x: number } | null;
     penalty: number;
     canFlush: boolean;
+    /** v1.20 (D-085): guineafowl on the ground for the Jag card (layer x; walking: foraging). */
+    prey: { birdId: number; plane: 'near' | 'mid'; x: number; walking: boolean }[];
+    caught: number[];
+    jagEnded: number;
+    /** Wide gun out. */
+    wide: boolean;
   };
   bonuses: { id: string; base: number; tick: number }[];
 }
@@ -48,6 +54,10 @@ function rig(seed = 3, homeSide: 1 | -1 = -1): Rig {
     barkFlock: null,
     penalty: 0,
     canFlush: true,
+    prey: [],
+    caught: [],
+    jagEnded: 0,
+    wide: false,
   };
   const host: BrakkieHost = {
     tick: () => state.tick,
@@ -59,8 +69,9 @@ function rig(seed = 3, homeSide: 1 | -1 = -1): Rig {
     },
     cameraX: () => state.cameraX,
     gunUp: () => state.gunUp,
-    wideGun: () => false,
+    wideGun: () => state.wide,
     busyNear: (plane, x, px) => state.busy(plane, x, px),
+    midBirdNear: (x, px) => state.busy('mid', x, px),
     busyAt: (plane, x, px) => (state.busy(plane, x, px) ? x + 1 : null),
     barkTarget: () => state.barkFlock,
     threaten: (flockId, fromX) => {
@@ -74,6 +85,24 @@ function rig(seed = 3, homeSide: 1 | -1 = -1): Rig {
     bonus: (id, base) => {
       bonuses.push({ id, base, tick: state.tick });
       return base;
+    },
+    jagTarget: () => {
+      const p = state.prey.find((b) => b.walking);
+      return p === undefined ? null : { birdId: p.birdId, plane: p.plane, x: p.x };
+    },
+    jagBird: (birdId) => {
+      const p = state.prey.find((b) => b.birdId === birdId);
+      return p === undefined ? null : { plane: p.plane, x: p.x };
+    },
+    jagCatch: (birdId) => {
+      const i = state.prey.findIndex((b) => b.birdId === birdId);
+      if (i < 0) return null;
+      state.prey.splice(i, 1);
+      state.caught.push(birdId);
+      return { creature: 'tarentaal', y: 900, points: 10, flockId: 7 };
+    },
+    jagEnded: () => {
+      state.jagEnded++;
     },
   };
   const sys = createBrakkieSystem(
@@ -411,7 +440,7 @@ function deliverOne(r: Rig): void {
 }
 
 describe('Brakkie the companion (v1.17, D-079)', () => {
-  it('"Bring!": every delivery pays bring.points; every 3rd in a row the streak bonus', () => {
+  it('"Bring!": every delivery pays bring.points; every bring.streakEvery-th in a row the streak bonus', () => {
     const r = rig(21);
     for (let i = 0; i < B.bring.streakEvery; i++) deliverOne(r);
     const ids = r.bonuses.map((b) => b.id);
@@ -618,30 +647,335 @@ describe('Brakkie the companion (v1.17, D-079)', () => {
   });
 });
 
-describe('Brakkie is sent once the shooting stops (v1.17, D-079)', () => {
-  it('a bird down waits while the gun is busy; he goes in a lull of fetch.quietSeconds', () => {
+describe('Brakkie fetches sooner (v1.20, D-085)', () => {
+  it('runs out fetch.delaySeconds (~1.5 s) after a bag while the shooting goes on', () => {
+    expect(B.fetch.delaySeconds).toBeGreaterThanOrEqual(1);
+    expect(B.fetch.delaySeconds).toBeLessThanOrEqual(2);
     const r = rig(31);
     r.until((v) => v.present && v.phase === 'rest', 60 * 30);
     r.state.gunUp = true;
+    const t0 = r.state.tick;
     r.sys.bagged('near', towardCentre(r));
-    r.run(secondsToTicks(B.fetch.delaySeconds) + 60);
     expect(r.sys.view().queued).toBe(1);
+    // Not before the bird's delay…
+    r.run(secondsToTicks(B.fetch.delaySeconds) - 2);
     expect(r.events.some((e) => e.type === 'brakkieFetchStarted')).toBe(false);
-    r.state.gunUp = false;
-    r.until((v) => v.phase === 'fetch', 60 * 5);
+    // …and within a clear check after it, the gun up all the while.
+    const t = r.until((v) => v.phase === 'fetch', 60 * 2);
+    const late = t - t0 - secondsToTicks(B.fetch.delaySeconds);
+    expect(late).toBeGreaterThanOrEqual(0);
+    expect(late).toBeLessThanOrEqual(secondsToTicks(B.clear.checkSeconds) + 1);
   });
 
-  it('"Soek!": with a bird waiting the whistle sends him for it at once, gun busy or not', () => {
+  it('shots every 0.4 s after the bag (misses: a head tilt) never hold him: out by T + delay', () => {
+    const r = rig(38);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    const T = r.state.tick;
+    r.sys.bagged('near', towardCentre(r));
+    const sky = (): { x: number; y: number } => ({ x: -9999, y: -9999 });
+    let fetchAt = -1;
+    for (let i = 0; i < 60 * 4 && fetchAt < 0; i++) {
+      // The gun is up the whole time and a missed shot goes off every 0.4 s.
+      r.state.gunUp = true;
+      // From 0.5 s after the bag: the third miss (a head tilt) lands across his 1.5-s mark.
+      if (i >= 30 && (i - 30) % secondsToTicks(0.4) === 0) r.sys.aimed(sky, true);
+      r.run(1);
+      if (r.sys.view().phase === 'fetch') fetchAt = r.state.tick;
+    }
+    expect(r.sys.view().reactions, 'the misses made him tilt his head').toBeGreaterThan(0);
+    expect(fetchAt - T).toBeGreaterThanOrEqual(secondsToTicks(B.fetch.delaySeconds));
+    expect(fetchAt - T).toBeLessThanOrEqual(
+      secondsToTicks(B.fetch.delaySeconds) + secondsToTicks(B.clear.checkSeconds) + 2,
+    );
+  });
+
+  it('queues up to 3 birds (fetch.queueMax)', () => {
+    expect(B.fetch.queueMax).toBe(3);
+    const r = rig(33);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.state.gunUp = true;
+    for (let i = 0; i < 6; i++) r.sys.bagged('near', towardCentre(r) + i * 5);
+    expect(r.sys.view().queued).toBe(3);
+  });
+
+  /** He rests at screen dx −540 (the view moved, not him); a bird down at screen dx +640. */
+  function farSpot(r: Rig): { dogX: number; spot: number } {
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    const dogX = r.sys.view().x;
+    r.state.cameraX = dogX + 540;
+    return { dogX, spot: r.state.cameraX + 640 };
+  }
+
+  it('the spot rule while shooting: a live bird near the spot holds him, then the bird is left', () => {
+    const r = rig(34);
+    const { spot } = farSpot(r);
+    r.state.gunUp = true;
+    // Only round the spot (the path is clear).
+    r.state.busy = (_p, x, px) => Math.abs(x - (spot + 300)) <= px && px > B.clear.pathPx;
+    r.sys.bagged('near', spot);
+    r.run(secondsToTicks(B.fetch.delaySeconds + B.fetch.waitSeconds) + 30);
+    expect(r.events.some((e) => e.type === 'brakkieFetchStarted')).toBe(false);
+    expect(r.sys.view().queued).toBe(0);
+  });
+
+  it('the path rule while shooting: a live bird between him and a clear spot holds him', () => {
+    const r = rig(35);
+    const { dogX, spot } = farSpot(r);
+    r.state.gunUp = true;
+    // A bird 400 px ahead of him: clear of him (> clear.aimPx) and of the spot (> fetch.clearPx),
+    // but on his way.
+    const bird = dogX + 400;
+    expect(spot - bird).toBeGreaterThan(B.fetch.clearPx);
+    expect(bird - dogX).toBeGreaterThan(B.clear.aimPx);
+    r.state.busy = (_p, x, px) => Math.abs(x - bird) <= px;
+    r.sys.bagged('near', spot);
+    r.run(secondsToTicks(B.fetch.delaySeconds + B.fetch.waitSeconds) + 30);
+    expect(r.events.some((e) => e.type === 'brakkieFetchStarted')).toBe(false);
+    // The control: the same bag with the way clear sends him.
+    const c = rig(35);
+    const far = farSpot(c);
+    c.sys.bagged('near', far.spot);
+    c.until((v) => v.phase === 'fetch', 60 * 5);
+  });
+
+  it('the run rule: a live mid-plane bird over his way on screen holds him (pellets fall on him)', () => {
+    const r = rig(37);
+    const { dogX, spot } = farSpot(r);
+    r.state.gunUp = true;
+    // The mid layer x over near x (near sf 1, mid sf 0.6): the view's mid centre + the screen dx.
+    const midOver = (x: number): number =>
+      0.6 * (r.state.cameraX - 960) + 960 + (x - r.state.cameraX);
+    const bird = midOver(dogX + 500);
+    r.state.busy = (plane, x, px) => plane === 'mid' && Math.abs(x - bird) <= px;
+    r.sys.bagged('near', spot);
+    r.run(secondsToTicks(B.fetch.delaySeconds + B.fetch.waitSeconds) + 30);
+    expect(r.events.some((e) => e.type === 'brakkieFetchStarted')).toBe(false);
+  });
+
+  it('a run out that meets something aimed at is given up: the bird goes back to the queue', () => {
+    const r = rig(36);
+    const { spot } = farSpot(r);
+    r.sys.bagged('near', spot);
+    r.until((v) => v.phase === 'fetch', 60 * 5);
+    // A pop-up comes up just ahead of him.
+    const at = r.sys.view().x + 300;
+    r.state.busy = (_p, x, px) => Math.abs(x - at) <= px;
+    r.run(secondsToTicks(B.clear.checkSeconds) + 2);
+    expect(r.sys.view().phase).not.toBe('fetch');
+    expect(r.sys.view().queued).toBe(1);
+  });
+
+  it('"Soek!": with a bird down the whistle sends him for it at once, gun busy or not', () => {
     const r = rig(32);
     r.until((v) => v.present && v.phase === 'rest', 60 * 30);
     r.state.gunUp = true;
-    r.sys.bagged('near', towardCentre(r));
     expect(r.sys.view().whistle).toBe('heel');
-    r.run(secondsToTicks(B.fetch.delaySeconds) + 2);
+    r.sys.bagged('near', towardCentre(r));
     expect(r.sys.view().whistle).toBe('seek');
     r.sys.whistle();
     expect(r.sys.view().phase).toBe('fetch');
     const w = r.events.find((e) => e.type === 'brakkieWhistled');
     expect(w?.type === 'brakkieWhistled' && w.action).toBe('seek');
+  });
+});
+
+describe('the Jag, Brakkie! card (v1.20, D-085)', () => {
+  const J = B.jag;
+  /** Three foraging guineafowl on the near plane, spread out in view. */
+  function withPrey(r: Rig, plane: 'near' | 'mid' = 'near'): void {
+    const sf = plane === 'near' ? 1 : 0.6;
+    const centre = sf * (r.state.cameraX - 960) + 960;
+    for (let i = 0; i < 5; i++)
+      r.state.prey.push({ birdId: 10 + i, plane, x: centre - 300 + i * 150, walking: true });
+  }
+
+  it('he sprints at a foraging guineafowl, pounces, catches it and carries it home (Bring!)', () => {
+    const r = rig(41);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    withPrey(r);
+    r.sys.jag(3);
+    expect(r.events.some((e) => e.type === 'brakkieJagStarted')).toBe(true);
+    r.until((v) => v.phase === 'hunt', 60);
+    r.until((v) => v.phase === 'pounce', 60 * 5);
+    expect(r.sys.view().pose).toBe('pounce');
+    r.until((v) => v.carrying, 60 * 2);
+    expect(r.state.caught).toHaveLength(1);
+    const c = r.events.find((e) => e.type === 'brakkieCaught');
+    expect(c?.type === 'brakkieCaught' && c.catches).toBe(1);
+    expect(r.sys.view().jag).toEqual({ catches: 1, maxCatches: 3 });
+    // The clock holds while he carries it home.
+    expect(r.sys.jagHeld()).toBe(true);
+    r.until((v) => v.phase === 'away', 60 * 20);
+    expect(r.bonuses.filter((b) => b.id === 'bring')).toHaveLength(1);
+    expect(r.sys.view().streak).toBe(1);
+  });
+
+  it("the caught bird's flock hears alarmThreats threats from the catch, alarmEverySeconds apart", () => {
+    const r = rig(51);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    withPrey(r);
+    r.sys.jag(1);
+    r.until((v) => v.carrying, 60 * 10);
+    const caughtAt = r.events.find((e) => e.type === 'brakkieCaught')?.tick ?? -1;
+    r.run(secondsToTicks(J.alarmEverySeconds * J.alarmThreats) + 5);
+    const t = r.threats.filter((x) => x.flockId === 7).map((x) => x.tick);
+    expect(J.alarmThreats).toBe(3);
+    expect(t).toEqual(
+      Array.from(
+        { length: J.alarmThreats },
+        (_, i) => caughtAt + i * secondsToTicks(J.alarmEverySeconds),
+      ),
+    );
+  });
+
+  it('catches at most maxCatches, then the card ends (jagEnded); the streak counts them', () => {
+    const r = rig(42);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    withPrey(r);
+    r.sys.jag(3);
+    for (let i = 0; i < 60 * 90 && r.sys.view().fetches < 3; i++) r.run(1);
+    expect(r.state.caught).toHaveLength(3);
+    expect(r.state.jagEnded).toBe(1);
+    expect(r.sys.view().jag).toBeNull();
+    const end = r.events.find((e) => e.type === 'brakkieJagEnded');
+    expect(end?.type === 'brakkieJagEnded' && end.why).toBe('max');
+    // 3 deliveries in a row: they count toward Goeie hond! (every bring.streakEvery in a row).
+    expect(r.sys.view().streak).toBe(3);
+    expect(r.bonuses.filter((b) => b.id === 'bring')).toHaveLength(3);
+    expect(r.bonuses.filter((b) => b.id === 'bringStreak')).toHaveLength(
+      Math.floor(3 / B.bring.streakEvery),
+    );
+    // Two birds left foraging: never a 4th.
+    r.run(60 * 20);
+    expect(r.state.caught).toHaveLength(3);
+    expect(r.sys.view().catches).toBe(3);
+  });
+
+  it('only foraging birds: one that took off (not walking) is never a target', () => {
+    const r = rig(43);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    withPrey(r);
+    for (const p of r.state.prey) p.walking = false;
+    r.sys.jag(3);
+    r.run(60 * 8);
+    expect(r.events.some((e) => e.type === 'brakkiePounced')).toBe(false);
+    expect(r.state.caught).toHaveLength(0);
+  });
+
+  it('a bird that leaves the ground mid-chase is let go', () => {
+    const r = rig(44);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    withPrey(r);
+    r.sys.jag(3);
+    r.until((v) => v.phase === 'hunt', 60);
+    // Every bird is up in the air now.
+    r.state.prey.length = 0;
+    r.run(2);
+    expect(['hunt', 'pounce']).not.toContain(r.sys.view().phase);
+    expect(r.state.caught).toHaveLength(0);
+  });
+
+  it('crosses to the mid ground for a mid bird and comes back across with it', () => {
+    const r = rig(45);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    withPrey(r, 'mid');
+    r.sys.jag(1);
+    const phases: string[] = [];
+    for (let i = 0; i < 60 * 30; i++) {
+      const v = r.sys.view();
+      if (phases.at(-1) !== `${v.phase}:${v.plane}`) phases.push(`${v.phase}:${v.plane}`);
+      if (v.phase === 'away') break;
+      r.run(1);
+    }
+    expect(phases).toEqual(
+      expect.arrayContaining(['cross:near', 'hunt:mid', 'pounce:mid', 'cross:mid', 'carry:near']),
+    );
+    expect(r.state.caught).toHaveLength(1);
+  });
+
+  it('a shot aimed at him while he hunts costs −25 and ends the card', () => {
+    const r = rig(46);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    withPrey(r);
+    r.sys.jag(3);
+    r.until((v) => v.phase === 'hunt', 60);
+    r.run(3);
+    r.sys.shot(1, false, aimAtHim(r.sys.view()));
+    expect(r.state.penalty).toBe(-B.hit.penalty);
+    expect(r.state.jagEnded).toBe(1);
+    expect(r.sys.view().jag).toBeNull();
+    const end = r.events.find((e) => e.type === 'brakkieJagEnded');
+    expect(end?.type === 'brakkieJagEnded' && end.why).toBe('hit');
+    r.run(60 * 10);
+    expect(r.state.caught).toHaveLength(0);
+  });
+
+  it('time out (jagStop) stops the chase; canJag is false once bolted or with a wide gun', () => {
+    const r = rig(47);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    expect(r.sys.canJag()).toBe(true);
+    withPrey(r);
+    r.sys.jag(3);
+    r.until((v) => v.phase === 'hunt', 60);
+    r.sys.jagStop();
+    expect(r.state.jagEnded).toBe(0);
+    expect(r.sys.view().phase).not.toBe('hunt');
+    r.run(60 * 5);
+    expect(r.state.caught).toHaveLength(0);
+    r.state.wide = true;
+    expect(r.sys.canJag()).toBe(false);
+    r.state.wide = false;
+    r.until((v) => v.hittable && v.plane === 'near', 60 * 10);
+    r.sys.shot(2, true, () => ({ x: -9999, y: -9999 }));
+    expect(r.sys.canJag()).toBe(false);
+  });
+
+  it('the clock counts his hunting time: it runs while he looks and chases, holds while he fetches', () => {
+    const r = rig(49);
+    r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+    r.sys.jag(3);
+    // Looking round (no prey yet): the clock runs.
+    expect(r.sys.jagHeld()).toBe(false);
+    // A shot bird: he fetches it, the card's clock holds.
+    r.sys.bagged('near', towardCentre(r));
+    r.until((v) => v.phase === 'fetch', 60 * 5);
+    expect(r.sys.jagHeld()).toBe(true);
+    r.until((v) => v.phase === 'away', 60 * 20);
+    expect(r.sys.jagHeld()).toBe(true);
+    // Back out with prey about: the chase counts.
+    withPrey(r);
+    r.until((v) => v.phase === 'hunt', 60 * 20);
+    expect(r.sys.jagHeld()).toBe(false);
+  });
+
+  it('a wide-spread gun ends the card in any phase (chasing, or away at the bakkie)', () => {
+    for (const where of ['hunt', 'away'] as const) {
+      const r = rig(50);
+      r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+      withPrey(r);
+      r.sys.jag(3);
+      if (where === 'hunt') r.until((v) => v.phase === 'hunt', 60);
+      else r.until((v) => v.phase === 'away', 60 * 40);
+      r.state.wide = true;
+      r.run(2);
+      expect(r.sys.view().jag, where).toBeNull();
+      expect(r.sys.jagHeld()).toBe(false);
+      const end = r.events.find((e) => e.type === 'brakkieJagEnded');
+      expect(end?.type === 'brakkieJagEnded' && end.why).toBe('gun');
+      expect(r.state.jagEnded).toBe(1);
+    }
+  });
+
+  it('is deterministic: the same seed and prey give the same events', () => {
+    const go = (): string => {
+      const r = rig(48);
+      r.until((v) => v.present && v.phase === 'rest', 60 * 30);
+      withPrey(r);
+      r.sys.jag(3);
+      r.run(60 * 40);
+      return JSON.stringify(r.events);
+    };
+    expect(go()).toBe(go());
+    expect(J.sprintPx).toBeGreaterThan(B.speeds.runPx);
   });
 });

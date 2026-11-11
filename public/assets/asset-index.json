@@ -4148,6 +4148,17 @@
       "width": 128,
       "height": 128
     },
+    "ui/pu_brakkie_jag": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/ui_pu_brakkie_jag.42901d467c10.png",
+        "bytes": 4264,
+        "hash": "42901d467c10"
+      },
+      "width": 128,
+      "height": 128
+    },
     "ui/pu_bush_buckshot": {
       "group": "late",
       "origin": "interim",

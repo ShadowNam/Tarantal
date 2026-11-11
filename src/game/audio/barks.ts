@@ -147,8 +147,9 @@ export class BarkDirector {
           }
           break;
         case 'targetBagged':
-          // A shot that bags two birds is one shot in the streak.
-          if (this.bagged.has(e.shotId)) break;
+          // A shot that bags two birds is one shot in the streak (v1.20, D-085: Brakkie's catches
+          // are no shot at all).
+          if (e.byDog === true || this.bagged.has(e.shotId)) break;
           this.bagged.add(e.shotId);
           this.missRun = 0;
           if (++this.bagRun >= t.bagStreak) {

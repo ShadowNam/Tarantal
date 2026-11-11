@@ -711,6 +711,16 @@
       "height": 256,
       "scale": 0.5
     },
+    "ui/pu_brakkie_jag": {
+      "file": {
+        "path": "assets/late-hd/img/ui_pu_brakkie_jag.53cb6a71f331.png",
+        "bytes": 6973,
+        "hash": "53cb6a71f331"
+      },
+      "width": 256,
+      "height": 256,
+      "scale": 0.5
+    },
     "ui/pu_bush_buckshot": {
       "file": {
         "path": "assets/late-hd/img/ui_pu_bush_buckshot.a822ebe8c4ba.png",

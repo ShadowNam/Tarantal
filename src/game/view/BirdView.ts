@@ -364,7 +364,8 @@ export class BirdView {
   /** M10: a bagged bird with a delivered `hit_poof` clip plays it once where it was hit. */
   handle(events: readonly SimEvent[]): void {
     for (const e of events) {
-      if (e.type !== 'targetBagged') continue;
+      // v1.20 (D-085): a bird Brakkie caught is simply caught (no poof).
+      if (e.type !== 'targetBagged' || e.byDog === true) continue;
       const { art, ratio } = this.artOf(e.plane);
       const final = this.manifest.ensureBird(this.scene.textures, e.creature, art);
       if (final === null || !this.scene.textures.exists(final.atlasKey)) continue;

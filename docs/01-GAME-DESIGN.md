@@ -357,6 +357,7 @@ belt is a deliberate arcade abstraction.
 | `oupa_laai` | Oupa Laai (Oupa Loads, v1.6b) | Auto reload: the moment the gun is empty its reload starts by itself; per-shell guns (Windbuks, Plaas-Pomp) also top up whenever you haven't fired for 0.6 s. A shot can always cut an auto reload. Reload time unchanged | 12 s |
 | `rooikol` | Rooikol (Red Dot, 1.9.2) | Rifles only (the .22 and the Langloop, any sight): the rifle aims through a red dot instead of its sight — up the moment you press (no raise, no zoom in or out), a calm dot (the sight's first-step sway × 0.6), and 75 % of the time between shots. No magnification: far birds stay small on screen (still hittable, D-049 hit-radius floors) | 15 s |
 | `dragon_breath` | Dragon's Breath (Drakevuur, v1.19) | Shotguns only (Dubbelloop, Plaas-Pomp, Voorlaaier): each shot throws a cone of fire — 2.5× the gun's pellets over a 2.4× wider pattern that stops at the mid plane (never the far birds or Ver), and any pellet that touches a bird brings it down (one hit; a boss loses one armour or hit as usual). Birds it bags go down in a singed puff | 4 shells |
+| `brakkie_jag` | Jag, Brakkie! (Hunt, Brakkie!, v1.20) | Only where Brakkie comes along: for 10 s of hunting he sprints at guineafowl foraging on the ground and catches up to 3 — each a bag of that bird (its normal score), carried to the bakkie for Bring! (+4); the rest of the flock flushes (§11.3f) | 10 s of hunting |
 | `slug` | Slug (Koeëlpatroon, v1.19) | Shotguns only: one heavy ball per shot — no spread (hip or not), it reaches the far plane and Ver like a rifle, the wind pushes it more than a rifle bullet (wind sensitivity 1.2; the .22 0.6, the Langloop 0.5), and whatever it hits is bagged in one (armour, a boss's hits, a two-hit warthog in the Harvest) | 3 shells |
 
 Picking a power-up up again refreshes it. A shell power-up counts the shots after the one that
@@ -386,6 +387,14 @@ whose gun is a shotgun, and a shell bought there waits in its slot while no shot
 Daily: as the other power-ups (the crates). The cone is a large flash: at most 3 a second with
 every other large flash (§18.3), and a smaller, dimmer cone when refused or with "reduce
 flashes". It never sets the veld alight. Numbers: content/powerups.json; balance: D-084.
+
+**The Jag, Brakkie! card (v1.20, D-085).** The product owner (10 Nov): "if u have a joker card or
+so, he can go and hunt and catch some guineafowls that are on the ground". `needsBrakkie`: crates
+hold it (weight 10) only in hunts Brakkie comes to (Classic, the Daily, bonus maps, Season Run
+plain and omen hunts) and only while he can take it (not bolted from a hit, no wide-spread crate gun
+out) — otherwise the crate draws something else; the Padstal sells it (3 caps) and a bought card
+waits in its slot in a hunt without him. Its chip shows the seconds and the catches ("7 s · 1/3").
+Numbers: content/powerups.json and brakkie.json `jag`; balance: D-085.
 
 **v1.7b — what a power-up does, said plainly (D-046).** The product owner: "When one collects these
 power-ups, one is very unsure what they actually do." What the power-ups and crate guns *do* is
@@ -958,15 +967,20 @@ more and more with the hunts and help get extra points in collecting and hunting
 Real gundogs **point** (freeze at hidden birds), **flush** them on command and **retrieve** what
 falls; good game dogs help and never block or mock the player. On top of 1.19.0's roaming and
 fetching Brakkie (`content/brakkie.json`):
-- **"Bring!" (retrieve):** each bird he delivers to the bakkie pays **+15** — an event bonus (×
-  Frenzy × Stampede at delivery) — with a small pop-up at the screen edge ("Bring! +15") and a happy
-  yap. **Every 3 deliveries in a row: "Goeie hond!" +30.** The streak breaks if he is hit, or if a
+- **"Bring!" (retrieve):** each bird he delivers to the bakkie pays **+4** (v1.20, D-085: was +15
+  when he fetched ~8× less often; the owner: "Keep it near +5 %") — an event bonus (× Frenzy ×
+  Stampede at delivery) — with a small pop-up at the screen edge ("Bring! +4") and a happy yap.
+  **Every 5 deliveries in a row: "Goeie hond!" +20** (was +30 every 3). The streak breaks if he is hit, or if a
   shot is aimed within `clear.aimPx` (340 px) of him while he carries a bird (hold fire round him).
   The **ready rule** (no chance roll; the same for every Daily player): once he is back, he fetches
   the next bird down in reach (near or mid, within 640 screen px of the centre, its spot clear of
-  live birds), one at a time from a queue of up to `fetch.queueMax` (2). **Sent when the shooting stops:** he runs out
-  only after the gun has been quiet `fetch.quietSeconds` (6 s), or at once when **sent with the
-  whistle ("Soek!")**.
+  live birds), one at a time from a queue of up to `fetch.queueMax` (**3**, v1.20). **v1.20
+  (D-085), fetch sooner:** he runs out `fetch.delaySeconds` (**1.5 s**) after a bird falls, even
+  while the player keeps shooting (v1.17's "sent when the shooting stops", 6 s of quiet, is gone);
+  every clear rule still holds (a spot clear of live birds, a clear way there — on the near plane
+  with no live mid-ground bird over it on screen — never into the line of fire; a run out that
+  meets something being aimed at is given up, and the bird waits in the queue). **Sent with the whistle ("Soek!")** he goes at once. On his first fetch of a save Oupa
+  says once that he fetches by himself and that F (touch: the whistle button) sends him.
 - **"Staan!" (the point):** instead of the plain dig, he freezes in a classic point (body low and
   level, the near front paw lifted, tail straight up, quivering) at a hidden flock; a small marker
   (a rustling grass tuft and a tiny white chevron) shows where it sits on the mid ground, ahead of his
@@ -984,6 +998,16 @@ fetching Brakkie (`content/brakkie.json`):
   player can always clear him out of the way); at heel → **"Soek!"** (back to work). Cooldown 3 s;
   nothing while he carries, bolts or is away; the button is hidden in modes without him and while
   he is away, dimmed while it would do nothing.
+- **"Jag, Brakkie!" (v1.20, D-085), the card:** a power-up (§10.4) from crates and the Padstal,
+  only in hunts he comes to. While it runs he sprints at a guineafowl **foraging on the ground**
+  (the near plane in view, within 650 screen px of the centre, or the mid ground within 1 400 —
+  never a bird in the air, another species or a penalty animal), pounces (a crouch and a leap) and catches it: a
+  bag of that bird with its normal score (× Frenzy × Stampede), no blood, no struggle. He carries
+  it home at a sprint for **Bring!** (+4; catches count toward Goeie hond!), and the rest of the
+  flock reacts as to a threat — alert, run, flush — wing shots. Up to **3 catches** in **10 s of hunting** (the clock holds while he
+  fetches, carries or is at the bakkie). Shooting at him costs −25 and ends it; a stray pellet makes
+  him yelp and bolt, which ends it too, as does a wide-spread crate gun. Oupa: "Jag, Brakkie, jag!" at the start, a proud line per
+  catch.
 - **Reactions (no points):** after a Whole Flock, Twee Vlieë, Frenzy ×3 or a Ver bag he does a
   proud hop and a double bark (if idle); after 3 clean misses in a row he sits and tilts his head,
   one ear flopping — sympathetic, **never laughing at the player**. 0.8 s, only from idle, at most

@@ -610,6 +610,10 @@ v1.19 (D-084): the special shells, in the same style and the late group: **Drago
 deep red shell with a gold band and a gold flame mark, a tongue of orange-yellow fire licking out
 of its crimp; **Slug** — a blue plastic hull (it reads as a shell at chip size, not grey lead) cut open at the top so the grey lead slug shows, its angled
 ribs and round nose, a speed streak off it.
+v1.20 (D-085): **Jag, Brakkie!** — Brakkie's head in profile looking up keenly to the right (white
+with tan ear and eye patches, black nose, a red collar with a gold tag), one white paw raised in
+front, and a slate-blue guineafowl feather with white spots behind him (the blue keeps it a coloured
+icon at chip size, not cream and grey). Same style, the late group (Standard 128 px, HD 256 px).
 
 
 #### 4.2b Makalani palms (1.9.3, D-056)
@@ -950,6 +954,13 @@ down, then up on his hind legs barking, front paws off the ground — the hind f
 blades with a small white chevron over it). The sheet is now **512 × 448** at 1× (HD 1024 × 896;
 0.875 MiB, a unit test caps it); every box refitted to its drawing. BEFORE | AFTER:
 `npm run art:compare-companion` → `docs/art-preview/compare/v117-companion-before-after-*.png`.
+
+**v1.20 (D-085) the Jag card's chase, no new frames.** He sprints with his run cycle; the
+**pounce** is the proud hop's crouch (`proud_a`, 9 ticks) and then the stretched run frame
+(`run_a`) lifted by the view in an arc (up to 46 design px × his scale; his hit shapes stay on the
+ground), landing on the bird. The catch goes home with the carry (the run frames with the bird in
+his mouth). No blood, no struggling bird, no feathers or poof for a catch: the bird is simply
+gone into his mouth.
 
 ### 5.7 Veld cameos (1.17.0, D-075)
 Interim at the D-035 bar, inked Bosveld Comic in daylight; true to each area's wildlife, never shown

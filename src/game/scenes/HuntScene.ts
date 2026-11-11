@@ -3346,7 +3346,8 @@ export class HuntScene extends Phaser.Scene {
       ) {
         // v1.3: the sim lowered the sight itself: the input stops holding it too.
         this.mapper?.dropAim();
-      } else if (e.type === 'targetBagged') {
+      } else if (e.type === 'targetBagged' && e.byDog !== true) {
+        // v1.20 (D-085): not a catch of Brakkie's (no shot: no hit stop).
         bagged = true;
         if (this.dragonShots.includes(e.shotId))
           this.shellFx?.singe(

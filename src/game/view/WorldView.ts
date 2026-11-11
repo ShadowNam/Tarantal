@@ -268,7 +268,12 @@ export class WorldView {
       // Perf: a new radius rebuilds the disc's outline (and its fill's triangles): only on change.
       if (tag.disc.radius !== r) tag.disc.setRadius(r);
       tag.disc.setStrokeStyle(Math.max(3, 9 * scale), 0x1b1410, 1);
-      if (fresh && art.icon !== null) tag.pic.setTexture(art.icon);
+      // v1.20 (D-085): a re-rolled crate (its Jag card) shows its new item.
+      const want = c.item === null ? null : powerupIcon(c.item);
+      if (want !== null && want !== art.icon && this.scene.textures.exists(want)) {
+        art.icon = want;
+        tag.pic.setTexture(want);
+      } else if (fresh && art.icon !== null) tag.pic.setTexture(art.icon);
       tag.pic.setDisplaySize(r * 1.7, r * 1.7);
     }
     for (const [id, art] of this.crates) {
