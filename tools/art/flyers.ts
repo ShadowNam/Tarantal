@@ -53,7 +53,7 @@ export const FLYER_FRAMES: Readonly<Partial<Record<BirdClip, number>>> = {
 export const FLYER_GROUPS: Readonly<Record<string, string>> = { stormvoel: 'late' };
 
 /**
- * v1.20.3 (D-083): flyers drawn at 1/n of their size in the bird box (rig.json `boxShrink`), for
+ * v1.23.1 (D-083): flyers drawn at 1/n of their size in the bird box (rig.json `boxShrink`), for
  * wings longer than the box: the fish eagle's true ~2.1 m span reaches 635 units above its body's
  * centre line, the box only 230. Their masters are rendered n × larger, the pack packs them n ×
  * larger and the game shows them n × larger, so they keep their plane's texture density.
@@ -61,7 +61,7 @@ export const FLYER_GROUPS: Readonly<Record<string, string>> = { stormvoel: 'late
 export const FLYER_BOX_SHRINK: Readonly<Record<string, number>> = { visarend: 3 };
 
 /**
- * v1.20.3 (D-083): the African fish eagle's wingspan (m): 2.0–2.4 m (a male ~2.0, a female ~2.4;
+ * v1.23.1 (D-083): the African fish eagle's wingspan (m): 2.0–2.4 m (a male ~2.0, a female ~2.4;
  * other guides 1.75–2.1 m). Its raised wing reaches half of it above its body's centre line.
  */
 export const EAGLE_WINGSPAN_M = 2.1;
@@ -518,7 +518,7 @@ const SLIM_WING: readonly (readonly [number, number])[] = [
 ];
 
 /**
- * Crest: pointed tuft of 4 feathers, raised by `up` (0 … 1). v1.20.3 (D-083): at its true length,
+ * Crest: pointed tuft of 4 feathers, raised by `up` (0 … 1). v1.23.1 (D-083): at its true length,
  * a real crest's 6–7 cm (raised: ~42 units above the crown at −140, × the content sizeMul 0.85);
  * it was drawn ~0.13 m, twice that, and made the bird's whole outline read 40 % too tall.
  */

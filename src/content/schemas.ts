@@ -206,7 +206,7 @@ const creatureCommon = {
 };
 
 /**
- * v1.20.3 (D-083): a bird's true size beside the guineafowl. The art and the hitbox are drawn in
+ * v1.23.1 (D-083): a bird's true size beside the guineafowl. The art and the hitbox are drawn in
  * the guineafowl's units (263 = its 0.5 m standing height); sizeMul scales both on every plane —
  * the drawing, the body ellipse and head circle (radii and offsets), and the exit margins — so a
  * smaller bird is drawn and hit smaller alike. Absent = 1 (the guineafowl and the bosses never
@@ -252,7 +252,7 @@ const nonTargetCreatureSchema = obj({
   speeds: partialSpeedsSchema.optional(),
   hitbox: hitboxSchema,
   sizeMul: sizeMulSchema,
-  /** v1.20.3 (D-083): a percher's feet below its sim position (art units at sizeMul 1): a bird
+  /** v1.23.1 (D-083): a percher's feet below its sim position (art units at sizeMul 1): a bird
    *  drawn at sizeMul ≠ 1 is scaled about its feet on the perch, not about its middle (its home
    *  point moves down by perchFeetOy × the plane's scale × (1 − sizeMul)). Absent = 0. */
   perchFeetOy: nonNeg.optional(),

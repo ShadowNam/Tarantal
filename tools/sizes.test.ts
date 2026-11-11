@@ -4,7 +4,7 @@
 // bakkie are left. v1.20.2 (D-082, an audit of D-080): rows measured from the delivered art
 // (MEASURED_ART, re-read from the PNGs by sizesArt.test.ts), the ostrich hen, the baobab's
 // residents; the boss birds (fantasy) and the residents a stage-set baobab cannot hold at true
-// size are listed with their reasons. v1.20.3 (D-083): the fly-overs and the kwêvoël (sizeMul),
+// size are listed with their reasons. v1.23.1 (D-083): the fly-overs and the kwêvoël (sizeMul),
 // measured in their bird frames.
 import { describe, expect, it } from 'vitest';
 import { TELL_BOXES } from '../src/game/view/tell/tellSheet';

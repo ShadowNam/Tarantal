@@ -1,4 +1,4 @@
-// v1.20.3 (D-083): a bird's sizeMul scales its hit shapes the way the renderer scales its drawing,
+// v1.23.1 (D-083): a bird's sizeMul scales its hit shapes the way the renderer scales its drawing,
 // and a percher drawn smaller keeps its feet on the perch.
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../../tools/testContent';

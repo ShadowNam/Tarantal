@@ -254,7 +254,7 @@ describe('penalties (GDD §7)', () => {
     expect(called).toMatchObject([{ creature: 'kwevoel' }]);
     const bird = sim.snapshot().birds.find((b) => b.creature === 'kwevoel');
     // Perched at the windpomp's perch point (u 0.22 on mid, perch −150/−92 from the prop).
-    // v1.20.3 (D-083): drawn at sizeMul 0.85, it sits lower by its feet × (1 − 0.85) so its
+    // v1.23.1 (D-083): drawn at sizeMul 0.85, it sits lower by its feet × (1 − 0.85) so its
     // feet stay on the perch (perchFeetOy 122 units × the mid plane's 0.42: 7.7 px).
     expect(bird).toMatchObject({ phase: 'perch', x: 0.22 * 3840 - 150 });
     if (bird === undefined) throw new Error('kwevoel');

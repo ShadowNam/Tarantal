@@ -3,6 +3,27 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.23.1] — v1.17d: the fly-over birds at true size (11 Nov 2026)
+
+Decision record D-083. The owner chose "(a) true size" on 11 Nov 2026.
+
+- **The fly-over birds at their real size beside the guineafowl:** the Cape turtle dove (0.27 m,
+  was drawn as long as a guineafowl: 0.44×) and Swainson's spurfowl (0.36 m, 0.59×) over Die Oes,
+  the kwêvoël (0.49 m, 0.85×) and the African fish eagle (0.69 m, 0.87×). Each is hit where it is
+  drawn: its hit area shrinks with it (far birds keep the far plane's minimum hit size).
+- **The fish eagle's wings:** redrawn to its true ~2.1 m span (they were less than half of it).
+- **The kwêvoël's crest:** redrawn at its real 6–7 cm (it was twice that); the bird still sits on
+  its perch, not above it.
+- **The bakkie and the Harvest's mielies stay at stage scale,** smaller than life (the owner's
+  choice, "keep both").
+- **Balance:** within the bots' noise everywhere (against 1.23.0, the competent bot −0.4 … +0.4 %
+  in every Classic area; the Harvest, where the dove and the spurfowl fly, −2.9 % pointer and
+  −2.0 % touch). Details: docs/balance/v1.17d-flyover-sizes.md.
+- **Admin, Sizes tab:** the four birds are in the area lists too (the owner can set their size by
+  eye, as for the other animals).
+- **Behind the scenes:** a per-species `sizeMul` in `birds.json` (drawing and hit shapes alike);
+  the size table guards the four birds from their art; the smaller birds' textures are sharper.
+
 ## [1.23.0] — v1.20: Brakkie fetches sooner, and the "Jag, Brakkie!" card (10 Nov 2026)
 
 Decision record D-085. The owner's request of 10 Nov (afternoon): Brakkie should collect the shot

@@ -105,7 +105,7 @@ export class BirdView {
   /** v1.3: the rifle zoom view's zoom (Ver birds pick sharper art when zoomed in). */
   private viewZoom = 1;
   private readonly artScales: Readonly<Record<ArtPlaneId, number>>;
-  /** v1.20.3 (D-083): each creature's true size on top of its plane's scale (birds.json sizeMul;
+  /** v1.23.1 (D-083): each creature's true size on top of its plane's scale (birds.json sizeMul;
    *  the sim scales its hit shapes the same way). */
   private readonly sizeMul: ReadonlyMap<string, number>;
   /** D-048: hats on a special day (null = none). Set before the hunt's first frame. */

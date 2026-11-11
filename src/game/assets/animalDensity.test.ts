@@ -1,7 +1,7 @@
 // v1.17b (D-080, review 4): the true-size cameos and ostriches stay crisp — every frame on their
 // sheets has at least 0.5 texture px per drawn design px in Standard and, where an HD twin is
 // packed, at least 1.0 in HD (it is the Standard file at 2×). The first pass drew the cameos at
-// 0.25 and showed the ostriches 2.8× their 1.5× sheet (0.54): blurry. v1.20.3 (D-083): the birds
+// 0.25 and showed the ostriches 2.8× their 1.5× sheet (0.54): blurry. v1.23.1 (D-083): the birds
 // drawn at a sizeMul (the fly-overs and the kwêvoël) keep that density too; smaller than the
 // guineafowl's units, they get crisper, and the fish eagle, drawn at a third of its size in the
 // bird box (rig.json boxShrink), is packed three times larger.

@@ -1,4 +1,4 @@
-// v1.20.3 (D-083): a bird's true size beside the guineafowl (content birds.json sizeMul). The
+// v1.23.1 (D-083): a bird's true size beside the guineafowl (content birds.json sizeMul). The
 // hitbox in content is in the guineafowl's units, like the art; sizeMul scales the body ellipse
 // and the head circle (radii and offsets) the way the renderer scales the drawing, so the hit
 // shapes stay on the art. Pure; the plane's scale and its minHitRadiusPx floor apply after this.

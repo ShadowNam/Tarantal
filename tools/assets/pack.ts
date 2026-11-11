@@ -184,7 +184,7 @@ const rigSchema = z
     x2: z.boolean(),
     /** Pack resolution per plane (≤ 1): drawn scaled up by 1/res (saves memory on small planes). */
     planeRes: z.partialRecord(z.enum(['near', 'mid', 'far']), z.number().min(0.25).max(1)),
-    /** v1.20.3 (D-083): the frames draw the creature at 1/boxShrink of its size in the bird box
+    /** v1.23.1 (D-083): the frames draw the creature at 1/boxShrink of its size in the bird box
      *  (the fish eagle's true wings would not fit it at full size). Packed at boxShrink × the
      *  box's px (the masters must be that big), so the bird keeps its plane's texture density,
      *  and shown boxShrink × larger: the index's scale is unchanged (1 / planeRes). */

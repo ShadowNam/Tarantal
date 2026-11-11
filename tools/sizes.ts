@@ -7,7 +7,7 @@
 // species to ±15 % and lists the ones left for the owner, each with its reason. v1.20.2 (D-082,
 // an audit of D-080): MEASURED_ART adds rows read from the art sources' opaque bounds (not
 // computed from the metres the art was drawn to), and tools/sizesArt.test.ts re-measures the PNGs
-// against them, so the table fails when the art drifts. v1.20.3 (D-083): the fly-overs and the
+// against them, so the table fails when the art drifts. v1.23.1 (D-083): the fly-overs and the
 // kwêvoël (birds.json sizeMul), measured in their bird frames: the turtle dove, the spurfowl, the
 // go-away-bird and the fish eagle (its body and, separately, its wings).
 import type { ContentBundle, Feel } from '../src/content/schemas';
@@ -175,7 +175,7 @@ export type ArtSource =
       readonly s?: number;
     }
   | {
-      /** v1.20.3 (D-083): a bird frame (art-source/birds/<creature>/planes/<plane>/<frame>.png,
+      /** v1.23.1 (D-083): a bird frame (art-source/birds/<creature>/planes/<plane>/<frame>.png,
        *  the 620 × 400 bird box, sim position at (310, 230), facing right), in the creature's art
        *  units (the guineafowl's: its rig.json boxShrink undone). `top`: the highest opaque pixel
        *  above the sim position (a raised wing's tip above the body's centre line). */
@@ -221,7 +221,7 @@ const fauna = (
   source: { kind: 'fauna', sheet, look, part, ...(s === 1 ? {} : { s }) },
 });
 
-/** v1.20.3 (D-083): half the fish eagle's wingspan (tools/art/flyers.ts EAGLE_WINGSPAN_M 2.1). */
+/** v1.23.1 (D-083): half the fish eagle's wingspan (tools/art/flyers.ts EAGLE_WINGSPAN_M 2.1). */
 export const EAGLE_HALF_SPAN_M = 1.05;
 
 function flyer(
@@ -532,7 +532,7 @@ export const MEASURED_ART: readonly MeasuredArt[] = [
     artPx: 112.5,
     source: { kind: 'resident', frame: 'hornbill_cling', extent: 'height' },
   },
-  // v1.20.3 (D-083): the fly-overs and the kwêvoël, in their bird frames × plane scale × sizeMul.
+  // v1.23.1 (D-083): the fly-overs and the kwêvoël, in their bird frames × plane scale × sizeMul.
   ...(['mid', 'far'] as const).flatMap((plane): MeasuredArt[] => [
     flyer(
       `flyover_tortelduif_${plane}`,

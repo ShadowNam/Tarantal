@@ -2,7 +2,7 @@
 // (art-source/: opaque bounds, alpha ≥ 64) and must agree within ±3 %, so the true-size table
 // (tools/sizes.test.ts, ±15 % of real) fails when the art drifts — D-080 computed most rows from
 // the same metres the art was drawn to, and the audit found the ostrich hen drawn as tall as the
-// cock and Brakkie's bird at 0.27× without a test failing. v1.20.3 (D-083): the fly-overs and the
+// cock and Brakkie's bird at 0.27× without a test failing. v1.23.1 (D-083): the fly-overs and the
 // kwêvoël, read from their bird frames (art-source/birds/<creature>/planes/<plane>/<clip>/<NN>.png).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
