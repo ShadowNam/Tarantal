@@ -1191,8 +1191,10 @@ Test hook: `adminTexts` (counts, the page's ids, the last Save refusal, export a
 (`data-action="tab-sizes"`, `?admin=1&tab=sizes` opens on it): `src/game/admin/sizes/SizesPanel.ts`
 lists `src/game/sizes/sizeKnobs.ts` (one knob per sized animal: its content path(s) or code
 constant, its px hit box sets, real size, metres per unit — held to `tools/sizes.ts` by
-`tools/sizeKnobs.test.ts` — and the texture/frame of its sprites) per area. "Open in game" loads
-`?admin=1&sizes=<area>`: `main.ts` builds the admin hunt of that area's plain map (or the Harvest)
+`tools/sizeKnobs.test.ts` — and the texture/frame of its sprites) per area; since 1.23.1 (D-083)
+also the birds drawn at a `sizeMul` (`bird_<id>`: the Harvest's turtle dove and spurfowl, the
+kwêvoël, the fish eagle; `creatures[id=…].sizeMul`, their hit shapes follow in the sim). "Open
+in game" loads `?admin=1&sizes=<area>`: `main.ts` builds the admin hunt of that area's plain map (or the Harvest)
 on `withSizePreview` content, holds it at `SIZE_HOLD_TICK`, and `HuntScene` starts it at once,
 loads `src/game/sizes/SizeEditor.ts` (lazy) and, while held, advances the `InputMapper`'s pan
 itself (`panCameraX`, `panDrag`) and draws every view from that camera (the sim's camera stays).

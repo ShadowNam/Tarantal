@@ -4354,7 +4354,8 @@ yardstick); the **dung beetle** (drawn about twice its true size on purpose, so 
 the **bakkie** — at its true 1.8 m on the mid plane it would be 398 px tall and ~1 050 long, as
 tall as the 9 m windpomp (drawn 395 px) and three times the 1.5 m reservoir (133 px): every prop
 in the scene is on a stage-set scale, so a true bakkie breaks the set. **The owner decides** (true
-size means re-scaling the windpomp and the reservoir, or the whole yard). Also left: the Okavango's
+size means re-scaling the windpomp and the reservoir, or the whole yard). *Decided 11 Nov 2026
+(D-083): kept at stage scale.* Also left: the Okavango's
 hippo (a prop, 96 px for ~1 m, 0.43×).
 
 **The Harvest at true scale (the owner, review: no warthog taller than a person).** A first pass
@@ -4370,7 +4371,8 @@ and the right feeding stretch u 0.83–0.88 (0.80–0.86). **Not at true scale: 
 (2.2–2.5 m) they would be 490–550 px on the mid plane (120–215 now): the front rows (feet at y 880)
 would reach y ≈ 330 and hide the flocks feeding in the rows (feet at y 715–775, 110 px tall) and
 the gap; they stay stage-scale, shorter than the workers and the fence. **The owner decides**
-(true mielies means the flocks feed in a stubble field or on the track). The workers' texture is
+(true mielies means the flocks feed in a stubble field or on the track). *Decided 11 Nov 2026
+(D-083): kept at stage scale.* The workers' texture is
 drawn at 180 px (the sheet stays inside the HD budget): about 1:1 in HD, upscaled ~2× in
 Standard.
 
@@ -5120,10 +5122,19 @@ screens (title, the held hunt), which differ from the CI baselines by the same p
 build here (this machine's rendering). Unit tests:
 `lazyHook.test.ts` (read on demand, once per frame, freeze, a view gone at freeze, writes).
 
-### D-083 — v1.17d Fly-over birds at true size (9 Nov 2026)
+### D-083 — v1.17d Fly-over birds at true size (9 Nov 2026; accepted 11 Nov 2026)
 
-**Status: PROPOSED, awaiting the owner's decision.** Branch `v117d-flyover-true-size` (1.20.3),
-on top of D-082 (#126). It implements option (a) below; the owner picks (a), (b) or (c).
+**Status: ACCEPTED.** The owner chose **"(a) true size"** on 11 Nov 2026. PR #127, branch
+`v117d-flyover-true-size`, ships as **1.23.1** on top of main 1.23.0 (v1.18 – v1.20, the Sizes
+editor D-086, D-087). Proposed on 9 Nov on top of D-082 (#126) with the three options below; the
+numbers here are re-measured after the merge with main.
+
+**The bakkie and the Harvest's mielies stay at stage scale.** D-080 left both off true size for
+the owner to decide (a true 1.8 m bakkie would stand as tall as the stage-set windpomp; true
+2.2–2.5 m mielies would hide the flocks feeding in the rows). Asked again with this PR, the owner
+answered **"1, keep both"** (11 Nov 2026): both stay at stage scale, smaller than life, as they
+are. Nothing changes in the game; the docs (GDD §5.2, the art bible §4.1 and §5.4, D-080)
+record it.
 
 **Why.** D-082 left "the ordinary fly-over birds" for a separate decision. Tonight's audit found
 they have no size of their own: each is drawn in the shared bird box in the guineafowl's units
@@ -5149,7 +5160,7 @@ Two of the four are targets (the dove and the spurfowl, which fly only over Die 
 kwêvoël (−35) and the fish eagle (−50) are penalty birds, so smaller only makes them harder to hit
 by accident.
 
-**What changes (option a).**
+**What changes (option a, as shipped).**
 - *A per-species size:* `birds.json` creature `sizeMul` (Zod, optional, 0–2, default 1; targets
   and non-targets, never the guineafowl or the bosses): the dove 0.44, the spurfowl 0.59, the
   kwêvoël 0.85, the fish eagle 0.87. It scales the drawing (`BirdView`: the sprite, its hit puff,
@@ -5179,6 +5190,19 @@ by accident.
   per drawn px in Standard and ≥ 1.0 in HD. The smaller birds were not redrawn, so they get
   crisper: the dove 2.27 (HD 4.5), the spurfowl 1.69 (3.4), the kwêvoël 1.18 (2.4), the eagle
   1.15 (2.3; it was 1.0 / 2.0).
+- *In the Sizes editor (D-086, merged from main):* `tools/sizeKnobs.test.ts` holds every row of
+  the true-size table to a knob, so the four birds are knobs too (42 → 46): `bird_tortelduif` and
+  `bird_fisant` (Die Oes), `bird_kwevoel` (Karoo, Bushveld, Kalahari, Okavango) and
+  `bird_visarend` (Okavango), each setting `birds.json creatures[id=…].sizeMul` (`live: 'pass'`:
+  the editor scales the bird's sprites, final atlas `final:bird/<id>/…` or placeholder; with "Use
+  my sizes in the game" the sim's hit shapes follow through `birdHitbox`, no px hit boxes to
+  scale). Their names in the four admin tables; the metres each shows as are held to its table
+  row (±1 %). The size preview does not force a fly-over out: a bird not in the held hunt shows
+  "Not on screen" until one crosses.
+- *The test hook (merged with D-087's lazy entries):* the `targetBirds` spots aim at
+  `birdHitbox(c).body` (the bird's body as drawn), and the `verBirds` / `farBirds` spots at the
+  guineafowl's `birdHitbox` (sizeMul 1, unchanged), as `e.define(...)` entries in
+  `HuntScene.installHookEntries`.
 
 **Before → after (design px at 1080).**
 
@@ -5190,14 +5214,29 @@ by accident.
 | fish eagle | bill to tail | 0.69 m | far | 62.6 → 54.4 | −0.0 % |
 | fish eagle | half its wingspan | 1.05 m | far | 31.5 → 83.5 | +0.8 % |
 
-**Balance** (`docs/balance/v1.17d-flyover-sizes.md`; 200 seeds, random, plinker and competent;
-Karoo, Bushveld, Kalahari, Okavango Classic and the Harvest; pointer, and touch for the Harvest
-and the Okavango). The competent bot moves −0.2 … +0.3 % in every Classic area and −0.2 %
+**Balance after the merge** (1.23.1 against main 1.23.0, `docs/balance/v1.17d-flyover-sizes.md`
+§A; 200 seeds, the competent bot, every area's Classic and the Harvest, pointer and touch; the
+paired difference ± 2 SE):
+
+| area | pointer: main → 1.23.1 | change | touch: main → 1.23.1 | change |
+|---|---|---|---|---|
+| Karoo | 4,428 → 4,434 | +0.1 % ± 0.2 | 4,499 → 4,500 | +0.0 % ± 0.0 |
+| Bushveld | 4,337 → 4,336 | −0.0 % ± 0.3 | 4,384 → 4,396 | +0.3 % ± 0.3 |
+| Kalahari | 4,366 → 4,355 | −0.3 % ± 0.4 | 4,348 → 4,366 | +0.4 % ± 0.7 |
+| Okavango | 4,552 → 4,535 | −0.4 % ± 0.8 | 4,645 → 4,643 | −0.0 % ± 0.9 |
+| Namibië | 4,442 → 4,442 | 0.0 % (the same hunts) | 4,719 → 4,719 | 0.0 % |
+| Die Oes (the Harvest) | 2,690 → 2,612 | −2.9 % ± 4.7 | 2,761 → 2,705 | −2.0 % ± 5.4 |
+
+No area moves more than ±3 %; the Harvest (the only map with the dove and the spurfowl) moves the
+most, inside two standard errors. The Classic gates are as on main (the Okavango, and Namibië
+with touch, are over 4,500 on main already). **The proposal's balance** (9 Nov, against 1.20.2;
+200 seeds, random, plinker and competent; Karoo, Bushveld, Kalahari, Okavango Classic and the
+Harvest; pointer, and touch for the Harvest and the Okavango). The competent bot moves −0.2 … +0.3 % in every Classic area and −0.2 %
 (pointer) / −2.7 % (touch) in the Harvest; the plinker −3.4 % / −4.4 % in the Harvest; all
 inside two standard errors of the paired difference; every Classic gate passes. The bots bag
 ~0.1 fewer turtle doves a hunt (1.99 of 2.8 crossing, was 2.11). No area comes near the ~8 %
 line, so a compromise is not needed for balance. **The three options:**
-- **(a) true size** (this branch): above.
+- **(a) true size** (the owner's choice, 11 Nov 2026): above.
 - **(b) compromise:** the art at true size, the hit shapes halfway (a second multiplier per bird,
   not built; measured with `--set` sizeMul): competent −0.3 … +0.1 % (Classic), −1.9 % / −2.2 %
   (the Harvest, pointer / touch). Its hit shapes would be wider than the drawn bird (a mid dove's
@@ -5209,24 +5248,42 @@ line, so a compromise is not needed for balance. **The three options:**
 sprayer; the bosses (fantasy, D-082); Die Oes's own files (another branch is changing them: the
 dove and the spurfowl change through `birds.json` and their frames are not redrawn).
 
-**Texture memory and downloads.** Only two atlases change. The fish eagle's (the Okavango's lazy
+**Texture memory and downloads** (re-measured after the merge: main 1.23.0 → 1.23.1). Only two
+atlases change. The fish eagle's (the Okavango's lazy
 group): Standard 512 × 64 → 512 × 256 (0.13 → 0.50 MiB), HD 1,024 × 128 → 1,024 × 512 (0.50 → 2.00
 MiB), files 4.0 → 7.4 KB, HD 8.9 → 19.8 KB. The kwêvoël's (common): pages unchanged (1,024 × 256,
-HD 2,048 × 512), file 22.0 → 21.0 KB. HD hunts: the Okavango's (with an eagle) +1.5 MiB, from
-D-080's estimates ~242.7 / 241.6 / 242.8 MB (the Okavango with the Reënbui, Christmas, New Year)
-to ~244.3 / 243.2 / 244.4 MB, under 256; every other hunt unchanged. **First download** (web,
-gzip) 3,024.1 → 3,023.4 KB (≤ 3,072; the kwêvoël's shorter crest, −1.0 KB); `npm run size --
---strict` OK; the Okavango's lazy chunk 1,477 → 1,480.3 KB (the eagle's frames), every lazy chunk
-≤ 1,499.9 KB (voice-de, unchanged); the Okavango's HD pack 2,402.0 KB.
+HD 2,048 × 512), file 22.0 → 21.0 KB. HD hunts: the Okavango's (with an eagle) +1.5 MiB
+(+1.6 MB). From main's figures (D-087 measured the Okavango's Reënbui hunt at 245.0 MB, Christmas
+240.3, New Year 241.5; D-085's card icon adds ~0.25 MB) to an estimated ~246.9 / ~242.2 / ~243.4
+MB, under 256 (estimated; CI's HD memory specs measure); every other hunt unchanged. **First
+download** (web, gzip) 3,001.6 → 3,000.9 KB (≤ 3,072; the kwêvoël's shorter crest; the four new
+size knobs are in the editor's lazy chunk); `npm run size -- --strict` OK; the Okavango's lazy
+chunk 1,477.1 → 1,480.3 KB (the eagle's frames), every lazy chunk ≤ 1,499.9 KB (voice-de,
+unchanged); the Okavango's HD pack 2,393.4 → 2,402.0 KB. (The proposal, against 1.20.2: 3,024.1 →
+3,023.4 KB.)
 
-**Golden replays** re-recorded: the kwêvoël's lower perch point and the smaller hit shapes and
-margins change the event stream of 46 of the 48 replays (every map with a kwêvoël or an eagle;
+**Golden replays** re-recorded after the merge, from main's: with every sizeMul at 1 the branch
+replays all 49 of main's to their events (only the content hash differs), so every change below
+is the sizes'. The smaller fly-over and kwêvoël hit shapes (and the kwêvoël's lower perch point and
+the exit margins) change what the fixed input logs hit: 47 of the 49 event streams change (the two
+Namibië replays keep theirs), all with the same scores and event counts but the Harvest's
+`harvest-63-competent-pointer` 3,628 → 4,085 (1,577 → 1,641 events) and
+`harvest-65-strong-touch` 4,329 → 4,241 (1,682 → 1,658): their hunts diverge after a shot at a
+smaller dove or spurfowl. The two v3 fixtures change their event hashes only (score and count
+kept). **On the proposal's branch** (9 Nov, against 1.20.2): the sizes changed the event stream
+of 46 of the 48 replays (every map with a kwêvoël or an eagle;
 the two Namibië replays are unchanged), all with the same scores and event counts but one: the
 Okavango's New Year daily (`daily-2026-12-31-newyear-competent-pointer`) 6,442 → 3,815, 1,781 →
 1,811 events — the kwêvoël perches 7.7 px lower and is hit smaller, and the bot's hunt diverges from there
 (fewer whole flocks: 1,620 → 540 in bonuses; no penalty either way). With every sizeMul at 1,
 or the kwêvoël's alone, the branch replays it to 6,442 exactly; the 200-seed Okavango runs move
 0.0 % (competent). The two v3 fixtures change their event hashes only (score and count kept).
+
+**Specs re-run after the merge** (locally, `--workers=1 --retries=0`, desktop-chromium and
+pixel7-landscape): the specs that read the fly-overs or the bird spots (`far-hit`, `journal`,
+`longrange`, `skietbaan`, `feesdae-newyear`) and `admin-sizes`: 47 passed, 12 skipped by design
+(previews, desktop-only); one Pixel 7 `journal` case timed out opening the journal from the shed
+once and passed on two re-runs (19 s). Unit tests 2,626 passed (`npm run check`).
 
 **Sources (real sizes).**
 - Cape turtle dove (ring-necked dove): 25–26.5 cm (Wikipedia), ~27 cm in South African field
