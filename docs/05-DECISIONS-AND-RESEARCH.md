@@ -4993,7 +4993,9 @@ him out at once!" (on touch: "Tap the whistle…"), en/af/de/nl.
   text-only for now ("voices later": interim clips put the German pack over its 1.5 MB budget).
 - *Art:* a new icon (Brakkie's head with a raised paw, a red collar, a blue guineafowl feather);
   the pounce reuses his frames (the proud hop's crouch, then a stretched run frame lifted in an
-  arc by the view, up to 46 px): no new dog frames, no new texture in the hunt.
+  arc by the view, up to 46 px): no new dog frames, no new texture in the hunt. In the pounce he
+  is drawn in his layer's overlay, above its birds (otherwise in its fixtures, below them), so the
+  bird he leaps on doesn't hide him.
 
 **Balance — held for the owner** (docs/balance/v1.20-jag.md; 250 seeds per bot, five areas,
 pointer and touch; after the review's fixes, the card's crate weight 0 as the baseline): the card's

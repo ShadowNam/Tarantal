@@ -85,6 +85,7 @@ function makeView(textures = stubTextures()) {
     sf: id === 'mid' ? 0.6 : 1,
     root: { x: 0, y: 0, scaleX: 1, scaleY: 1 },
     fixtures: { add: () => undefined },
+    overlay: { add: () => undefined },
   }));
   const parallax = {
     layer: (id: string) => layers.find((l) => l.id === id),
@@ -106,7 +107,7 @@ function makeView(textures = stubTextures()) {
   const pan = (s: SimState): void => {
     for (const l of layers) l.root.x = 960 - ((s.cameraX - 960) * l.sf + 960);
   };
-  return { view, textures, pan };
+  return { view, textures, pan, layers };
 }
 
 /** A hunt with him out at once, barking and flushing (the preview content). */
@@ -185,6 +186,43 @@ describe('BrakkieView (D-069)', () => {
         expect(view.hook.calls).toBe(0);
       }
     });
+
+  it('a pounce draws him above the birds (the overlay), then back under them (D-085)', () => {
+    setBrakkieImagesForTest(
+      { width: BRAKKIE_SHEET_W, height: BRAKKIE_SHEET_H } as HTMLImageElement,
+      null,
+    );
+    const { view, pan, layers } = makeView();
+    const into: string[] = [];
+    for (const l of layers) {
+      l.fixtures.add = () => {
+        into.push(`${l.id}:fixtures`);
+      };
+      l.overlay.add = () => {
+        into.push(`${l.id}:overlay`);
+      };
+    }
+    const states = hunt('bark', 1, 1800);
+    // Poll the sheet in, then take a frame where he is out and drawn.
+    let shown: SimState | null = null;
+    for (const s of states) {
+      pan(s);
+      view.update(s);
+      if (view.hook.visible && s.brakkie !== null && s.brakkie.cross === null) {
+        shown = s;
+        break;
+      }
+    }
+    expect(shown).not.toBeNull();
+    if (shown === null || shown.brakkie === null) return;
+    const id = shown.brakkie.layerId;
+    into.length = 0;
+    view.update({ ...shown, tick: shown.tick + 1, brakkie: { ...shown.brakkie, pose: 'pounce' } });
+    expect(into).toEqual([`${id}:overlay`, `${id}:overlay`, `${id}:overlay`]);
+    into.length = 0;
+    view.update({ ...shown, tick: shown.tick + 2, brakkie: { ...shown.brakkie, pose: 'trot' } });
+    expect(into).toEqual([`${id}:fixtures`, `${id}:fixtures`, `${id}:fixtures`]);
+  });
 
   it('HD only inside the texture budget; his sheet is removed with him', () => {
     setBrakkieImagesForTest(

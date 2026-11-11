@@ -273,6 +273,8 @@ export class BrakkieView {
   private wordText: string | null = null;
   private wordUntil = -1;
   private layerId: string | null = null;
+  /** The container he is in now (his layer's fixtures, or its overlay in a pounce). */
+  private box: Phaser.GameObjects.Container | null = null;
   private k = 1;
   private sheet: 'standard' | 'hd' | null = null;
   private waitFrames = 0;
@@ -400,14 +402,20 @@ export class BrakkieView {
     }
   }
 
-  /** Moves both images into a layer's fixtures (above its props, below its birds). */
-  private moveTo(layerId: string): boolean {
-    if (layerId === this.layerId) return true;
+  /**
+   * Moves his images into a layer: its fixtures (above its props, below its birds), or, with
+   * `front` (v1.20, D-085: the pounce), its overlay above the birds, so the bird he leaps on
+   * doesn't hide him. A layer without birds has no overlay: the fixtures then.
+   */
+  private moveTo(layerId: string, front: boolean): boolean {
     const layer = this.s.parallax.layer(layerId);
     if (layer === undefined) return false;
-    layer.fixtures.add(this.img);
-    layer.fixtures.add(this.bird);
-    layer.fixtures.add(this.word);
+    const box = front && layer.overlay !== null ? layer.overlay : layer.fixtures;
+    if (layerId === this.layerId && box === this.box) return true;
+    box.add(this.img);
+    box.add(this.bird);
+    box.add(this.word);
+    this.box = box;
     this.layerId = layerId;
     const tint = this.s.parallax.layerTint(layerId);
     if (tint !== this.tint) {
@@ -478,7 +486,7 @@ export class BrakkieView {
       y -= lift;
     }
     this.lift = lift;
-    if (!this.moveTo(layerId)) {
+    if (!this.moveTo(layerId, d.pose === 'pounce')) {
       this.hide();
       this.lastMs = this.s.now() - t0;
       return;
