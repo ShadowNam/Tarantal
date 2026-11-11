@@ -59,6 +59,7 @@ import { captionItem, updateCaptions, type CaptionLine } from '../audio/captions
 import { FAMILIEFOTO_SECRET } from '../../sim/meerkats/colony';
 import { BLIKKIESDANS_SECRET } from '../../sim/cans/cans';
 import { MAKALANI_SECRET } from '../../sim/nuts/makalani';
+import type { Phase2Hud } from '../ui/Phase2Hud';
 import { HarvestBars, harvestBarsRects } from '../ui/HarvestBars';
 import { brakkieChunk } from '../brakkie/brakkieChunk';
 
@@ -101,6 +102,11 @@ const SCORE_FEEDBACK: ReadonlySet<SimEvent['type']> = new Set([
   'comboChanged',
 ]);
 
+/** v1.20 (D-085): SaveData.notices entry — Brakkie's fetch hint was shown once. */
+const BRAKKIE_FETCH_NOTICE = 'brakkieFetchHint';
+/** v1.20 (D-085): the Jag, Brakkie! card's power-up id. */
+const JAG_CARD = 'brakkie_jag';
+
 export class HudScene extends Phaser.Scene {
   private readonly ctx: GameContext;
   private layoutNow: HudLayout | null = null;
@@ -109,6 +115,8 @@ export class HudScene extends Phaser.Scene {
   private timer!: Phaser.GameObjects.Text;
   /** v1.8c (D-063): the Harvest's crop meter and fence bar (null outside the Harvest). */
   private harvestBars: HarvestBars | null = null;
+  /** v1.18 (D-081): Phase 2's HUD (the Harvest's lazy chunk; null until it is in). */
+  private phase2Hud: Phase2Hud | null = null;
   /** The Oupa line in this frame's banner (one at a time). */
   private oupaText: string | null = null;
   /** v1.12 (D-069): Oupa's proud line after Brakkie's fetch is said once a hunt. */
@@ -293,6 +301,8 @@ export class HudScene extends Phaser.Scene {
       this.ctx.content.modes.modes.harvest.crop.warnBelow >= 0
         ? new HarvestBars(this, this.ctx.content.modes.modes.harvest.crop.warnBelow)
         : null;
+    this.phase2Hud = null;
+    this.loadPhase2();
     this.reload = text(56, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.banner = text(84, '#FFD25A').setOrigin(0.5).setVisible(false);
     // D-065: New Year's countdown (its size: feel.json feesdae.looks.newyear; text size scales it).
@@ -708,6 +718,7 @@ export class HudScene extends Phaser.Scene {
     belt?.place(l.belt.x, l.belt.y, l.belt.w, l.belt.h);
     this.timer.setPosition(l.timer.x + l.timer.w / 2, l.timer.y + l.timer.h / 2);
     this.harvestBars?.layout(harvestBarsRects(l));
+    this.layoutPhase2();
     this.frenzyLabel.setPosition(l.frenzy.x, l.frenzy.y + l.frenzy.h / 2);
     this.score.setPosition(l.score.x + l.score.w - 24, l.score.y + l.score.h / 2);
     this.reload.setPosition(
@@ -989,6 +1000,28 @@ export class HudScene extends Phaser.Scene {
         // Oupa's scold.
         this.pushPop(formatAward(e.points), '#FF6B5A');
         this.oupa('guide.cameo.scold', banner);
+      } else if (
+        e.type === 'brakkieFetchStarted' &&
+        !this.ctx.save.data.notices.includes(BRAKKIE_FETCH_NOTICE)
+      ) {
+        // v1.20 (D-085): once per save, on his first fetch — he fetches by himself, and F (or the
+        // whistle button on touch) sends him at once.
+        this.ctx.save.update((d) =>
+          d.notices.includes(BRAKKIE_FETCH_NOTICE)
+            ? d
+            : { ...d, notices: [...d.notices, BRAKKIE_FETCH_NOTICE] },
+        );
+        this.oupa(
+          this.inputKind === 'pointer'
+            ? 'guide.brakkie.fetch_hint_key'
+            : 'guide.brakkie.fetch_hint_touch',
+          banner,
+        );
+      } else if (e.type === 'brakkieJagStarted') {
+        // v1.20 (D-085): "Jag, Brakkie, jag!" — and a proud line for every catch.
+        this.oupa('guide.brakkie.jag_start', banner);
+      } else if (e.type === 'brakkieCaught') {
+        this.oupa('guide.brakkie.caught', banner);
       } else if (e.type === 'brakkieFetched' && !this.brakkieProud) {
         // He's back at the bakkie with the bird: Oupa's proud line (once a hunt).
         this.brakkieProud = true;
@@ -1008,6 +1041,15 @@ export class HudScene extends Phaser.Scene {
       } else if (e.type === 'harvestFenceClosed') {
         if (e.bonus > 0) this.pushPop(formatAward(e.bonus), '#FFD25A');
         this.oupa('guide.harvest.fixed', banner);
+      } else if (e.type === 'phase2Unlocked' || e.type === 'phase2Ended') {
+        // v1.18 (D-081): Phase 2's lines (its lazy HUD), and its bonuses as a pop.
+        this.phase2Hud?.event(e, (k) => {
+          this.oupa(k, banner);
+        });
+        if (e.type === 'phase2Ended') {
+          const paid = e.cropBonus + e.perfectBonus + e.clearBonus;
+          if (paid > 0) this.pushPop(formatAward(paid), '#FFD25A');
+        }
       } else if (e.type === 'ostrichHit') {
         // v1.7d (D-059): a shot ostrich or nest — points off (none inside the cooldown) and its
         // hiss: "Leave my eggs alone!"
@@ -1088,7 +1130,7 @@ export class HudScene extends Phaser.Scene {
       if (e.type === 'scoreAwarded')
         this.pushPop(`${popParts(e.points, e.mult)}  ${formatAward(e.award)}`, '#F3EAD3');
       else if (e.type === 'bonusAwarded') {
-        // v1.17 (D-079): Brakkie's bonuses pop with their word at the edge ("Bring! +15").
+        // v1.17 (D-079): Brakkie's bonuses pop with their word at the edge ("Bring! +4").
         const award = formatAward(e.award);
         const text = brakkieChunk()?.popText(e.bonus, award, (k) => this.lazy(k), this.ctx.hook);
         this.pushPop(text ?? award, text === undefined || text === award ? '#FFD25A' : '#FFE9A8');
@@ -1151,6 +1193,8 @@ export class HudScene extends Phaser.Scene {
     );
 
     this.harvestBars?.update(s.harvest);
+    this.phase2Hud?.update(s.harvest);
+    if (this.ctx.hook) this.ctx.hook.phase2Hud = this.phase2Hud?.hook ?? null;
     // v1.8c (D-063): the Harvest's clock is its 30 s (not the intro or the outro).
     this.timer.setText(formatClock(s.harvest?.clockTicksLeft ?? s.ticksLeft, TICKS_PER_SECOND));
     // setColor re-renders the text texture every call, so only on change.
@@ -1421,7 +1465,11 @@ export class HudScene extends Phaser.Scene {
         ending: ending(w.ticksLeft),
       });
     }
+    // v1.20 (D-085): the Jag card's chip shows its catches beside the seconds ("7 s · 1/3").
+    const jag = s.brakkie?.jag ?? null;
     for (const p of s.powerups) {
+      const catches =
+        jag !== null && p.id === JAG_CARD ? ` · ${jag.catches}/${jag.maxCatches}` : '';
       const frac =
         p.ticksLeft !== null && p.totalTicks !== null
           ? p.ticksLeft / p.totalTicks
@@ -1435,7 +1483,7 @@ export class HudScene extends Phaser.Scene {
         icon: iconOf(p.id),
         time:
           p.ticksLeft !== null
-            ? secs(p.ticksLeft)
+            ? secs(p.ticksLeft) + catches
             : p.shellsLeft !== null
               ? `×${p.shellsLeft}`
               : '',
@@ -1724,6 +1772,28 @@ export class HudScene extends Phaser.Scene {
     if (text !== '') banner.push(text);
     this.ctx.audio.bark(key);
     this.ctx.hook?.namibLog.push(`bark:${key}`);
+  }
+
+  /** v1.18 (D-081): Phase 2's HUD in the Harvest (its own lazy chunk). */
+  private loadPhase2(): void {
+    if (this.ctx.huntBiome.harvest === undefined || this.phase2Hud !== null) return;
+    void import('../ui/Phase2Hud')
+      .then((m) => {
+        if (!this.scene.isActive() || this.phase2Hud !== null) return;
+        this.phase2Hud = new m.Phase2Hud(this, { font: FONT, text: (k) => this.lazy(k) });
+        this.layoutPhase2();
+      })
+      .catch(() => {
+        // Offline without the chunk: Phase 2 plays the same; the crop meter and clock show it.
+      });
+  }
+
+  private layoutPhase2(): void {
+    const l = this.layoutNow;
+    if (l === null || this.phase2Hud === null) return;
+    const r = harvestBarsRects(l);
+    const { width, height } = designSize();
+    this.phase2Hud.layout(r.crop, r.repair, width, height * 0.36);
   }
 
   /** 1.9.3 (D-056): a string from the lazy guide tables (empty until they are in). */

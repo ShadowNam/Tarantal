@@ -154,6 +154,9 @@ export interface Flock {
   /** Walkers farther than this (mid-plane px) from the column run there at run × feedHurryMul. */
   feedHurryPx?: number;
   feedHurryMul?: number;
+  /** v1.18 (D-081, review): flushed off the field for good (the Harvest's Phase 2): it flies off
+   *  across at this speed (mid-plane px a tick), never lands, and leaves the panorama. */
+  leavePxPerTick?: number;
 }
 
 /** Members' plane-space centre (the flock's own home if it has no members). */

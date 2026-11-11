@@ -51,14 +51,15 @@ const S = TICKS_PER_SECOND;
 
 /** A small integer hash → [0, 1) (rendering only; never the sim's RNG streams). */
 export function lifeHash(seed: number, a: number, b: number, c: number): number {
-  let h = (seed ^ 0x9e3779b9) >>> 0;
-  for (const v of [a, b, c]) {
-    h = Math.imul(h ^ (v >>> 0), 0x85ebca6b) >>> 0;
-    h = (h ^ (h >>> 13)) >>> 0;
-    h = Math.imul(h, 0xc2b2ae35) >>> 0;
-    h = (h ^ (h >>> 16)) >>> 0;
-  }
-  return h / 4294967296;
+  // Unrolled over (a, b, c): no array per call (the colony calls it hundreds of times a frame).
+  return mixHash(mixHash(mixHash((seed ^ 0x9e3779b9) >>> 0, a), b), c) / 4294967296;
+}
+
+function mixHash(h: number, v: number): number {
+  let x = Math.imul(h ^ (v >>> 0), 0x85ebca6b) >>> 0;
+  x = (x ^ (x >>> 13)) >>> 0;
+  x = Math.imul(x, 0xc2b2ae35) >>> 0;
+  return (x ^ (x >>> 16)) >>> 0;
 }
 
 /**

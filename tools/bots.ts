@@ -8,7 +8,7 @@ import { createStream, fnv1a32 } from '../src/sim/rng';
 import type { BirdView, Command, InputKind, SimState } from '../src/sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../src/sim/world';
 
-import { createHumanBot } from './humanBots';
+import { createHumanBot, HUMAN, type HumanProfile } from './humanBots';
 import { inReach, RIFLE_STYLES, withRifle } from './rifleBot';
 // v1.8b (D-062): hunts here may need the lazy sim systems (baboons, ostriches).
 import '../src/sim/lazySystemsRegister';
@@ -30,7 +30,10 @@ export type BotKind =
   | 'nutHappy'
   | 'baboonHappy'
   // v1.17 (D-079): the competent bot working with Brakkie (companionBot).
-  | 'companion';
+  | 'companion'
+  // v1.18 (D-081): a strong Harvest player (the competent bot, half the aim error in the
+  // Harvest's warthog/baboon/Phase 2 layer and quicker to the next shot).
+  | 'strong';
 export const BOT_KINDS: readonly BotKind[] = [
   'random',
   'aim',
@@ -41,12 +44,23 @@ export const BOT_KINDS: readonly BotKind[] = [
   'nutHappy',
   'baboonHappy',
   'companion',
+  'strong',
 ];
 
 export interface Bot {
   readonly kind: BotKind;
   next(state: SimState): Command[];
 }
+
+/** v1.18 (D-081): the strong player: quicker to react and to shoot again, a steadier aim. */
+const STRONG: HumanProfile = {
+  ...HUMAN,
+  reactionTicks: 10,
+  aimSigmaPx: { pointer: 6, touch: 16 },
+  followUpTicks: [7, 10],
+  switchTicks: [11, 18],
+  panPerTick: 2000 / 60,
+};
 
 /** Half the 16:9 reference width: what a bot "sees" either side of the screen centre. */
 const VIEW_HALF_WIDTH = 900;
@@ -88,13 +102,17 @@ export function createBot(
     return { kind, next: withRifle(bot, content, seed, style).next };
   }
   const inner =
-    kind === 'plinker' || kind === 'competent'
+    kind === 'plinker' || kind === 'competent' || kind === 'strong'
       ? harvestHunter(
-          createHumanBot(kind, seed, content, inputKind),
+          kind === 'strong'
+            ? createHumanBot('competent', seed, content, inputKind, STRONG)
+            : createHumanBot(kind, seed, content, inputKind),
           seed,
           content,
           inputKind,
-          kind === 'competent' ? 1 : 0.5,
+          kind === 'plinker' ? 0.5 : 1,
+          kind === 'strong' ? 0.5 : 1,
+          10,
         )
       : kind === 'random'
         ? randomBot(seed)
@@ -114,13 +132,89 @@ function harvestHunter(
   content: ContentBundle,
   inputKind: InputKind,
   eager: number,
+  /** v1.18 (D-081): × the aim error, and ticks to the next shot (the strong bot: 0.5, 6). */
+  sigmaMul = 1,
+  refireTicks = 10,
 ): { next(state: SimState): Command[] } {
   const rng = createStream((seed ^ fnv1a32('bot:harvest')) >>> 0);
   const planes = content.scoring.planes;
   const W = content.modes.modes.harvest.warthogs;
+  const P2 = content.modes.modes.harvest.phase2;
   const box = content.birds.baboons.hitboxes;
   const LAG = 15;
-  const SIGMA = inputKind === 'touch' ? 26 : 10;
+  const SIGMA = (inputKind === 'touch' ? 26 : 10) * sigmaMul;
+  /** v1.18 (D-081): what a player goes for first in Phase 2 (eating, then on the way in). */
+  const URGENCY: Readonly<Record<string, number>> = {
+    eat: 0,
+    go: 1,
+    drop: 2,
+    jump: 2,
+    squeeze: 2,
+    climb: 1.5,
+    approach: 3,
+  };
+  /** Phase 2: the animal it is on, and when it may shoot at a new one (a player needs a moment to
+   *  switch: the human bots' switch delay, strong 11–18 ticks, else 16–26). */
+  let onId = -1;
+  const switchTicks: readonly [number, number] = sigmaMul < 1 ? [11, 18] : [16, 26];
+  /** Phase 2: pan to the most urgent animal and shoot it (a piglet: the ground beside it). */
+  const defend = (s: SimState): Command[] | null => {
+    const p2 = s.harvest?.phase2;
+    if (s.harvest?.phase !== 'defend' || p2 === undefined || p2 === null) return null;
+    let pick: (typeof p2.animals)[number] | null = null;
+    let score = Infinity;
+    for (const a of p2.animals) {
+      const u = URGENCY[a.phase];
+      if (u === undefined) continue;
+      const dx = planeToDx(s.cameraX, planes[a.plane].scrollFactor, a.x);
+      const v = u * 2000 + Math.abs(dx);
+      if (v < score) {
+        score = v;
+        pick = a;
+      }
+    }
+    if (pick === null) return [];
+    const f = planes[pick.plane].scrollFactor;
+    const dx0 = planeToDx(s.cameraX, f, pick.x);
+    if (Math.abs(dx0) > VIEW_HALF_WIDTH - 160) {
+      const goal = Math.min(CAMERA_MAX_X, Math.max(CAMERA_MIN_X, (pick.x - 960) / f + 960));
+      const step = Math.max(-1600 / 60, Math.min(1600 / 60, goal - s.cameraX));
+      return [{ t: 'cameraTarget', cx: s.cameraX + step }];
+    }
+    if (pick.id !== onId) {
+      onId = pick.id;
+      ready = Math.max(
+        ready,
+        s.tick + switchTicks[0] + Math.floor(rng.next() * (switchTicks[1] - switchTicks[0])),
+      );
+    }
+    const w = s.weapon;
+    if (w.shells === 0 || w.reloading || w.cooldownTicks > 0 || s.tick < ready) return null;
+    ready = s.tick + refireTicks;
+    if (rng.next() >= eager) return [];
+    let x: number;
+    let y: number;
+    if (pick.kind === 'piglet') {
+      // Beside it, on the ground (never at it): the shot scares it out.
+      const k = pick.scale / W.pigletScale;
+      x = pick.x + pick.facing * P2.pigletScarePx * 0.45 * k;
+      y = pick.y + 10 * k;
+    } else {
+      const b =
+        pick.kind === 'warthog'
+          ? (pick.phase === 'eat' ? W.hitboxes.dig : W.hitboxes.trot).body
+          : (pick.phase === 'climb' || pick.phase === 'drop'
+              ? box.stand
+              : pick.phase === 'eat'
+                ? box.sit
+                : box.walk
+            ).body;
+      x = pick.x + b.ox * pick.scale * pick.facing;
+      y = pick.y + b.oy * pick.scale;
+    }
+    const dx = planeToDx(s.cameraX, f, x);
+    return [{ t: 'fire', dx: dx + gauss() * SIGMA, sy: y + gauss() * SIGMA }];
+  };
   const history: SimState[] = [];
   let ready = 0;
   const gauss = (): number => {
@@ -130,6 +224,8 @@ function harvestHunter(
   return {
     next(s) {
       if (s.harvest === null) return inner.next(s);
+      const d = defend(s);
+      if (d !== null) return d;
       history.push(s);
       if (history.length > LAG + 1) history.shift();
       const seen = history[0];
@@ -190,7 +286,7 @@ function harvestHunter(
         }
       }
       if (aim === null) return inner.next(s);
-      ready = s.tick + 10;
+      ready = s.tick + refireTicks;
       if (rng.next() >= eager) return inner.next(s);
       return [{ t: 'fire', dx: aim.dx + gauss() * SIGMA, sy: aim.sy + gauss() * SIGMA }];
     },

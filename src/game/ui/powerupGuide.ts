@@ -56,6 +56,13 @@ export function guideValues(
     if (e.idleTopUpMs !== undefined) out['idle'] = num(e.idleTopUpMs / 1000);
     // 1.9.2 (D-055) Rooikol: the time between shots as a share of normal.
     if (e.fireCooldownMul !== undefined) out['pct'] = String(Math.round(e.fireCooldownMul * 100));
+    // v1.19 (D-084) Dragon's Breath: the pellets and the pattern as multiples of the gun's own.
+    if (e.dragonBreath !== undefined) {
+      out['x'] = num(e.dragonBreath.pelletsMul);
+      out['w'] = num(e.dragonBreath.spreadMul);
+    }
+    // v1.20 (D-085) the Jag card: how many he catches at most.
+    if (e.brakkieJag !== undefined) out['c'] = num(e.brakkieJag.maxCatches);
     return pu.padstalPrice === undefined ? out : { ...out, ...shopValues(tr, pu.padstalPrice) };
   }
   const w = content.weapons.weapons.find((x) => x.id === id && x.kind === 'crate');
@@ -73,6 +80,14 @@ export function guideValues(
 function sightedGuns(content: ContentBundle, tr: Translator): string {
   return content.weapons.weapons
     .filter((w) => w.kind === 'primary' && w.aim !== undefined)
+    .map((w) => tr.or(`weapon.${w.id}`, w.id))
+    .join(' · ');
+}
+
+/** v1.19 (D-084): the shotguns (the special shells' guns), by their shown names. */
+function shotguns(content: ContentBundle, tr: Translator): string {
+  return content.weapons.weapons
+    .filter((w) => w.kind === 'primary' && w.shotgun === true)
     .map((w) => tr.or(`weapon.${w.id}`, w.id))
     .join(' · ');
 }
@@ -150,12 +165,24 @@ export function guideCards(
     // rifles are every gun with a sight (content), named as the player sees them (the
     // Afrikaans-names toggle included).
     const rifle = content.powerups.powerups.some((p) => p.id === id && p.needsSight === true);
+    // v1.19 (D-084): a special shell drops only while a shotgun is in hand.
+    const shotgun = content.powerups.powerups.some((p) => p.id === id && p.needsShotgun === true);
+    // v1.20 (D-085): the Jag card drops only in a hunt Brakkie comes to.
+    const dog = content.powerups.powerups.some((p) => p.id === id && p.needsBrakkie === true);
     if (inCrates.has(id))
       how.push(
-        filled(tr, lang, rifle ? 'guide.how.crate_rifle' : 'guide.how.crate', {
-          ...values,
-          guns: sightedGuns(content, tr),
-        }),
+        filled(
+          tr,
+          lang,
+          rifle
+            ? 'guide.how.crate_rifle'
+            : shotgun
+              ? 'guide.how.crate_shotgun'
+              : dog
+                ? 'guide.how.crate_brakkie'
+                : 'guide.how.crate',
+          { ...values, guns: rifle ? sightedGuns(content, tr) : shotguns(content, tr) },
+        ),
       );
     if (kind === 'weapon' || values['price'] !== undefined)
       how.push(

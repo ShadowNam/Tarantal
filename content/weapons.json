@@ -5,6 +5,7 @@
     {
       "id": "dubbelloop",
       "kind": "primary",
+      "shotgun": true,
       "unlock": { "type": "start" },
       "magazine": 8,
       "reloadMs": 900,
@@ -54,6 +55,7 @@
     {
       "id": "pomp",
       "kind": "primary",
+      "shotgun": true,
       "unlock": { "type": "rank", "id": "plaaswerker" },
       "magazine": 6,
       "reloadMs": 700,
@@ -111,6 +113,7 @@
     {
       "id": "voorlaaier",
       "kind": "crate",
+      "shotgun": true,
       "shots": 3,
       "reloadMs": 2500,
       "pellets": 24,

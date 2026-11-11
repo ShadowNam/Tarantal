@@ -182,7 +182,10 @@ export type DogPhase =
   | 'spring'
   | 'toHeel'
   | 'heel'
-  | 'react';
+  | 'react'
+  // v1.20 (D-085) the Jag card: sprinting at a foraging guineafowl, and the pounce.
+  | 'hunt'
+  | 'pounce';
 /** v1.12 (D-069): how he is drawn (a baked frame strip each). v1.17: point, proud, tilt. */
 export type DogPose =
   | 'trot'
@@ -196,7 +199,8 @@ export type DogPose =
   | 'yelp'
   | 'point'
   | 'proud'
-  | 'tilt';
+  | 'tilt'
+  | 'pounce';
 
 /** v1.13 (D-075): what a cameo visit is doing (each member's frame comes from this and its own
  *  ticks: baked strips in the view). */
@@ -305,6 +309,17 @@ export interface BrakkieView {
   readonly goodPoints: number;
   readonly reactions: number;
   readonly whistles: number;
+  /** v1.20 (D-085) the Jag card while it runs (catches so far of maxCatches), else null; and
+   *  every catch this hunt. */
+  readonly jag: { readonly catches: number; readonly maxCatches: number } | null;
+  readonly catches: number;
+  /** v1.20 (D-085), for tests: the tick the last bird joined his queue and the last fetch began
+   *  (null: none yet), and the points his catches paid this hunt. */
+  readonly queuedTick: number | null;
+  readonly fetchTick: number | null;
+  readonly catchPoints: number;
+  /** v1.20 review, for tests: the bird the Jag card has him after (null: none). */
+  readonly jagBird: number | null;
 }
 
 /** v1.10 (D-067): a Reënbui as drawn (phase ticks, the alate columns, the swarm's bags). */
@@ -488,13 +503,80 @@ export interface RaiderView {
   readonly t: number;
   readonly dur: number;
   readonly hits: number;
+  /** v1.18 (D-081): the raid came down in sight: an approach is a dash (run frames). */
+  readonly dash: boolean;
 }
 
-/** v1.8c (D-063): the Harvest's phase: the intro, the 30-s rush, the outro (the gap closes). */
-export type HarvestPhase = 'intro' | 'rush' | 'outro';
+/** v1.18 (D-081): a raider on its way down in sight (the Harvest): scrambling down the koppie on
+ *  its troop's layer, then running across the veld. Not a target. */
+export interface DescenderView {
+  readonly id: number;
+  readonly raidId: number;
+  readonly layerId: string;
+  readonly plane: PlaneId;
+  readonly scale: number;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: 1 | -1;
+  readonly pose: 'climb' | 'run';
+  /** Ticks into this leg (animation on sim time). */
+  readonly t: number;
+}
+
+/** v1.8c (D-063): the Harvest's phase: the intro, the 30-s rush, the outro (the gap closes).
+ *  v1.18 (D-081): Phase 2 — the banner, then the defence (the outro follows it). */
+export type HarvestPhase = 'intro' | 'rush' | 'outro' | 'banner' | 'defend';
+
+/** v1.18 (D-081): Phase 2's animals and what each is doing: running up (approach), over or under
+ *  the fence (jump, squeeze, climb then drop), to its spot (go), eating, driven out (flee),
+ *  bagged (tumble), gone. */
+export type Phase2Kind = 'warthog' | 'piglet' | 'baboon';
+export type Phase2Phase =
+  'approach' | 'jump' | 'squeeze' | 'climb' | 'drop' | 'go' | 'eat' | 'flee' | 'tumble' | 'gone';
+export interface Phase2AnimalView {
+  readonly id: number;
+  readonly kind: Phase2Kind;
+  readonly layerId: string;
+  readonly plane: PlaneId;
+  /** Drawn at this scale (× pigletScale for a piglet). */
+  readonly scale: number;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: 1 | -1;
+  /** Ticks in this phase, and a crossing leg's length. */
+  readonly t: number;
+  readonly dur: number;
+  readonly phase: Phase2Phase;
+  readonly from: 'left' | 'right' | 'back';
+  readonly hits: number;
+}
+
+/** v1.18 (D-081): Phase 2 for the view, the HUD and the tally. */
+export interface Phase2View {
+  readonly total: number;
+  /** Animals not yet stopped (the list's arrivals to come included). */
+  readonly left: number;
+  readonly bagged: number;
+  /** Ticks left on Phase 2's clock (its whole length in the banner). */
+  readonly ticksLeft: number;
+  readonly cropAtStart: number;
+  readonly animals: readonly Phase2AnimalView[];
+  /** Set when it ended: why, and the bonuses paid. */
+  readonly result: {
+    readonly reason: 'clear' | 'time' | 'eaten';
+    readonly total: number;
+    readonly stopped: number;
+    readonly bagged: number;
+    readonly cropAtStart: number;
+    readonly crop: number;
+    readonly cropBonus: number;
+    readonly perfectBonus: number;
+    readonly clearBonus: number;
+  } | null;
+}
 /** v1.8c (D-063): a warthog's pose (enter/trot: walking in; dig: eating; run: driven off). */
 export type WarthogPhase = 'trot' | 'dig' | 'run' | 'tumble';
-export type WorkerPhase = 'run' | 'work' | 'duck';
+export type WorkerPhase = 'run' | 'work' | 'duck' | 'leave';
 
 /** v1.8c (D-063): one animal or person in the Harvest (layer px, feet). */
 export interface HarvestActorView {
@@ -512,10 +594,16 @@ export interface HarvestActorView {
 export interface WarthogView extends HarvestActorView {
   readonly phase: WarthogPhase;
   readonly hits: number;
+  /** v1.18 (D-081): a yearling (through the small hole; drawn at scale, smaller). */
+  readonly young: boolean;
+  /** v1.18 (D-081): squeezing through the small hole now (drawn low). */
+  readonly squeeze: boolean;
 }
 export interface PigletView extends HarvestActorView {
   readonly motherId: number;
   readonly running: boolean;
+  /** v1.18 (D-081): squeezing through the small hole now. */
+  readonly squeeze: boolean;
 }
 export interface WorkerView extends HarvestActorView {
   /** Which of the workers (0..2): the view's look (people vary). */
@@ -533,6 +621,9 @@ export interface HarvestView {
   readonly breakTick: number;
   /** Crop saved, percent (100 → 0). */
   readonly crop: number;
+  /** v1.18 (D-081, review): the crop the rush saved — as the fence closed (the live crop before
+   *  it closes). Phase 2 eats on from it; the tally's "Crop saved" row is this one. */
+  readonly rushCrop: number;
   /** Fence repaired 0..1 (fills over the rush). */
   readonly repair: number;
   /** Ticks left on the 30-s clock (0 in the outro). */
@@ -543,6 +634,8 @@ export interface HarvestView {
     readonly y: number;
     readonly halfWidth: number;
   };
+  /** v1.18 (D-081): the small hole in the fence (null: the map has none); patched: mended. */
+  readonly hole: { readonly x: number; readonly y: number; readonly patched: boolean } | null;
   readonly warthogs: readonly WarthogView[];
   readonly piglets: readonly PigletView[];
   readonly workers: readonly WorkerView[];
@@ -552,12 +645,16 @@ export interface HarvestView {
   readonly cropBonus: number;
   /** Points lost to aimed shots at workers and piglets. */
   readonly bystanderPenalty: number;
+  /** v1.18 (D-081): Phase 2 (null: not unlocked). */
+  readonly phase2: Phase2View | null;
 }
 
 /** v1.8b (D-062): the map's baboons (null: no troop on this hunt). */
 export interface BaboonsView {
   readonly troops: readonly TroopView[];
   readonly raiders: readonly RaiderView[];
+  /** v1.18 (D-081): raiders on their way down in sight (empty without a map descent). */
+  readonly descenders: readonly DescenderView[];
   /** The raid building up or on (null: none), for the view's cues and the test hooks. */
   readonly raid: {
     readonly id: number;

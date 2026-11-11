@@ -3,12 +3,12 @@
   "images": {
     "baboons/sheet": {
       "file": {
-        "path": "assets/baboons-hd/img/baboons_sheet.a8b18e0e1dde.png",
-        "bytes": 278659,
-        "hash": "a8b18e0e1dde"
+        "path": "assets/baboons-hd/img/baboons_sheet.04d9579f7238.png",
+        "bytes": 281014,
+        "hash": "04d9579f7238"
       },
       "width": 1512,
-      "height": 1736,
+      "height": 1806,
       "scale": 0.5
     },
     "braai/sheet": {
@@ -711,6 +711,16 @@
       "height": 256,
       "scale": 0.5
     },
+    "ui/pu_brakkie_jag": {
+      "file": {
+        "path": "assets/late-hd/img/ui_pu_brakkie_jag.53cb6a71f331.png",
+        "bytes": 6973,
+        "hash": "53cb6a71f331"
+      },
+      "width": 256,
+      "height": 256,
+      "scale": 0.5
+    },
     "ui/pu_bush_buckshot": {
       "file": {
         "path": "assets/late-hd/img/ui_pu_bush_buckshot.a822ebe8c4ba.png",
@@ -726,6 +736,16 @@
         "path": "assets/late-hd/img/ui_pu_chilli_biltong.43154e2cf8b3.png",
         "bytes": 6484,
         "hash": "43154e2cf8b3"
+      },
+      "width": 256,
+      "height": 256,
+      "scale": 0.5
+    },
+    "ui/pu_dragon_breath": {
+      "file": {
+        "path": "assets/late-hd/img/ui_pu_dragon_breath.aee5a4402ffa.png",
+        "bytes": 4466,
+        "hash": "aee5a4402ffa"
       },
       "width": 256,
       "height": 256,
@@ -766,6 +786,16 @@
         "path": "assets/late-hd/img/ui_pu_rooikol.424695200858.png",
         "bytes": 5093,
         "hash": "424695200858"
+      },
+      "width": 256,
+      "height": 256,
+      "scale": 0.5
+    },
+    "ui/pu_slug": {
+      "file": {
+        "path": "assets/late-hd/img/ui_pu_slug.35785b8fed13.png",
+        "bytes": 3315,
+        "hash": "35785b8fed13"
       },
       "width": 256,
       "height": 256,
@@ -1233,29 +1263,29 @@
     "oes/mid": {
       "tiles": [
         {
-          "path": "assets/oes-hd/layers/mid-0.faa3e73343ad.png",
-          "bytes": 249010,
-          "hash": "faa3e73343ad"
+          "path": "assets/oes-hd/layers/mid-0.4fd2587fe4d2.png",
+          "bytes": 246320,
+          "hash": "4fd2587fe4d2"
         },
         {
-          "path": "assets/oes-hd/layers/mid-1.5eba7718e342.png",
-          "bytes": 248435,
-          "hash": "5eba7718e342"
+          "path": "assets/oes-hd/layers/mid-1.98dc988b25ac.png",
+          "bytes": 233858,
+          "hash": "98dc988b25ac"
         },
         {
-          "path": "assets/oes-hd/layers/mid-2.ca7c7cf3ca0e.png",
-          "bytes": 127495,
-          "hash": "ca7c7cf3ca0e"
+          "path": "assets/oes-hd/layers/mid-2.6ae8ed4fdc52.png",
+          "bytes": 128408,
+          "hash": "6ae8ed4fdc52"
         },
         {
-          "path": "assets/oes-hd/layers/mid-3.07b8aec72ee9.png",
-          "bytes": 247072,
-          "hash": "07b8aec72ee9"
+          "path": "assets/oes-hd/layers/mid-3.debd23c70698.png",
+          "bytes": 253661,
+          "hash": "debd23c70698"
         },
         {
-          "path": "assets/oes-hd/layers/mid-4.cce77e7d0535.png",
-          "bytes": 79016,
-          "hash": "cce77e7d0535"
+          "path": "assets/oes-hd/layers/mid-4.d6b5d44f357b.png",
+          "bytes": 81149,
+          "hash": "d6b5d44f357b"
         }
       ],
       "tileWidth": 1024,

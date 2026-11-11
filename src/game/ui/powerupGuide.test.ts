@@ -37,6 +37,7 @@ function oddNumbers(b: ContentBundle): ContentBundle {
           ...(p.effect.reloadTimeMul !== undefined ? { reloadTimeMul: 0.37 } : {}),
           ...(p.effect.idleTopUpMs !== undefined ? { idleTopUpMs: 900 } : {}),
           ...(p.effect.fireCooldownMul !== undefined ? { fireCooldownMul: 0.37 } : {}),
+          ...(p.effect.brakkieJag !== undefined ? { brakkieJag: { maxCatches: 7 } } : {}),
         },
       })),
     },
@@ -59,7 +60,7 @@ function oddNumbers(b: ContentBundle): ContentBundle {
 }
 
 describe('the power-up guide (D-046)', () => {
-  it('has a card for each of the four power-ups, the two reload ones, the Rooikol and the two crate guns', () => {
+  it('has a card for each of the four power-ups, the two reload ones, the Rooikol, the two shells, the Jag card and the two crate guns', () => {
     expect(guideIds(content).map((c) => c.id)).toEqual([
       'chilli_biltong',
       'boeretroos',
@@ -68,9 +69,40 @@ describe('the power-up guide (D-046)', () => {
       'blitslaai',
       'oupa_laai',
       'rooikol',
+      'dragon_breath',
+      'slug',
+      'brakkie_jag',
       'voorlaaier',
       'mielie_masjien',
     ]);
+  });
+
+  it('explains the Jag, Brakkie! card with its numbers, his crates and the Padstal (D-085)', () => {
+    const cards = guideCards(content, [], en, 'en');
+    const jag = cards.find((c) => c.id === 'brakkie_jag');
+    expect(jag?.name).toBe('Hunt, Brakkie!');
+    expect(jag?.icon).toBe('ui/pu_brakkie_jag');
+    expect(jag?.effect).toContain('For 10 seconds of hunting');
+    expect(jag?.effect).toContain('catches up to 3');
+    expect(jag?.short).toBe('Brakkie catches up to 3 feeding birds · 10 s');
+    expect(jag?.how).toEqual([
+      'Shoot a supply crate in a hunt Brakkie comes along to (Classic, Daily, bonus maps)',
+      'Buy it at the Farm Stall in a Season Run: 3 caps',
+    ]);
+  });
+
+  it('explains the special shells with their numbers, shotgun crates and the Padstal (D-084)', () => {
+    const cards = guideCards(content, [], en, 'en');
+    const by = (id: string) => cards.find((c) => c.id === id);
+    expect(by('dragon_breath')?.effect).toContain('next 4 shotgun shells');
+    expect(by('dragon_breath')?.effect).toContain('2.5× the pellets over a 2.4× wider pattern');
+    expect(by('slug')?.effect).toContain('next 3 shotgun shells');
+    expect(by('slug')?.how).toEqual([
+      'Shoot a supply crate in a Classic or Daily hunt while you carry a shotgun (Double Barrel · Farm Pump)',
+      'Buy it at the Farm Stall in a Season Run: 3 caps',
+    ]);
+    expect(by('slug')?.name).toBe('Slug');
+    expect(by('dragon_breath')?.icon).toBe('ui/pu_dragon_breath');
   });
 
   it('reads the numbers from content (the brief: "For 10 seconds everything moves at half speed.")', () => {

@@ -472,7 +472,34 @@ export class AssetManifest {
    * fails or times out leaves its key on the placeholder. Call before install(); keys already in
    * the texture manager keep what they have.
    */
+  /** v1.19 (D-084): the index and file timeout of the last loadFinal (for loadOnDemand). */
+  private onDemandFrom: { index: AssetIndex; timeoutMs: number } | null = null;
+  private readonly onDemand = new Map<string, Promise<HTMLImageElement | null>>();
+
+  /**
+   * v1.19 (D-084): a delivered image of a group no hunt's manifest loads (the Gun Shed's `shed`
+   * group), fetched on first ask and kept decoded on the CPU; it never becomes a texture (callers
+   * crop it onto their own small canvas). Null when the index has no such file or it fails (a
+   * failure is forgotten, so the next ask tries again).
+   */
+  loadOnDemand(key: string): Promise<HTMLImageElement | null> {
+    const from = this.onDemandFrom;
+    const entry = from?.index.images[key];
+    if (from === null || entry === undefined) return Promise.resolve(null);
+    let p = this.onDemand.get(key);
+    if (p === undefined) {
+      p = loadImage(entry.file.path, from.timeoutMs * LAZY_TIMEOUT_MUL).then((img) => {
+        if (img === null) this.onDemand.delete(key);
+        else this.mark(key, entry.origin);
+        return img;
+      });
+      this.onDemand.set(key, p);
+    }
+    return p;
+  }
+
   async loadFinal(index: AssetIndex, o: FinalLoadOptions): Promise<void> {
+    this.onDemandFrom = { index, timeoutMs: o.timeoutMs };
     const jobs: Promise<void>[] = [];
     // D-029: the late group downloads after everything else (it isn't needed to start a hunt).
     const late: (() => Promise<void>)[] = [];
@@ -1081,6 +1108,11 @@ export const TEX = {
   puMielieMasjien: 'ui/pu_mielie_masjien',
   // 1.9.2 (D-055): the Rooikol (red dot sight) power-up.
   puRooikol: 'ui/pu_rooikol',
+  // v1.19 (D-084): the special shells.
+  puDragonBreath: 'ui/pu_dragon_breath',
+  puSlug: 'ui/pu_slug',
+  // v1.20 (D-085): the Jag, Brakkie! card.
+  puBrakkieJag: 'ui/pu_brakkie_jag',
   bolt: 'fx/bolt',
   // v1.4 B (D-039): angry sociable weavers (WeaverView), shared by every biome with a nest.
   weaverUp: 'fx/weaver_up',

@@ -27,12 +27,47 @@ const BARK_TICKS = 40;
 
 interface ColonyArt {
   readonly mounds: Phaser.GameObjects.Image[];
-  readonly kats: Map<number, Phaser.GameObjects.Image>;
-  readonly flicks: Map<number, Phaser.GameObjects.Image>;
+  readonly kats: Map<number, Look>;
+  readonly flicks: Map<number, Look>;
+}
+
+/** An image and what was last set on it (perf: set only on change, read without getters). */
+interface Look {
+  readonly img: Phaser.GameObjects.Image;
+  frame: string;
+  ox: number;
+  oy: number;
+  x: number;
+  y: number;
+  scale: number;
+  flip: boolean;
+  rot: number;
+  alpha: number;
+  visible: boolean;
+}
+
+function lookOf(img: Phaser.GameObjects.Image): Look {
+  return {
+    img,
+    frame: img.frame.name,
+    ox: img.originX,
+    oy: img.originY,
+    x: img.x,
+    y: img.y,
+    scale: img.scaleX,
+    flip: img.flipX,
+    rot: img.rotation,
+    alpha: img.alpha,
+    visible: img.visible,
+  };
 }
 
 export class MeerkatView {
   private readonly frames: readonly SheetRect[] = sheetFrames();
+  /** The frames by name (rect() is asked for every meerkat every frame). */
+  private readonly rects = new Map<string, SheetRect>();
+  /** Meerkats seen in the colony being drawn (reused every frame). */
+  private readonly seen = new Set<number>();
   private readonly art = new Map<string, ColonyArt>();
   private readonly puffs: {
     colony: string;
@@ -58,7 +93,10 @@ export class MeerkatView {
     private readonly parallax: ParallaxView,
     private readonly tuning: MeerkatTuning,
     private readonly planeScale: Readonly<Record<PlaneId, number>>,
-  ) {}
+  ) {
+    // The first frame with a name wins, as a find over the list would.
+    for (const f of this.frames) if (!this.rects.has(f.name)) this.rects.set(f.name, f);
+  }
 
   /** Frames on the sheet texture (again after a final file replaced the placeholder). */
   private ensureFrames(): boolean {
@@ -78,7 +116,7 @@ export class MeerkatView {
   }
 
   private rect(name: string): SheetRect | undefined {
-    return this.frames.find((f) => f.name === name);
+    return this.rects.get(name);
   }
 
   /** This frame's events: sand puffs on hits, the sentinel's bark on alarms. */
@@ -109,7 +147,7 @@ export class MeerkatView {
       return;
     }
     const k = this.manifest.displayScale(MEERKAT_SHEET);
-    this.cues = [];
+    this.cues.length = 0;
     for (const col of s.meerkats) {
       this.drawColony(col, s.tick, k);
       this.listen(col, s.tick);
@@ -138,21 +176,22 @@ export class MeerkatView {
       });
       this.art.set(col.id, art);
     }
-    const seen = new Set<number>();
     // D-078: the meerkats themselves (not their mounds) are sizeMul bigger than the plane's scale.
     const body = scale * this.tuning.sizeMul;
+    let added = false;
     for (const m of col.meerkats) {
-      seen.add(m.id);
       const barkAt = this.barking.get(m.id);
       const name = meerkatFrame(m, barkAt !== undefined && tick - barkAt < BARK_TICKS);
-      let img = art.kats.get(m.id);
-      if (img === undefined) {
-        img = this.scene.add.image(m.x, m.y, MEERKAT_SHEET, 'sit');
+      let kat = art.kats.get(m.id);
+      if (kat === undefined) {
+        const img = this.scene.add.image(m.x, m.y, MEERKAT_SHEET, 'sit');
         layer.fixtures.add(img);
-        art.kats.set(m.id, img);
+        kat = lookOf(img);
+        art.kats.set(m.id, kat);
+        added = true;
       }
       this.place(
-        img,
+        kat,
         name,
         m,
         body * k * (m.pup && name !== null && !name.startsWith('pup_') ? this.tuning.pupScale : 1),
@@ -161,23 +200,55 @@ export class MeerkatView {
       let flick = art.flicks.get(m.id);
       const digging = m.pose === 'forage';
       if (digging && flick === undefined) {
-        flick = this.scene.add.image(m.x, m.y, MEERKAT_SHEET, 'flick');
-        layer.fixtures.addAt(flick, layer.fixtures.getIndex(img));
+        const img = this.scene.add.image(m.x, m.y, MEERKAT_SHEET, 'flick');
+        layer.fixtures.addAt(img, layer.fixtures.getIndex(kat.img));
+        flick = lookOf(img);
         art.flicks.set(m.id, flick);
       }
       if (flick !== undefined) {
+        // Each property set only when it changed; a hidden flick is left as it is (set again
+        // the moment it shows).
         const ph = (m.poseTicks % 18) / 18;
-        flick
-          .setVisible(digging && ph < 0.7)
-          .setPosition(m.x - m.facing * (18 + ph * 26) * body, m.y - ph * (1 - ph) * 60 * body)
-          .setScale(body * k * (0.6 + ph * 0.5))
-          .setAlpha(1 - ph)
-          .setFlipX(m.facing < 0);
+        const on = digging && ph < 0.7;
+        const img = flick.img;
+        if (flick.visible !== on) {
+          flick.visible = on;
+          img.setVisible(on);
+        }
+        if (on) {
+          const fx = m.x - m.facing * (18 + ph * 26) * body;
+          const fy = m.y - ph * (1 - ph) * 60 * body;
+          if (flick.x !== fx || flick.y !== fy) {
+            flick.x = fx;
+            flick.y = fy;
+            img.setPosition(fx, fy);
+          }
+          const fs = body * k * (0.6 + ph * 0.5);
+          if (flick.scale !== fs) {
+            flick.scale = fs;
+            img.setScale(fs);
+          }
+          if (flick.alpha !== 1 - ph) {
+            flick.alpha = 1 - ph;
+            img.setAlpha(1 - ph);
+          }
+          const flip = m.facing < 0;
+          if (flick.flip !== flip) {
+            flick.flip = flip;
+            img.setFlipX(flip);
+          }
+        }
       }
     }
-    for (const [id, img] of art.kats)
+    // Every meerkat had its image already and there are as many images as meerkats (ids are
+    // unique): none is left over (perf: no set and no walk over the images most frames).
+    if (!added && art.kats.size === col.meerkats.length) return;
+    const seen = this.seen;
+    seen.clear();
+    for (const m of col.meerkats) seen.add(m.id);
+    for (const [id, kat] of art.kats)
       if (!seen.has(id)) {
-        img.destroy();
+        kat.img.destroy();
         art.kats.delete(id);
       }
   }
@@ -203,30 +274,60 @@ export class MeerkatView {
     this.cues.push({ sound: cue, screenX: this.parallax.screenX(col.plane, at) });
   }
 
-  private place(
-    img: Phaser.GameObjects.Image,
-    name: MeerkatFrame | null,
-    m: Meerkat,
-    s: number,
-  ): void {
+  /** Poses a meerkat's image, each property set only when it changed (perf). */
+  private place(kat: Look, name: MeerkatFrame | null, m: Meerkat, s: number): void {
+    const img = kat.img;
     if (name === null) {
-      img.setVisible(false);
+      if (kat.visible) {
+        kat.visible = false;
+        img.setVisible(false);
+      }
       return;
     }
     const r = this.rect(name);
-    if (img.frame.name !== name) img.setFrame(name);
-    if (r !== undefined) img.setOrigin(r.ox / r.w, r.oy / r.h);
+    if (kat.frame !== name) {
+      kat.frame = name;
+      img.setFrame(name);
+      // A frame with its own pivot moves the origin there.
+      kat.ox = img.originX;
+      kat.oy = img.originY;
+    }
+    if (r !== undefined) {
+      const ox = r.ox / r.w;
+      const oy = r.oy / r.h;
+      if (kat.ox !== ox || kat.oy !== oy) {
+        kat.ox = ox;
+        kat.oy = oy;
+        img.setOrigin(ox, oy);
+      }
+    }
     // Side views face their way; the camera-facing ones never flip; a mirrored frame (the
     // left-looking peek and stand) is its twin flipped.
     const turn =
       m.facing < 0 && name !== 'front' && !name.startsWith('stand') && !name.startsWith('peek');
     const flip = turn !== (r?.mirror === true);
-    img
-      .setVisible(true)
-      .setPosition(m.x, m.y)
-      .setScale(s)
-      .setFlipX(flip)
-      .setRotation(m.pose === 'tumble' ? (m.facing * m.poseTicks * 0.35) % (Math.PI * 2) : 0);
+    const rot = m.pose === 'tumble' ? (m.facing * m.poseTicks * 0.35) % (Math.PI * 2) : 0;
+    if (!kat.visible) {
+      kat.visible = true;
+      img.setVisible(true);
+    }
+    if (kat.x !== m.x || kat.y !== m.y) {
+      kat.x = m.x;
+      kat.y = m.y;
+      img.setPosition(m.x, m.y);
+    }
+    if (kat.scale !== s) {
+      kat.scale = s;
+      img.setScale(s);
+    }
+    if (kat.flip !== flip) {
+      kat.flip = flip;
+      img.setFlipX(flip);
+    }
+    if (kat.rot !== rot) {
+      kat.rot = rot;
+      img.setRotation(rot);
+    }
   }
 
   private drawPuffs(tick: number, k: number): void {
@@ -288,8 +389,8 @@ export class MeerkatView {
   private dropImages(): void {
     for (const a of this.art.values()) {
       for (const m of a.mounds) m.destroy();
-      for (const i of a.kats.values()) i.destroy();
-      for (const f of a.flicks.values()) f.destroy();
+      for (const i of a.kats.values()) i.img.destroy();
+      for (const f of a.flicks.values()) f.img.destroy();
     }
     this.art.clear();
     for (const p of this.puffs) p.img.destroy();
@@ -299,8 +400,8 @@ export class MeerkatView {
   clear(): void {
     for (const a of this.art.values()) {
       for (const m of a.mounds) m.destroy();
-      for (const i of a.kats.values()) i.destroy();
-      for (const f of a.flicks.values()) f.destroy();
+      for (const i of a.kats.values()) i.img.destroy();
+      for (const f of a.flicks.values()) f.img.destroy();
     }
     this.art.clear();
     for (const p of this.puffs) p.img.destroy();

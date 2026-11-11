@@ -111,6 +111,9 @@ export const STANDARD_IN_HD_KEYS: readonly string[] = [
   'namibie/camelthorn_',
   'namibie/quiver_',
   'namibie/pan_grass_',
+  // v1.18 (D-081): the Harvest's Phase 2 sheet (drawn at 1 texture px per drawn px, ≥ 0.86 per
+  // px on screen): the Harvest is the tightest HD hunt (~245 of 256 MB).
+  'oes/harvest2',
 ];
 
 /** True when `key` may have an HD version. */

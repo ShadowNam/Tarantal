@@ -14,12 +14,14 @@ import {
   MEASURED_ART,
   NOT_FIXED,
   offBy,
+  OWNER_SET,
   sizeTable,
   TELL_DRAWN_PX,
   TELL_REAL_M,
 } from './sizes';
 import { sizeMulOf } from '../src/sim/birds/size';
 import { loadContent, loadFeel } from './testContent';
+import { KNOB_ROWS } from './sizeKnobRows';
 
 const TOLERANCE = 0.15;
 
@@ -147,13 +149,30 @@ describe('real animal sizes next to the guineafowl (D-078, D-080)', () => {
     expect(eagle.map((m) => m.id).sort()).toEqual(['visarend_body', 'visarend_wing']);
   });
 
+  // v1.22.1 (D-086): a row the owner set by eye (npm run sizes:apply) is held to his record
+  // instead; every other row stays within ±15 %.
   for (const r of rows)
-    it(`${r.id} (${r.realM} m, ${r.measure}, ${r.plane}) is within ±15 %`, () => {
-      expect(
-        Math.abs(offBy(r)),
-        `${r.drawnPx.toFixed(1)} px drawn, ${r.targetPx.toFixed(1)} px real`,
-      ).toBeLessThanOrEqual(TOLERANCE);
-    });
+    if (OWNER_SET[r.id] === undefined)
+      it(`${r.id} (${r.realM} m, ${r.measure}, ${r.plane}) is within ±15 %`, () => {
+        expect(
+          Math.abs(offBy(r)),
+          `${r.drawnPx.toFixed(1)} px drawn, ${r.targetPx.toFixed(1)} px real`,
+        ).toBeLessThanOrEqual(TOLERANCE);
+      });
+    else
+      it(`${r.id} (${r.realM} m) is the owner's size, set by eye and recorded`, () => {
+        const o = OWNER_SET[r.id];
+        expect(o?.why).toMatch(/the owner set this by eye/);
+        expect(o?.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      });
+
+  it('D-086: every owner-set size names a row of this table and a size knob', () => {
+    const ids = new Set(rows.map((r) => r.id));
+    for (const [id, o] of Object.entries(OWNER_SET)) {
+      expect(ids.has(id), id).toBe(true);
+      expect(KNOB_ROWS[o.knob] ?? [], id).toContain(id);
+    }
+  });
 
   it('the measured tell lengths fit their frame boxes', () => {
     for (const [sp, px] of Object.entries(TELL_DRAWN_PX)) {

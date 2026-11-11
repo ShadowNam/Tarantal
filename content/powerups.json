@@ -64,6 +64,42 @@
       },
       "durationMs": 15000,
       "needsSight": true
+    },
+    {
+      "$comment": "v1.19 (D-084) Dragon's Breath (Drakevuur): for 4 shotgun shells, each shot throws a cone of fire: 2.5x the pellets (at most 30) over 2.4x the pattern (at most 240 px, or the gun's own if wider: the Voorlaaier's blast stays a cone), stopping at the mid plane (never far or Ver), and any pellet on a bird is a hit. Shotgun only (needsShotgun). Numbers from the balance sim (docs/balance/v1.19-shells.md).",
+      "id": "dragon_breath",
+      "effect": {
+        "dragonBreath": {
+          "pelletsMul": 2.5,
+          "spreadMul": 2.4,
+          "reach": "mid",
+          "maxPellets": 30,
+          "maxSpreadPx": 240
+        }
+      },
+      "durationShells": 4,
+      "padstalPrice": 3,
+      "needsShotgun": true
+    },
+    {
+      "$comment": "v1.19 (D-084) Slug (Koeëlpatroon): for 3 shotgun shells, one heavy projectile: no spread, reaches far and Ver, drifts with the wind (windSensitivity 1.2: more than a rifle's 0.5-0.6) and bags what it hits in one. Shotgun only (needsShotgun).",
+      "id": "slug",
+      "effect": {
+        "slug": { "windSensitivity": 1.2 }
+      },
+      "durationShells": 3,
+      "padstalPrice": 3,
+      "needsShotgun": true
+    },
+    {
+      "$comment": "v1.20 (D-085) Jag, Brakkie!: for 10 s of hunting (the clock counts only while he looks, chases and pounces; it holds while he fetches a shot bird, carries a catch home at his sprint or is at the bakkie) Brakkie sprints at guineafowl foraging on the ground (near plane, or the mid ground within jag.maxDxPx 1400 screen px; never birds in the air, other species or a penalty animal) and catches up to 3 (brakkie.json jag). Each catch is a bag of that bird (its normal score x Frenzy x Stampede), then Bring! (brakkie.json bring) when he delivers it; catches count toward Goeie hond!. The rest of the flock flushes. Shooting at him (-25) or any hit on him ends it. Only where Brakkie comes along (needsBrakkie): crates elsewhere roll another power-up; a Padstal card waits in its slot. Numbers from the balance sim (docs/balance/v1.20-jag.md).",
+      "id": "brakkie_jag",
+      "effect": {
+        "brakkieJag": { "maxCatches": 3 }
+      },
+      "durationMs": 10000,
+      "padstalPrice": 3,
+      "needsBrakkie": true
     }
   ],
   "reloadFloorMs": 150,
@@ -119,6 +155,18 @@
       {
         "id": "rooikol",
         "weight": 14
+      },
+      {
+        "id": "dragon_breath",
+        "weight": 10
+      },
+      {
+        "id": "slug",
+        "weight": 10
+      },
+      {
+        "id": "brakkie_jag",
+        "weight": 10
       },
       {
         "id": "voorlaaier",

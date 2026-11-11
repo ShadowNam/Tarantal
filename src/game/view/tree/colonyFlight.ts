@@ -111,19 +111,96 @@ function phase(t: ColonyTuning, n: ColonyNest, seed: number, i: number): number 
   return lifeHash(seed ^ n.salt, 50, i, 1) * t.cycleSeconds[1];
 }
 
+type Cycle = ReturnType<typeof cycle>;
+
+/**
+ * One bird's cache for weaverAt (view perf): the cycle it is in and its pose at the last
+ * scatter's start. weaverAt answers exactly the same with or without it; it only skips the walk
+ * from the block's anchor (up to 16 cycles of hashes) while the bird stays in the same cycle.
+ * One memo per bird of one nest (the nest and the tuning are part of its key by use).
+ */
+export interface WeaverMemo {
+  seed: number;
+  /** The bird's phase offset (s) for `seed`. */
+  phase: number;
+  block: number;
+  start: number;
+  /** The cycle's raw length (> 0) and the cycle; null: nothing cached. */
+  rawLen: number;
+  cy: Cycle | null;
+  /** The pose at `wasTick` (the scatter's start) for `wasSeed`. */
+  wasSeed: number;
+  wasTick: number;
+  was: ColonyPose | null;
+  /** That scatter's end, the tick the bird is back by and where it flies off to (null: none). */
+  scatterEnd: number;
+  back: number;
+  away: P | null;
+}
+
+export function weaverMemo(): WeaverMemo {
+  return {
+    seed: Number.NaN,
+    phase: 0,
+    block: Number.NaN,
+    start: 0,
+    rawLen: 0,
+    cy: null,
+    wasSeed: Number.NaN,
+    wasTick: Number.NaN,
+    was: null,
+    scatterEnd: Number.NaN,
+    back: 0,
+    away: null,
+  };
+}
+
 /** Which cycle bird `i` is in at `secs`, and how far into it. Cycles are laid end to end. */
-function cycleAt(t: ColonyTuning, n: ColonyNest, seed: number, i: number, secs: number) {
+function cycleAt(
+  t: ColonyTuning,
+  n: ColonyNest,
+  seed: number,
+  i: number,
+  secs: number,
+  memo?: WeaverMemo,
+) {
   // Cycles vary in length; walk them from a known anchor every 16 cycles (bounded work).
   const avg = (t.cycleSeconds[0] + t.cycleSeconds[1]) / 2;
-  const s = secs + phase(t, n, seed, i);
+  let ph: number;
+  if (memo === undefined) ph = phase(t, n, seed, i);
+  else {
+    if (memo.seed !== seed) {
+      memo.seed = seed;
+      memo.phase = phase(t, n, seed, i);
+      memo.cy = null;
+    }
+    ph = memo.phase;
+  }
+  const s = secs + ph;
   const block = Math.floor(s / (avg * 16));
+  if (
+    memo !== undefined &&
+    memo.cy !== null &&
+    memo.block === block &&
+    s >= memo.start &&
+    s < memo.start + memo.rawLen
+  )
+    return { cy: memo.cy, u: s - memo.start, len: Math.max(memo.rawLen, 0.01) };
   let start = block * avg * 16;
   let c = block * 16;
   for (;;) {
     const cy = cycle(t, n, seed, i, c);
     // The last cycle of a block stretches or shrinks to end on the next anchor.
     const len = c % 16 === 15 ? (block + 1) * avg * 16 - start : cy.len;
-    if (s < start + len || len <= 0) return { cy, u: s - start, len: Math.max(len, 0.01) };
+    if (s < start + len || len <= 0) {
+      if (memo !== undefined && len > 0) {
+        memo.block = block;
+        memo.start = start;
+        memo.rawLen = len;
+        memo.cy = cy;
+      }
+      return { cy, u: s - start, len: Math.max(len, 0.01) };
+    }
     start += len;
     c++;
   }
@@ -147,7 +224,8 @@ function dart(a: P, b: P, k: number, loopR: number, drop: number): P {
   ];
 }
 
-/** Weaver `i` at `tick` (null: inside the nest or away). */
+/** Weaver `i` at `tick` (null: inside the nest or away). `memo`: this bird's cache (the same
+ *  answer, cheaper frame to frame). */
 export function weaverAt(
   t: ColonyTuning,
   n: ColonyNest,
@@ -156,21 +234,48 @@ export function weaverAt(
   tick: number,
   scatter: Scatter | null,
   reduced: boolean,
+  memo?: WeaverMemo,
 ): ColonyPose | null {
   if (i >= n.birds) return null;
   const slow = reduced ? t.reducedSlowMul : 1;
   if (scatter !== null && tick >= scatter.start) {
-    const back = scatter.end + lifeHash(seed ^ n.salt, 70, i, 1) * t.trickleSeconds * S;
-    if (tick < back + S) {
-      const was = weaverAt(t, n, seed, i, scatter.start, null, reduced);
+    let back: number;
+    let was: ColonyPose | null;
+    let away: P;
+    if (
+      memo !== undefined &&
+      memo.away !== null &&
+      memo.wasSeed === seed &&
+      memo.wasTick === scatter.start &&
+      memo.scatterEnd === scatter.end
+    ) {
+      // The same scatter as last frame: where it was, where it flies and when it is back.
+      back = memo.back;
+      was = memo.was;
+      away = memo.away;
+    } else {
+      back = scatter.end + lifeHash(seed ^ n.salt, 70, i, 1) * t.trickleSeconds * S;
+      if (memo !== undefined && memo.wasSeed === seed && memo.wasTick === scatter.start)
+        was = memo.was;
+      else was = weaverAt(t, n, seed, i, scatter.start, null, reduced);
       // Away from the nest, from wherever it was (a bird inside comes out of its hole).
       const from: P = was === null ? entrance(n, i) : [was.x, was.y];
       const side =
         from[0] === n.ox ? (lifeHash(seed, 71, i, 1) < 0.5 ? -1 : 1) : Math.sign(from[0] - n.ox);
-      const away: P = [
+      away = [
         from[0] + side * (n.rx * 0.8 + 260 * n.scale),
         Math.min(from[1], n.oy) - n.ry - (120 + lifeHash(seed, 71, i, 2) * 160) * n.scale,
       ];
+      if (memo !== undefined) {
+        memo.wasSeed = seed;
+        memo.wasTick = scatter.start;
+        memo.was = was;
+        memo.scatterEnd = scatter.end;
+        memo.back = back;
+        memo.away = away;
+      }
+    }
+    if (tick < back + S) {
       const k = (tick - scatter.start) / (t.flightSeconds[1] * S);
       if (was !== null && k < 1) {
         const p = dart([was.x, was.y], away, k, 0, 0);
@@ -198,7 +303,7 @@ export function weaverAt(
       return null;
     }
   }
-  const { cy, u, len } = cycleAt(t, n, seed, i, tick / S / slow);
+  const { cy, u, len } = cycleAt(t, n, seed, i, tick / S / slow, memo);
   if (cy.act === 'inside') return null;
   const fly = cy.fly;
   const hold = len - fly * 2;
@@ -289,9 +394,9 @@ export function falconAt(
     slot * slotTicks +
     (forced ? 0 : Math.floor(lifeHash(seed ^ n.salt, 80, slot, 2) * (slotTicks - out)));
   if (tick < start || tick >= start + out) return null;
-  const ps = perches(n);
-  // Review R5: on its tree's branch against the sky (COLONY_FALCON_PERCH), else a side branch.
-  const spot: P = n.falcon ?? ps[5] ?? entrance(n, 2);
+  // Review R5: on its tree's branch against the sky (COLONY_FALCON_PERCH), else a side branch
+  // (the perches only worked out when it has no branch of its own).
+  const spot: P = n.falcon ?? perches(n)[5] ?? entrance(n, 2);
   const from: P = [spot[0] + 200 * n.scale, spot[1] - 140 * n.scale];
   const to: P = [spot[0] - 220 * n.scale, spot[1] - 120 * n.scale];
   const u = (tick - start) / S;

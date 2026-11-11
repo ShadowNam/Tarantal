@@ -1,5 +1,5 @@
 {
-  "$comment": "Brakkie, Oupa's Jack Russell (GDD §11.3f, D-069; v1.16 D-078: livelier — shorter rests, runs about (runChance), fetches every bird that falls in reach one at a time from a queue of up to fetch.queueMax, back from the bakkie after backSeconds when more wait). v1.17 D-079, the companion: bring (Bring! +15 per delivery, Goeie hond! +30 every 3rd in a row), point (Staan!: the flush is a point at a hidden flock of 5; Mooi punt! +20 for 3 of its birds), whistle (Fluit!: spring / heel / seek), react (a proud hop, a head tilt). A sim entity on his own stream `dog`: never a target, never hurt, never removed. Px are design px on the near plane at his scale 1 (the mid plane converts by plane scale, D-049); times in seconds. areas: the maps he comes to and the side the bakkie stands (-1 left, 1 right). hitboxes: sprite-local px from his feet (x forward), facing right. v1.17b (D-080, the owner: 'yes make all animals true size'): sizeMul 1.35 makes him a true Jack Russell beside the guineafowl (shoulder 110 → 149 px on the near plane, ~0.28 m; 1.4 put his back where shots at mid-plane birds on their ground line rained pellets on it (accidental hits 0.10 a hunt); the bird in his mouth keeps its size); clear.aimPx, pathPx and fencePx grew by the ~30 px his body grew (340 → 375, 220 → 255, 420 → 455), so the rooms round him stay the same from his body's edge.",
+  "$comment": "Brakkie, Oupa's Jack Russell (GDD §11.3f, D-069; v1.16 D-078: livelier — shorter rests, runs about (runChance), fetches every bird that falls in reach one at a time from a queue of up to fetch.queueMax, back from the bakkie after backSeconds when more wait). v1.17 D-079, the companion: bring (Bring! +15 per delivery, Goeie hond! +30 every 3rd in a row), point (Staan!: the flush is a point at a hidden flock of 5; Mooi punt! +20 for 3 of its birds), whistle (Fluit!: spring / heel / seek), react (a proud hop, a head tilt). A sim entity on his own stream `dog`: never a target, never hurt, never removed. Px are design px on the near plane at his scale 1 (the mid plane converts by plane scale, D-049); times in seconds. areas: the maps he comes to and the side the bakkie stands (-1 left, 1 right). hitboxes: sprite-local px from his feet (x forward), facing right. v1.17b (D-080, the owner: 'yes make all animals true size'): sizeMul 1.35 makes him a true Jack Russell beside the guineafowl (shoulder 110 → 149 px on the near plane, ~0.28 m; 1.4 put his back where shots at mid-plane birds on their ground line rained pellets on it (accidental hits 0.10 a hunt); the bird in his mouth keeps its size); clear.aimPx, pathPx and fencePx grew by the ~30 px his body grew (340 → 375, 220 → 255, 420 → 455), so the rooms round him stay the same from his body's edge. v1.20 (D-085, the owner: 'fetch sooner'): he runs out fetch.delaySeconds (1.5 s) after a bag even while the shooting goes on (the v1.17 quiet rule of 6 s is gone), and queues up to 3 (queueMax); every clear rule still holds. jag: the Jag, Brakkie! card (powerups.json brakkie_jag). v1.20 review (the owner, 10 Nov: 'Keep it near +5 %'): with ~8x the deliveries, bring is Bring! +4 (was +15) and Goeie hond! +20 every 5th in a row (was +30 every 3rd), so scores stay within ~5 % of main per area (docs/balance/v1.20-jag.md).",
   "version": 1,
   "modes": ["classic", "daily", "seasonHunt"],
   "seasonKinds": ["plain", "omen"],
@@ -35,11 +35,10 @@
   "clear": { "aimPx": 375, "pathPx": 255, "pathStepPx": 100, "fencePx": 455, "checkSeconds": 0.2, "holdBackSeconds": 1.2, "wideSpreadPx": 120 },
   "fetch": {
     "planes": ["near", "mid"],
-    "delaySeconds": 0.9,
+    "delaySeconds": 1.5,
     "clearPx": 700,
     "waitSeconds": 5,
-    "queueMax": 2,
-    "quietSeconds": 6,
+    "queueMax": 3,
     "maxDxPx": 640,
     "pickupSeconds": 0.6,
     "crossSeconds": 1.1,
@@ -54,7 +53,7 @@
     "maxDxPx": 450,
     "retrySeconds": 4
   },
-  "bring": { "points": 15, "streakEvery": 3, "streakPoints": 30 },
+  "bring": { "points": 4, "streakEvery": 5, "streakPoints": 20 },
   "point": {
     "seconds": 2.5,
     "springSeconds": 0.4,
@@ -64,5 +63,17 @@
   },
   "whistle": { "cooldownSeconds": 3, "heelSeconds": 10, "heelDxPx": 430 },
   "react": { "seconds": 0.8, "minGapSeconds": 8, "tiltMisses": 3 },
+  "jag": {
+    "creatures": ["tarentaal", "tarentaal_wit", "tarentaal_lavendel"],
+    "maxDxPx": 1400,
+    "nearMaxDxPx": 650,
+    "sprintPx": 1250,
+    "pouncePx": 110,
+    "pounceSeconds": 0.45,
+    "reachPx": 170,
+    "lookSeconds": 0.25,
+    "alarmThreats": 3,
+    "alarmEverySeconds": 0.35
+  },
   "hit": { "penalty": 25, "cooldownSeconds": 2, "yelpSeconds": 0.45, "awaySeconds": [12, 18] }
 }

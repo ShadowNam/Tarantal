@@ -3,6 +3,7 @@
 // birds dark and cool against a warm veld. Everything is drawn onto canvases and registered in the
 // AssetManifest, so real art can replace any key later. Rendering-only code: Math.random would be
 // allowed here, but a tiny seeded PRNG keeps the panorama identical between runs and screenshots.
+import { SHED_GUN_SHEET, SHED_GUN_SHEET_H, SHED_GUN_SHEET_W } from '../ui/shedGunSheet';
 import { canSpecs } from './canArt';
 import { makalaniSpecs } from './makalaniArt';
 import type { AmmoType, Biome, ContentBundle } from '../../content/schemas';
@@ -32,6 +33,7 @@ import { TELL_SHEET, TELL_SHEET_H, TELL_SHEET_W } from '../view/tell/tellKeys';
 import { REENBUI_SHEET, REENBUI_SHEET_H, REENBUI_SHEET_W } from '../view/reenbui/reenbuiKeys';
 import { BABOON_SHEET, BABOON_SHEET_H, BABOON_SHEET_W } from '../view/baboon/baboonKeys';
 import { HARVEST_SHEET, HARVEST_SHEET_H, HARVEST_SHEET_W } from '../view/harvest/harvestKeys';
+import { HARVEST2_SHEET, HARVEST2_SHEET_H, HARVEST2_SHEET_W } from '../view/harvest/harvest2Keys';
 import { hasColonies } from '../../sim/meerkats/colony';
 import { MEERKAT_SOUNDS } from '../assets/desertAssets';
 import { HD_PARTS, hdKeyOf, POTJIE_LID, POTJIE_LID_SIZE } from '../assets/hdProps';
@@ -1330,6 +1332,9 @@ function m4Specs(): CanvasSpec[] {
         [TEX.puVoorlaaier, '#8B5A2B', 'gun'],
         [TEX.puMielieMasjien, '#5E7A3A', 'gun'],
         [TEX.puRooikol, '#E8241A', 'disc'],
+        [TEX.puDragonBreath, '#A8161A', 'shell'],
+        [TEX.puSlug, '#3F6E4A', 'shell'],
+        [TEX.puBrakkieJag, '#C9823F', 'disc'],
       ] as const
     ).map(([key, colour, shape]) =>
       centred(key, 128, 128, (ctx) => {
@@ -1522,6 +1527,18 @@ export function createPlaceholderManifest(
   const m = new AssetManifest();
   const art = loadedArt.get(biome.id);
   if (art === undefined) throw new Error(`biome art ${biome.id} not loaded (loadBiomeArt first)`);
+  // v1.19 (D-084): the Gun Shed's side-view sheet (group `shed`): listed so the pack and the audit
+  // know the key; no manifest loads it (ShedScene fetches it on demand), so its placeholder is an
+  // empty 1×1 canvas and the cards fall back to the gun's first-person idle frame.
+  m.addTexture({
+    key: SHED_GUN_SHEET,
+    width: SHED_GUN_SHEET_W,
+    height: SHED_GUN_SHEET_H,
+    originX: 0,
+    originY: 0,
+    empty: true,
+    draw() {},
+  });
   const planes: PlaneId[] = ['near', 'mid', 'far'];
   for (const c of content.birds.creatures) {
     if (c.kind === 'helper') continue;
@@ -1602,7 +1619,7 @@ export function createPlaceholderManifest(
   // v1.8c (D-063): the Harvest's sheet (warthogs, piglets, workers, the fence gap), only on the
   // Harvest's map, so it lands in that map's own lazy group (drawn art only: HarvestView waits for
   // the delivered file).
-  if (biome.harvest !== undefined)
+  if (biome.harvest !== undefined) {
     m.addTexture({
       key: HARVEST_SHEET,
       width: HARVEST_SHEET_W,
@@ -1615,6 +1632,19 @@ export function createPlaceholderManifest(
         // Nothing: drawn art only.
       },
     });
+    // v1.18 (D-081): the Phase 2 sheet (jumps, squeezes, climbs, the hole's patch).
+    m.addTexture({
+      key: HARVEST2_SHEET,
+      width: HARVEST2_SHEET_W,
+      height: HARVEST2_SHEET_H,
+      originX: 0,
+      originY: 0,
+      viewScaled: true,
+      draw() {
+        // Nothing: drawn art only.
+      },
+    });
+  }
   // v1.10 (D-067): Reënbui's sheet, on the maps that can have one (late group; drawn art only:
   // until the delivered file is in, ReenbuiView draws nothing while the hunt plays the same).
   if (content.reenbui.areas.some((a) => a.biome === biome.id))

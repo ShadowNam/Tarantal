@@ -125,6 +125,14 @@ export function burstBirds(
 
 const ease = (x: number): number => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 
+/** A pose the view reuses frame to frame (weaverPoseInto writes it; no allocation a bird). */
+export type WeaverPoseOut = { -readonly [K in keyof WeaverPose]: WeaverPose[K] };
+
+/** A fresh pose to pass to weaverPoseInto. */
+export function weaverPoseOut(): WeaverPoseOut {
+  return { x: 0, y: 0, scale: 0, facing: 1, wingsUp: false, visible: false };
+}
+
 /**
  * Where bird `b` is `ts` seconds after its burst started, when the swirl ends `swirlEnd` seconds
  * after the start (a later hit pushes it back). `tick` drives the wingbeat.
@@ -136,17 +144,29 @@ export function weaverPose(
   swirlEnd: number,
   tick: number,
 ): WeaverPose {
+  return weaverPoseInto(t, b, ts, swirlEnd, tick, weaverPoseOut());
+}
+
+/** weaverPose written into `out` (returned). */
+export function weaverPoseInto(
+  t: WeaverTuning,
+  b: WeaverBird,
+  ts: number,
+  swirlEnd: number,
+  tick: number,
+  out: WeaverPoseOut,
+): WeaverPose {
   const outS = t.outMs / 1000;
   const settleS = t.settleMs / 1000;
-  const hidden: WeaverPose = {
-    x: b.hx,
-    y: b.hy,
-    scale: 0,
-    facing: 1,
-    wingsUp: false,
-    visible: false,
-  };
-  if (ts < b.delay || ts > swirlEnd + settleS + b.delay * 0.5) return hidden;
+  if (ts < b.delay || ts > swirlEnd + settleS + b.delay * 0.5) {
+    out.x = b.hx;
+    out.y = b.hy;
+    out.scale = 0;
+    out.facing = 1;
+    out.wingsUp = false;
+    out.visible = false;
+    return out;
+  }
   const local = ts - b.delay;
   const a = b.phase + b.speed * local;
   let sx = b.cx + Math.cos(a) * b.orx;
@@ -171,6 +191,11 @@ export function weaverPose(
   const x = b.hx + (sx - b.hx) * k;
   const y = b.hy + (sy - b.hy) * k;
   if (backK > 0 && backK < 1) facing = b.hx >= sx ? 1 : -1;
-  const wingsUp = Math.floor((tick + b.flap) / t.flapTicks) % 2 === 0;
-  return { x, y, scale: scale * (0.55 + 0.45 * k), facing, wingsUp, visible: k > 0.02 };
+  out.x = x;
+  out.y = y;
+  out.scale = scale * (0.55 + 0.45 * k);
+  out.facing = facing;
+  out.wingsUp = Math.floor((tick + b.flap) / t.flapTicks) % 2 === 0;
+  out.visible = k > 0.02;
+  return out;
 }

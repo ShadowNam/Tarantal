@@ -13,6 +13,9 @@ import { centroid, drawTicks, type Flock, type FlockParams } from './Flock';
 // Structure, not tuning (D-020): ground birds move in depth (y, the narrow ground lane) at half
 // the speed they move across.
 const DEPTH_SPEED = 0.5;
+/** v1.18 (D-081, review): a bird leaving the field closes this share of the gap to its cruise
+ *  height a tick (capped at its fly speed): structure, not tuning. */
+const LEAVE_CLIMB = 0.08;
 
 function len(x: number, y: number): number {
   return Math.sqrt(x * x + y * y);
@@ -37,6 +40,11 @@ export function moveFlock(
   for (const b of f.members) {
     const m = b.fm;
     if (m === null) continue;
+    // v1.18 (D-081, review): leaving for good: one still on the ground takes wing too.
+    if (f.leavePxPerTick !== undefined && isGrounded(b)) {
+      enter(b, 'flap');
+      m.vy = 0;
+    }
     if (!isGrounded(b)) fly(f, b, p, rng, airMul);
     else {
       b.x += m.vx;
@@ -207,6 +215,15 @@ function fly(
     const climb = Math.max(40 * f.ratio, b.y - m.cruiseY);
     m.climbK = Math.min(0.2, Math.max(0.01, -m.vy / climb));
     b.facing = dir;
+  }
+  if (f.leavePxPerTick !== undefined) {
+    // v1.18 (D-081, review): leaving the field for good: across at the leave speed, up to its
+    // cruise height, and on until it is off the panorama (it never glides down or lands).
+    m.vx = f.dir * f.leavePxPerTick * f.ratio;
+    m.vy = Math.max(-m.fly, Math.min(m.fly, m.cruiseY - b.y)) * LEAVE_CLIMB;
+    b.x += m.vx * airMul(m.vx);
+    b.y = Math.max(f.skyY[0], b.y + m.vy);
+    return;
   }
   if (b.phase === 'flap') {
     // A fountain, not a getaway (GDD §6.1): the climb flattens out at cruise height while the

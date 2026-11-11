@@ -367,15 +367,46 @@ export function withNoBaboons(b: ContentBundle): ContentBundle {
  * v1.8c (D-063) e2e/dev only: the Harvest's previews. `duckSeconds`: a worker struck by a pellet
  * stays down this long (?harvestDuck=600: a screenshot of the duck under a held frame); `rush`:
  * the rush's peak rate from the start (?harvestRush=1: a full field within seconds).
+ * v1.18 (D-081): `phase2`, `phase2Seconds` (below).
  */
 export function withHarvestPreview(
   b: ContentBundle,
-  opts: { readonly duckSeconds?: number; readonly rush?: boolean },
+  opts: {
+    readonly duckSeconds?: number;
+    readonly rush?: boolean;
+    /** v1.18 (D-081): ?harvestPhase2=1 — the hunt starts with Phase 2's banner; with
+     *  ?harvestPhase2Seconds=<s> its clock is that long (e2e: the clock ends it quickly). */
+    readonly phase2?: boolean;
+    readonly phase2Seconds?: number;
+    /** v1.18 (D-081): ?harvestShots=1 — the screenshot spec's moments last: the first raid comes
+     *  at once and its raiders take 12 s down the koppie and dash in slowly (a pan can follow);
+     *  yearlings with a piglet come through
+     *  the small hole every few seconds and squeeze through slowly; the hole stays open. */
+    readonly shots?: boolean;
+  },
 ): ContentBundle {
   const h = b.modes.modes.harvest;
   const peak = h.rush.keyframes.at(-1)?.warthogsPerMin ?? 20;
+  const biomes =
+    opts.shots === true
+      ? b.biomes.map((x) => {
+          const bb = x.baboons;
+          if (x.id !== h.biome || bb?.descent === undefined) return x;
+          return {
+            ...x,
+            baboons: {
+              ...bb,
+              firstAfterSeconds: [0.5, 0.5] as [number, number],
+              // 12 s down: slow enough to pan to, early enough that the dash lands
+              // inside the 30 s rush (huntSeconds).
+              descent: { ...bb.descent, climbSeconds: 12, dashMul: 0.35 },
+            },
+          };
+        })
+      : b.biomes;
   return {
     ...b,
+    biomes,
     modes: {
       ...b.modes,
       modes: {
@@ -386,6 +417,15 @@ export function withHarvestPreview(
             opts.duckSeconds === undefined
               ? h.workers
               : { ...h.workers, duckSeconds: opts.duckSeconds },
+          phase2: {
+            ...h.phase2,
+            ...(opts.phase2 === true ? { direct: true } : {}),
+            ...(opts.phase2Seconds === undefined ? {} : { seconds: opts.phase2Seconds }),
+          },
+          hole:
+            opts.shots === true
+              ? { ...h.hole, youngPerMin: 30, pigletChance: 1, squeezeMul: 0.08, patchAt: 0.98 }
+              : h.hole,
           rush:
             opts.rush === true
               ? {
@@ -470,7 +510,16 @@ export function withNoBrakkie(b: ContentBundle): ContentBundle {
 }
 
 /** v1.12 (D-069): the moments `?brakkiePreview=` brings on quickly (lesson 11). */
-export const BRAKKIE_PREVIEWS = ['fetch', 'bark', 'flush', 'point', 'react'] as const;
+export const BRAKKIE_PREVIEWS = [
+  'fetch',
+  'bark',
+  'flush',
+  'point',
+  'react',
+  'bag',
+  'jag',
+  'jagView',
+] as const;
 export type BrakkiePreview = (typeof BRAKKIE_PREVIEWS)[number];
 
 /**
@@ -506,6 +555,15 @@ export function withBrakkiePreview(
       ...(on('point') ? { point: { ...d.point, seconds: 8 } } : {}),
       ...(on('react')
         ? { react: { ...d.react, seconds: 6, minGapSeconds: 1 }, demoProudSeconds: 4 }
+        : {}),
+      // v1.20 (D-085): `bag` — 3 s in a bird joins his queue beside him (the fetch-sooner e2e);
+      // `jag` — the Jag card reaches every foraging guineafowl on the panorama and he looks
+      // for one every few ticks (the card's e2e and screenshots, lesson 11).
+      ...(on('bag') ? { demoBagSeconds: 3 } : {}),
+      ...(on('jag') ? { jag: { ...d.jag, maxDxPx: 4000, lookSeconds: 0.1 } } : {}),
+      // `jagView` (the screenshots): only birds on screen, so the chase and the pounce are in view.
+      ...(on('jagView')
+        ? { jag: { ...d.jag, maxDxPx: 650, nearMaxDxPx: 650, lookSeconds: 0.1 } }
         : {}),
     },
   };
@@ -673,4 +731,19 @@ export function withAgamaBefore(b: ContentBundle): ContentBundle {
           },
     ),
   };
+}
+
+/** v1.22.1 (D-086): the size editor's fixed seed (the same hunt on every open). */
+export const SIZE_PREVIEW_SEED = 7;
+
+/**
+ * v1.22.1 (D-086) the size editor (`?admin=1&sizes=<area>`, the web admin page): every sized animal
+ * out in view at once — the cameos (all kinds the map has, near the centre), Brakkie out of the
+ * bakkie, the ridge's baboons peeking (up to three) and a raider coming in, the Harvest's rush and
+ * its piglets — and no Reënbui. The hunt is then held still (SIZE_HOLD_TICK).
+ */
+export function withSizePreview(b: ContentBundle): ContentBundle {
+  const shown = withBrakkiePreview(withCameoPreview(b, CAMEO_KINDS, null), []);
+  const baboons = withBaboonRaid(withBaboonPeek(shown, 'long'), 'any');
+  return withNoReenbui(withHarvestPreview(baboons, { rush: true, shots: true }));
 }

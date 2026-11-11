@@ -51,6 +51,31 @@ stay comic. Rules that replace or refine §1 for those four:
    slope and fine ripples.
 6. **Same budgets:** more detail comes from better drawing at the same texture sizes; download
    growth is measured per pass (D-035).
+7. **v1.19 (D-084) richer first-person guns** (the owner: "the guns still look very very
+   primitive, get the graphics up"): wood with fiddleback figure, pale sapwood streaks and pores;
+   blued steel with a darker shadow band, a sky reflection, a crisp specular streak, fine polish
+   lines and broken edge wear; checkering with lit diamonds; domed screws with a glint; the Pomp's
+   grooved fore-end and its slide rails; the Langloop's objective and ocular glass (blue-green with
+   a white catch-light); the Voorlaaier's brass butt plate, guard, ramrod pipes and an engraved
+   patchbox. Same boxes, poses, pivots, clips and opaque bounds (texture memory unchanged). The
+   Twee-Twee's sprite keeps its open sights (its fitted sight shows in the sight picture). The
+   Dubbelloop (first download) packs at 128 colours (`rig.json colours`).
+8. **v1.19 (D-084) Gun Shed side views** (`tools/art/gunCards.ts`, one sheet `shed/guns`, layout
+   `src/game/ui/shedGunSheet.ts`): every gun painted side-on, muzzle right, in a 380 × 140 cell
+   at 2×, readable at phone card size: the Dubbelloop (side-by-side boxlock, engraved silver
+   action, two exposed hammers, two triggers, splinter fore-end, checkered walnut), the Windbuks
+   (slim beech stock, blued compression tube, the break-barrel pivot, hooded front sight), the
+   Kettie (forked branch with bark and knots, red bands bound with twine, a leather pouch and a
+   stone), the Plaas-Pomp (pistol grip, receiver with its ejection port, ventilated rib, tube
+   magazine, grooved slide), the Twee-Twee (sporter stock, small scope with a lens glint, bolt
+   knob, box magazine), the Langloop (raised comb, big scope with an objective bell, muzzle brake,
+   a bipod standing on its feet), the Voorlaaier (full-length stock, octagonal barrel, ramrod in
+   brass pipes, percussion lock with a big hammer, brass patchbox and butt plate) and the
+   Mielie-Masjien (a farm-green hand-cranked mealie gun: a tin hopper of cobs, four barrels in
+   brass bands, the crank, kernels flying). A warm-black ink line keeps each one readable small;
+   a soft shadow under it. Locked guns: the same picture desaturated. Its own asset group
+   (`shed`), fetched when the shed opens and cropped onto each card's canvas: never in the first
+   download or on the GPU during a hunt (88 KB PNG-8).
 
 ## 2. Review of the existing concept art (project files)
 
@@ -199,6 +224,15 @@ shapes; light from the upper left.
   The left-looking peek and stand are the right-looking frames, flipped. It is a 32-colour
   palette PNG, 92 KB; a Kalahari hunt's download (its chunk plus the desert chunk) stays under
   1.5 MB.
+
+  Look round 3 (v1.19, D-084; the owner: "the meerkat needs to get better graphics"): the real
+  meerkat — a slim, pear-shaped upright sentinel (full at the belly, narrow at the chest), the
+  tail lying on the sand behind as the tripod's third leg with its dark tip turned up, little
+  hands held at the chest with drooping wrists and dark claws; dark eye patches ("sunglasses")
+  drawn out toward the nose round a small dark almond eye with a catch-light, a pale brow, small
+  dark crescent ears set low on the sides of the head; a longer, tapering snout with a dark nose;
+  a pale cream face, throat and belly, darker grizzled sides and ragged dark bands across the
+  lower back. Every tail stays inside its cell. Same frame names, cells and anchors; 90 KB.
 
 ## 4. Biomes
 
@@ -595,6 +629,14 @@ moved to the same 128 px size. A crate shows its item's icon, fully opaque on a 
 dark ring: big on the canopy while it falls (74 px radius at the near plane, drawn above the
 scenery so haze never fades it) and on the box's planked front, where the stencil used to be (the
 canopy's canvas patch and the stencil are gone from the art). About 3 KB each (PNG-8); all eight 26 KB, in the first download.
+v1.19 (D-084): the special shells, in the same style and the late group: **Dragon's Breath** — a
+deep red shell with a gold band and a gold flame mark, a tongue of orange-yellow fire licking out
+of its crimp; **Slug** — a blue plastic hull (it reads as a shell at chip size, not grey lead) cut open at the top so the grey lead slug shows, its angled
+ribs and round nose, a speed streak off it.
+v1.20 (D-085): **Jag, Brakkie!** — Brakkie's head in profile looking up keenly to the right (white
+with tan ear and eye patches, black nose, a red collar with a gold tag), one white paw raised in
+front, and a slate-blue guineafowl feather with white spots behind him (the blue keeps it a coloured
+icon at chip size, not cream and grey). Same style, the late group (Standard 128 px, HD 256 px).
 
 
 #### 4.2b Makalani palms (1.9.3, D-056)
@@ -852,6 +894,23 @@ jingle when the fence is whole. The field's music and ambience (D-070) are deliv
 loops in the lazy `oes` group: guitar and marimba in G with mbira, pennywhistle and light hand
 drums, with calm/build/Stampede stems on the common 16-second, 120-bpm grid; wind through dry
 crops, insects and field birds underneath. No silent music slots. Oupa's Harvest lines (`guide.harvest.*`): en/af/de voiced, nl text.
+**v1.18 (D-081): the raid, the small hole, Phase 2.** The baboon sheet gains two ridge-size frames
+of a raider scrambling down the koppie head first (`r_climb_a/b`, the walk tipped 26° down the
+slope; the sheet grows 35 rows); on the veld the raiders run (the raiders' run frames at the far
+plane's size). The mid layer's fence has **the small hole** in the bay left of the gap
+(`HOLE_U` 0.238 = `oes.json harvest.hole.u`): the bottom wire torn and curled up off both posts
+over a dark dug burrow with thrown-out soil; the rows in front of it stay low (as before the
+workers) so it reads. **A second, small sheet** `oes/harvest2` (1024 × 492, drawn at 1 texture px
+per drawn px, no HD twin: ≥ 0.86 texture px per px shown at the animals' true size, and the
+Harvest's HD hunt is the tightest): a warthog's jump (rising with the forelegs tucked, landing
+with them reaching), a warthog and a piglet pushing head-down under the wire (`*_squeeze`), a
+baboon climbing the fence (two steps, upright, the hands on the wire, no shadow) and dropping off
+it, and the hole's patch (a square of new galvanised mesh wired to the bay's posts and a flat
+stone on the burrow, drawn 1:1). Phase 2's baboons borrow the baboon sheet's run, mielie and
+tumble frames. Sounds: no new files — the grunt, squeal and the baboons' "wa-hoo" as each comes
+at the fence, the hammer when the hole is patched, the jingle at Phase 2's end; Phase 2 plays the
+field's Stampede stem. Oupa's Phase 2 lines (`guide.harvest2.*`) are text (en/af/de/nl), not yet
+voiced.
 
 ### 5.5 Reënbui: the storm, the rain and the alate columns (1.13.0, D-067)
 Interim at the D-035 bar, soft weather in gradients and layered tones (no ink on vapour). **One
@@ -918,6 +977,13 @@ down, then up on his hind legs barking, front paws off the ground — the hind f
 blades with a small white chevron over it). The sheet is now **512 × 448** at 1× (HD 1024 × 896;
 0.875 MiB, a unit test caps it); every box refitted to its drawing. BEFORE | AFTER:
 `npm run art:compare-companion` → `docs/art-preview/compare/v117-companion-before-after-*.png`.
+
+**v1.20 (D-085) the Jag card's chase, no new frames.** He sprints with his run cycle; the
+**pounce** is the proud hop's crouch (`proud_a`, 9 ticks) and then the stretched run frame
+(`run_a`) lifted by the view in an arc (up to 46 design px × his scale; his hit shapes stay on the
+ground), landing on the bird. The catch goes home with the carry (the run frames with the bird in
+his mouth). No blood, no struggling bird, no feathers or poof for a catch: the bird is simply
+gone into his mouth.
 
 ### 5.7 Veld cameos (1.17.0, D-075)
 Interim at the D-035 bar, inked Bosveld Comic in daylight; true to each area's wildlife, never shown
@@ -1032,6 +1098,15 @@ Feather bursts (palette-tinted per variant), dust puffs, muzzle flash + smoke, s
 pellet impact puffs on ground/props, Voorlaaier smoke cloud, corn-kernel spray, BZZZT shockwave rings,
 rain/dust/leaf weather particles, heat-haze filter (high tier), lightning screen tint, score pops,
 onomatopoeia bubbles (6–8 variants each, random rotation ±8°).
+v1.19 (D-084) special shells: **Dragon's Breath** throws a cone of fire from the muzzle toward the
+aim — four nested tongues (`#E0461A` outside, `#FF8A1E`, `#FFC93A`, a pale `#FFF3B0` core near the
+muzzle), additive, a ragged front, with sparks (`fx/spark` tinted orange and pale yellow), 0.26 s;
+at most 760 design px long and ~0.32 rad half-angle, a small share of the screen. It is a large
+flash: the shared budget allows 3 a second (with lightning and the rest, §18.3 of the GDD); when
+refused, or with "reduce flashes", the cone is 55 % as long, narrower and dimmer. Birds it bags get
+a singed puff (`fx/puff` tinted `#4A3A30`) and a few embers — no gore, nothing left burning, the
+veld never catches. **The Slug:** a small, tight muzzle flash (0.55 × the gun's own,
+`feel.json juice.slugFlashScale`). Graphics and existing sprites only (no new texture).
 
 ## 8. Prompt pack for further concepting (reference only — not shippable art)
 Use these to explore; then give the winners to a human illustrator. Always append:
@@ -1090,6 +1165,11 @@ calm stem, a marimba line in the build and hand drums in the Stampede, each area
 **Guineafowl voices:** alarm "kek-kek-kek-kaaa", soft contact "kek", flock chatter, take-off wing
 clatter. Best source: record real flocks (common on farms — you own the recordings). Field-recording
 libraries (e.g. xeno-canto) use Creative Commons licences, many **NonCommercial** — check each file.
+
+**Special shells (v1.19, D-084):** Dragon's Breath roars — band-passed noise that swells (500 →
+1,600 Hz) and falls in 0.6 s, a low sawtooth rumble under it; the Slug booms — a deep sine thump
+(110 → 38 Hz) under a short dull crack. Both play over the gun's own shot, as synths in the shells'
+lazy chunk (`sfx/shell_dragon`, `sfx/shell_slug`: a delivered recording under the key would win).
 
 **Oupa (voice actor, EN/AF mix, ~40 barks at launch, all subtitled):**
 "Mooi skoot, my kind!" · "Ag nee man!" · "Jinne, kyk hoe hardloop hulle!" · "Die hele swerm!" ·

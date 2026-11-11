@@ -4494,6 +4494,153 @@ Screenshots: `tests/e2e/art-preview-sizes.spec.ts` (prefix `v117b-sizes`; a test
 `__TM_RULERS__` draws standing guineafowl as yardsticks beside each subject, view only). Golden
 replays re-recorded (hit areas moved; the v3 fixture classic-11 1,243 → 1,198).
 
+### D-081 — v1.18 Die Oes: the raid comes down, a small hole, Phase 2 "Defend the field" (9 Nov 2026)
+
+**The owner's words (8 Nov, on a Harvest screenshot).** "in the harvest the baboons need to climb
+off the mountains and make a dash for the corn field" · "maybe there should be another small hole
+in the fence where pigs can come through, not just one big one" · "there needs to be a bonus level:
+when a certain amount of points get done in the HARVEST map, the map gets into a phase 2 where the
+fence is still intact, and the pigs and monkeys try to jump the fence to get in from all the sides
+and eat, and you just need to try keep them off the field … there should be a countdown of animals
+and a timer, and you need to see if you can kill or keep them away to avoid them eating the field
+before the timer runs out." On 9 Nov he confirmed the Phase 2 defaults: the unlock about half a
+competent player's rushes, ~24 animals in 30 s, piglets scare-only, the three bonuses.
+
+**1. The raid comes down in sight (the rush).** A Harvest raid's climb and travel (D-062: the
+raiders went down behind the ridge and walked in from beside their spot) are now on screen: the
+raiders scramble down the koppie's field side on the troop's layer (a zig-zag of 4 legs ±36 px
+from the seat to the foot at the veld's horizon, 2.4 s; new ridge-size frames `r_climb_a/b`), run
+across the far veld (380 px/s from the foot's u to where the spot's approach starts) and dash in at
+1.6× the raiders' run (run frames). Not targets until the spot's plane — on the koppie they are a
+few px tall, and a far shot on the ridge would put the troop's mothers in the line of fire; at the
+rows the raider rules hold (bagged as before; the mothers' aimed-at rule unchanged).
+`biomes/oes.json → baboons.descent`; pure arithmetic in `descentPose` (no trig), the second raider
+15 % behind. Maps without a `descent` are unchanged (golden replays: only the Harvest's change).
+
+**2. A second, small hole (the rush).** `oes.json harvest.hole` (u 0.238: the fence bay left of the
+gap, ~1,000 px from the nearest worker): yearlings (0.7× an adult; one hit bags one, 2× a
+guineafowl's base, eating 0.7× an adult's share) come through it 6 s into the rush, then every 15 s
+(two a rush), each with a piglet 45 % of the time; in the hole they push through head down at 0.35× their trot (`*_squeeze` frames); the
+workers patch it at 80 % of the rush (`harvestHolePatched`, a hammer, the mesh patch drawn) and
+anyone who came in by it leaves by the gap. The layer art tears the bay's bottom wire over a dug
+burrow and keeps the rows in front of it low (`HOLE_U` = the content's u, a test holds them
+together). The workers' line of fire covers the hole's paths (`harvestLineOfFire.ts`).
+
+**3. Phase 2 — "Defend the field".** The rules and numbers are GDD §12.2.1 and `modes.json →
+harvest.phase2`. Unlock at the fence's close when the score (crop bonus in) ≥ 1850; a 2-s banner
+(no shooting), then 30 s: the fence whole, the hole patched, the workers off to the farmhouse
+(never in the field: no line-of-fire question), the crop as the rush left it. Three bursts of 8
+(0.5, 9.5, 18.5 s ±0.4 s, seeded) from both ends and over the back fence (mid: warthogs jump it,
+piglets squeeze under, baboons climb over and drop), round the near plane's ends; each eats until
+stopped (warthog 1.4, piglet 0.7, baboon 1.6 % a second). A first hit drives a warthog or baboon
+out (2 bag it), a shot landing within 450 px (× plane) of a piglet scares it out, aimed at one
+costs 15; each stopped counts down "Animals left". Ends: all stopped (clear), the clock (time) or
+the crop gone (eaten). Bonuses: 10 × whole crop %, +500 "Field defended!" when the crop didn't
+drop, +750 "All of them!" when all were stopped in time. Animals bagged score as in the rush (× Frenzy).
+**The tally:** the Harvest tally adds "Bonus round: stopped N / 24", the crop at the end, Phase 2's
+crop bonus and, when earned, "Field defended!", "All of them!" or "They ate the lot!"; the local
+best is the hunt's score with Phase 2 in. The HUD (its own lazy chunk) shows "Animals left: N" and
+Phase 2's clock on a plate over the fence bar, the banner and the verdict; Oupa's lines are text
+for now (`guide.harvest2.*`, en/af/de/nl), not voiced.
+
+*Why bursts of 8.* A list of one animal a second let every bot stop all 24 before any reached the
+field (95–99 % of the crop kept): no tension. Three bursts from several sides at once make the
+player choose and pan, so some get in and eat for a few seconds — the owner's "keep them off the
+field". *Why piglets don't count against you:* never targets (D-063), so a shot near one is how
+you turn it.
+
+**Balance.**
+500 seeds per bot (`docs/balance/v1.18-harvest-defence.md`; Dubbelloop).
+
+| bot | input | rush crop saved | rush score p50 | Phase 2 unlocked | crop kept in Phase 2 | stopped of 24 | Phase 2 bonus | eaten |
+|---|---|---|---|---|---|---|---|---|
+| random | pointer | 2.6 % | −35 | 0 % | — | — | — | — |
+| plinker | pointer | 59.5 % | 1,524 | 19 % | 22 % | 22.3 | 666 | 6 % |
+| competent | pointer | 60.3 % | 1,865 | 52 % | 62 % | 24.0 | 1,167 | 0 % |
+| strong | pointer | 63.5 % | 2,067 | 66 % | 75 % | 24.0 | 1,266 | 0 % |
+| plinker | touch | 60.2 % | 1,540 | 24 % | 22 % | 22.3 | 692 | 7 % |
+| competent | touch | 61.1 % | 1,890 | 53 % | 63 % | 24.0 | 1,179 | 0 % |
+| strong | touch | 63.7 % | 2,118 | 69 % | 75 % | 24.0 | 1,268 | 0 % |
+
+The unlock at 1,850 is the competent bot's median rush score: it unlocks about half the time, as
+the owner asked. A strong player unlocks two times in three, not "nearly always": the rush's
+score depends more on what comes in than on skill (the strong bot's median is only ~200 above the
+competent bot's), and a lower bar would give the competent player Phase 2 most of the time. The
+rush itself: 60–61 % of the crop saved for the competent bot (main 66 %): the small hole's two
+yearlings cost ~5 points. Worker-hit gate (< 0.1 a run, plinker and competent): PASS (≤ 0.06).
+
+**Review fixes (10 Nov).** An independent review found Phase 2 did not have the field to itself.
+Decided:
+- *The workers* walk off to the farmhouse in `workers.leaveSeconds` (1.8 s; the schema refuses more
+  than `phase2.bannerSeconds`), so they are gone before the first arrival, and a worker who has set
+  off has no hit shapes (the walk at running pace took ~7 s and they were hittable while the first
+  burst crossed the same stretch).
+- *The rush's spawners stop at the unlock* (to the hunt's end): no new baboon raid; the raid in hand
+  ends cleanly (`holdRaids`: raiders at the field run off, a raid still out of sight — the bark, an
+  unseen climb or walk — is called off and its raiders go back up the ridge, raiders already coming
+  down in sight run straight back out on reaching the field). No new flock or pop-up (pop-ups up
+  duck; the pop-up clock waits). The flocks the rush's end flushed used to land again in the field:
+  now they fly off to the nearer end at `phase2.flockLeavePxPerSec` (1,500) and leave within the
+  banner. *Fly-overs stay* as sky dressing: they eat nothing, cross and leave, and are shot as
+  ever (points as in the rush).
+- *Phase 2 unlocks only with crop > 0* (a rush that lost the whole crop got the banner and then
+  "They ate the lot!" at once).
+- *The tally's "Crop saved"* (and the braai story and share card that read it) is the rush's crop
+  as the fence closed (the view's `rushCrop`), beside the rush's crop bonus; Phase 2's row keeps
+  its end crop. *Phase 2's piglet penalties* count in "Workers and piglets" (the row is the score
+  drop).
+- *No animal is hittable while drawn invisible:* a climbing or dropping baboon borrows a run frame
+  from the baboon sheet until the lazy Phase 2 sheet is in; a back arrival has no hit shapes while
+  it fades in (`phase2.backFadeSeconds` 0.33 s, the view's fade from the same number).
+- The wave schedule is sorted by arrival (the ±0.4-s jitter can swap entries 0.2 s apart); the
+  squeeze, drop and knock-down distances are content (`phase2.squeezePx`, `climb.dropPx`,
+  `knockDownPx`); Oupa's clear-verdict line now reads "Not one of them is left in the rows"
+  (Phase 2's lines are subtitles only: no clip to regenerate).
+
+Balance before → after (500 seeds; `docs/balance/v1.18-harvest-defence.md`): the rush and the
+unlock rates are unchanged to the digit (competent 52 % / 53 %, strong 66 % / 69 %, plinker
+19 % / 24 %, pointer / touch), so `unlockScore` stays 1,850. Phase 2 crop kept: competent
+62 → 60 % (pointer) and 63 → 60 % (touch), strong 75 → 74 % / 75 → 75 %, plinker 22 → 18 % /
+22 → 21 %; score mean −45 to −60 (no more raiders and birds coming in Phase 2: 0.71 → 0.64
+raiders and 42.1 → 40.1 birds a run, competent pointer). Aimed worker hits a run fall (competent
+0.032 → 0.022, strong 0.026 → 0.010): those were Phase 2 shots at the workers walking off.
+Golden replays: only harvest-63 (3,699 → 3,628) and harvest-65 (4,349 → 4,329) change events;
+both still clear all 24. Budgets: first download 3,025.9 → 3,026.3 KB gzip of 3,072 (the tally's
+rush numbers in the hunt scene); the lazy groups and chunks unchanged (`oes` 1,294 KB, `oes-hd`
+1,773 KB, largest `voice-de` 1,499.9 KB); no texture changed (HD memory as above).
+
+**Budgets.** First download (web, gzip) 3,024.1 → 3,025.9 KB of 3,072 (+1.8 KB: the Phase 2 HUD's
+loader, the music stem, the tally's rows, the test hooks; everything else is lazy: Phase 2's HUD
+is its own chunk, its strings in the lazy guide tables, the sim in the lazy systems chunk, the art
+in the Harvest's group). The Harvest's group `oes` 1,294 KB gzip (≤ 1.5 MB), `oes-hd` 1,773 KB
+(≤ 4 MB); the largest lazy chunk is still `voice-de` (1,499.9 KB). `npm run size -- --strict`
+passes. HD texture memory, estimated from the textures that changed: the Phase 2 sheet
+1,024 × 492 at 1× (+1.92 MiB, no HD twin), the baboon sheet's HD twin +70 rows (+0.40 MiB, in
+every hunt with a troop), the mid layer the same size → **the Harvest ~244.9 → ~247.2 MB** of 256;
+the other troop hunts +0.4. Per-view budgets: `harvestMs` ≤ 0.3 ms on the Pixel 7 at 4× throttle
+with Phase 2 at its busiest (`perf.spec`); the sim's step with all 24 in ~0.29 ms
+(`tools/simPerf.test.ts`, budget 1.5).
+
+**CI notes.** The Phase 2 perf case sits next to the rush's in `perf.spec.ts` (Playwright's
+`--shard 1/2 | 2/2` split by order), so the `perf` and `perf2` Pixel 7 jobs each take one more
+~3-min case and stay well under 45 min. `harvest2.spec.ts` (two tests, desktop, Pixel 7, iPhone 14
+landscape) boots Phase 2 straight away with `?harvestPhase2=1&harvestPhase2Seconds=8` and holds
+the sim for every check; its longest wait is bounded by sim ticks. Visual baselines: no
+`visual.spec` screen changes (the Harvest's title and HUD outside Phase 2 are as before).
+
+**Tests.** Unit: the descent (`src/sim/baboons/descent.test.ts`: zig-zag, layers, dash, seeded,
+other maps unchanged), the hole (`src/sim/harvest/hole.test.ts`), Phase 2
+(`src/sim/harvest/phase2.test.ts`: unlock threshold, the test flag, no shooting in the banner,
+wave list determinism, the crossings, the stopping rules, piglet scare and penalty, the end
+conditions, the bonuses), the flags (`devContent.harvestShots.test.ts`), the sheet and its frames
+(`harvest2Sheet.test.ts`, `harvest2Art.test.ts`, `animalDensity.test.ts`), the nothing-floats and
+line-of-fire checks, the music stem, the sim's step with the whole wave list in
+(`tools/simPerf.test.ts`). e2e: `tests/e2e/harvest2.spec.ts` (desktop, Pixel 7, iPhone 14
+landscape: the banner, the HUD clear of the rest, a hit warthog counts down, the clock ends it, the
+tally's lines; the Phase 2 sheet's pixels); `perf.spec`'s Phase 2 case (next to the rush's).
+Screenshots: `tests/e2e/art-preview-harvest2.spec.ts` (prefix `v118-harvest`). Golden replays:
+harvest-63 (competent) and the new harvest-65-strong-touch reach Phase 2 and clear it.
+
 ### D-082 — v1.17c Animal sizes, the audit's fixes (9 Nov 2026)
 
 (D-081 is the v1.18 Harvest build, on its own branch.)
@@ -4593,6 +4740,385 @@ the boxes as numbers); `npm run size -- --strict` OK, lazy chunks ≤ 1,490 KB (
 **Golden replays** re-recorded once: the hen's hit shapes and scare band change one Namibië
 replay (`classic-76-namibie-thu-competent-touch` 3,192 → 3,126, 1,383 → 1,387 events); the other
 47 keep their events.
+
+### D-084 — v1.19 The Gun Shed, meerkats and two special shells (10 Nov 2026)
+
+(D-083 is the fly-over build, on its own branch.)
+
+**Why.** The owner's requests of 8 Nov (night), with a Gun Shed screenshot where every card showed
+the same small dark shape — the first-person sprite, cropped — next to the gun's name: "in the gun
+shed the guns still look very very primitive, get the graphics up" · "also the meerkat needs to
+get better graphics" · "eventually a power-up … a shotgun bullet called DRAGON fire, that spits a
+huge fire out, and possibly especially with the shotgun a long range single shot SLUG".
+
+**1. The Gun Shed's pictures.** A painted side view of every gun, muzzle right, for its card
+(`tools/art/gunCards.ts`; art bible §1.1 rule 8): the Dubbelloop, Windbuks, Kettie, Plaas-Pomp,
+Twee-Twee, Langloop, and the Voorlaaier and Mielie-Masjien (shown on their Power-ups cards). One
+2× sheet `shed/guns` (760 × 560 design px, 88 KB PNG-8) in an asset group of its own, `shed`, which
+no hunt's manifest loads (`groupForBiome`, the queue in `loadFinal`): ShedScene imports a small
+lazy chunk (`ui/shedGunIcons.ts`) that fetches the file through `AssetManifest.loadOnDemand` and
+crops each picture onto the card's own small canvas, as D-035's crop of the idle frame did — the
+sheet is never a texture, never in the first download, never on the GPU in a hunt. Locked guns:
+the same picture desaturated (and dimmed). With no delivery the cards fall back to the idle frame.
+The audit knows the key by its constant; `gun-shed.spec` checks the pixels under each picture.
+
+**2. The first-person guns.** More detail and material at the same sizes (art bible §1.1 rule 7):
+same boxes, poses, pivots, clips and frame counts, every clip's opaque bounds and every atlas
+page size unchanged (texture memory the same). The Twee-Twee's sprite keeps its open sights: its
+fitted sight (iron, peep or scope) shows in the sight picture, so a scope on the sprite would be
+wrong two times in three. The richer art costs bytes: the start gun and the late group's guns now
+pack at 128 colours (`rig.json colours`, a new pack option) — the Dubbelloop's first-download
+atlas 281 → 250 KB, the late guns 600 → 514 KB.
+
+**3. The meerkats.** Look round 3 (art bible §3.5): a slim upright sentinel with the tail as the
+tripod's third leg, dark eye patches, dark crescent ears set low, a pale face and belly, a banded
+grizzled back, hands at the chest. Same frame names, cells, anchors and sheet size (92 → 90 KB).
+
+**4. Two special shells** (`content/powerups.json`, GDD §10.4). Shotgun shells (`needsShotgun`):
+- *Dragon's Breath* (Drakevuur), 4 shells: 2.5× the gun's pellets (at most 30) over 2.4× its
+  pattern (at most 240 px, or the gun's own if wider), and the pellets stop at the mid plane (the
+  flame never meets far or Ver layers, `flameReach`); any pellet on a bird is a hit (one armour or
+  hit off a boss, as a normal hit). The Dubbelloop throws 20 pellets over 168 px, the Pomp 15
+  over 144, the Voorlaaier 30 over its own 300 (uncapped it would have been 60 over 720: a
+  screen-clearer). The cap holds after every multiplier (review): the pattern is
+  min(own × 2.4 × the power-ups' spreadMul, max(own, 240)), so Bush Buckshot (×2.5) stacked with it
+  adds nothing past the cap — before the fix the two threw the flame ~407 px (the Voorlaaier
+  ~727 px), every pellet a hit; now 240 (the Voorlaaier 300). Bush Buckshot keeps working on its
+  own and on every other shot. Birds it bags go down in a singed puff.
+- *The Slug* (Koeëlpatroon), 3 shells: one ball, no spread (hip or not), reaches far and Ver,
+  wind sensitivity 1.2 (a shotgun's 0.4, the .22's 0.6, the Langloop's 0.5), and what it hits is
+  bagged in one: a bird's armour and a boss's hits go at once, a two-hit warthog (or a Phase 2
+  baboon) in the Harvest falls to one (`harvest.shot(…, heavy)`). Other targets as a pellet.
+- Rules: a special shell counts down only on a shotgun's shot (`onShellFired(…, shotgun)`): the
+  Mielie-Masjien fires normally and leaves it loaded. The two never stack: the newer replaces the
+  other (`activate` returns what it replaced; `powerupEnded` for it). Crates (weight 10 each) hold
+  them only when the hunt's gun is a shotgun (`crateSkip`, like D-055's rifle-only Rooikol); the
+  Padstal offers them (3 caps) only in a run whose gun is a shotgun (a run's gun never changes),
+  and a shell bought there waits in its slot while no shotgun is in hand. Daily: as the other
+  power-ups. All in the sim (seeded, recorded): `shotFired` carries `shell`.
+- *What you see and hear* (a lazy chunk, `view/shells/ShellFx.ts`, loaded with the first shell;
+  art bible §7, §10): the cone — four nested additive tongues of fire with sparks, 0.26 s, at most
+  760 px long — is a large flash: it asks the shared flash budget (≤ 3 a second with lightning and
+  the other large flashes) and is drawn 55 % as long and dimmer when refused or with "reduce
+  flashes". The Slug: a small tight muzzle flash (0.55×) and a heavy boom. Synth sounds through
+  `playExtra` (a recording under `sfx/shell_*` would win). Two shell icons in the late group.
+- Test builds: `?crate=dragon_breath|slug` (as before) and `?coneHold=1` (cones stay for a grab);
+  e2e hooks `__TM_SPEND_FLASHES__` (the second's flash budget spent, `FlashLimiter.exhaust`: the
+  next cone must be small on any machine) and `__TM_SHED_SCROLL__` (the Power-ups list).
+- The effects' chunk loads when a shotgun hunt starts or a crate with a shell drops (review: on
+  `powerupStarted` alone, the first shot on a slow network had no cone or sound).
+- Tests (review round): the pattern tests use each gun's real spread (the harness's `quiet()` sets
+  them to 0); the Slug bags a two-hit warthog, a yearling and a Phase 2 baboon in one and reaches a
+  Ver bird; pixel checks for the Power-ups tab's shell icons and crate-gun side views.
+
+**Balance, review round** (`docs/balance/v1.19-shells.md`, after the cap fix): the Pomp per area
+(Classic, 500 seeds per bot) within −1.7 … +1.3 %; stacks in Season hunts (the Karoo, 200 seeds,
+the competent bot, the consumables and the Voorlaaier rental used together): Dragon's Breath +1.6 %
+(Dubbelloop) / −3.4 % (Pomp) against no power-ups, Dragon's Breath + Bush Buckshot −1.1 % / −8.7 %,
+the Voorlaaier with both −6.0 % / −9.1 %, the Slug −0.2 % / +2.4 % — no stack scores more than
+the shells alone; Season Runs (200 runs, 12 hunts): every season's gate passes before and after
+(`synergy`, which buys the shells: herfs 0.93 → 0.93, winter 0.74 → 0.77, spring 0.57 → 0.65,
+summer 0.40 → 0.37).
+
+**Balance** (`docs/balance/v1.19-shells.md`; Classic, 500 seeds per bot, the Dubbelloop, pointer
+and touch, main 412128d3 → branch, mean score): every area within −1.7 … +3.7 % (competent
+−1.2 … +0.7 %, plinker −1.7 … +3.7 %); every gate that passes on main passes (Namibië with touch is
+above the competent band on main too: 4,660 → 4,688). The shells are rare (two crates a hunt, each
+draws from the whole table) and four or three shells long.
+
+**Sizes and texture memory.** First download 3,026 → 2,999.0 KB gzip (the Dubbelloop's atlas at
+128 colours, −30 KB, pays for the new code; the shells' view, the shed's loader and the icons are
+lazy). `npm run size -- --strict` OK on the web, Poki and CrazyGames builds; lazy chunks: late
+1,418.7 KB (the late guns at 128 colours: 589 → 510 KB; at 256 colours the chunk was 1.52 MB, over
+its cap), ver 571.8 KB (the rifles' richer art +39 KB), shed 85.6 KB (new), desert unchanged.
+Texture memory: every gun atlas page keeps its size (no change in any hunt); the shed's sheet is
+never a texture (the shed's small card canvases go with the shed, as before); the cone is
+Graphics; the two shell icons are 128 px (256 px HD twins in late-hd), +0.5 MB in an HD hunt — the
+tightest HD hunt ~245 → ~245.5 MB of 256 (estimated; CI's perf.spec measures). The cone's own cost
+is measured by perf.spec (Pixel 7, 4× throttle, ≤ 0.3 ms per cone frame).
+
+**Golden replays** re-recorded twice: the two crate-table entries change the crate rolls and the
+content hash (49 replays); the caps changed the hash only (every replay kept its score and events).
+
+### D-086 — v1.22.1 Sizes: the owner sets the animals' sizes by eye in the admin page (10 Nov 2026)
+
+(D-083 is PR #127's, D-084 v1.19's, D-085 the v1.20 Brakkie job's.)
+
+**Why.** The owner (10 Nov): "is the animal sizes correct, they still look in the test demo wrong.
+and especially the ostrich that runs past. if we cant fix the sizes, you need to put into the admin
+menu an option that brings the different map with animals, and i can select them and use a button
+to adjust the size to the correct size. then you save it and then we have them correct size."
+Measured, every animal is at true size (D-080, D-082: tools/sizes.ts, ±15 % beside the 0.5 m
+guineafowl); the Karoo's sprinting ostrich (cameos.json `kinds.ostrich.sizeMul` 2.76, mid plane)
+is 2.52 m at its highest stride. His eye says otherwise, so he sets the sizes himself — the same
+loop as the texts (D-076): edit on the device → export → apply to the repo with a tool.
+
+**The Sizes tab** (admin page `?admin=1`, web builds; `src/game/admin/sizes/SizesPanel.ts`, its own
+lazy chunk). Each area — Karoo, Bushveld, Kalahari, Okavango, Namibië, Die Oes — with its animals
+(`src/game/sizes/sizeKnobs.ts`, 42 "knobs": the far and Ver herds per species, the six cameos,
+Namibië's ostrich cock and hen, the baboon and the baboon mother, the Harvest's warthog, piglet and
+workers, Brakkie, the meerkats, the weaver colony and its pygmy falcon, the angry weavers, the 13
+tells and the baobab's flying owl, hornbill and bushbaby): the real size it stands for (m, and what
+is measured), its value in the game now and the height that shows as, the owner's size if he set
+one (Revert), and "Open in game" per area. Then "Use my sizes in the game" (off by default),
+"Download sizes" / "Copy" / "Share", and help: save the file to Dropbox
+`/AI-DEV/Tarantal-Madness/size-edits/` and send it to the developer.
+
+**The size editor** (`?admin=1&sizes=<area>`; `src/game/sizes/SizeEditor.ts`, lazy). The area's
+plain map (Die Oes: the Harvest) starts at once with every sized animal out (`withSizePreview`: the
+cameo previews for every kind, Brakkie out of the bakkie, the ridge's peeks and a raider, the
+Harvest's rush and piglets, no Reënbui; a fixed seed) and holds still at tick 480; the far herds
+stand at rest. The panorama still pans (a finger drags it; on a desktop the edge pan, the keys or a
+mouse drag): HuntScene advances the pan itself and draws the views from that camera while the sim is
+held. The HUD and the gun step aside; the editor's bar sits at the top, or at the bottom when there
+is more room below the animal picked (on a phone it is one row that scrolls sideways). Tap or click
+an animal (the one drawn on top; a small one within 72 design px): it is outlined and named with the
+height it shows as, and a standing guineafowl with a 0.5 m bar stands beside its feet on its own
+plane (the yardstick, `rulerBirds`). −10 % · −2 % · +2 % · +10 % · Reset (to the shipped size), ≥ 64
+design px (and 44 CSS px) each, change it at once: sprites drawn whole are scaled about their feet
+every frame after the views drew (the editor's pass, found by texture key and frame name); the far
+herds (several parts each) and the baobab's residents read `sizeFactor()` in their own views. "Save"
+keeps the sizes on this device (`src/meta/sizeEdits.ts`, key `sizeEdits.v1` in the device-wide
+namespace, like `textEdits.v1`); unsaved changes are asked about before leaving (the bar's ‹ Sizes,
+and the page's beforeunload). A pick list names the area's animals too.
+
+**In the game.** With "Use my sizes in the game" on, boot (`src/meta/sizeApply.ts`) applies each
+saved size as a content override on this device — only where the value is still the edit's
+`from` (a size already applied to the repo is not applied twice). Hit boxes follow the drawing:
+a px hit box set named with the size (the baboons', the Harvest warthogs' and workers') is scaled
+with it; every other one is already × the size in the sim (the cameos', Brakkie's, the ostriches',
+the meerkats'). Some art is drawn at a size and shown 1:1, so a changed content value showed only
+in the hit shapes: the cameos (`CAMEO_SIZE_MUL`), the far herds (`FAUNA_DRAWN_MUL`, new: the sheets
+are drawn at feel.json `fauna.sizeMul`) and the ostrich hen (`OSTRICH_HEN_SCALE`) are now drawn ×
+content ÷ drawn (1 as shipped), so drawing and hit shapes always match. The baobab's residents
+are a code constant (`RESIDENT_TRUE_MUL`): their size is a view factor (no hit shapes). While a size
+is in use every hunt is unranked (no Daily result or streak, no challenge links, as in capture
+mode), and the build line shows `⇲ <n>`. Nothing leaves the device.
+
+**The file and the tool.** `{ version: 1, exportedAt, build: { version, commit }, edits: [{ id,
+area, path, from, to, realM, hitboxes? }] }`, a path being `content/<file>.json#<keys>` (array
+items by id: `tells.species[id=rock_agama].scale`) or `code:<file>#<CONSTANT>.<key>`.
+`npm run sizes:apply -- <file> [--force-rest] [--dry-run]` (`tools/sizes-apply.ts`,
+`tools/sizesApply.ts`) writes each value into its file in place (`tools/jsonNumbers.ts`: layout
+and key order kept) with its px hit boxes × the same change, refuses the whole file when an edit's
+`from` no longer matches (or a value would break its schema's limits; `--force-rest` applies the
+others), skips one already in, and reports a code constant to change by hand (its art is drawn
+from it). It then records the owner's choice in the true-size table: each row of an edited animal
+now outside ±15 % of real goes into `tools/sizes.ts OWNER_SET` with the date and "the owner set
+this by eye …" (how far from real), and leaves it when back within — `tools/sizes.test.ts` holds
+those rows to their record and every other row to ±15 %, so the test passes on purpose rather than
+being loosened for everyone. The art-density tests stay strict (content equals the size the art is
+drawn at): applying an owner's size file is done together with a redraw of the art it touches
+(`npm run art:interim` for that sheet, the drawn-size constant and a re-measure of `MEASURED_ART`)
+in the same change, so no build ships blurry or mis-sized art (supervisor review: the 1.5×
+allowance first tried here was taken out).
+
+**Size.** First download (web) 2,999.7 → 3,002.0 KB gzip (+2.3 KB: the store, the override and its
+path reader, the camera hold, the build-line marker; `npm run size -- --strict` OK). The tab (2.8
+KB), the editor (5.0 KB) and the knobs (`sizeWork`, 2.8 KB) are lazy chunks; Poki and CrazyGames
+builds drop the store and the editor (the raw `VITE_PLATFORM` flag), as with the texts: Poki 2,991.6
+KB, CrazyGames 2,991.7 KB, all OK under `npm run size -- --strict`.
+
+**Tests.** Unit: the store (device namespace, a malformed store), the override (values, hit boxes,
+array items, stale and code edits), the size paths, the knobs against the true-size table (every
+animal is a knob, metres within 1 %, sprites found by texture and frame), the working factors and
+export, the apply tool (in place, refusals, schema limits, code constants, OWNER_SET in and out),
+the build line. E2e `tests/e2e/admin-sizes.spec.ts` (desktop, Pixel 7, iPhone 14 landscape): the
+tab, Open in game (Karoo), tap the ostrich, +10 % → its box 10 % taller about the same feet and its
+art's top on the canvas ~10 % higher above its feet, Save, reload, back, the toggle, the export,
+⇲ 1 in the game. Screenshots: `docs/art-preview/compare/sizes-admin-*.png`
+(`tests/e2e/art-preview-sizes-admin.spec.ts`, ART_PREVIEW=1).
+
+### D-085 — v1.20 Brakkie fetches sooner, and the "Jag, Brakkie!" card (10 Nov 2026)
+
+**Why.** The owner, 10 Nov (afternoon): "i think the dog needs to have 2 things. firstly if he is
+around he can go collect the shot down guineafowls, or if u have a joker card or so, he can go and
+hunt and catch some guineafowls that are on the ground which help you with your points etc". Asked
+to choose, he picked (1) "Fetch sooner" and (2) "a power-up card from crates and the Padstal".
+
+**1. Fetch sooner.** v1.17's quiet rule (D-079: he ran out only after 6 s without a shot, a sight
+or fire held) is **replaced by a short after-the-bag delay**: he runs out `fetch.delaySeconds`
+(0.9 → **1.5 s**) after a bird falls, shooting or not; `fetch.quietSeconds` is gone; the queue holds
+**3** (`queueMax` 2 → 3). Unchanged: he goes only to a spot `clearPx` from every live bird, along a
+clear path, never into the line of fire; −25 for a shot aimed at him; the Bring streak breaks for
+a shot aimed within `clear.aimPx` while he carries (Bring and Goeie hond: see *The owner's balance
+decision* below). The whistle sends
+him for any queued bird at once (before its delay). He stays low on the near plane and goes onto
+the mid plane only to fetch, as before. *Review (10 Nov):* the spot check alone could send him
+~1,300 px past a live near flock while the player fired, so a fetch on his own plane also needs a
+clear way (`pathClear`), and on the near plane no live mid-ground bird over his way on screen
+(`runClear`: pellets at a bird low on its ground line fall on whatever runs under it); a run out
+that meets something being aimed at is given up (the bird goes back to the queue) and a carry home
+takes the clear end. Stray hits a hunt, main → branch (60 hunts per area): Bushveld 0.150 → 0.117,
+Kalahari 0.117 → 0.100, Karoo 0.133 → 0.117, Namibië 0.050 → 0.017, Okavango 0.100 → 0.067; ticks
+in front of a flock (on screen within 150 px across of a live mid bird) fall in every area (e.g.
+Karoo 303 → 270, Okavango 373 → 204); docs/balance/v1.20-jag.md. A first-time hint, once per save (`SaveData.notices`
+`brakkieFetchHint`), on his first fetch: "Brakkie fetches your birds by himself. Press F to whistle
+him out at once!" (on touch: "Tap the whistle…"), en/af/de/nl.
+
+**2. The card** — `brakkie_jag`, "Hunt, Brakkie!" / "Jag, Brakkie!" / "Fang, Brakkie!" /
+"Jaag, Brakkie!" (renameable in Texts & voices), `powerups.json` (`effect.brakkieJag.maxCatches`
+3, `durationMs` 10 000, `padstalPrice` 3, `needsBrakkie`), crate weight 10.
+- *Where:* crates (Classic, the Daily, bonus maps) only in hunts where Brakkie comes along (D-069's
+  modes and areas; never the Harvest, the Skietbaan, boss hunts or Oupa se Les), and only while he
+  can take it (not bolted from a hit, no wide-spread crate gun out): otherwise the crate rolls
+  again without it (`crates` stream) — at once, the tick he becomes unable, so the crate's icon
+  shows what it will give (`crateRerolled`; the open-time check stays as a backstop). He *can*
+  take it while he is away at the bakkie after a delivery (or still on his way in at the start):
+  the card's clock holds until he is out hunting. The Padstal offers it in every Season Run; a bought card waits
+  in its slot in a hunt he isn't out in (as a special shell waits for a shotgun, D-084). Daily: the
+  same table for everyone.
+- *What:* he sprints (`jag.sprintPx` 1 250 px/s) at a guineafowl (`jag.creatures`: the three
+  tarentaal) **walking in a foraging flock** on the mid ground within `jag.maxDxPx` **1 400**
+  screen px of the view's centre or on the near plane within `jag.nearMaxDxPx` **650** (in view, so
+  the player sees the catch and gets the wing shots) — never a bird in the air, another species
+  or a penalty animal (cross-checked in `crossRefs.ts`) — pounces from `pouncePx` 110 (a crouch and a
+  leap, `pounceSeconds` 0.45) and, if it is still on the ground within `reachPx` 170, has it: a bag
+  of that bird (`targetBagged` with `byDog`, no shot: its normal score × Frenzy × Stampede, no
+  feathers, no poof, no struggle — simply caught). The rest of its flock reacts as to a threat:
+  three threats from the catch (`jag.alarmThreats`), 0.35 s apart (`alarmEverySeconds`), as the
+  bark's — alert → run → flush (wing shots). He
+  carries it home at his sprint like a fetch: Bring on delivery, and catches count toward
+  Goeie hond. Up to 3 catches.
+- *The clock:* the 10 s count **only his hunting time** (looking round, crossing out for a bird,
+  the chase, the pounce); it holds while he fetches a shot bird, carries, or is at the bakkie. In
+  bot hunts the first version (clock always running, 700 px reach) caught 0.14 birds a card: the
+  clock ran down while he fetched, and the bots had spooked the flocks near the view.
+- *Ends early:* any hit on him ends it (aimed at him: −25 as ever; a stray pellet: the yelp and
+  bolt), and a wide-spread crate gun coming out — whatever he is doing (review: it ended only
+  while he stood, so a card could freeze while he hunted or was away). Deterministic on his
+  stream `dog`.
+- *HUD and voice:* the chip shows its icon, the seconds and the catches ("7 s · 1/3"); Oupa says
+  "Jag, Brakkie, jag!" when it starts and "He's got one! Good dog, Brakkie!" for each catch —
+  text-only for now ("voices later": interim clips put the German pack over its 1.5 MB budget).
+- *Art:* a new icon (Brakkie's head with a raised paw, a red collar, a blue guineafowl feather);
+  the pounce reuses his frames (the proud hop's crouch, then a stretched run frame lifted in an
+  arc by the view, up to 46 px): no new dog frames, no new texture in the hunt. In the pounce he
+  is drawn in his layer's overlay, above its birds (otherwise in its fixtures, below them), so the
+  bird he leaps on doesn't hide him.
+
+**Balance — held for the owner** (docs/balance/v1.20-jag.md; 250 seeds per bot, five areas,
+pointer and touch; after the review's fixes, the card's crate weight 0 as the baseline): the card's
+own share −1.7 % … +2.0 % (mean +0.2 %); fetch sooner +1.4 % … +12.3 % (mean +7.1 %) against main.
+First sweep: the card itself −0.5 % to +1.2 %; worth per card +77 (competent) / +172 (plinker) against Blitslaai's
++115 / −20. Fetch sooner raises the mean by +2–9 % (competent) and +0.5–15 % (plinker): about five
+more deliveries a hunt and longer Bring streaks (+130 points a hunt, Bring 28 → 108, Goeie hond
+5 → 53 for the plinker). That is above the brief's "≤ ~5 % per area", but Bring +15 and Goeie
+hond +30 stayed as the brief asked, and the question went to the owner.
+
+**The owner's balance decision (10 Nov, chat; review 2).** Asked how much Brakkie should help the
+score, he chose **"Keep it near +5 %"**: "Tune it down so scores stay comparable with before (e.g.
+Bring +10 instead of +15, the +30 streak every 4th): he still fetches much more often and the card
+still pays, but Daily and best scores don't jump." Review 2 first fixed fetch sooner itself: in a
+real hunt he ran out only once the shooting stopped (the e2e measured 271 ticks, not ~90) — the
+near-plane run check counted static mid-layer targets (a tell animal, a secret's part) as birds
+over his way, and a missed shot's head tilt held him; now only live mid birds count
+(`midBirdNear`) and a ready bird cuts a reaction short. Tuned on that sim (250 seeds per bot, five
+areas × pointer/touch, the card in the crate pool): the owner's example (Bring +10, every 4th)
+still left +6–8 %, because he delivers ~8× as many birds and Bring is × Frenzy; without the
+bonuses the rise is ~2 %. **Shipped: Bring! +4 a delivery, Goeie hond! +20 every 5th delivery in a
+row** (`bring` 15 → 4, `streakEvery` 3 → 5, `streakPoints` 30 → 20): −2.2 % … +5.2 % against main
+(mean +2.4 %), every case ≤ +5 % but Kalahari pointer, plinker, +5.2 % (inside the noise of 250
+seeds). The card still pays: each catch its bag score (~14 on the mid plane × Frenzy) + Bring.
+
+**Sizes.** First download 2,999.7 → 2,998.6 KB gz (after main's Sizes editor, D-086: main 3,002.0 → this branch 3,001.0; Poki 2,991.9, CrazyGames 2,992.0, Android 2,991.9, all `--strict` OK): the card's code costs ~1 KB, and main.ts no
+longer carries the e2e/dev content tweaks (`devContent.ts`) and the admin's Play setup — they are
+lazy chunks that boot() awaits only when test hooks or the admin's Play ask for them. The icon is
+in the late group (Standard 128 px, HD 256 px: +0.25 MB HD texture memory, tightest hunt
+~245.5 → ~245.8 MB of 256). Voice packs unchanged.
+
+**Tests.** Unit: the fetch delay while shooting, the queue of 3, the clear rules, the whistle;
+the card (only foraging ground guineafowl, ≤ maxCatches, the clock, a bird that takes off, the mid
+plane, −25 and the end on a hit, time out, canJag, determinism) and a whole hunt (`brakkieJag.test.ts`:
+a crate gives it, the score rises by exactly the catch + Bring, no crate card without him, a
+Padstal card waits in its slot, the Padstal offers it). e2e `brakkie-jag.spec.ts` (test flags
+`?brakkiePreview=bag|jag`), the Power-ups tab's twelve cards and the icon's pixels, a perf.spec
+case (hunting at 4× throttle on Pixel 7). Golden replays re-recorded: he fetches more, and the
+crate table gained an entry.
+
+### D-087 — v1.22.2 The test hook's probes out of the measured frame; HD memory read live (10 Nov 2026)
+
+(D-083 is PR #127's, D-085 the v1.20 Brakkie job's.)
+
+**Why.** Two intermittent CI failures on main. (1) The Pixel 7 perf job's Christmas and New Year
+hunts on the Okavango (`perf: a Christmas in the sun hunt…`, `perf: a New Year countdown hunt…`)
+went over the 16.67 ms CPU budget at 4× throttle on 2 of 3 runs: Christmas 17.25 / 17.37 ms, New
+Year 18.51 / 17.73 ms (jobs 130011732496, 129903498851; the same tests read 13.4–13.7 ms on PR
+#130's run — CI runners differ by ~30 %). (2) `HD texture memory, title → hunt: namibie` (the
+cameo sheet "missing") and `…a Reënbui hunt on its heaviest map (okavango)` (Brakkie's sheet
+"missing", `brakkie undefined`) failed on PR #130's first run and on PR #133.
+
+**Measured (1).** A CDP CPU profile of main's Christmas hunt at 4× throttle on the
+pixel7-landscape project (a sourcemapped copy of the test build): of HuntScene.update's 2.8 s
+over ~360 frames, the test hook's texture sample (`sampleTextures`: on-screen boxes 101 ms, the
+far-herd probe 36, texture bytes 31, the largest textures 30, the HD count 10) took 221 ms and the
+crates' `drawn` check (`WorldView.crateDrawn` → `countShowing`, a walk of the whole display list per
+crate per frame) 175 ms. performance.now buckets (a local instrumented build) put the rest of the
+hook block — the on-screen spots of birds, flocks, secrets and crates, the special day's things and
+hats, the fruit, the crosshair's extent and the gun's bounds — at 0.44–0.63 ms a frame more. None
+of it is game work: `cpuFrameMs` (Phaser pre-step → post-render) counted it because it ran inside
+the frame. Muting every shape object's draw changed nothing (13.6 vs 13.6 ms), and the special
+days' own views stay cheap (Christmas 0.06, New Year 0.18 ms a frame), so no game-side cut was made.
+
+**Root cause (2).** The same texture sample ran only on frames whose sim tick was a multiple of 30.
+With several ticks a frame (software GL: ~15 at 4×; a few on CI's HD runs) a frame's tick can skip
+the multiples of 30 for long stretches — for good with an even step and an odd offset — so
+`textureTop`, `textureBytes`, `cameoTexture` and `brakkieTexture` could date from before the cameo
+or Brakkie sheet loaded, or from before the Karoo title's HD layers were purged. Then either the
+sample read 4 s later was stale (namibie in 18.9 s: 212.6 MB instead of ~230, no cameo sheet), or
+the spec's bounded wait for "two refreshes and no other area's HD layers" never saw a fresh
+`textureTop`, ran out after 90 s (`.catch(() => undefined)`), and the sample was taken on the tally
+of the 60 s hunt, after `finish()` had released Brakkie's and the cameos' sheets (the 1.4–1.6 min
+runs). The purge itself (refreshHd every 30 rendered frames, `purgeRetired`) was not at fault.
+
+**Decision.**
+- Hook entries that cost real work are worked out when a spec reads them (`src/game/lazyHook.ts`;
+  the hook exists only in test builds). A read happens between frames (a `page.evaluate`, a
+  `waitForFunction` poll, a page rAF callback), when the views hold what the last frame drew, so it
+  gets what the frame would have stored. `defineLazy` (read afresh on every read, title and tally
+  too): `textureBytes`, `textureTop`, `brakkieTexture`, `cameoTexture`, `gunAtlases`, `fauna`,
+  `graphics.hdTextures`, `graphics.bounds`. `LazyEntries` (at most once per hunt frame, from that
+  frame's state and views; a write — the resets at a hunt's start — reads back until the next
+  frame; when the hunt scene shuts down they keep the last frame's values, or their initial value
+  if the views are already gone): `verBirds`, `farBirds`, `targetBirds`, `flockSpots`,
+  `secretSpots`, `crateSpots` (with `drawn`), `specialBirds`, `harvestFlyovers`, `potjie`,
+  `hdProps`, `meerkats`, `cans`, `farCans`, `nuts`, `spook`, `fruit`, `treeLife`, `namibLife`,
+  `harvest`, `crosshair`, `gunRect`. The tally's and the shed's own writes of the texture entries
+  (the same texture manager) are gone. Cheap scalars, the zoom view (read by the frame counters) and
+  the views' own hook objects stay stored in the frame. Nothing the game draws or does changes; the
+  budget (16.67 ms) and the 4× throttle stay.
+- The HD memory specs (`perf.spec.ts`: the five areas, the Harvest, Christmas, New Year, Reënbui)
+  wait through one helper, `waitHdSettled`, which fails with what it saw (refreshes, scene, over,
+  the other areas' HD layers) when its 90 s run out, instead of sampling later; their hunts run
+  240 s (longer than every bounded wait) and each asserts the hunt is still running when sampled.
+  The assertions (≤ 256 MB, the sheet present, no other area's HD layers) are unchanged.
+
+**Results** (pixel7-landscape, `--workers=1`, this machine; main's build and this one interleaved,
+four runs each, CPU ms a frame at 4×):
+
+| Hunt | main | this change | |
+| --- | --- | --- | --- |
+| Christmas in the sun (Okavango, medium tier) | 15.12 (15.00, 15.28, 15.19, 15.02) | 14.07 (14.51, 14.32, 13.99, 13.46) | −1.05 |
+| New Year, fireworks at their most (Okavango, medium) | 15.03 (15.42, 15.02, 14.93, 14.76) | 13.39 (13.40, 13.63, 13.08, 13.43) | −1.64 |
+| Namibië mirage and angry weavers (low tier) | 17.60 (17.87, 17.79, 17.58, 17.18: all over) | 15.66 (15.44, 15.90, 15.83, 15.48) | −1.94 |
+
+The texture sample and the crates' check alone (an earlier step, three runs each) took Christmas
+from 15.75 to 14.84 and New Year from 15.34 to 14.38. CI's runners are ~15–25 % slower than this
+machine on these hunts and vary by ~30 % between runs, so the cut is ~1–2.3 ms there; a run as
+slow as the worst failing one (New Year 18.51 ms) would read ~16.5 ms. The HD memory specs read
+the same memory as before (namibie 230.8 MB, Reënbui 245.0 MB with Brakkie's sheet, Christmas
+240.3, New Year 241.5) and now settle in 12–25 s.
+
+**Specs re-run** (locally, `--workers=1 --retries=0`). All of `perf.spec.ts` on pixel7-landscape
+(29 passed: every 4× perf hunt, the nine HD memory tests, the braai tally's). Every spec that reads
+a changed entry (43 files, pixel7-landscape): all pass but `harvest.spec.ts` "from the title…",
+which fails the same way on main's build here (the Harvest's music and ambience not yet in
+`assets.recorded`; untouched by this change). Desktop Chromium, 19 of those files (the crates,
+gun look, graphics, the three special-day specs, tells, far animals, shells, power-ups, Karoo,
+Harvest, meerkats, makalani, potjie, braai, flock, visual): all pass but two `visual.spec.ts`
+screens (title, the held hunt), which differ from the CI baselines by the same pixels on main's
+build here (this machine's rendering). Unit tests:
+`lazyHook.test.ts` (read on demand, once per frame, freeze, a view gone at freeze, writes).
 
 ### D-083 — v1.17d Fly-over birds at true size (9 Nov 2026)
 

@@ -27,7 +27,7 @@ import type { AudioDirector } from '../audio/AudioDirector';
 import { designSize } from '../layout';
 import { setFootOrigin } from '../view/footOrigin';
 import type { ParallaxView } from '../view/ParallaxView';
-import { crossEase, dogFrame, wagFrame } from './brakkieAnim';
+import { crossEase, dogFrame, POUNCE_CROUCH_TICKS, wagFrame } from './brakkieAnim';
 import { BRAKKIE_SHEET, BRAKKIE_SOUNDS } from './brakkieKeys';
 import {
   MOUTH,
@@ -217,7 +217,19 @@ export interface BrakkieHook {
   goodPoints: number;
   reactions: number;
   whistles: number;
+  /** v1.20 (D-085) the Jag card: its catches so far and cap (null: not running), every catch this
+   *  hunt, and how high the pounce's leap lifts him now (design px on screen, 0 on the ground). */
+  jag: { catches: number; maxCatches: number } | null;
+  catches: number;
+  lift: number;
+  /** The sim's ticks: the last bird queued and the last fetch begun; his catches' points. */
+  queuedTick: number | null;
+  fetchTick: number | null;
+  catchPoints: number;
 }
+
+/** v1.20 (D-085): the pounce's leap at its top (design px at his scale 1). */
+const POUNCE_LIFT_PX = 46;
 
 /** v1.17 (D-079): the command words shown over him (the lazy guide tables, from the scene: ''
  *  while they are not in yet — then no word). */
@@ -261,6 +273,8 @@ export class BrakkieView {
   private wordText: string | null = null;
   private wordUntil = -1;
   private layerId: string | null = null;
+  /** The container he is in now (his layer's fixtures, or its overlay in a pounce). */
+  private box: Phaser.GameObjects.Container | null = null;
   private k = 1;
   private sheet: 'standard' | 'hd' | null = null;
   private waitFrames = 0;
@@ -268,6 +282,8 @@ export class BrakkieView {
   private frame: BrakkieFrame | null = null;
   private shown = false;
   private birdShown = false;
+  /** v1.20 (D-085): the pounce's lift this frame (design px on his layer). */
+  private lift = 0;
   private flip = false;
   private x = NaN;
   private y = NaN;
@@ -309,6 +325,12 @@ export class BrakkieView {
     goodPoints: 0,
     reactions: 0,
     whistles: 0,
+    jag: null,
+    catches: 0,
+    lift: 0,
+    queuedTick: null,
+    fetchTick: null,
+    catchPoints: 0,
   };
 
   constructor(private readonly s: BrakkieViewSetup) {
@@ -380,14 +402,20 @@ export class BrakkieView {
     }
   }
 
-  /** Moves both images into a layer's fixtures (above its props, below its birds). */
-  private moveTo(layerId: string): boolean {
-    if (layerId === this.layerId) return true;
+  /**
+   * Moves his images into a layer: its fixtures (above its props, below its birds), or, with
+   * `front` (v1.20, D-085: the pounce), its overlay above the birds, so the bird he leaps on
+   * doesn't hide him. A layer without birds has no overlay: the fixtures then.
+   */
+  private moveTo(layerId: string, front: boolean): boolean {
     const layer = this.s.parallax.layer(layerId);
     if (layer === undefined) return false;
-    layer.fixtures.add(this.img);
-    layer.fixtures.add(this.bird);
-    layer.fixtures.add(this.word);
+    const box = front && layer.overlay !== null ? layer.overlay : layer.fixtures;
+    if (layerId === this.layerId && box === this.box) return true;
+    box.add(this.img);
+    box.add(this.bird);
+    box.add(this.word);
+    this.box = box;
     this.layerId = layerId;
     const tint = this.s.parallax.layerTint(layerId);
     if (tint !== this.tint) {
@@ -450,7 +478,15 @@ export class BrakkieView {
         scale = fs + (ts - fs) * p;
       }
     }
-    if (!this.moveTo(layerId)) {
+    // v1.20 (D-085): the pounce's leap: up in an arc after the crouch, down on the bird.
+    let lift = 0;
+    if (d.pose === 'pounce' && d.t >= POUNCE_CROUCH_TICKS && d.dur > POUNCE_CROUCH_TICKS) {
+      const p = Math.min(1, (d.t - POUNCE_CROUCH_TICKS) / (d.dur - POUNCE_CROUCH_TICKS));
+      lift = Math.sin(Math.PI * p) * POUNCE_LIFT_PX * scale;
+      y -= lift;
+    }
+    this.lift = lift;
+    if (!this.moveTo(layerId, d.pose === 'pounce')) {
       this.hide();
       this.lastMs = this.s.now() - t0;
       return;
@@ -627,6 +663,12 @@ export class BrakkieView {
     h.goodPoints = d.goodPoints;
     h.reactions = d.reactions;
     h.whistles = d.whistles;
+    h.jag = d.jag === null ? null : { catches: d.jag.catches, maxCatches: d.jag.maxCatches };
+    h.catches = d.catches;
+    h.lift = Math.round(this.lift);
+    h.queuedTick = d.queuedTick;
+    h.fetchTick = d.fetchTick;
+    h.catchPoints = d.catchPoints;
     h.word = this.word.visible ? this.wordText : null;
     const ml = this.markerLayer === null ? undefined : this.s.parallax.layer(this.markerLayer);
     h.marker =
@@ -745,7 +787,7 @@ export function drawWhistleButton(
   g.lineStyle(3, ink, 1).strokeCircle(cx + 18, cy - 12, 5);
 }
 
-/** The pop-up of a bonus: Brakkie's ("Bring! +15", "Goeie hond! +30", "Mooi punt! +20", the word
+/** The pop-up of a bonus: Brakkie's ("Bring! +4", "Goeie hond! +20", "Mooi punt! +20", the word
  *  from the lazy guide tables) or the points alone (any other bonus, or before the tables are in);
  *  Brakkie's go to the e2e hook's log. */
 export function popText(

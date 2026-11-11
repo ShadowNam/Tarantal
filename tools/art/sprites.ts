@@ -1300,6 +1300,109 @@ function puRooikol(p: SpriteCtx): string {
   );
 }
 
+/** v1.19 (D-084) Dragon's Breath icon: a deep red shell with a gold head, a gold band and a
+ *  flame mark on its side, a tongue of fire licking out of its open crimp. */
+function puDragonBreath(p: SpriteCtx): string {
+  const red = tone('#A8161A', 0.3, 0.32);
+  const gold = tone('#D7A93A', 0.3, 0.35);
+  return g(
+    { transform: 'translate(2 9) scale(0.64) rotate(-14)' },
+    // The flame out of the crimp (behind the shell's mouth).
+    inked(
+      'M-12 -22Q-20 -38 -8 -50Q-10 -40 -2 -36Q0 -52 12 -58Q6 -44 14 -36Q20 -42 18 -30Q16 -22 10 -22Z',
+      '#F07A1E',
+      p.ink,
+      2.2,
+    ),
+    flat('M-6 -24Q-10 -36 -2 -44Q-2 -36 4 -32Q6 -42 10 -46Q8 -36 12 -28Q10 -24 6 -24Z', '#FFC93A'),
+    flat('M-1 -25Q-2 -31 2 -35Q3 -30 6 -27Z', '#FFF3B0'),
+    // Shell body, the gold band and the flame mark.
+    inked('M-13 -24L13 -24L13 16L-13 16Z', red.fill, p.ink, 2.6),
+    flat('M5 -22L11 -22L11 16L5 16Z', red.dark),
+    flat('M-10 -21L-7 -21L-7 14L-10 14Z', red.light),
+    inked('M-13 -14L13 -14L13 -9L-13 -9Z', gold.fill, p.ink, 1.6),
+    inked('M0 10Q-8 4 -4 -2Q-3 2 0 2Q-1 -4 3 -7Q2 -1 6 2Q8 6 0 10Z', '#FFB12E', p.ink, 1.4),
+    // The brass head and its rim.
+    inked('M-14 16L14 16L14 28L-14 28Z', gold.fill, p.ink, 2.6),
+    flat('M-11 18L-8 18L-8 26L-11 26Z', gold.light),
+    line('M-14 24L14 24', { ink: gold.dark, w: 1.6 }),
+  );
+}
+
+/** v1.19 (D-084) Slug icon: a blue plastic shell cut away at the top so the heavy grey lead slug shows,
+ *  its rifled ribs and hollow base, a speed streak behind it. */
+function puSlug(p: SpriteCtx): string {
+  const hull = tone('#2B78C4', 0.3, 0.32);
+  const lead = tone('#7E858C', 0.35, 0.35);
+  const gold = tone('#D7A93A', 0.3, 0.35);
+  return g(
+    { transform: 'translate(3 8) scale(0.66) rotate(-14)' },
+    // A speed streak off the nose.
+    line('M-4 -54L-4 -44M4 -56L4 -46', { ink: '#D9D2C2', w: 2.4 }),
+    // The slug: a rounded nose with angled ribs, sitting in the open hull.
+    inked('M-11 -14L-11 -30Q-11 -44 0 -44Q11 -44 11 -30L11 -14Z', lead.fill, p.ink, 2.6),
+    flat('M-8 -30Q-8 -40 -2 -41Q-6 -36 -6 -28Z', lead.light),
+    line('M-11 -26L-4 -32M-11 -20L2 -32M-6 -15L8 -29M2 -14L11 -23', { ink: lead.dark, w: 1.6 }),
+    // The hull (cut open at the top) and its brass head.
+    inked('M-13 -16L13 -16L13 16L-13 16Z', hull.fill, p.ink, 2.6),
+    flat('M5 -14L11 -14L11 16L5 16Z', hull.dark),
+    flat('M-10 -13L-7 -13L-7 14L-10 14Z', hull.light),
+    line('M-13 -16L13 -16', { ink: p.ink, w: 2.6 }),
+    inked('M-14 16L14 16L14 28L-14 28Z', gold.fill, p.ink, 2.6),
+    flat('M-11 18L-8 18L-8 26L-11 26Z', gold.light),
+    line('M-14 24L14 24', { ink: gold.dark, w: 1.6 }),
+  );
+}
+
+/** v1.20 (D-085) Jag, Brakkie! icon: Brakkie's head (a white Jack Russell with tan ear and eye
+ *  patches, a black nose, a red collar) looking up keenly to the right, one white paw raised in
+ *  front, and a spotted guineafowl feather behind him: "go get them". */
+function puBrakkieJag(p: SpriteCtx): string {
+  const white = tone('#F4EFE4', 0.2, 0.12);
+  const tan = tone('#C9823F', 0.3, 0.3);
+  const red = tone('#C8302A', 0.3, 0.3);
+  const grey = tone('#2F5A8E', 0.3, 0.3);
+  return g(
+    { transform: 'translate(0 0)' },
+    // The guineafowl feather behind his head: slate blue with white spots.
+    inked('M-24 20Q-30 -6 -14 -27Q-12 -10 -18 18Z', grey.fill, p.ink, 2),
+    flat(ellipseD(-21, -6, 1.6, 1.6), '#FFFFFF'),
+    flat(ellipseD(-18, -14, 1.4, 1.4), '#FFFFFF'),
+    flat(ellipseD(-22, 4, 1.6, 1.6), '#FFFFFF'),
+    flat(ellipseD(-19, 11, 1.4, 1.4), '#FFFFFF'),
+    // Neck and chest (white), then the red collar.
+    inked('M-12 27Q-14 12 -6 4L12 4Q18 14 16 27Z', white.fill, p.ink, 2.6),
+    flat('M8 8Q14 16 13 26L10 26Q11 16 5 8Z', white.dark),
+    inked('M-9 6Q2 11 15 6L16 11Q2 16 -10 11Z', red.fill, p.ink, 2),
+    inked(ellipseD(3, 14, 2.6, 2.6), '#E9C14A', p.ink, 1.4),
+    // The head: a broad skull, a muzzle out to the right, the tan patch over his eye and ear.
+    inked(
+      'M-12 2Q-16 -18 -2 -24Q12 -27 18 -16L26 -12Q29 -9 26 -6L16 -2Q6 4 -4 4Q-10 4 -12 2Z',
+      white.fill,
+      p.ink,
+      2.6,
+    ),
+    flat('M-8 -18Q-2 -24 8 -22Q6 -14 -2 -10Q-8 -12 -8 -18Z', tan.fill),
+    // The folded ear (tan) flopping forward at the top of his head.
+    inked('M-10 -20Q-14 -32 -2 -30Q4 -26 0 -20Z', tan.fill, p.ink, 2),
+    flat('M-8 -22Q-10 -29 -3 -28Q0 -25 -2 -22Z', tan.dark),
+    // Eye, nose, mouth.
+    inked(ellipseD(6, -15, 2.4, 2.6), '#2A1A10', p.ink, 1.2),
+    flat(ellipseD(6.8, -16, 0.8, 0.9), '#FFFFFF'),
+    inked(ellipseD(26, -10, 3, 2.4), '#1A1A1A', p.ink, 1.2),
+    line('M24 -5Q19 -3 15 -4', { ink: p.ink, w: 1.6 }),
+    // The raised front paw (white with a tan mark), toes pointing forward.
+    inked(
+      'M4 27Q2 20 10 16L20 14Q26 14 26 19Q26 23 20 23L14 24Q12 26 12 27Z',
+      white.fill,
+      p.ink,
+      2.4,
+    ),
+    line('M20 15.5L21 22M23 15.5L24 21.5', { ink: white.dark, w: 1.4 }),
+    flat('M6 25Q6 20 10 18L12 20Q9 22 9 25Z', tan.light),
+  );
+}
+
 /** v1.6b (D-043) Blitslaai's glint on the belt: a small spark of lightning (a local sprite). */
 function boltGlint(p: SpriteCtx): string {
   return g(
@@ -1394,6 +1497,9 @@ export const SPRITES: readonly SpriteSpec[] = [
       ['voorlaaier', puVoorlaaier],
       ['mielie_masjien', puMielieMasjien],
       ['rooikol', puRooikol],
+      ['dragon_breath', puDragonBreath],
+      ['slug', puSlug],
+      ['brakkie_jag', puBrakkieJag],
     ] as const
   ).map(([id, draw]) => ({
     key: `ui/pu_${id}`,

@@ -9,12 +9,12 @@
       "group": "baboons",
       "origin": "interim",
       "file": {
-        "path": "assets/baboons/img/baboons_sheet.4b9a7a4dc6ff.png",
-        "bytes": 115128,
-        "hash": "4b9a7a4dc6ff"
+        "path": "assets/baboons/img/baboons_sheet.19d24e351feb.png",
+        "bytes": 118730,
+        "hash": "19d24e351feb"
       },
       "width": 756,
-      "height": 868,
+      "height": 903,
       "originX": 0,
       "originY": 0
     },
@@ -241,9 +241,9 @@
       "group": "desert",
       "origin": "interim",
       "file": {
-        "path": "assets/desert/img/desert_meerkats.7cf6a8e08ddf.png",
-        "bytes": 92115,
-        "hash": "7cf6a8e08ddf"
+        "path": "assets/desert/img/desert_meerkats.54b70064f677.png",
+        "bytes": 90138,
+        "hash": "54b70064f677"
       },
       "width": 1792,
       "height": 1152,
@@ -3547,6 +3547,19 @@
       "originX": 0,
       "originY": 0
     },
+    "oes/harvest2": {
+      "group": "oes",
+      "origin": "interim",
+      "file": {
+        "path": "assets/oes/img/oes_harvest2.496f878f5de6.png",
+        "bytes": 70553,
+        "hash": "496f878f5de6"
+      },
+      "width": 1024,
+      "height": 492,
+      "originX": 0,
+      "originY": 0
+    },
     "oes/sunflowers_a": {
       "group": "oes",
       "origin": "interim",
@@ -3855,6 +3868,20 @@
       "width": 240,
       "height": 240
     },
+    "shed/guns": {
+      "group": "shed",
+      "origin": "interim",
+      "file": {
+        "path": "assets/shed/img/shed_guns.1818eeceb14a.png",
+        "bytes": 92757,
+        "hash": "1818eeceb14a"
+      },
+      "width": 1520,
+      "height": 1120,
+      "scale": 0.5,
+      "originX": 0,
+      "originY": 0
+    },
     "sight/iron_front": {
       "group": "ver",
       "origin": "interim",
@@ -4121,6 +4148,17 @@
       "width": 128,
       "height": 128
     },
+    "ui/pu_brakkie_jag": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/ui_pu_brakkie_jag.42901d467c10.png",
+        "bytes": 4264,
+        "hash": "42901d467c10"
+      },
+      "width": 128,
+      "height": 128
+    },
     "ui/pu_bush_buckshot": {
       "group": "late",
       "origin": "interim",
@@ -4139,6 +4177,17 @@
         "path": "assets/late/img/ui_pu_chilli_biltong.dfec414a61fa.png",
         "bytes": 3803,
         "hash": "dfec414a61fa"
+      },
+      "width": 128,
+      "height": 128
+    },
+    "ui/pu_dragon_breath": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/ui_pu_dragon_breath.c2d64a3e1760.png",
+        "bytes": 2833,
+        "hash": "c2d64a3e1760"
       },
       "width": 128,
       "height": 128
@@ -4183,6 +4232,17 @@
         "path": "assets/late/img/ui_pu_rooikol.14871caf8667.png",
         "bytes": 3040,
         "hash": "14871caf8667"
+      },
+      "width": 128,
+      "height": 128
+    },
+    "ui/pu_slug": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/ui_pu_slug.35c50456f53e.png",
+        "bytes": 2129,
+        "hash": "35c50456f53e"
       },
       "width": 128,
       "height": 128
@@ -6786,19 +6846,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/oes/layers/mid-0.3e8cfa2a5b2b.png",
-          "bytes": 206534,
-          "hash": "3e8cfa2a5b2b"
+          "path": "assets/oes/layers/mid-0.b739456d65e4.png",
+          "bytes": 199445,
+          "hash": "b739456d65e4"
         },
         {
-          "path": "assets/oes/layers/mid-1.4a3ab67e3994.png",
-          "bytes": 157415,
-          "hash": "4a3ab67e3994"
+          "path": "assets/oes/layers/mid-1.0921641f0568.png",
+          "bytes": 159877,
+          "hash": "0921641f0568"
         },
         {
-          "path": "assets/oes/layers/mid-2.d62e29a8398b.png",
-          "bytes": 33965,
-          "hash": "d62e29a8398b"
+          "path": "assets/oes/layers/mid-2.a7dc5d197155.png",
+          "bytes": 34893,
+          "hash": "a7dc5d197155"
         }
       ],
       "tileWidth": 2048,
@@ -6809,15 +6869,51 @@
         "bucket": 256,
         "rows": [
           [
-            481,
+            475,
             520
           ],
           [
-            482,
+            476,
             520
           ],
           [
-            444,
+            479,
+            520
+          ],
+          [
+            462,
+            520
+          ],
+          [
+            465,
+            520
+          ],
+          [
+            478,
+            520
+          ],
+          [
+            472,
+            520
+          ],
+          [
+            447,
+            520
+          ],
+          [
+            439,
+            520
+          ],
+          [
+            452,
+            520
+          ],
+          [
+            472,
+            520
+          ],
+          [
+            457,
             520
           ],
           [
@@ -6829,55 +6925,19 @@
             520
           ],
           [
-            470,
-            520
-          ],
-          [
-            484,
-            520
-          ],
-          [
-            439,
-            520
-          ],
-          [
-            406,
-            520
-          ],
-          [
-            483,
-            520
-          ],
-          [
-            483,
-            520
-          ],
-          [
-            464,
-            520
-          ],
-          [
-            483,
-            520
-          ],
-          [
             481,
             520
           ],
           [
-            481,
+            458,
             520
           ],
           [
-            445,
+            473,
             520
           ],
           [
-            467,
-            520
-          ],
-          [
-            443,
+            478,
             520
           ]
         ]
@@ -11148,26 +11208,26 @@
         "pages": [
           {
             "image": {
-              "path": "assets/common/guns/gun-dubbelloop@1x-0.b0ea43a7aaed.png",
-              "bytes": 206975,
-              "hash": "b0ea43a7aaed"
+              "path": "assets/common/guns/gun-dubbelloop@1x-0.164f317bdda4.png",
+              "bytes": 183124,
+              "hash": "164f317bdda4"
             },
             "data": {
-              "path": "assets/common/guns/gun-dubbelloop@1x-0.848ee624d9b4.json",
+              "path": "assets/common/guns/gun-dubbelloop@1x-0.f9bec576ab8c.json",
               "bytes": 2061,
-              "hash": "848ee624d9b4"
+              "hash": "f9bec576ab8c"
             }
           },
           {
             "image": {
-              "path": "assets/common/guns/gun-dubbelloop@1x-1.73dad12fb94f.png",
-              "bytes": 71063,
-              "hash": "73dad12fb94f"
+              "path": "assets/common/guns/gun-dubbelloop@1x-1.4bd87f95f2de.png",
+              "bytes": 63812,
+              "hash": "4bd87f95f2de"
             },
             "data": {
-              "path": "assets/common/guns/gun-dubbelloop@1x-1.13835acf00a7.json",
+              "path": "assets/common/guns/gun-dubbelloop@1x-1.3c0ece7b8b6f.json",
               "bytes": 1295,
-              "hash": "13835acf00a7"
+              "hash": "3c0ece7b8b6f"
             }
           }
         ]
@@ -11227,14 +11287,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-kettie@1x-0.e84f3b3f85f0.png",
-              "bytes": 42088,
-              "hash": "e84f3b3f85f0"
+              "path": "assets/late/guns/gun-kettie@1x-0.d85289162607.png",
+              "bytes": 35861,
+              "hash": "d85289162607"
             },
             "data": {
-              "path": "assets/late/guns/gun-kettie@1x-0.a3e1481732b6.json",
+              "path": "assets/late/guns/gun-kettie@1x-0.365ea8228247.json",
               "bytes": 1464,
-              "hash": "a3e1481732b6"
+              "hash": "365ea8228247"
             }
           }
         ]
@@ -11279,14 +11339,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/ver/guns/gun-langloop@1x-0.ba0083828777.png",
-              "bytes": 125891,
-              "hash": "ba0083828777"
+              "path": "assets/ver/guns/gun-langloop@1x-0.ac806c37f31a.png",
+              "bytes": 145169,
+              "hash": "ac806c37f31a"
             },
             "data": {
-              "path": "assets/ver/guns/gun-langloop@1x-0.c5200a52080c.json",
+              "path": "assets/ver/guns/gun-langloop@1x-0.664c9292cc8c.json",
               "bytes": 2451,
-              "hash": "c5200a52080c"
+              "hash": "664c9292cc8c"
             }
           }
         ]
@@ -11343,14 +11403,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-mielie_masjien@1x-0.1b5df399d007.png",
-              "bytes": 104758,
-              "hash": "1b5df399d007"
+              "path": "assets/late/guns/gun-mielie_masjien@1x-0.afbc048e9e3c.png",
+              "bytes": 88100,
+              "hash": "afbc048e9e3c"
             },
             "data": {
-              "path": "assets/late/guns/gun-mielie_masjien@1x-0.93a66d9e2814.json",
+              "path": "assets/late/guns/gun-mielie_masjien@1x-0.72292efa6289.json",
               "bytes": 1492,
-              "hash": "93a66d9e2814"
+              "hash": "72292efa6289"
             }
           }
         ]
@@ -11395,14 +11455,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-pomp@1x-0.c1f937f3366a.png",
-              "bytes": 176308,
-              "hash": "c1f937f3366a"
+              "path": "assets/late/guns/gun-pomp@1x-0.d43c2fd0953c.png",
+              "bytes": 155316,
+              "hash": "d43c2fd0953c"
             },
             "data": {
-              "path": "assets/late/guns/gun-pomp@1x-0.d99329f4b806.json",
+              "path": "assets/late/guns/gun-pomp@1x-0.d7da2abd8d1d.json",
               "bytes": 2460,
-              "hash": "d99329f4b806"
+              "hash": "d7da2abd8d1d"
             }
           }
         ]
@@ -11459,14 +11519,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/ver/guns/gun-twee_twee@1x-0.1cee9ec60ebe.png",
-              "bytes": 135554,
-              "hash": "1cee9ec60ebe"
+              "path": "assets/ver/guns/gun-twee_twee@1x-0.64ad5fef6e20.png",
+              "bytes": 156194,
+              "hash": "64ad5fef6e20"
             },
             "data": {
-              "path": "assets/ver/guns/gun-twee_twee@1x-0.dc59607af2a1.json",
+              "path": "assets/ver/guns/gun-twee_twee@1x-0.e14f9a11e657.json",
               "bytes": 2258,
-              "hash": "dc59607af2a1"
+              "hash": "e14f9a11e657"
             }
           }
         ]
@@ -11522,14 +11582,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-voorlaaier@1x-0.2485ce26acff.png",
-              "bytes": 219577,
-              "hash": "2485ce26acff"
+              "path": "assets/late/guns/gun-voorlaaier@1x-0.ae7948f3162f.png",
+              "bytes": 190239,
+              "hash": "ae7948f3162f"
             },
             "data": {
-              "path": "assets/late/guns/gun-voorlaaier@1x-0.3100d53832b7.json",
+              "path": "assets/late/guns/gun-voorlaaier@1x-0.e7b74a49b9a5.json",
               "bytes": 3043,
-              "hash": "3100d53832b7"
+              "hash": "e7b74a49b9a5"
             }
           }
         ]
@@ -11589,14 +11649,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-windbuks@1x-0.c9ebe151e926.png",
-              "bytes": 59918,
-              "hash": "c9ebe151e926"
+              "path": "assets/late/guns/gun-windbuks@1x-0.ba6f11f3435f.png",
+              "bytes": 52809,
+              "hash": "ba6f11f3435f"
             },
             "data": {
-              "path": "assets/late/guns/gun-windbuks@1x-0.a4f1a73cfbf5.json",
+              "path": "assets/late/guns/gun-windbuks@1x-0.442d3006b347.json",
               "bytes": 1273,
-              "hash": "a4f1a73cfbf5"
+              "hash": "442d3006b347"
             }
           }
         ]

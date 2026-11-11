@@ -58,6 +58,7 @@ describe('baboon sheet (D-062)', () => {
       y: 0,
       facing: 1,
       phase: 'act',
+      dash: false,
       t: 0,
       dur: 100,
       hits: 0,

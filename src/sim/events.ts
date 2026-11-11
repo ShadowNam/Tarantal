@@ -74,6 +74,8 @@ export type SimEvent =
       /** v1.3 rifles: fired through the raised sight, or from the hip (released early). Absent
        *  for every other gun (older event streams stay byte-identical). */
       readonly aim?: 'sight' | 'hip';
+      /** v1.19 (D-084): a special shell fired from a shotgun (absent: a normal shot). */
+      readonly shell?: 'dragon_breath' | 'slug';
     }
   /** v1.3 (D-036): a rifle's sight starts to come up at the aim point (unzoomed screen px). */
   | {
@@ -238,6 +240,9 @@ export type SimEvent =
       readonly flockId: number | null;
       readonly x: number;
       readonly y: number;
+      /** v1.20 (D-085): Brakkie caught it on the Jag card (no shot: shotId -1; no fall, no
+       *  feathers). */
+      readonly byDog?: true;
     }
   | {
       readonly type: 'scoreAwarded';
@@ -869,7 +874,54 @@ export type SimEvent =
       readonly warthogId: number;
       readonly plane: PlaneId;
       readonly piglets: number;
+      /** v1.18 (D-081): a yearling through the small hole. */
+      readonly young: boolean;
     }
+  /** v1.18 (D-081): the rush ended with the score at or over phase2.unlockScore: the banner. */
+  | { readonly type: 'phase2Unlocked'; readonly tick: number; readonly score: number }
+  /** v1.18 (D-081): Phase 2's clock starts (endTick: when it runs out). */
+  | {
+      readonly type: 'phase2Started';
+      readonly tick: number;
+      readonly total: number;
+      readonly endTick: number;
+    }
+  /** v1.18 (D-081): an animal of Phase 2's list comes at the field. */
+  | {
+      readonly type: 'phase2Entered';
+      readonly tick: number;
+      readonly animalId: number;
+      readonly kind: 'warthog' | 'piglet' | 'baboon';
+      readonly from: 'left' | 'right' | 'back';
+      readonly plane: PlaneId;
+      /** Where it starts (layer px). */
+      readonly x: number;
+    }
+  /** v1.18 (D-081): a shot landed near a piglet: it runs back out (no points). */
+  | {
+      readonly type: 'phase2Scared';
+      readonly tick: number;
+      readonly animalId: number;
+      readonly x: number;
+      readonly y: number;
+    }
+  /** v1.18 (D-081): Phase 2 is over — every one stopped (clear), the clock (time) or the crop
+   *  gone (eaten) — and its bonuses paid. */
+  | {
+      readonly type: 'phase2Ended';
+      readonly tick: number;
+      readonly reason: 'clear' | 'time' | 'eaten';
+      readonly total: number;
+      readonly stopped: number;
+      readonly bagged: number;
+      readonly cropAtStart: number;
+      readonly crop: number;
+      readonly cropBonus: number;
+      readonly perfectBonus: number;
+      readonly clearBonus: number;
+    }
+  /** v1.18 (D-081): the workers patched the fence's small hole. */
+  | { readonly type: 'harvestHolePatched'; readonly tick: number }
   /** v1.8c (D-063): a shot hit a warthog; hitsLeft 0 = bagged (warthogBagged follows). */
   | {
       readonly type: 'warthogHit';
@@ -992,6 +1044,44 @@ export type SimEvent =
       readonly x: number;
       readonly y: number;
       readonly points: number;
+    }
+  /** v1.20 (D-085): a crate's Jag card rolled again (Brakkie can't take it now): what it holds. */
+  | {
+      readonly type: 'crateRerolled';
+      readonly tick: number;
+      readonly crateId: number;
+      readonly item: string | null;
+    }
+  /** v1.20 (D-085) "Jag, Brakkie!": the card started (he goes for foraging guineafowl). */
+  | { readonly type: 'brakkieJagStarted'; readonly tick: number; readonly maxCatches: number }
+  /** v1.20 (D-085): he pounces on a foraging guineafowl (bird `birdId`) on `plane`. */
+  | {
+      readonly type: 'brakkiePounced';
+      readonly tick: number;
+      readonly birdId: number;
+      readonly plane: 'near' | 'mid';
+      readonly x: number;
+    }
+  /** v1.20 (D-085): he caught it (a bag of that bird: its targetBagged and scoreAwarded come
+   *  with it, `byDog`); `catches` so far on this card. No blood, no struggle: simply caught. */
+  | {
+      readonly type: 'brakkieCaught';
+      readonly tick: number;
+      readonly birdId: number;
+      readonly creature: string;
+      readonly plane: 'near' | 'mid';
+      readonly x: number;
+      readonly y: number;
+      readonly catches: number;
+      readonly points: number;
+    }
+  /** v1.20 (D-085): the card is over — its time ran out, he made maxCatches, he was hit, or a
+   *  wide-spread crate gun came out. */
+  | {
+      readonly type: 'brakkieJagEnded';
+      readonly tick: number;
+      readonly catches: number;
+      readonly why: 'time' | 'max' | 'hit' | 'gun';
     }
   /** v1.13 (D-075): a cameo visit comes in (a mid herd from off the screen, a near one out of the
    *  grass). `visitId` is unique in the hunt. */

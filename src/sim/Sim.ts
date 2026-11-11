@@ -98,8 +98,16 @@ import {
   powerupView,
   tickPowerups,
   type ActivePowerup,
+  type SpecialShell,
 } from './powerups';
-import { crateView, scheduleCrates, spawnCrate, tickCrate, type Crate } from './props/crates';
+import {
+  crateView,
+  rollCrate,
+  scheduleCrates,
+  spawnCrate,
+  tickCrate,
+  type Crate,
+} from './props/crates';
 import {
   activeParts,
   buildSecrets,
@@ -391,6 +399,8 @@ interface ShotContext {
   readonly cx: number;
   /** v1.8b (D-062): the command's aim point (screen dx, y; a rifle's before the sway). */
   readonly aim: { readonly dx: number; readonly sy: number };
+  /** v1.19 (D-084): the special shell this shot fired (a shotgun's), or null. */
+  readonly shell: SpecialShell | null;
 }
 
 /** A pellet that has landed: where (screen px for the shot's camera) and on what. */
@@ -412,6 +422,8 @@ interface ShotStats {
   readonly reachesVer: boolean;
   /** v1.4: every shot threatens every flock (Die Langloop). */
   readonly alertsAllFlocks: boolean;
+  /** v1.19 (D-084): a shotgun: it fires the special shells. */
+  readonly shotgun: boolean;
 }
 
 export function createSim(config: SimConfig): Sim {
@@ -619,6 +631,10 @@ export function createSim(config: SimConfig): Sim {
     content.powerups.powerups.filter((p) => p.needsSight === true).map((p) => p.id),
   );
   const noSkip: ReadonlySet<string> = new Set();
+  /** v1.19 (D-084): the special shells, which only a shotgun fires. */
+  const shotgunOnly: readonly string[] = content.powerups.powerups
+    .filter((p) => p.needsShotgun === true)
+    .map((p) => p.id);
   const crateTicks = ranged
     ? []
     : scheduleCrates(crateCfg, mode.id, durationTicks, rng.stream('crates'));
@@ -716,6 +732,11 @@ export function createSim(config: SimConfig): Sim {
   const hasVer = geometry.slices.some((sl) => sl.plane === 'ver');
   const reach = (g: ShotGeometry, ver: boolean): ShotGeometry =>
     ver || !hasVer ? g : { ...g, slices: g.slices.filter((sl) => sl.plane !== 'ver') };
+  /** v1.19 (D-084): Dragon's Breath's flame meets only the layers up to its reach plane. */
+  const flameReach = (g: ShotGeometry, plane: 'near' | 'mid'): ShotGeometry => {
+    const edge = planeGeo[plane].scrollFactor;
+    return { ...g, slices: g.slices.filter((sl) => sl.scrollFactor >= edge) };
+  };
 
   // v1.3 rifles (D-036): the fitted sight, its zoom step and the sight while it is held.
   const sight = setup.sight === null ? null : sightTiming(setup.sight);
@@ -970,6 +991,10 @@ export function createSim(config: SimConfig): Sim {
   // v1.8c (D-063): the Harvest (its own stream `harvest`; lazy chunk like the baboons). The hunt
   // gets its intro before the clock and its outro after it.
   let harvest: HarvestSystem | null = null;
+  /** v1.18 (D-081, review): Phase 2 unlocked: no new raids, flocks or pop-ups. */
+  let harvestHeld = false;
+  /** v1.18 (D-081, review): how fast the flocks left in the field fly off when it unlocks. */
+  const harvestFlockLeavePxPerTick = content.modes.modes.harvest.phase2.flockLeavePxPerSec / 60;
   if (mode.id === 'harvest') {
     if (biome.harvest === undefined)
       throw new Error('the Harvest needs a map with harvest geometry');
@@ -1032,6 +1057,16 @@ export function createSim(config: SimConfig): Sim {
             if (f.members.length > 0 && f.state !== 'flush')
               emitTransition(f, forceState(f, 'flush', centroid(f).x, 'event', fParams, flockRng));
         },
+        // v1.18 (D-081): Phase 2.
+        score: () => score,
+        extendBy: (ticks) => {
+          durationTicks += ticks;
+        },
+        endAt: (at) => {
+          durationTicks = at;
+        },
+        phase2Rng: rng.stream('harvestPhase2'),
+        baboonTuning: content.birds.baboons,
       },
     );
     if (harvest !== null) durationTicks += harvest.introTicks + harvest.outroTicks;
@@ -1133,6 +1168,7 @@ export function createSim(config: SimConfig): Sim {
         gunUp: (holdTicks) => aim !== null || hold !== null || ticksSinceShot < holdTicks,
         wideGun: () => (crateWeapon?.def.spreadPx ?? 0) > dogCfg.clear.wideSpreadPx,
         busyNear: (plane, x, px) => dogBusyAt(plane, x, px) !== null,
+        midBirdNear: (x, px) => birds.some((b) => b.plane === 'mid' && Math.abs(b.x - x) <= px),
         busyAt: (plane, x, px) => dogBusyAt(plane, x, px),
         barkTarget: (dx, maxDx) => {
           let best: { flockId: number; x: number; d: number } | null = null;
@@ -1153,6 +1189,31 @@ export function createSim(config: SimConfig): Sim {
         },
         canFlush: (size) => dogCanFlush(size),
         bonus: (id, base) => awardBonus(id, base),
+        jagTarget: (fromDx, maxDx) => {
+          let best: { birdId: number; plane: 'near' | 'mid'; x: number; d: number } | null = null;
+          for (const b of birds) {
+            if (!jagPrey(b)) continue;
+            const plane = b.plane === 'near' ? 'near' : 'mid';
+            const dx = planeToDx(cameraX, planeGeo[plane].scrollFactor, b.x);
+            if (Math.abs(dx) > maxDx[plane]) continue;
+            const d = Math.abs(dx - fromDx);
+            if (best === null || d < best.d) best = { birdId: b.id, plane, x: b.x, d };
+          }
+          return best === null ? null : { birdId: best.birdId, plane: best.plane, x: best.x };
+        },
+        jagBird: (birdId) => {
+          const b = birds.find((x) => x.id === birdId);
+          if (b === undefined || !onGround(b)) return null;
+          return { plane: b.plane === 'near' ? 'near' : 'mid', x: b.x };
+        },
+        jagCatch: (birdId) => dogCatch(birdId),
+        jagEnded: () => {
+          const ids = powerups.filter((p) => p.def.effect.brakkieJag !== undefined);
+          for (const p of ids) {
+            powerups.splice(powerups.indexOf(p), 1);
+            emit({ type: 'powerupEnded', tick, powerup: p.def.id });
+          }
+        },
         flush: (x, size) => {
           if (!dogCanFlush(size)) return null;
           const f = director.spawnFlockAt(
@@ -1741,9 +1802,10 @@ export function createSim(config: SimConfig): Sim {
   }
 
   function statsOf(
-    w: Omit<ShotStats, 'reachesVer' | 'alertsAllFlocks'> & {
+    w: Omit<ShotStats, 'reachesVer' | 'alertsAllFlocks' | 'shotgun'> & {
       readonly reachesVer?: boolean | undefined;
       readonly alertsAllFlocks?: boolean | undefined;
+      readonly shotgun?: boolean | undefined;
     },
   ): ShotStats {
     return {
@@ -1755,6 +1817,7 @@ export function createSim(config: SimConfig): Sim {
       scoreMul: w.scoreMul,
       reachesVer: w.reachesVer === true,
       alertsAllFlocks: w.alertsAllFlocks === true,
+      shotgun: w.shotgun === true,
     };
   }
 
@@ -1767,8 +1830,11 @@ export function createSim(config: SimConfig): Sim {
   function startPowerup(id: string, source: 'crate' | 'secret' | 'consumable'): void {
     const def = content.powerups.powerups.find((p) => p.id === id);
     if (def === undefined) return;
-    activate(powerups, def);
+    // v1.19 (D-084): a special shell takes the other one's place.
+    endPowerups(activate(powerups, def));
     emit({ type: 'powerupStarted', tick, powerup: id, source });
+    // v1.20 (D-085): "Jag, Brakkie!"
+    if (def.effect.brakkieJag !== undefined) brakkie?.jag(def.effect.brakkieJag.maxCatches);
   }
 
   /** v1.6b: a reload step (or the Kettie draw, or the Voorlaaier ramrod) with power-ups applied.
@@ -1801,7 +1867,11 @@ export function createSim(config: SimConfig): Sim {
   }
 
   function endPowerups(ids: readonly string[]): void {
-    for (const id of ids) emit({ type: 'powerupEnded', tick, powerup: id });
+    for (const id of ids) {
+      emit({ type: 'powerupEnded', tick, powerup: id });
+      // v1.20 (D-085): the Jag card's time ran out.
+      if (brakkieOnly.includes(id)) brakkie?.jagStop();
+    }
   }
 
   function armWeapon(id: string): void {
@@ -2221,7 +2291,29 @@ export function createSim(config: SimConfig): Sim {
       const every = pass.weaponBlastEvery?.every ?? 0;
       blast = blastDef !== null && every > 0 && primaryShots % every === 0;
     }
-    const shot = blast && blastDef !== null ? statsOf(blastDef) : shotStats();
+    const base = blast && blastDef !== null ? statsOf(blastDef) : shotStats();
+    // v1.19 (D-084): a special shell in a shotgun: Dragon's Breath (more pellets, a wider cone
+    // that stops at its reach, any pellet a hit) or the Slug (one heavy ball that reaches Ver and
+    // drifts more). Other guns fire as normal (the shells wait for a shotgun).
+    const shell = base.shotgun ? fx.shell : null;
+    const shot: ShotStats =
+      shell === null
+        ? base
+        : shell.kind === 'slug'
+          ? {
+              ...base,
+              pellets: 1,
+              spreadPx: 0,
+              reachesVer: true,
+              windSensitivity: shell.windSensitivity,
+            }
+          : {
+              ...base,
+              pellets: Math.max(
+                1,
+                Math.min(shell.maxPellets, Math.round(base.pellets * shell.pelletsMul)),
+              ),
+            };
     // Rooi Patrone / Laaste Patroon: the shell's place in the belt (primary shells only).
     const shellIndex =
       !usingCrate && timing.magazine >= 0 && !fx.infiniteAmmo ? timing.magazine - shellsLeft : null;
@@ -2238,8 +2330,17 @@ export function createSim(config: SimConfig): Sim {
       sy,
       shellsLeft,
       ...(how === undefined ? {} : { aim: how }),
+      ...(shell === null ? {} : { shell: shell.kind }),
     });
-    const ctx: ShotContext = { shotId, shot, shellIndex, lastShell, cx: cameraX, aim: aimAt };
+    const ctx: ShotContext = {
+      shotId,
+      shot,
+      shellIndex,
+      lastShell,
+      cx: cameraX,
+      aim: aimAt,
+      shell,
+    };
     if (rangeProgram !== null) {
       // The Skietbaan's aim point on its plane: groups are measured from it.
       const aimed = rangeProgram.aimTarget(cameraX, aimAt.dx, aimAt.sy, birds);
@@ -2258,16 +2359,27 @@ export function createSim(config: SimConfig): Sim {
     const byPlane = hitBirds();
     const extras = hitExtras();
     const drift = shotDrift(shot);
-    const hip = how === 'hip' && !usingCrate && !blast ? (weapon.aim?.hipSpreadPx ?? 0) : 0;
-    const offsets = pelletOffsets(
-      shot.pellets,
-      (shot.spreadPx + hip) * fx.spreadMul,
-      rng.stream('pellets'),
+    const hip =
+      how === 'hip' && !usingCrate && !blast && shell?.kind !== 'slug'
+        ? (weapon.aim?.hipSpreadPx ?? 0)
+        : 0;
+    // Dragon's Breath widens the pattern up to its cap (a gun already wider keeps its own). The
+    // cap holds after every multiplier: Bush Buckshot's ×2.5 never takes the flame past it
+    // (review of v1.19: the two stacked cleared the screen).
+    const own = shot.spreadPx + hip;
+    const spread =
+      shell?.kind === 'dragon_breath'
+        ? Math.min(own * shell.spreadMul * fx.spreadMul, Math.max(own, shell.maxSpreadPx))
+        : own * fx.spreadMul;
+    const offsets = pelletOffsets(shot.pellets, spread, rng.stream('pellets'));
+    // Dragon's Breath: the flame stops at its reach (layers behind it are out of range).
+    const flame = (g: ShotGeometry): ShotGeometry =>
+      shell?.kind === 'dragon_breath' ? flameReach(g, shell.reach) : g;
+    const assisted = flame(
+      reach(stats.bagged === 0 ? firstHitGeometry : geometry, shot.reachesVer),
     );
-    const assisted = reach(stats.bagged === 0 ? firstHitGeometry : geometry, shot.reachesVer);
-    const precise = reach(
-      stats.bagged === 0 ? preciseFirstHitGeometry : preciseGeometry,
-      shot.reachesVer,
+    const precise = flame(
+      reach(stats.bagged === 0 ? preciseFirstHitGeometry : preciseGeometry, shot.reachesVer),
     );
     // Touch assist rescues a clean miss only (resolvePattern, D-026); pointer never has it.
     const pellets = resolvePattern(
@@ -2477,8 +2589,15 @@ export function createSim(config: SimConfig): Sim {
       emit({ type: 'rangeOutcome', tick, shotId, hits, short });
     }
 
-    // Damage, in bird order (stable).
-    const damage = applyShotDamage(birds, pelletsOn, shot.pellets);
+    // v1.19 (D-084): the Slug bags what it hits in one: armour and a boss's hits go at once.
+    if (ctx.shell?.kind === 'slug')
+      for (const b of birds) {
+        if (!pelletsOn.has(b.id) || b.creature.kind === 'nonTarget') continue;
+        b.armorLeft = 0;
+        b.hitsLeft = Math.min(b.hitsLeft, 1);
+      }
+    // Damage, in bird order (stable). A special shell's pellet is a hit on its own (D-084).
+    const damage = applyShotDamage(birds, pelletsOn, ctx.shell === null ? shot.pellets : 1);
     const byId = new Map(birds.map((b) => [b.id, b]));
     const bagged: { bird: Bird; behaviour: BagBehaviour }[] = [];
     const armorBonuses: number[] = [];
@@ -2704,7 +2823,7 @@ export function createSim(config: SimConfig): Sim {
       shotNuts(shotId, canHits, shot.id);
     }
     // This shot counts against shell power-ups it had; one it picks up starts with the next.
-    endPowerups(onShellFired(powerups));
+    endPowerups(onShellFired(powerups, shot.shotgun));
     for (const id of crateHits) openCrate(id);
     for (const s of secrets) {
       for (const h of partHits) if (h.propId === s.propId) hitSecretPart(s, h.partId);
@@ -2762,12 +2881,15 @@ export function createSim(config: SimConfig): Sim {
     tells?.shot(shotId, tellHits);
     if (baboonHits.length > 0 || (shot.alertsAllFlocks && radius > 0))
       baboons?.shot(shotId, baboonHits, shot.alertsAllFlocks && radius > 0, aimOn);
+    // v1.18 (D-081): Phase 2's piglets run out from a shot landing near them.
+    harvest?.landed(aimOn);
     if (harvestHits.length > 0)
       harvest?.shot(
         shotId,
         harvestHits,
         damage.outcomes.length > 0 || baboonHits.some((id) => baboons?.isRaider(id) === true),
         aimOn,
+        ctx.shell?.kind === 'slug',
       );
     // v1.12 (D-069): Brakkie yelps and bolts; −25 only if the shot was aimed at him and hit no
     // target elsewhere (D-062/D-063's rule).
@@ -3148,7 +3270,110 @@ export function createSim(config: SimConfig): Sim {
     return paid;
   }
 
+  // --- v1.20 (D-085) the Jag card ------------------------------------------------------------
+  const jagCreatures: ReadonlySet<string> = new Set(content.brakkie.jag.creatures);
+  /** Power-ups only Brakkie can use (the Jag card). */
+  const brakkieOnly: readonly string[] = content.powerups.powerups
+    .filter((p) => p.needsBrakkie === true)
+    .map((p) => p.id);
+
+  /** A guineafowl walking on the ground (its flock still in reach of a dog). */
+  function onGround(b: Bird): boolean {
+    return (
+      (b.plane === 'near' || b.plane === 'mid') &&
+      b.fm !== null &&
+      (b.phase === 'walk' || b.phase === 'alert' || b.phase === 'run')
+    );
+  }
+
+  /** What the Jag card goes for: a guineafowl foraging on the ground (never one in the air, never
+   *  another species or a penalty animal). */
+  function jagPrey(b: Bird): boolean {
+    if (b.creature.kind !== 'target' || !jagCreatures.has(b.creature.id)) return false;
+    if (!onGround(b) || b.phase !== 'walk' || b.fm === null) return false;
+    const flockId = b.fm.flockId;
+    return flocks.some((f) => f.id === flockId && f.state === 'forage');
+  }
+
+  /** Brakkie catches bird `birdId`: a bag of it (its normal score × Frenzy × Stampede; no shot,
+   *  so the streak, the charms and the shot bonuses stay as they are), and the rest of its flock
+   *  flushes (wing shots for the gun). */
+  function dogCatch(
+    birdId: number,
+  ): { creature: string; y: number; points: number; flockId: number | null } | null {
+    const bird = birds.find((b) => b.id === birdId);
+    if (bird === undefined || !onGround(bird)) return null;
+    const c = bird.creature;
+    if (c.kind !== 'target') return null;
+    const behaviour = behaviourOf(bird);
+    const flockId = bird.fm?.flockId ?? null;
+    emit({
+      type: 'targetBagged',
+      tick,
+      shotId: -1,
+      birdId: bird.id,
+      creature: c.id,
+      plane: bird.plane,
+      behaviour,
+      flockId,
+      x: bird.x,
+      y: bird.y,
+      byDog: true,
+    });
+    const s = scoreBag(
+      {
+        base: mapPoints(c.baseOverride ?? scoring.planes[bird.plane].base, bird.plane),
+        behaviourAdd: scoring.behaviourAdd[behaviour],
+        weaponScoreMul: 1,
+        frenzyMul: frenzyMul(streak, scoring.frenzyTiers),
+        stampedeMul: stampedeMul(),
+        countdownMul: countdownMul(),
+        ...(reenbui === null ? {} : { reenbuiMul: reenbui.scoreMul() }),
+      },
+      [],
+    );
+    score += s.award;
+    if (countdownCfg !== null && countdownActive()) countdownPoints += s.award;
+    emit({
+      type: 'scoreAwarded',
+      tick,
+      birdId: bird.id,
+      points: s.points,
+      mult: s.mult,
+      award: s.award,
+      breakdown: s.breakdown,
+    });
+    stats.bagged++;
+    reenbui?.bagged();
+    stats.baggedByPlane[bird.plane]++;
+    if (c.doppiesDrop !== undefined) addDoppies(c.doppiesDrop, bird.id);
+    const gone = new Set([bird.id]);
+    birds = birds.filter((b) => !gone.has(b.id));
+    emit({ type: 'birdDespawned', tick, birdId: bird.id, reason: 'bagged' });
+    pruneFlocks(gone, 'bagged');
+    // v1.20 review: the rest of the flock reacts as to a threat (alert → run → flush): the dog
+    // system threatens it from the catch, a few times (host.threaten, like the bark).
+    return { creature: c.id, y: bird.y, points: s.award, flockId };
+  }
+
   // --- crates ------------------------------------------------------------------------------
+  /** Table ids this hunt's crates can't hold: rifle-only power-ups without a sight (D-055),
+   *  special shells without a shotgun (D-084). */
+  let crateSkipSet: ReadonlySet<string> | null = null;
+  function crateSkip(): ReadonlySet<string> {
+    if (crateSkipSet === null) {
+      const skip = new Set<string>(sight === null ? sightOnly : noSkip);
+      if (weapon.shotgun !== true) for (const id of shotgunOnly) skip.add(id);
+      // v1.20 (D-085): the Jag card only where Brakkie comes along.
+      if (brakkie === null) for (const id of brakkieOnly) skip.add(id);
+      crateSkipSet = skip;
+    }
+    // …and only while he can take it (not bolted from a hit, no wide gun out).
+    if (brakkie !== null && !brakkie.canJag() && brakkieOnly.length > 0)
+      return new Set([...crateSkipSet, ...brakkieOnly]);
+    return crateSkipSet;
+  }
+
   function dropCrate(): void {
     const p = scoring.planes[crateCfg.plane];
     const c = spawnCrate(
@@ -3161,7 +3386,7 @@ export function createSim(config: SimConfig): Sim {
         refScale: scoring.tuningRefScale,
       },
       rng.stream('crates'),
-      sight === null ? sightOnly : noSkip,
+      crateSkip(),
     );
     if (c === null) return;
     nextCrateId++;
@@ -3180,8 +3405,11 @@ export function createSim(config: SimConfig): Sim {
     const c = crates.find((x) => x.id === id);
     if (c === undefined) return;
     crates = crates.filter((x) => x.id !== id);
-    // v1.7b (D-046): rolled when it dropped (props/crates.ts).
-    const item = c.item;
+    // v1.7b (D-046): rolled when it dropped (props/crates.ts). v1.20 (D-085): a Jag card Brakkie
+    // can't take now (bolted from a hit, a wide gun out) rolls again without it.
+    let item = c.item;
+    if (item !== null && brakkieOnly.includes(item.id) && brakkie?.canJag() !== true)
+      item = rollCrate(crateCfg, rng.stream('crates'), crateSkip());
     if (item === null) return;
     stats.crates++;
     emit({
@@ -3725,6 +3953,11 @@ export function createSim(config: SimConfig): Sim {
     }
     const id = consumables[slot];
     if (id === null || id === undefined) return;
+    // v1.19 (D-084): a special shell waits in its slot while no shotgun is in hand.
+    const pu = content.powerups.powerups.find((p) => p.id === id);
+    if (pu?.needsShotgun === true && !shotStats().shotgun) return;
+    // v1.20 (D-085): the Jag card waits in its slot while Brakkie can't hunt.
+    if (pu?.needsBrakkie === true && brakkie?.canJag() !== true) return;
     consumables[slot] = null;
     consumablesUsed.push(slot);
     emit({ type: 'consumableUsed', tick, slot, item: id, itemType: 'powerup' });
@@ -3908,7 +4141,13 @@ export function createSim(config: SimConfig): Sim {
         emit({ type: 'weaponChanged', tick, weapon: weapon.id, kind: 'primary' });
       }
     }
-    endPowerups(tickPowerups(powerups));
+    // v1.20 (D-085): the Jag card's clock holds while Brakkie carries a catch home.
+    endPowerups(
+      tickPowerups(
+        powerups,
+        brakkie?.jagHeld() === true ? (p) => p.def.effect.brakkieJag !== undefined : undefined,
+      ),
+    );
     if (gadgetCooldown > 0) gadgetCooldown--;
     if (rainSpells.length > 0 && raining() !== wasRaining) {
       wasRaining = !wasRaining;
@@ -3927,6 +4166,23 @@ export function createSim(config: SimConfig): Sim {
     tells?.step();
     baboons?.step();
     harvest?.step();
+    // v1.18 (D-081, review): from Phase 2's unlock the field is its own: no more raids (the raid
+    // in hand ends cleanly), flocks or pop-ups (those up duck back into the grass).
+    if (!harvestHeld && harvest?.holdsSpawns() === true) {
+      harvestHeld = true;
+      baboons?.holdRaids();
+      // The flocks the rush's end flushed fly off the field (the nearer end) and don't land again.
+      const leave = harvestFlockLeavePxPerTick;
+      for (const f of flocks)
+        if (f.members.length > 0) {
+          if (f.state !== 'flush')
+            emitTransition(f, forceState(f, 'flush', centroid(f).x, 'event', fParams, flockRng));
+          f.dir = centroid(f).x < f.coreWidth / 2 ? -1 : 1;
+          f.leavePxPerTick = leave;
+        }
+      for (const b of birds)
+        if (b.motion === 'popup' && b.phase !== 'duck') enterBirdPhase(b, 'duck');
+    }
     reenbui?.step();
     brakkie?.step();
     cameos?.step();
@@ -3944,8 +4200,8 @@ export function createSim(config: SimConfig): Sim {
 
     if (ranged) rangeStep();
     else {
-      addBirds(director.tick(directorContext()));
-      spawnFlocks();
+      addBirds(director.tick({ ...directorContext(), popups: !harvestHeld }));
+      if (!harvestHeld) spawnFlocks();
     }
 
     const slow = slowMoTicks > 0 ? slowMoScale : 1;
@@ -3980,6 +4236,14 @@ export function createSim(config: SimConfig): Sim {
     }
 
     if (crates.length > 0) {
+      // v1.20 (D-085): a crate holding the Jag card while Brakkie can't take it (bolted from a
+      // hit, a wide gun out) rolls again now, so its icon shows what it will give.
+      if (brakkie !== null && brakkieOnly.length > 0 && !brakkie.canJag())
+        for (const c of crates)
+          if (c.item !== null && brakkieOnly.includes(c.item.id)) {
+            c.item = rollCrate(crateCfg, rng.stream('crates'), crateSkip());
+            emit({ type: 'crateRerolled', tick, crateId: c.id, item: c.item?.id ?? null });
+          }
       const expired = crates.filter((c) => tickCrate(c));
       if (expired.length > 0) {
         crates = crates.filter((c) => !expired.includes(c));

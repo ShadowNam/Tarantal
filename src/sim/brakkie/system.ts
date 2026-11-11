@@ -34,6 +34,9 @@ export interface BrakkieHost {
   /** Something a player aims at on the plane's layer within `px` of layer x `x`: a live bird on
    *  that plane, a crate, a secret's part, a meerkat, a tell animal, a tin can, a raider… */
   busyNear(plane: DogPlane, x: number, px: number): boolean;
+  /** v1.20 review: a live bird on the mid plane within `px` of mid layer x `x` (only birds: a
+   *  run under a static target — a tell animal, a secret's part — is no run under pellets). */
+  midBirdNear(x: number, px: number): boolean;
   /** The same, with where the nearest such thing is (layer x), else null. */
   busyAt(plane: DogPlane, x: number, px: number): number | null;
   /** A mid flock foraging or settled whose centre is within `maxDx` screen px of `dx`: its id and
@@ -48,6 +51,25 @@ export interface BrakkieHost {
   canFlush(size: number): boolean;
   /** v1.17 (D-079): an event bonus (× Frenzy × Stampede); the points paid. */
   bonus(id: 'bring' | 'bringStreak' | 'goodPoint', base: number): number;
+  /** v1.20 (D-085) the Jag card: the guineafowl of brakkie.json jag.creatures foraging on the
+   *  ground (its flock foraging, the bird walking) on the near or mid plane within `maxDx` screen
+   *  px of the view's centre, the one nearest screen dx `fromDx` (first by bird order on a tie). */
+  jagTarget(
+    fromDx: number,
+    maxDx: Readonly<Record<DogPlane, number>>,
+  ): { readonly birdId: number; readonly plane: DogPlane; readonly x: number } | null;
+  /** Where bird `birdId` is now (layer x) while it is still on the ground, else null. */
+  jagBird(birdId: number): { readonly plane: DogPlane; readonly x: number } | null;
+  /** Catches it: a bag of that bird (its normal score × Frenzy × Stampede), the rest of its
+   *  flock flushes. What it paid, or null (it is gone or off the ground). */
+  jagCatch(birdId: number): {
+    readonly creature: string;
+    readonly y: number;
+    readonly points: number;
+    readonly flockId: number | null;
+  } | null;
+  /** The card is over before its time (he made maxCatches, was hit, or a wide gun came out). */
+  jagEnded(): void;
 }
 
 export interface BrakkieSystem {
@@ -79,6 +101,14 @@ export interface BrakkieSystem {
   /** Where he stands on the near plane and the room he keeps (layer px), else null (away,
    *  crossing, on the mid plane): the director keeps pop-ups clear of him. */
   nearSpot(): { readonly x: number; readonly halfPx: number } | null;
+  /** v1.20 (D-085): he can take the Jag card now (not bolted from a hit, no wide gun out). */
+  canJag(): boolean;
+  /** v1.20 (D-085): the Jag card starts (or starts over): up to `maxCatches`. */
+  jag(maxCatches: number): void;
+  /** v1.20 (D-085): the card's time ran out. */
+  jagStop(): void;
+  /** v1.20 (D-085): the card's clock holds now (he carries a catch home or is at the bakkie). */
+  jagHeld(): boolean;
 }
 
 export interface BrakkieGeometry {
@@ -177,6 +207,25 @@ interface Dog {
   reactions: number;
   nextWhistle: number;
   whistles: number;
+  /** v1.20 (D-085) the Jag card: running, its catches and cap, the bird he is after, when he
+   *  next looks for one, every catch this hunt, and a pounce begun while the card ran. */
+  jagOn: boolean;
+  jagCatches: number;
+  jagMax: number;
+  jagBird: number | null;
+  nextLook: number;
+  catches: number;
+  pounceLive: boolean;
+  queuedTick: number | null;
+  fetchTick: number | null;
+  catchPoints: number;
+  /** The bird he carries is a catch (not a fetch). */
+  caught: boolean;
+  /** The bird he is running out for (back to the queue if he must give the run up). */
+  fetching: Fetch | null;
+  /** v1.20 review: the caught bird's flock still to be threatened (its id, the catch's layer x on
+   *  the mid plane, the next threat's tick and how many are left). */
+  alarm: { flockId: number; x: number; next: number; left: number } | null;
 }
 
 /** His id in hit results (one dog). */
@@ -195,10 +244,14 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   const rangeTicks = (r: readonly [number, number]): number => ticks(rng.range(r[0], r[1]));
   const checkTicks = Math.max(1, ticks(B.clear.checkSeconds));
   const holdTicks = ticks(B.clear.holdBackSeconds);
-  const quietTicks = ticks(B.fetch.quietSeconds);
-  /** v1.17: set while the whistle sends him (tryFetch skips the lull). */
+  /** v1.17: set while the whistle sends him (v1.20, D-085: tryFetch skips the bird's delay). */
   let sent = false;
   const cooldownTicks = ticks(B.hit.cooldownSeconds);
+  const J = B.jag;
+  const lookTicks = Math.max(1, ticks(J.lookSeconds));
+  const pounceTicks = Math.max(1, ticks(J.pounceSeconds));
+  /** The card's reach by plane (screen px from the view's centre): the near plane in view. */
+  const reach = { near: J.nearMaxDxPx, mid: J.maxDxPx } as const;
   /** A plane's px against the near plane's (his speeds, rooms and roaming px are near-plane px). */
   const k = (plane: DogPlane): number => geo.planeScale[plane] / geo.planeScale.near;
   /** v1.17b (D-080): his body's size on a plane (hit box px are near-plane px at sizeMul 1). */
@@ -254,11 +307,26 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     reactions: 0,
     nextWhistle: 0,
     whistles: 0,
+    jagOn: false,
+    jagCatches: 0,
+    jagMax: 0,
+    jagBird: null,
+    nextLook: 0,
+    catches: 0,
+    pounceLive: false,
+    queuedTick: null,
+    fetchTick: null,
+    catchPoints: 0,
+    caught: false,
+    fetching: null,
+    alarm: null,
   };
   dog.nextBark = dog.dur + rangeTicks(B.bark.everySeconds);
   dog.nextFlush = rangeTicks(B.flush.firstSeconds);
   /** Test builds only (?brakkiePreview=fetch): when he fetches a bird placed beside him. */
   let demoTick = B.demoFetchSeconds === undefined ? null : ticks(B.demoFetchSeconds);
+  /** Test builds only (?brakkiePreview=bag): when a bird joins his queue beside him. */
+  let demoBag = B.demoBagSeconds === undefined ? null : ticks(B.demoBagSeconds);
   /** Test builds only (?brakkiePreview=react): when he does a proud hop. */
   let demoProud = B.demoProudSeconds === undefined ? null : ticks(B.demoProudSeconds);
 
@@ -323,6 +391,23 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     return true;
   }
 
+  /** v1.20 review: a run on the near plane (a fetch, a carry home) is clear when its way is
+   *  (pathClear) and no live mid-plane bird is over it on screen (within clear.pathPx across, in
+   *  view): shots at a bird low on the mid ground rain pellets on whatever runs under it. */
+  function runClear(x: number): boolean {
+    if (!pathClear(x)) return false;
+    if (dog.plane !== 'near') return true;
+    const step = B.clear.pathStepPx;
+    const dir = x > dog.x ? 1 : -1;
+    const midCentre = planeCentreX(host.cameraX(), geo.layers.mid.scrollFactor);
+    for (let p = dog.x + dir * step; dir * (x - p) > 0; p += dir * step) {
+      const dx = dxOf('near', p);
+      if (Math.abs(dx) > B.roam.scamperHalfPx + B.clear.pathPx) continue;
+      if (host.midBirdNear(midCentre + dx, B.clear.pathPx)) return false;
+    }
+    return true;
+  }
+
   /** A clear spot in view on his plane (null: none of the tries was clear); `away`: only on that
    *  side of where he stands (scampering away from something, never past it). */
   function pickSpot(away: 1 | -1 | 0 = 0, halfPx = B.roam.viewHalfPx): number | null {
@@ -381,7 +466,9 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
   function goHome(phase: 'carry' | 'bolt', pxPerSecond: number): void {
     const pref = geo.homeSide;
     const other: 1 | -1 = pref < 0 ? 1 : -1;
-    side = pathClear(homeX(dog.plane, pref)) || !pathClear(homeX(dog.plane, other)) ? pref : other;
+    // v1.20 review: a carry takes the end whose run is clear of the mid birds over it too.
+    const clear = phase === 'carry' ? runClear : (x: number): boolean => pathClear(x);
+    side = clear(homeX(dog.plane, pref)) || !clear(homeX(dog.plane, other)) ? pref : other;
     moveTo(phase, phase === 'carry' ? 'carry' : 'run', homeX(dog.plane), pxPerSecond);
   }
 
@@ -416,7 +503,196 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     }
   }
 
+  /** Home with the bird in his mouth: along the near plane, or from the mid plane back across to
+   *  the near plane first (not hittable while crossing; lesson 21: never through the mid flocks). */
+  function carryHome(): void {
+    if (dog.plane === 'near') {
+      goHome('carry', carrySpeed());
+      return;
+    }
+    toNear(true);
+  }
+
+  /** v1.20 (D-085): a catch of the Jag card's goes home at his sprint (he is keen to get back
+   *  out); a fetched bird at his run. */
+  function carrySpeed(): number {
+    return dog.caught ? J.sprintPx : B.speeds.runPx;
+  }
+
+  /** Back across from the mid plane to the near plane under where he is on screen. */
+  function toNear(carrying: boolean): void {
+    const toX = planeCentreX(host.cameraX(), geo.layers.near.scrollFactor) + dxOf(dog.plane, dog.x);
+    dog.cross = { from: dog.plane, fromX: dog.x, to: 'near', toX };
+    setPhase('cross', carrying ? 'carry' : 'run', ticks(B.fetch.crossSeconds));
+    if (carrying) dog.facing = side;
+    else if (toX !== dog.x) dog.facing = toX > dog.x ? 1 : -1;
+  }
+
+  // --- v1.20 (D-085) the Jag card -----------------------------------------------------------
+
+  function canJag(): boolean {
+    return !dog.shy && dog.phase !== 'yelp' && dog.phase !== 'bolt' && !host.wideGun();
+  }
+
+  function jag(maxCatches: number): void {
+    const tick = host.tick();
+    dog.jagOn = true;
+    dog.jagCatches = 0;
+    dog.jagMax = maxCatches;
+    dog.nextLook = tick;
+    // Off his heel, a bark or a reaction at once: he looks round for a bird.
+    if (
+      present() &&
+      dog.plane === 'near' &&
+      (dog.phase === 'heel' ||
+        dog.phase === 'toHeel' ||
+        dog.phase === 'react' ||
+        dog.phase === 'bark')
+    ) {
+      dog.react = null;
+      dog.barkFlock = null;
+      setPhase('rest', 'sniff', lookTicks);
+    }
+    host.emit({ type: 'brakkieJagStarted', tick, maxCatches });
+  }
+
+  /** The card is over: `host` true when the sim must end its power-up (not its own timer). */
+  function endJag(why: 'time' | 'max' | 'hit' | 'gun'): void {
+    if (!dog.jagOn) return;
+    dog.jagOn = false;
+    host.emit({ type: 'brakkieJagEnded', tick: host.tick(), catches: dog.jagCatches, why });
+    if (why !== 'time') host.jagEnded();
+    if (why === 'gun') dog.pounceLive = false;
+    // Mid-chase he gives it up (a pounce already in the air still lands).
+    if (dog.phase === 'hunt') giveUpHunt();
+  }
+
+  function jagStop(): void {
+    endJag('time');
+  }
+
+  /** The card's clock counts his hunting time only: looking round (idle on the near plane),
+   *  crossing out for a bird, the chase and the pounce. It holds while he carries, is at the
+   *  bakkie, or fetches a shot bird (he hunts again once that is done). */
+  function jagHeld(): boolean {
+    if (!dog.jagOn) return false;
+    if (dog.carrying) return true;
+    if (dog.phase === 'hunt' || dog.phase === 'pounce') return false;
+    if (dog.phase === 'cross') return dog.jagBird === null;
+    return !idle();
+  }
+
+  /** Off after a foraging guineafowl (from idle on the near plane, every lookSeconds). */
+  function tryJag(tick: number): void {
+    if (!dog.jagOn || !idle() || dog.plane !== 'near' || dog.carrying || tick < dog.nextLook)
+      return;
+    dog.nextLook = tick + lookTicks;
+    const t = host.jagTarget(dxOf('near', dog.x), reach);
+    if (t === null) return;
+    dog.jagBird = t.birdId;
+    dog.barkFlock = null;
+    if (t.plane === 'near') {
+      moveTo('hunt', 'run', t.x, J.sprintPx);
+      return;
+    }
+    dog.cross = { from: 'near', fromX: dog.x, to: t.plane, toX: t.x };
+    setPhase('cross', 'run', ticks(B.fetch.crossSeconds));
+    const fromDx = dxOf('near', dog.x);
+    const toDx = dxOf(t.plane, t.x);
+    if (toDx !== fromDx) dog.facing = toDx > fromDx ? 1 : -1;
+  }
+
+  /** The bird got away (took off, or was shot): back to the near plane, or a look round. */
+  function giveUpHunt(): void {
+    dog.jagBird = null;
+    if (dog.plane === 'mid') toNear(false);
+    else setPhase('rest', 'sniff', lookTicks);
+  }
+
+  function huntStep(tick: number): void {
+    const b = dog.jagBird === null ? null : host.jagBird(dog.jagBird);
+    if (b === null || b.plane !== dog.plane || !dog.jagOn) {
+      giveUpHunt();
+      return;
+    }
+    const d = b.x - dog.x;
+    if (d !== 0) dog.facing = d > 0 ? 1 : -1;
+    if (Math.abs(d) <= J.pouncePx * k(dog.plane)) {
+      // The pounce: a crouch and a leap that lands where the bird is now.
+      dog.goal = b.x;
+      dog.speed = Math.abs(d) / pounceTicks;
+      dog.pounceLive = true;
+      setPhase('pounce', 'pounce', pounceTicks);
+      host.emit({
+        type: 'brakkiePounced',
+        tick,
+        birdId: dog.jagBird ?? -1,
+        plane: dog.plane,
+        x: dog.x,
+      });
+      return;
+    }
+    dog.x += Math.sign(d) * Math.min(Math.abs(d), perTick(J.sprintPx, dog.plane));
+  }
+
+  /** The caught bird's flock: one threat every alarmEverySeconds until alarmThreats are heard. */
+  function alarmStep(tick: number): void {
+    const a = dog.alarm;
+    if (a === null || tick < a.next) return;
+    host.threaten(a.flockId, a.x);
+    a.left--;
+    a.next = tick + ticks(J.alarmEverySeconds);
+    if (a.left <= 0) dog.alarm = null;
+  }
+
+  function pounceStep(tick: number): void {
+    const d = dog.goal - dog.x;
+    dog.x += Math.sign(d) * Math.min(Math.abs(d), dog.speed);
+    if (dog.t < dog.dur) return;
+    const id = dog.jagBird;
+    dog.jagBird = null;
+    const b = id === null ? null : host.jagBird(id);
+    const inReach =
+      b !== null && b.plane === dog.plane && Math.abs(b.x - dog.x) <= J.reachPx * k(dog.plane);
+    const caught = dog.pounceLive && inReach && id !== null ? host.jagCatch(id) : null;
+    dog.pounceLive = false;
+    if (caught === null || id === null) {
+      giveUpHunt();
+      return;
+    }
+    dog.jagCatches++;
+    dog.catches++;
+    dog.catchPoints += caught.points;
+    dog.carrying = true;
+    dog.caught = true;
+    host.emit({
+      type: 'brakkieCaught',
+      tick,
+      birdId: id,
+      creature: caught.creature,
+      plane: dog.plane,
+      x: dog.x,
+      y: caught.y,
+      catches: dog.jagCatches,
+      points: caught.points,
+    });
+    if (caught.flockId !== null) {
+      // The flock threatened from the catch (its layer x on the mid plane, as the bark's).
+      const midX =
+        dog.plane === 'mid'
+          ? dog.x
+          : planeCentreX(host.cameraX(), geo.layers.mid.scrollFactor) + dxOf(dog.plane, dog.x);
+      dog.alarm = { flockId: caught.flockId, x: midX, next: tick, left: J.alarmThreats };
+      alarmStep(tick);
+    }
+    if (dog.jagCatches >= dog.jagMax) endJag('max');
+    carryHome();
+  }
+
   function startFetch(f: Fetch): void {
+    dog.fetchTick = host.tick();
+    dog.react = null;
+    dog.fetching = f;
     host.emit({
       type: 'brakkieFetchStarted',
       tick: host.tick(),
@@ -447,15 +723,20 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
    *  whose spot stays busy is passed over for the next one that is clear. */
   function tryFetch(tick: number): void {
     dropStale(tick);
-    if (dog.queue.length === 0 || !idle() || tick < dog.fetchCheck) return;
+    // v1.20 review: a reaction (a head tilt after misses, a proud hop) never holds a fetch back.
+    if (dog.queue.length === 0 || !(idle() || dog.phase === 'react') || tick < dog.fetchCheck)
+      return;
     dog.fetchCheck = tick + checkTicks;
-    // v1.17 (D-079): only in a lull in the shooting, or sent with the whistle ("Soek!").
-    if (!sent && host.gunUp(quietTicks)) return;
+    // v1.20 (D-085): he goes fetch.delaySeconds after the bag, shooting or not (v1.17's lull rule
+    // is gone); sent with the whistle ("Soek!") he goes at once.
     for (let i = 0; i < dog.queue.length; i++) {
       const f = dog.queue[i];
-      if (f === undefined || tick < f.readyTick) continue;
+      if (f === undefined || (!sent && tick < f.readyTick)) continue;
       f.giveUpTick ??= tick + ticks(B.fetch.waitSeconds);
       if (host.busyNear(f.plane, f.x, B.fetch.clearPx * k(f.plane))) continue;
+      // v1.20 review: on his own plane the way there must be clear too (a run past a live flock
+      // is a run through the line of fire): a blocked way is passed over like a busy spot.
+      if (f.plane === dog.plane && !runClear(f.x)) continue;
       dog.queue.splice(i, 1);
       startFetch(f);
       return;
@@ -580,10 +861,9 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     return planeCentreX(host.cameraX(), sf) + geo.homeSide * B.whistle.heelDxPx;
   }
 
-  /** A bird in his queue is down and ready to fetch (he would go in a lull). */
+  /** A bird in his queue is down (v1.20, D-085: the whistle sends him for it at once). */
   function birdWaiting(): boolean {
-    const tick = host.tick();
-    return dog.queue.some((f) => tick >= f.readyTick);
+    return dog.queue.length > 0;
   }
 
   /** What the whistle would do now (null: nothing). */
@@ -666,16 +946,59 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     dog.t++;
     // Test builds only: the screenshot spec's fetch, a bird placed beside him (no bag needed).
     if (demoProud !== null && tick >= demoProud && tryReact('proud')) demoProud = null;
+    // Test builds only: a bag beside him, towards the view's centre, through the real queue.
+    if (
+      demoBag !== null &&
+      tick >= demoBag &&
+      dog.phase === 'rest' &&
+      dog.plane === 'near' &&
+      !dog.carrying &&
+      Math.abs(dxOf('near', dog.x)) <= B.roam.viewHalfPx
+    ) {
+      demoBag = null;
+      const toCentre = dxOf('near', dog.x) > 0 ? -1 : 1;
+      bagged('near', dog.x + 260 * k('near') * toCentre);
+    }
     if (demoTick !== null && tick >= demoTick && idle() && dog.plane === 'near' && !dog.carrying) {
       demoTick = null;
       const x = dog.x + 260 * k('near') * dog.facing;
       startFetch({ plane: 'near', x, readyTick: tick, giveUpTick: tick });
+      // The screenshot's fetch is never given up (it isn't from the queue).
+      dog.fetching = null;
       return;
+    }
+    alarmStep(tick);
+    // v1.20 review: a wide-spread gun ends the Jag card whatever he is doing.
+    if (dog.jagOn && host.wideGun()) endJag('gun');
+    // v1.20 review: out of the line of fire while he runs out or carries on the near plane: a run
+    // out that meets something being aimed at (a pop-up, a flock walking in) is given up (the bird
+    // goes back to the queue) and he scampers off; a carry home takes the clear end.
+    if (
+      dog.plane === 'near' &&
+      (dog.phase === 'fetch' || dog.phase === 'carry') &&
+      tick >= dog.nextCheck
+    ) {
+      dog.nextCheck = tick + checkTicks;
+      if (dog.phase === 'fetch' && dog.fetching !== null) {
+        const busy = host.busyAt('near', dog.x, B.clear.aimPx * k('near'));
+        if (busy !== null || !runClear(dog.goal)) {
+          dog.queue.unshift(dog.fetching);
+          dog.fetching = null;
+          const wide = B.roam.scamperHalfPx;
+          const away: 1 | -1 = busy !== null && busy > dog.x ? -1 : 1;
+          const x = pickSpot(away, wide) ?? pickSpot(0, wide);
+          if (x !== null) moveTo('trot', 'run', x, B.speeds.runPx);
+          else rest();
+          return;
+        }
+      } else if (dog.phase === 'carry' && !runClear(dog.goal)) goHome('carry', carrySpeed());
     }
     if (dog.plane === 'near' && STANDING.has(dog.phase)) {
       // A wide-spread gun came out: off to the bakkie (no yelp, nothing hit him).
       if (host.wideGun()) {
+        endJag('gun');
         dog.queue.length = 0;
+        dog.fetching = null;
         dog.barkFlock = null;
         goHome('bolt', B.speeds.runPx);
         return;
@@ -724,8 +1047,10 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
         }
         dog.x = dog.goal;
         if (dog.phase === 'trot') rest();
-        else if (dog.phase === 'fetch') setPhase('pickup', 'sniff', ticks(B.fetch.pickupSeconds));
-        else if (dog.phase === 'toDig') startPoint(tick);
+        else if (dog.phase === 'fetch') {
+          dog.fetching = null;
+          setPhase('pickup', 'sniff', ticks(B.fetch.pickupSeconds));
+        } else if (dog.phase === 'toDig') startPoint(tick);
         else if (dog.phase === 'toHeel') setPhase('heel', 'sit', ticks(B.whistle.heelSeconds));
         else {
           if (dog.phase === 'carry') delivered(tick);
@@ -734,12 +1059,13 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
           const away =
             dog.phase !== 'carry'
               ? B.hit.awaySeconds
-              : dog.queue.length > 0
+              : dog.queue.length > 0 || dog.jagOn
                 ? B.fetch.backSeconds
                 : B.fetch.awaySeconds;
           dog.plane = 'near';
           dog.x = homeX('near');
           dog.carrying = false;
+          dog.caught = false;
           setPhase('away', 'sit', rangeTicks(away));
           return;
         }
@@ -751,27 +1077,27 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
         dog.cross = null;
         dog.plane = c.to;
         dog.x = c.toX;
-        if (dog.carrying) goHome('carry', B.speeds.runPx);
-        else setPhase('pickup', 'sniff', ticks(B.fetch.pickupSeconds));
+        if (dog.carrying) goHome('carry', carrySpeed());
+        // v1.20 (D-085): across for the Jag card's bird, or back from the mid plane without one.
+        else if (dog.jagBird !== null && c.to === 'mid') setPhase('hunt', 'run', 0);
+        else if (c.to === 'near') setPhase('rest', 'sniff', lookTicks);
+        else {
+          dog.fetching = null;
+          setPhase('pickup', 'sniff', ticks(B.fetch.pickupSeconds));
+        }
         return;
       }
       case 'pickup':
         if (dog.t < dog.dur) return;
         dog.carrying = true;
         host.emit({ type: 'brakkiePickedUp', tick, plane: dog.plane });
-        if (dog.plane === 'near') {
-          goHome('carry', B.speeds.runPx);
-          return;
-        }
-        // Out of the flocks' plane at once: back across to the near plane (not hittable while
-        // crossing), and home along it (lesson 21: never through the mid flocks).
-        {
-          const toX =
-            planeCentreX(host.cameraX(), geo.layers.near.scrollFactor) + dxOf(dog.plane, dog.x);
-          dog.cross = { from: dog.plane, fromX: dog.x, to: 'near', toX };
-          setPhase('cross', 'carry', ticks(B.fetch.crossSeconds));
-          dog.facing = side;
-        }
+        carryHome();
+        return;
+      case 'hunt':
+        huntStep(tick);
+        return;
+      case 'pounce':
+        pounceStep(tick);
         return;
       case 'bark':
         if (dog.t === ticks(B.bark.threatAtSeconds) && dog.barkFlock !== null) {
@@ -798,7 +1124,11 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
         if (!roam()) rest();
         return;
       case 'react':
-        if (dog.t < dog.dur) return;
+        if (dog.t < dog.dur) {
+          // v1.20 review: a bird ready to fetch cuts the reaction short.
+          tryFetch(tick);
+          return;
+        }
         dog.react = null;
         rest();
         return;
@@ -813,8 +1143,11 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
         break;
     }
     if (!idle()) return;
-    tryFetch(tick);
+    // v1.20 (D-085): the Jag card first; no bark or point while it runs.
+    tryJag(tick);
     if (!idle()) return;
+    tryFetch(tick);
+    if (!idle() || dog.jagOn) return;
     tryBark(tick);
     if (!idle()) return;
     tryFlush(tick);
@@ -854,14 +1187,20 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       points,
     });
     breakStreak('hit');
+    // v1.20 (D-085): any hit ends the Jag card (aimed at him: −25 as ever).
+    dog.jagBird = null;
+    dog.pounceLive = false;
+    endJag('hit');
     if (dog.phase === 'yelp' || dog.phase === 'bolt') return;
     // On point: the flock was there all the same — it bursts up as he yelps.
     if (dog.phase === 'point') burst(tick, false);
     dog.pointX = null;
     dog.react = null;
     dog.queue.length = 0;
+    dog.fetching = null;
     dog.shy = true;
     dog.carrying = false;
+    dog.caught = false;
     dog.barkFlock = null;
     setPhase('yelp', 'yelp', ticks(B.hit.yelpSeconds));
   }
@@ -887,6 +1226,7 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     // same for every Daily player).
     const ready = host.tick() + ticks(B.fetch.delaySeconds);
     dog.queue.push({ plane, x, readyTick: ready, giveUpTick: null });
+    dog.queuedTick = host.tick();
   }
 
   function view(): BrakkieView {
@@ -944,6 +1284,12 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
       goodPoints: dog.goodPoints,
       reactions: dog.reactions,
       whistles: dog.whistles,
+      jag: dog.jagOn ? { catches: dog.jagCatches, maxCatches: dog.jagMax } : null,
+      catches: dog.catches,
+      queuedTick: dog.queuedTick,
+      fetchTick: dog.fetchTick,
+      catchPoints: dog.catchPoints,
+      jagBird: dog.jagBird,
     };
   }
 
@@ -976,5 +1322,19 @@ export const createBrakkieSystem: BrakkieSystemFactory = (content, geo, rng, hos
     return spot;
   }
 
-  return { extras, shot, bagged, aimed, cheer, whistle, step, view, nearSpot };
+  return {
+    extras,
+    shot,
+    bagged,
+    aimed,
+    cheer,
+    whistle,
+    step,
+    view,
+    nearSpot,
+    canJag,
+    jag,
+    jagStop,
+    jagHeld,
+  };
 };

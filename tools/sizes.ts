@@ -14,10 +14,16 @@ import type { ContentBundle, Feel } from '../src/content/schemas';
 import type { ArtPlaneId } from '../src/game/assets/artPlane';
 import { sizeMulOf } from '../src/sim/birds/size';
 import type { CameoSheetArea } from '../src/game/cameos/cameoKeys';
-import { CAMEO_SIZE_MUL } from '../src/game/cameos/cameoSheet';
+import { CAMEO_SIZE_MUL, frameKind, type CameoFrame } from '../src/game/cameos/cameoSheet';
+import { OSTRICH_HEN_SCALE } from '../src/game/view/namib/ostrichSheet';
 import { WORKER_H } from '../src/game/view/harvest/harvestSheet';
 import { RESIDENT_TRUE_MUL } from '../src/game/view/tree/residentTrueSize';
-import { FAUNA_HERDS, lookHeight, type FaunaSpecies } from '../src/game/view/faunaHerds';
+import {
+  FAUNA_DRAWN_MUL,
+  FAUNA_HERDS,
+  lookHeight,
+  type FaunaSpecies,
+} from '../src/game/view/faunaHerds';
 import type { PlaneId } from '../src/sim/types';
 import { ANIMAL_M, GUINEAFOWL_M, targetPx } from './perspective';
 
@@ -581,8 +587,11 @@ export const MEASURED_ART: readonly MeasuredArt[] = [
   ),
 ];
 
-/** The view's drawn design px per art px of a measured source (see MEASURED_ART). */
-export function drawnPerArtPx(content: ContentBundle, s: ArtSource): number {
+/** The view's drawn design px per art px of a measured source (see MEASURED_ART). v1.22.1
+ *  (D-086): art drawn at a size the content no longer has (an owner-set size, before a redraw) is
+ *  shown × content ÷ drawn: the cameos (CAMEO_SIZE_MUL), the far herds (FAUNA_DRAWN_MUL, feel.json)
+ *  and the ostrich hen (OSTRICH_HEN_SCALE). */
+export function drawnPerArtPx(content: ContentBundle, s: ArtSource, feel?: Feel): number {
   switch (s.kind) {
     case 'flyer': {
       // D-083: the plane's scale × the creature's sizeMul (src/game/view/BirdView.ts).
@@ -590,11 +599,12 @@ export function drawnPerArtPx(content: ContentBundle, s: ArtSource): number {
       if (c === undefined) throw new Error(`no creature ${s.creature}`);
       return content.scoring.planes[s.artPlane].scale * sizeMulOf(c);
     }
-    case 'ostrich':
+    case 'ostrich': {
       // The sheet is at the mid plane's scale; the view × the family's scale ÷ it × sizeMul.
-      return (
-        (content.scoring.planes.mid.scale / OSTRICH_ART_SCALE) * content.birds.ostriches.sizeMul
-      );
+      const os = content.birds.ostriches;
+      const hen = s.frame.startsWith('f_') ? os.henScale / OSTRICH_HEN_SCALE : 1;
+      return (content.scoring.planes.mid.scale / OSTRICH_ART_SCALE) * os.sizeMul * hen;
+    }
     case 'brakkie':
       // His own frames grow with brakkie.sizeMul; the bird he carries keeps its own size.
       return s.frame === 'bird' ? 1 : content.brakkie.sizeMul;
@@ -603,10 +613,17 @@ export function drawnPerArtPx(content: ContentBundle, s: ArtSource): number {
       const w = content.modes.modes.harvest.workers;
       return (w.heightPx * content.scoring.planes.mid.scale) / WORKER_H;
     }
-    case 'fauna':
-      return s.s ?? 1;
-    default:
+    case 'fauna': {
+      const sp = s.look.split('.')[0] as FaunaSpecies;
+      const mul = feel === undefined ? 1 : feel.fauna.sizeMul[sp] / FAUNA_DRAWN_MUL[sp];
+      return (s.s ?? 1) * mul;
+    }
+    case 'resident':
       return 1;
+    default: {
+      const kind = frameKind(s.frame as CameoFrame);
+      return content.cameos.kinds[kind].sizeMul / CAMEO_SIZE_MUL[kind];
+    }
   }
 }
 
@@ -698,7 +715,7 @@ export function sizeTable(content: ContentBundle, feel: Feel): SizeRow[] {
         m.realM,
         m.measure,
         m.plane,
-        m.artPx * drawnPerArtPx(content, m.source),
+        m.artPx * drawnPerArtPx(content, m.source, feel),
       ),
     );
   // The bushbaby at its hole: its head (the drawing's head ellipse, 12.4 px across at k 1, × its
@@ -853,6 +870,28 @@ function trueSizeRows(content: ContentBundle, feel: Feel, row: RowFn): SizeRow[]
   }
   return rows;
 }
+
+/** v1.22.1 (D-086): a size the owner set by eye (the size editor), outside ±15 % of real. */
+export interface OwnerSet {
+  /** When it was applied (YYYY-MM-DD). */
+  readonly date: string;
+  /** The size knob (src/game/sizes/sizeKnobs.ts) and the value he set. */
+  readonly knob: string;
+  readonly value: number;
+  /** "the owner set this by eye …": what changed and how far from real it now is. */
+  readonly why: string;
+}
+
+/**
+ * v1.22.1 (D-086, the owner, 10 Nov: "if we cant fix the sizes … i can select them and use a button
+ * to adjust the size to the correct size"): the rows of this table the owner set by eye that are
+ * outside ±15 % of real. tools/sizes.test.ts holds every other row to ±15 % and these to their
+ * record. Written by `npm run sizes:apply` (tools/sizesApply.ts) between the markers; never by hand.
+ */
+export const OWNER_SET: Readonly<Record<string, OwnerSet>> = {
+  // owner-set:begin
+  // owner-set:end
+};
 
 /**
  * Animals NOT brought to true size (D-080: the owner asked for every animal; these stay, each with

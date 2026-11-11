@@ -20,6 +20,7 @@
     "hitStopMs": 20,
     "hitStopTwoFliesMs": 45,
     "muzzleFlashMs": 50,
+    "slugFlashScale": 0.55,
     "gunKickPx": 34,
     "gunKickMs": 120,
     "featherCount": [

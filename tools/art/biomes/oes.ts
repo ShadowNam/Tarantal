@@ -21,6 +21,11 @@ const GAP_HALF = 170;
 const WORKERS_TO = 520;
 /** The fence's ground line on the mid layer. */
 const FENCE_Y = 700;
+/** v1.18 (D-081): the small hole low in the fence (content oes.json harvest.hole): the bay whose
+ *  middle is nearest this u has its bottom wire torn up into an arch over a dug-out hollow. */
+export const HOLE_U = 0.238;
+/** Half the hole's width (oes.json harvest.hole.halfWidthPx). */
+export const HOLE_HALF = 50;
 /** Review round 1 (item 11): the farmhouse (its windbreak and road) on the far veld, and the stretch
  *  of the far veld the koppie's troop (far ridge, u 0.2) lines up with over the camera sweep: kept
  *  low (no house or tree rises behind the troop: tools/art/troopBackdrop.ts). */
@@ -379,6 +384,35 @@ function farVeld(ctx: LayerCtx): string {
   return g({}, ...parts);
 }
 
+/** v1.18 (D-081): the dug-out hollow under the small hole (a dark scoop of loose earth with a
+ *  lip of thrown-out soil), wide enough for a yearling; behind the wire. */
+function holeHollow(x: number, c: LayerCtx['c']): string {
+  const y = FENCE_Y + 3;
+  const w = HOLE_HALF;
+  return g(
+    {},
+    // Thrown-out soil either side.
+    flat(
+      `M${x - w - 46} ${y + 4}Q${x - w - 24} ${y - 16} ${x - w + 2} ${y + 2}Z` +
+        `M${x + w - 2} ${y + 2}Q${x + w + 26} ${y - 18} ${x + w + 50} ${y + 4}Z`,
+      mix(c('soil'), c('soilDark'), 0.35),
+    ),
+    // The burrow under the wire: a dark arch dug into the ground.
+    flat(
+      `M${x - w} ${y + 2}C${x - w + 4} ${y - 40} ${x + w - 4} ${y - 40} ${x + w} ${y + 2}Z`,
+      shade(c('soilDark'), -0.55),
+    ),
+    flat(
+      `M${x - w + 12} ${y + 2}C${x - w + 16} ${y - 26} ${x + w - 16} ${y - 26} ${x + w - 12} ${y + 2}Z`,
+      shade(c('soilDark'), -0.8),
+    ),
+    line(`M${x - w} ${y + 2}C${x - w + 4} ${y - 40} ${x + w - 4} ${y - 40} ${x + w} ${y + 2}`, {
+      ink: shade(c('soilDark'), -0.7),
+      w: 2,
+    }),
+  );
+}
+
 /** The field: ripe mielie rows and sunflower patches, the fence along the back with its gap. */
 function mid(ctx: LayerCtx): string {
   const c = ctx.c;
@@ -425,20 +459,40 @@ function mid(ctx: LayerCtx): string {
     [-60, gap - GAP_HALF],
     [gap + GAP_HALF, ctx.width + 60],
   ];
+  const holeX = ctx.u(HOLE_U);
+  const wirePen: Pen = { ink: shade(c('metal'), -0.3), w: 1 };
   for (const [a, b] of runs) {
     const posts: number[] = [];
     for (let x = a; x <= b; x += 110) posts.push(Math.min(x, b));
     if (posts.at(-1) !== b) posts.push(b);
+    // v1.18 (D-081): the bay with the small hole (its posts either side of holeX).
+    const bay = posts.findIndex((x, i) => x <= holeX && (posts[i + 1] ?? -Infinity) > holeX);
     // D-080: a true 1.2 m fence beside the guineafowl (FENCE_POST_H 265 px; 70 before).
-    for (const h of [62, 44, 26].map((v) => v * FENCE_K))
+    for (const [n, h] of [62, 44, 26].map((v, i) => [i, v * FENCE_K] as const)) {
+      const pts = posts.map((x) => [x, FENCE_Y - h] as [number, number]);
+      if (n < 2 || bay < 0) {
+        fence.push(wire(pts, 3, wirePen, 1.4));
+        continue;
+      }
+      // The bottom wire: whole up to the hole's bay and after it; in the bay it is torn and
+      // bent up into an arch on both sides of the hole.
+      fence.push(wire(pts.slice(0, bay + 1), 3, wirePen, 1.4));
+      fence.push(wire(pts.slice(bay + 1), 3, wirePen, 1.4));
+      const pa = posts[bay] ?? holeX - 55;
+      const pb = posts[bay + 1] ?? holeX + 55;
+      const y = FENCE_Y - h;
+      // Torn ends curling up off the posts, bold enough to read at the field's distance.
+      const torn: Pen = { ink: shade(c('metal'), -0.45), w: 1 };
       fence.push(
-        wire(
-          posts.map((x) => [x, FENCE_Y - h] as [number, number]),
-          3,
-          { ink: shade(c('metal'), -0.3), w: 1 },
-          1.4,
+        line(
+          `M${pa} ${y}Q${holeX - HOLE_HALF + 2} ${y + 4} ${holeX - HOLE_HALF + 10} ${y - 34}` +
+            `M${pb} ${y}Q${holeX + HOLE_HALF - 2} ${y + 4} ${holeX + HOLE_HALF - 12} ${y - 40}`,
+          torn,
+          2.4,
         ),
       );
+    }
+    if (bay >= 0) fence.push(holeHollow(holeX, c));
     for (const x of posts)
       fence.push(post(x, FENCE_Y + 2, FENCE_POST_H, x === a || x === b ? 22 : 17, postTone, pen));
   }
@@ -467,7 +521,8 @@ function mid(ctx: LayerCtx): string {
     for (let x = -20 + ctx.rnd() * step; x < ctx.width + 20; x += step * (0.8 + ctx.rnd() * 0.4)) {
       if (foot < 760 ? x > clearL && x < clearR : Math.abs(x - gap) < trackHalf) continue;
       const y = foot + (ctx.rnd() - 0.5) * 6;
-      const workers = x > gap && x < clearR;
+      // v1.18 (D-081): in front of the small hole the rows stay low too (it shows over them).
+      const workers = (x > gap && x < clearR) || Math.abs(x - holeX) < HOLE_HALF + 90;
       const cap = workers ? Math.max(0, y - FENCE_Y - 14) : Infinity;
       if (cap < 40) continue;
       const hh = Math.min(cap, h * (0.88 + ctx.rnd() * 0.22));

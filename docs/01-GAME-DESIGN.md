@@ -362,6 +362,9 @@ belt is a deliberate arcade abstraction.
 | `blitslaai` | Blitslaai (Lightning Load, v1.6b) | Every reload takes 35 % of its time: full-belt reloads, each per-shell step, the Voorlaaier's ramrod and the Kettie's draw (its reload, D-025) | 12 s |
 | `oupa_laai` | Oupa Laai (Oupa Loads, v1.6b) | Auto reload: the moment the gun is empty its reload starts by itself; per-shell guns (Windbuks, Plaas-Pomp) also top up whenever you haven't fired for 0.6 s. A shot can always cut an auto reload. Reload time unchanged | 12 s |
 | `rooikol` | Rooikol (Red Dot, 1.9.2) | Rifles only (the .22 and the Langloop, any sight): the rifle aims through a red dot instead of its sight — up the moment you press (no raise, no zoom in or out), a calm dot (the sight's first-step sway × 0.6), and 75 % of the time between shots. No magnification: far birds stay small on screen (still hittable, D-049 hit-radius floors) | 15 s |
+| `dragon_breath` | Dragon's Breath (Drakevuur, v1.19) | Shotguns only (Dubbelloop, Plaas-Pomp, Voorlaaier): each shot throws a cone of fire — 2.5× the gun's pellets over a 2.4× wider pattern that stops at the mid plane (never the far birds or Ver), and any pellet that touches a bird brings it down (one hit; a boss loses one armour or hit as usual). Birds it bags go down in a singed puff | 4 shells |
+| `brakkie_jag` | Jag, Brakkie! (Hunt, Brakkie!, v1.20) | Only where Brakkie comes along: for 10 s of hunting he sprints at guineafowl foraging on the ground and catches up to 3 — each a bag of that bird (its normal score), carried to the bakkie for Bring! (+4); the rest of the flock flushes (§11.3f) | 10 s of hunting |
+| `slug` | Slug (Koeëlpatroon, v1.19) | Shotguns only: one heavy ball per shot — no spread (hip or not), it reaches the far plane and Ver like a rifle, the wind pushes it more than a rifle bullet (wind sensitivity 1.2; the .22 0.6, the Langloop 0.5), and whatever it hits is bagged in one (armour, a boss's hits, a two-hit warthog in the Harvest) | 3 shells |
 
 Picking a power-up up again refreshes it. A shell power-up counts the shots after the one that
 picked it up. Reload power-ups (D-043): Blitslaai multiplies with Snelhand and the Boss Rule, and
@@ -378,6 +381,26 @@ draw exactly as before — and the Padstal never sells it (a run's gun can chang
 The sim keeps the power-up and the instant raise, sway and cooldown; the 1× view and the red-dot
 reticle are the view's (§10.6). A red-dot hold started before it ends stays a red dot until it is
 released. Numbers: docs/balance/rooikol.md.
+
+**Special shells (v1.19, D-084).** The product owner (8 Nov): "a shotgun bullet called DRAGON
+fire, that spits a huge fire out, and possibly especially with the shotgun a long range single shot
+SLUG". Dragon's Breath and the Slug are shotgun shells (`needsShotgun`): only a shotgun's shot uses
+one and counts it down (a crate gun that isn't a shotgun — the Mielie-Masjien — fires normally and
+leaves the shells loaded). The two never stack: picking one up replaces the other. Crates hold
+them (weight 10 each) only in a hunt with a shotgun — with a rifle, the Windbuks or the Kettie they
+weigh nothing and the crate draws something else; the Padstal sells them (3 caps) only in a run
+whose gun is a shotgun, and a shell bought there waits in its slot while no shotgun is in hand.
+Daily: as the other power-ups (the crates). The cone is a large flash: at most 3 a second with
+every other large flash (§18.3), and a smaller, dimmer cone when refused or with "reduce
+flashes". It never sets the veld alight. Numbers: content/powerups.json; balance: D-084.
+
+**The Jag, Brakkie! card (v1.20, D-085).** The product owner (10 Nov): "if u have a joker card or
+so, he can go and hunt and catch some guineafowls that are on the ground". `needsBrakkie`: crates
+hold it (weight 10) only in hunts Brakkie comes to (Classic, the Daily, bonus maps, Season Run
+plain and omen hunts) and only while he can take it (not bolted from a hit, no wide-spread crate gun
+out) — otherwise the crate draws something else; the Padstal sells it (3 caps) and a bought card
+waits in its slot in a hunt without him. Its chip shows the seconds and the catches ("7 s · 1/3").
+Numbers: content/powerups.json and brakkie.json `jag`; balance: D-085.
 
 **v1.7b — what a power-up does, said plainly (D-046).** The product owner: "When one collects these
 power-ups, one is very unsure what they actually do." What the power-ups and crate guns *do* is
@@ -950,15 +973,20 @@ more and more with the hunts and help get extra points in collecting and hunting
 Real gundogs **point** (freeze at hidden birds), **flush** them on command and **retrieve** what
 falls; good game dogs help and never block or mock the player. On top of 1.19.0's roaming and
 fetching Brakkie (`content/brakkie.json`):
-- **"Bring!" (retrieve):** each bird he delivers to the bakkie pays **+15** — an event bonus (×
-  Frenzy × Stampede at delivery) — with a small pop-up at the screen edge ("Bring! +15") and a happy
-  yap. **Every 3 deliveries in a row: "Goeie hond!" +30.** The streak breaks if he is hit, or if a
+- **"Bring!" (retrieve):** each bird he delivers to the bakkie pays **+4** (v1.20, D-085: was +15
+  when he fetched ~8× less often; the owner: "Keep it near +5 %") — an event bonus (× Frenzy ×
+  Stampede at delivery) — with a small pop-up at the screen edge ("Bring! +4") and a happy yap.
+  **Every 5 deliveries in a row: "Goeie hond!" +20** (was +30 every 3). The streak breaks if he is hit, or if a
   shot is aimed within `clear.aimPx` (340 px) of him while he carries a bird (hold fire round him).
   The **ready rule** (no chance roll; the same for every Daily player): once he is back, he fetches
   the next bird down in reach (near or mid, within 640 screen px of the centre, its spot clear of
-  live birds), one at a time from a queue of up to `fetch.queueMax` (2). **Sent when the shooting stops:** he runs out
-  only after the gun has been quiet `fetch.quietSeconds` (6 s), or at once when **sent with the
-  whistle ("Soek!")**.
+  live birds), one at a time from a queue of up to `fetch.queueMax` (**3**, v1.20). **v1.20
+  (D-085), fetch sooner:** he runs out `fetch.delaySeconds` (**1.5 s**) after a bird falls, even
+  while the player keeps shooting (v1.17's "sent when the shooting stops", 6 s of quiet, is gone);
+  every clear rule still holds (a spot clear of live birds, a clear way there — on the near plane
+  with no live mid-ground bird over it on screen — never into the line of fire; a run out that
+  meets something being aimed at is given up, and the bird waits in the queue). **Sent with the whistle ("Soek!")** he goes at once. On his first fetch of a save Oupa
+  says once that he fetches by himself and that F (touch: the whistle button) sends him.
 - **"Staan!" (the point):** instead of the plain dig, he freezes in a classic point (body low and
   level, the near front paw lifted, tail straight up, quivering) at a hidden flock; a small marker
   (a rustling grass tuft and a tiny white chevron) shows where it sits on the mid ground, ahead of his
@@ -976,6 +1004,16 @@ fetching Brakkie (`content/brakkie.json`):
   player can always clear him out of the way); at heel → **"Soek!"** (back to work). Cooldown 3 s;
   nothing while he carries, bolts or is away; the button is hidden in modes without him and while
   he is away, dimmed while it would do nothing.
+- **"Jag, Brakkie!" (v1.20, D-085), the card:** a power-up (§10.4) from crates and the Padstal,
+  only in hunts he comes to. While it runs he sprints at a guineafowl **foraging on the ground**
+  (the near plane in view, within 650 screen px of the centre, or the mid ground within 1 400 —
+  never a bird in the air, another species or a penalty animal), pounces (a crouch and a leap) and catches it: a
+  bag of that bird with its normal score (× Frenzy × Stampede), no blood, no struggle. He carries
+  it home at a sprint for **Bring!** (+4; catches count toward Goeie hond!), and the rest of the
+  flock reacts as to a threat — alert, run, flush — wing shots. Up to **3 catches** in **10 s of hunting** (the clock holds while he
+  fetches, carries or is at the bakkie). Shooting at him costs −25 and ends it; a stray pellet makes
+  him yelp and bolt, which ends it too, as does a wide-spread crate gun. Oupa: "Jag, Brakkie, jag!" at the start, a proud line per
+  catch.
 - **Reactions (no points):** after a Whole Flock, Twee Vlieë, Frenzy ×3 or a Ver bag he does a
   proud hop and a double bark (if idle); after 3 clean misses in a row he sits and tilts his head,
   one ear flopping — sympathetic, **never laughing at the player**. 0.8 s, only from idle, at most
@@ -1184,6 +1222,19 @@ the game there ("Use my edits in the game"), and are sent by exporting a file. P
 `{n}` must stay. The corrected lines are applied to the game by `npm run text:apply`, and the clips
 whose words changed are re-made later.
 
+### 12.1c Sizes — the owner sets the animals' sizes by eye, admin page only (v1.22.1, D-086)
+Not a player feature: a tab on the playtest admin page (web builds). Every animal that is not a
+target is drawn at its real size beside the guineafowl (D-080); where one still looks wrong to the
+owner, he opens its area in the game from the tab: the hunt holds still with every sized animal
+out (the far herds, the cameos, the ostriches, the baboons, Brakkie, the meerkats, the weavers,
+the tells, the baobab's residents; in Die Oes the warthogs, piglets and workers), the panorama
+still pans, and a tap picks an animal — outlined, named, with the height it shows as and a
+standing guineafowl (0.5 m) beside it. −10 % · −2 % · +2 % · +10 % · Reset change it at once; Save
+keeps it on that device. "Use my sizes in the game" shows them in every hunt there (hit boxes
+grow with the drawing; hunts are unranked; the build line shows ⇲ and the count). The sizes are
+sent as a file and applied to the game by `npm run sizes:apply`; a size outside ±15 % of real is
+then recorded as the owner's choice.
+
 ### 12.2 Die Oes (The Harvest) — a 30-second mode (1.11.0, D-063)
 The product owner (25 Oct): "A big plantation of crops, and all the birds and everything, the
 warthogs and the baboons, everything flocks to it and tries to eat as much as possible. You've got
@@ -1202,7 +1253,14 @@ repaired." Numbers: `content/modes.json → harvest`; the map: `content/biomes/o
   (the usual flock rules; `rush.gapFlocksPerMin`, a few more start on the feeding spots near the
   gap), fly-overs (guineafowl, francolins and turtle doves) cross the field, warthogs trot in (through the gap on the mid plane, round the fence's end on
   the near plane; tails up) and dig, baboon raiders (§11.3d) come down for the mielies, early and
-  often. Rates ramp up over the 30 s (`rush.keyframes`, the biome's pacing); the dig, feeding
+  often. **v1.18 (D-081): the raid comes down in sight** — the raiders scramble down the koppie
+  behind the farm (a zig-zag over the rocks on the far ridge), run across the open veld, then dash
+  into the rows (1.6× their run); not targets until they reach the mid plane, then the raider rules
+  (`biomes/oes.json → baboons.descent`). **A second, small hole** low in the fence (a bay left of
+  the gap, away from the workers): yearlings (young warthogs, 0.7× an adult, one hit, 2× a
+  guineafowl's base, eating 0.7× a warthog's share) squeeze through it, two a rush (6 s and 21 s
+  in), each with a piglet 45 % of the time; the workers patch it at 80 % of the rush
+  (`harvest.hole`). Rates ramp up over the 30 s (`rush.keyframes`, the biome's pacing); the dig, feeding
   and raid spots sit in the gap's half of the field, where the camera starts, so the peak is busy
   on screen (the screenshot spec asserts ≥ 2 flocks, 3 warthogs and a raider).
 - **Warthogs:** 2 hits bag one (each shot that hits is one hit; the first sends it running back
@@ -1230,7 +1288,49 @@ repaired." Numbers: `content/modes.json → harvest`; the map: `content/biomes/o
   piglets, and the local best ("New Harvest best!"). [Again] plays the Harvest again.
 - **Not in it:** supply crates and charms (a 30-s rush keeps the field clear; the fence area stays
   free of falling crates); the Stampede (the rush is its own climax); the omen.
-- **Balance (docs/balance/v1.8c-harvest.md):** a competent player saves ~70 % of the crop.
+- **Balance (docs/balance/v1.8c-harvest.md, v1.18-harvest-defence.md):** a competent player saves
+  ~61 % of the crop in the rush (66 % before the small hole).
+
+#### 12.2.1 Phase 2 — "Defend the field" (v1.18, D-081)
+The owner (8 Nov): "when a certain amount of points get done in the HARVEST map, the map gets into
+a phase 2 where the fence is still intact, and the pigs and monkeys try to jump the fence to get in
+from all the sides and eat, and you just need to try keep them off the field … there should be a
+countdown of animals and a timer". Confirmed 9 Nov: the unlock about half a competent player's
+rushes, ~24 animals in 30 s, piglets scare-only, the three bonuses. Numbers:
+`modes.json → harvest.phase2`.
+- **Unlock:** when the rush ends (the fence whole, the crop bonus paid) with the Harvest score at or
+  over `unlockScore` (1850: the competent bot's median, so it gets there about half the time) and
+  some crop left (a rush that lost it all ends with the normal tally), the tally waits: "Bonus round: defend the field!" and Oupa's line, 2 s on sim time (no
+  shooting), then Phase 2. Under it: the normal Harvest tally.
+- **The set-up:** the fence whole all round (no gap, the small hole patched); the workers walk off
+  to the farmhouse within the banner (`workers.leaveSeconds`) and can't be hit once they set off
+  (nobody in the line of fire); the crop meter carries over. The field is Phase 2's alone (review,
+  D-081): from the unlock no baboon raid, guineafowl flock or pop-up starts — a raid at the field
+  runs off, one still on the koppie is called off — and the flocks the rush's end flushed fly off
+  the panorama instead of landing again. Fly-overs keep crossing the sky (they eat nothing).
+- **The attack:** a fixed list of 24 (`waves`: when, what, from where; ±0.4 s of seeded jitter and
+  where each crosses, its own stream) in three bursts of 8 (0.5, 9.5, 18.5 s): from both ends of
+  the panorama and up out of the veld behind the back fence on the mid plane — warthogs JUMP the
+  fence (a run-up and a jump arc), piglets squeeze UNDER it (low, slow), baboons CLIMB the fence
+  and drop in — and round the near plane's ends. Each that reaches the field eats (warthog 1.4,
+  piglet 0.7, baboon 1.6 % a second) until stopped.
+- **Stopping them:** warthogs as in the rush (2 hits bag one; the first sends it running out),
+  baboons as raiders, piglets are never targets: a shot landing within `pigletScarePx` of one
+  scares it back out (no points, no penalty), a shot aimed at one costs 15. Each one stopped
+  (bagged or driven out) counts down "Animals left: N".
+- **HUD:** the crop meter, a plate over the fence bar with the big "Animals left: N" and Phase 2's
+  own countdown (the clock top left shows it too), on phones the counter shrinks beside the clock.
+- **The end:** every one stopped, the clock out, or the crop gone ("They ate the lot!" — Phase 2
+  lost, the score so far stays). Then `cropBonusPerPercent` (10) × whole crop % left, plus "Field
+  defended!" (500) if the crop didn't drop in Phase 2, plus "All of them!" (750) if all were
+  stopped in time. Animals bagged score as in the rush (× Frenzy). The tally's "Crop saved" is
+  the rush's (as the fence closed) and "Workers and piglets" counts Phase 2's piglets too. The
+  Harvest tally adds
+  "Bonus round: stopped N / 24", the crop at the end and the bonuses; the local best is the
+  hunt's score, Phase 2 in. The music plays its Stampede stem in Phase 2 (the build stem in the
+  banner); grunts, squeals and the baboons' calls as they come.
+- **Balance (docs/balance/v1.18-harvest-defence.md):** the competent bot unlocks it about half the
+  time and keeps ~60 % of the crop it had in Phase 2; the plinker ~18–21 %.
 
 ## 13. Season Run (roguelite) in detail
 
@@ -1362,6 +1462,12 @@ Classic or Daily hunt" / "Buy it at the Padstal in a Season Run: 3 caps" / "Rent
 hunt" / "Some farm secrets give it too") and one tip. Ones not picked up yet on this save are
 darker and say "Not found yet", but explain themselves all the same. The list scrolls (drag,
 wheel, or ↑/↓ through the cards) and is sized for an iPhone 14 in landscape (32 px sentences).
+v1.19 (D-084): every gun card shows a painted side view of its gun (the owner: "the guns still look
+very very primitive"): the Dubbelloop's boxlock with hammers, the Windbuks' break barrel, the
+Kettie, the Plaas-Pomp's fore-end slide and tube magazine, the Twee-Twee with its small scope, the
+Langloop with its big scope and bipod (and the Voorlaaier and the Mielie-Masjien drawn alike).
+Locked guns show the same picture in grey. The pictures load when the shed opens, never with the
+first download or in a hunt.
 
 #### The journal rollout (D-072, R1–R6)
 

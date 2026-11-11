@@ -20,6 +20,7 @@ import {
   tapRect,
   waitTicks,
 } from './helpers';
+import { JAG_BASE, pickUpCrate } from './jagHelpers';
 
 const BUDGET_MS = 1000 / 60;
 
@@ -150,6 +151,50 @@ async function rareMorphsOnGpu(page: Page): Promise<void> {
   );
 }
 
+/**
+ * v1.7d (D-059, CI run 40842297447): the HD layers go in, and the Karoo title's HD layers are
+ * purged, in refreshHd, which runs every 30 RENDERED frames, not on a clock. On CI's software GL a
+ * heavy area's 30 frames took longer than a fixed 4 s, so the sample caught both areas' layers on
+ * the GPU. Waits (bounded) for two refreshes after the HD pack was in (D-080: the fauna stays
+ * Standard) and for no other area's HD layers in the sample; the assertions after it still judge
+ * the sample.
+ * v1.22.2 (D-087): a wait that runs out fails here, saying what it saw, instead of sampling later.
+ * On CI (PR #130, #133) the hook's texture sample was refreshed only on frames whose sim tick was
+ * a multiple of 30, so with several ticks a frame it could stay stale for most of a hunt: the wait
+ * ran out after the 60 s hunt had ended, and the sample was taken on the tally, after the hunt had
+ * released Brakkie's and the cameos' sheets. The hook now reads the textures when it is read.
+ */
+async function waitHdSettled(page: Page, own: string): Promise<void> {
+  const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
+  const settled = page.waitForFunction(
+    ([from, area]) => {
+      const tm = window.__TM__;
+      if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
+      return !tm.textureTop.some(
+        (t) =>
+          t.key.includes('/hd/') && t.key.includes('layer/') && !t.key.includes(`layer/${area}/`),
+      );
+    },
+    [r0, own] as const,
+    { timeout: 90_000 },
+  );
+  if (await settled.then(() => true).catch(() => false)) return;
+  const seen = await page.evaluate((area) => {
+    const tm = window.__TM__;
+    return {
+      refreshes: tm?.graphics.refreshes,
+      scene: tm?.scene,
+      over: tm?.over,
+      others: (tm?.textureTop ?? [])
+        .map((t) => t.key)
+        .filter((k) => k.includes('/hd/') && k.includes('layer/') && !k.includes(`layer/${area}/`)),
+    };
+  }, own);
+  throw new Error(
+    `HD refresh/purge wait ran out (90 s, refreshes from ${r0}): ${JSON.stringify(seen)}`,
+  );
+}
+
 // D-054: every area's HD hunt within the medium tier's texture budget (Tech §9: 256 MB) on the
 // Pixel 7 profile, reached the way players reach it: boot on the Karoo title, then a Classic hunt
 // in the chosen area (the save's area choice). This path left the title's Karoo HD layers on the
@@ -187,7 +232,7 @@ for (const biome of AREAS)
     // No ?biome=: the title is the Karoo, as for players. v1.13 (D-075, lesson 42): with the
     // area's cameos out in view at once (their sheet adds to the hunt's peak), measured once the
     // sheet is on the GPU (the Okavango has none: the far elephants answer).
-    await boot(page, `seed=3&huntSeconds=60&graphics=hd&cameos=1&cameoPreview=all`);
+    await boot(page, `seed=3&huntSeconds=240&graphics=hd&cameos=1&cameoPreview=all`);
     await startHunt(page, isTouchProject(info));
     await page.waitForFunction(
       (want) => {
@@ -207,33 +252,14 @@ for (const biome of AREAS)
       biome,
       { timeout: 180_000 },
     );
-    // v1.7d (D-059, CI run 40842297447): the HD layers go in, and the Karoo title's HD layers
-    // are purged, in refreshHd, which runs every 30 RENDERED frames, not on a clock. On CI's
-    // software GL a heavy area's 30 frames took longer than a fixed 4 s, so the sample caught
-    // both areas' layers on the GPU. Wait (bounded) for two refreshes after the HD pack was in (D-080: the fauna stays Standard)
-    // and for no other area's HD layers in the sample; the assertions below still judge it.
     const area = biome.split('-')[0] ?? biome;
-    const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
-    await page
-      .waitForFunction(
-        ([from, own]) => {
-          const tm = window.__TM__;
-          if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
-          return !tm.textureTop.some(
-            (t) =>
-              t.key.includes('/hd/') &&
-              t.key.includes('layer/') &&
-              !t.key.includes(`layer/${own}/`),
-          );
-        },
-        [r0, area] as const,
-        { timeout: 90_000 },
-      )
-      .catch(() => undefined);
-    // A few texture samples (the hook updates about twice a second), and a frame or two of play.
+    await waitHdSettled(page, area);
+    // A frame or two of play (the hook reads the textures when it is read: D-087).
     await rareMorphsOnGpu(page);
     await page.waitForTimeout(4000);
     const h = await hook(page);
+    // D-087: sampled while the hunt runs (its lazy sheets go when it ends).
+    expect(h.over, 'the hunt still running when sampled').toBe(false);
     const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
     console.log(`[perf] ${biome} HD texture memory (title → hunt) ${mb} MB`);
     await info.attach(`hd-memory-${biome}.json`, {
@@ -282,24 +308,12 @@ test('HD texture memory, title → the Harvest (oes)', async ({ page, browserNam
     null,
     { timeout: 180_000 },
   );
-  const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
-  await page
-    .waitForFunction(
-      (from) => {
-        const tm = window.__TM__;
-        if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
-        return !tm.textureTop.some(
-          (t) =>
-            t.key.includes('/hd/') && t.key.includes('layer/') && !t.key.includes('layer/oes/'),
-        );
-      },
-      r0,
-      { timeout: 90_000 },
-    )
-    .catch(() => undefined);
+  await waitHdSettled(page, 'oes');
   await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
+  // D-087: sampled while the hunt runs (its lazy sheets go when it ends).
+  expect(h.over, 'the hunt still running when sampled').toBe(false);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
   console.log(`[perf] oes (the Harvest) HD texture memory (title → hunt) ${mb} MB`);
   await info.attach('hd-memory-oes.json', {
@@ -330,7 +344,7 @@ test('HD texture memory, a Christmas hunt on its heaviest map (okavango)', async
   await emulateCores(page);
   await boot(
     page,
-    'feesdag=christmas&today=2026-12-27&layout=none&seed=3&huntSeconds=60&graphics=hd&omen=0',
+    'feesdag=christmas&today=2026-12-27&layout=none&seed=3&huntSeconds=240&graphics=hd&omen=0',
   );
   await page.waitForFunction(() => window.__TM__?.rects['daily'] !== undefined, null, {
     timeout: 60_000,
@@ -353,26 +367,12 @@ test('HD texture memory, a Christmas hunt on its heaviest map (okavango)', async
     null,
     { timeout: 180_000 },
   );
-  const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
-  await page
-    .waitForFunction(
-      (from) => {
-        const tm = window.__TM__;
-        if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
-        return !tm.textureTop.some(
-          (t) =>
-            t.key.includes('/hd/') &&
-            t.key.includes('layer/') &&
-            !t.key.includes('layer/okavango/'),
-        );
-      },
-      r0,
-      { timeout: 90_000 },
-    )
-    .catch(() => undefined);
+  await waitHdSettled(page, 'okavango');
   await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
+  // D-087: sampled while the hunt runs (its lazy sheets go when it ends).
+  expect(h.over, 'the hunt still running when sampled').toBe(false);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
   console.log(`[perf] christmas (okavango) HD texture memory (title → hunt) ${mb} MB`);
   await info.attach('hd-memory-christmas-okavango.json', {
@@ -491,7 +491,7 @@ test('HD texture memory, a New Year hunt on its heaviest map (okavango)', async 
   await emulateCores(page);
   await boot(
     page,
-    'feesdag=newyear&today=2026-12-31&layout=none&seed=3&huntSeconds=60&graphics=hd&omen=0',
+    'feesdag=newyear&today=2026-12-31&layout=none&seed=3&huntSeconds=240&graphics=hd&omen=0',
   );
   await page.waitForFunction(() => window.__TM__?.rects['daily'] !== undefined, null, {
     timeout: 60_000,
@@ -514,26 +514,12 @@ test('HD texture memory, a New Year hunt on its heaviest map (okavango)', async 
     null,
     { timeout: 180_000 },
   );
-  const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
-  await page
-    .waitForFunction(
-      (from) => {
-        const tm = window.__TM__;
-        if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
-        return !tm.textureTop.some(
-          (t) =>
-            t.key.includes('/hd/') &&
-            t.key.includes('layer/') &&
-            !t.key.includes('layer/okavango/'),
-        );
-      },
-      r0,
-      { timeout: 90_000 },
-    )
-    .catch(() => undefined);
+  await waitHdSettled(page, 'okavango');
   await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
+  // D-087: sampled while the hunt runs (its lazy sheets go when it ends).
+  expect(h.over, 'the hunt still running when sampled').toBe(false);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
   console.log(`[perf] new year (okavango) HD texture memory (title → hunt) ${mb} MB`);
   await info.attach('hd-memory-newyear-okavango.json', {
@@ -649,7 +635,7 @@ test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async 
   // v1.12 (D-069): with Brakkie out (his sheet adds to the hunt: 254.8 + 0.5 = 255.3 MB).
   await boot(
     page,
-    'biome=okavango-spring&layout=none&seed=3&huntSeconds=60&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm&brakkie=1&cameos=1&cameoPreview=elephants',
+    'biome=okavango-spring&layout=none&seed=3&huntSeconds=240&graphics=hd&omen=0&reenbui=1&reenbuiPhase=swarm&brakkie=1&cameos=1&cameoPreview=elephants',
   );
   await startHunt(page, isTouchProject(info));
   await page.waitForFunction(
@@ -671,26 +657,12 @@ test('HD texture memory, a Reënbui hunt on its heaviest map (okavango)', async 
     null,
     { timeout: 240_000 },
   );
-  const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
-  await page
-    .waitForFunction(
-      (from) => {
-        const tm = window.__TM__;
-        if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
-        return !tm.textureTop.some(
-          (t) =>
-            t.key.includes('/hd/') &&
-            t.key.includes('layer/') &&
-            !t.key.includes('layer/okavango/'),
-        );
-      },
-      r0,
-      { timeout: 90_000 },
-    )
-    .catch(() => undefined);
+  await waitHdSettled(page, 'okavango');
   await rareMorphsOnGpu(page);
   await page.waitForTimeout(4000);
   const h = await hook(page);
+  // D-087: sampled while the hunt runs (its lazy sheets go when it ends).
+  expect(h.over, 'the hunt still running when sampled').toBe(false);
   const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
   console.log(
     `[perf] reenbui (okavango) HD texture memory (title → hunt) ${mb} MB (brakkie ${h.brakkie?.sheet})`,
@@ -873,6 +845,71 @@ test('perf: the Harvest rush at its peak at 4× CPU throttle (Pixel 7)', async (
     0.3,
   );
   expect(cpu.avg, 'CPU cost per frame (ms), the Harvest rush, 4× throttle').toBeLessThanOrEqual(
+    BUDGET_MS,
+  );
+  expect(errors).toEqual([]);
+});
+
+// v1.18 (D-081): the Harvest's Phase 2 at its busiest on the Pixel 7 profile at 4× CPU throttle:
+// started with the test flag (?harvestPhase2=1), nobody shooting, so all three bursts of the wave
+// list pile into the field (warthogs jumping, piglets squeezing, baboons on the fence and in the
+// mielies); the Harvest view on its own timer (harvestMs per scenery frame ≤ 0.3 ms), the frame
+// within the budget. Next to the rush's case: the perf and perf2 jobs keep their halves.
+test('perf: the Harvest Phase 2 at its busiest at 4× CPU throttle (Pixel 7)', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await emulateCores(page);
+  await boot(page, 'seed=3&harvestPhase2=1&graphics=standard');
+  await page.waitForFunction(() => window.__TM__?.rects['harvest'] !== undefined, null, {
+    timeout: 60_000,
+  });
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await tapRect(page, touch, 'harvest');
+  await page.waitForFunction(() => window.__TM__?.harvest?.phase === 'defend', null, {
+    timeout: 180_000,
+  });
+  let maxActors = 0;
+  let maxAnimals = 0;
+  for (let i = 0; i < 200 && !(await hook(page)).over; i++) {
+    const h = await hook(page);
+    if (h.harvest?.phase !== 'defend') break;
+    maxActors = Math.max(maxActors, (h.harvestActors ?? []).filter((a) => a.visible).length);
+    maxAnimals = Math.max(maxAnimals, h.harvest.phase2?.animals.length ?? 0);
+    await waitTicks(page, 60);
+  }
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const real = stats(h.frameTimes.slice(30));
+  const cpu = stats(h.cpuFrameMs.slice(30));
+  const report = {
+    project: info.project.name,
+    tier: h.quality.tier,
+    throttle: 4,
+    maxActorsShown: maxActors,
+    maxPhase2Animals: maxAnimals,
+    harvestMsPerFrame: h.sceneryFrames > 0 ? h.harvestMs / h.sceneryFrames : 0,
+    realFrameMs: real,
+    cpuFrameMs: cpu,
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf.json'), JSON.stringify(report, null, 2));
+  expect(maxActors, 'Phase 2 actors drawn on screen').toBeGreaterThan(3);
+  expect(maxAnimals, 'Phase 2 animals in at once').toBeGreaterThanOrEqual(12);
+  expect(cpu.n).toBeGreaterThan(30);
+  expect(
+    report.harvestMsPerFrame,
+    'Harvest view ms per frame, Phase 2, 4× throttle',
+  ).toBeLessThanOrEqual(0.3);
+  expect(cpu.avg, 'CPU cost per frame (ms), the Harvest Phase 2, 4× throttle').toBeLessThanOrEqual(
     BUDGET_MS,
   );
   expect(errors).toEqual([]);
@@ -1593,6 +1630,78 @@ test('perf: Brakkie the companion — point, marker, whistle, reaction at 4× CP
   expect(errors).toEqual([]);
 });
 
+// v1.20 (D-085): Brakkie hunting on the Jag card on the Pixel 7 profile at 4× CPU throttle: the
+// card from the first crate (?crate=brakkie_jag, reaching every foraging guineafowl:
+// ?brakkiePreview=jag), then ~25 s of his sprints, pounces (the leap's arc) and carries while the
+// view watches. His view (brakkieMs per scenery frame) ≤ 0.3 ms, ≤ 40 Phaser calls a frame, the
+// frame within the budget.
+test('perf: Brakkie hunting on the Jag card at 4× CPU throttle (Pixel 7)', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await emulateCores(page);
+  await boot(page, `${JAG_BASE}&huntSeconds=60&brakkiePreview=jag`);
+  await startHunt(page, touch);
+  await page.waitForFunction(() => window.__TM__?.brakkie?.sheet != null, null, {
+    timeout: 120_000,
+  });
+  await pickUpCrate(page, touch, 'brakkie_jag');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  const first = await hook(page);
+  const until = first.tick + 25 * 60;
+  let shown = 0;
+  let maxCalls = 0;
+  const phases = new Set<string>();
+  for (let i = 0; i < 2000; i++) {
+    const h = await hook(page);
+    if (h.over || h.tick >= until) break;
+    if (h.brakkie?.visible === true) shown++;
+    maxCalls = Math.max(maxCalls, h.brakkie?.calls ?? 0);
+    if (h.brakkie != null) phases.add(h.brakkie.phase);
+    await waitTicks(page, 10);
+  }
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const frames = Math.max(1, h.sceneryFrames - first.sceneryFrames);
+  const cpu = stats(h.cpuFrameMs.slice(30));
+  const report = {
+    project: info.project.name,
+    tier: h.quality.tier,
+    throttle: 4,
+    frames,
+    brakkieMsPerFrame: (h.brakkieMs - first.brakkieMs) / frames,
+    maxCallsPerFrame: maxCalls,
+    samplesShown: shown,
+    phases: [...phases].sort(),
+    catches: h.brakkie?.catches ?? 0,
+    cpuFrameMs: cpu,
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf-brakkie-jag.json'), JSON.stringify(report, null, 2));
+  expect(shown, 'Brakkie was drawn on screen').toBeGreaterThan(0);
+  expect(
+    report.phases.some((p) => p === 'hunt' || p === 'pounce'),
+    'he hunted (a hunt or pounce phase was seen)',
+  ).toBe(true);
+  expect(maxCalls).toBeLessThanOrEqual(40);
+  expect(
+    report.brakkieMsPerFrame,
+    'Brakkie view ms per frame (hunting), 4× throttle',
+  ).toBeLessThanOrEqual(0.3);
+  expect(cpu.avg, 'CPU cost per frame (ms), the Jag card, 4× throttle').toBeLessThanOrEqual(
+    BUDGET_MS,
+  );
+  expect(errors).toEqual([]);
+});
+
 // v1.13 (D-075): several veld cameos out at once on the Pixel 7 profile at 4× CPU throttle (the
 // smoke's regime: ~20 sim ticks a frame). ?cameoPreview= brings the Bushveld's warthog family and
 // dung beetle out in view at once and ?cameos=1 sends more often; shots at the flocks in view make
@@ -1752,5 +1861,120 @@ test('perf: the braai tally at 4× CPU throttle (Pixel 7)', async ({ page, brows
   expect(frames).toBeGreaterThanOrEqual(BRAAI_MEASURED_FRAMES);
   expect(report.maxCallsPerFrame).toBeLessThanOrEqual(40);
   expect(report.braaiMsPerFrame, 'braai view ms per frame, 4× throttle').toBeLessThanOrEqual(0.3);
+  expect(errors).toEqual([]);
+});
+
+// v1.19 (D-084): Dragon's Breath on the Pixel 7 profile at 4× CPU throttle, medium tier: a crate
+// gives it in the first seconds, then every shell is fired (the flame cone, its sparks, the singed
+// puffs). The shells' effects on their own timer (shellFx.ms: building each cone) per frame a cone
+// shows (≈ 0.26 s at 60 fps), ≤ 0.3 ms; the frame within the smoke's budget.
+test("perf: Dragon's Breath cones at 4× CPU throttle (Pixel 7)", async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await emulateCores(page);
+  await page.addInitScript(() => {
+    const key = 'tm.e2e.save.v1';
+    if (localStorage.getItem(key) === null)
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          v: 1,
+          settings: { quality: 'medium' },
+          ftue: { done: true, skipped: false, step: '' },
+        }),
+      );
+  });
+  await boot(page, 'seed=7&huntSeconds=30&graphics=standard&crate=dragon_breath&baboons=0');
+  await startHunt(page, touch);
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  // All in the page: tap the first crate until the shell is in, then fire every shell into the
+  // low sky (a few ticks apart). Bounded by frames as well as by the goal.
+  const fired = await page.evaluate(
+    (isTouch) =>
+      new Promise<number>((resolve) => {
+        const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
+        const h = window.__TM__;
+        if (!canvas || !h) {
+          resolve(-1);
+          return;
+        }
+        const r = canvas.getBoundingClientRect();
+        let pid = 1500;
+        const tap = (x: number, y: number): void => {
+          const init: PointerEventInit = {
+            clientX: r.left + (x / h.designWidth) * r.width,
+            clientY: r.top + (y / h.designHeight) * r.height,
+            pointerId: pid++,
+            pointerType: isTouch ? 'touch' : 'mouse',
+            isPrimary: true,
+            button: 0,
+            buttons: 1,
+            bubbles: true,
+            cancelable: true,
+          };
+          canvas.dispatchEvent(new PointerEvent('pointerdown', init));
+          canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+        };
+        let last = -99;
+        let frames = 0;
+        const loop = (): void => {
+          frames++;
+          const cones = h.shellFx?.cones ?? 0;
+          if (h.over || frames > 9000 || (cones >= 4 && !h.powerups.includes('dragon_breath'))) {
+            resolve(cones);
+            return;
+          }
+          if (h.tick - last >= 12) {
+            last = h.tick;
+            const spot = h.crateSpots[0];
+            if (!h.powerups.includes('dragon_breath')) {
+              if (spot !== undefined && spot.x > 0 && spot.x < h.designWidth) tap(spot.x, spot.y);
+            } else if (h.shellFx !== undefined && !h.reloading) {
+              if (h.shells === 0) {
+                const belt = h.rects['belt'];
+                if (belt) tap(belt.x + belt.w / 2, belt.y + belt.h / 2);
+              } else tap(h.designWidth * 0.45, h.designHeight * 0.35);
+            }
+          }
+          requestAnimationFrame(loop);
+        };
+        loop();
+      }),
+    touch,
+  );
+  while (!(await hook(page)).over) await waitTicks(page, 60);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const cpu = stats(h.cpuFrameMs.slice(30));
+  const fx = h.shellFx;
+  const coneFrames = (fx?.cones ?? 0) * 16;
+  const report = {
+    project: info.project.name,
+    tier: h.quality.tier,
+    throttle: 4,
+    cones: fx?.cones ?? 0,
+    big: fx?.big ?? 0,
+    shellMsPerConeFrame: coneFrames > 0 ? (fx?.ms ?? 0) / coneFrames : 0,
+    cpuFrameMs: cpu,
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf.json'), JSON.stringify(report, null, 2));
+  expect(fired, 'Dragon’s Breath shells fired').toBeGreaterThanOrEqual(4);
+  expect(
+    report.shellMsPerConeFrame,
+    'shell effects ms per cone frame, 4× throttle',
+  ).toBeLessThanOrEqual(0.3);
+  expect(cpu.avg, "CPU cost per frame (ms), Dragon's Breath, 4× throttle").toBeLessThanOrEqual(
+    BUDGET_MS,
+  );
   expect(errors).toEqual([]);
 });

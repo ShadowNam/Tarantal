@@ -4,7 +4,20 @@
 // closes, the animals run off, the crop bonus). It lives in the lazy systems chunk like the
 // baboons; the sim talks to it through HarvestHost only. Pure and deterministic like the rest of
 // src/sim: its own stream `harvest`, ticks, no allocations a tick beyond the actors it spawns.
-import type { Biome, ContentBundle, HarvestMap, HarvestSetup } from '../../content/schemas';
+import type {
+  BaboonTuning,
+  Biome,
+  ContentBundle,
+  HarvestMap,
+  HarvestSetup,
+} from '../../content/schemas';
+import {
+  createPhase2,
+  mielieSpots,
+  type Phase2Host,
+  type Phase2Plane,
+  type Phase2System,
+} from './phase2';
 import { secondsToTicks } from '../clock';
 import type { BonusId, SimEvent } from '../events';
 import type { RandomStream } from '../rng';
@@ -44,6 +57,16 @@ export interface HarvestHost {
   gapFlock(plane: PlaneId, x: number, size: number, dir: 1 | -1): boolean;
   /** The rush is over: every flock runs off. */
   scatterFlocks(): void;
+  /** v1.18 (D-081): the hunt's score now (Phase 2's unlock). */
+  score(): number;
+  /** v1.18 (D-081): the hunt runs this many ticks longer (Phase 2 unlocked). */
+  extendBy(ticks: number): void;
+  /** v1.18 (D-081): the hunt ends at this tick (Phase 2 over early, or a test-build start). */
+  endAt(tick: number): void;
+  /** v1.18 (D-081): Phase 2's own stream (`harvestPhase2`). */
+  readonly phase2Rng: RandomStream;
+  /** v1.18 (D-081): the baboons' tuning (Phase 2's baboons are raiders). */
+  readonly baboonTuning: BaboonTuning;
 }
 
 export interface HarvestSystem {
@@ -64,9 +87,16 @@ export interface HarvestSystem {
     hits: readonly number[],
     hitTarget: boolean,
     aimOn: (layerId: string) => { readonly x: number; readonly y: number },
+    /** v1.19 (D-084): a Slug: what it hits is bagged in one. */
+    heavy?: boolean,
   ): void;
   step(): void;
   view(): HarvestView;
+  /** v1.18 (D-081): every shot fired (Phase 2: a piglet near where it landed runs out). */
+  landed(aimOn: (layerId: string) => { readonly x: number; readonly y: number }): void;
+  /** v1.18 (D-081, review): Phase 2 has the field (from its unlock to the hunt's end): the hunt
+   *  starts no baboon raid, flock or pop-up (fly-overs, harmless sky dressing, go on). */
+  holdsSpawns(): boolean;
 }
 
 export type HarvestSystemFactory = (
@@ -89,11 +119,22 @@ interface DigSpot {
   /** Where an arrival for this spot comes in from (layer px) — off the view or behind the gap. */
   readonly fromX: number;
   readonly fromY: number;
+  /** v1.18 (D-081): its index in the map's dig spots (a hole arrival's spot is a copy). */
+  readonly index: number;
+  /** v1.18 (D-081): the arrival squeezes through the small hole. */
+  readonly viaHole: boolean;
 }
 
 interface Warthog {
   readonly id: number;
   readonly spot: DigSpot;
+  /** v1.18 (D-081): a yearling (through the small hole): smaller, fewer hits. */
+  readonly young: boolean;
+  /** Its size on its plane (the spot's scale, × youngScale for a yearling). */
+  readonly scale: number;
+  /** v1.18 (D-081): where it runs out to (the way it came; the gap once the hole is patched). */
+  exitX: number;
+  exitY: number;
   x: number;
   y: number;
   facing: 1 | -1;
@@ -116,6 +157,9 @@ interface Piglet {
   y: number;
   facing: 1 | -1;
   running: boolean;
+  /** v1.18 (D-081): where it runs out to (its mother's way). */
+  exitX: number;
+  exitY: number;
   t: number;
   cooldown: number;
   gone: boolean;
@@ -135,6 +179,10 @@ interface Worker {
   phase: WorkerPhase;
   t: number;
   duckLeft: number;
+  /** v1.18 (D-081): gone to the farmhouse (Phase 2): not drawn, not hittable. */
+  away: boolean;
+  /** v1.18 (D-081, review): the walk off's speed (layer px a tick): off by the banner's end. */
+  leaveV: number;
   cooldown: number;
 }
 
@@ -192,7 +240,7 @@ function digSpots(
   const gapW = gapLayer === undefined ? 0 : coreWidth(gapLayer.scrollFactor);
   const gapX = map.gap.u * gapW;
   const out: DigSpot[] = [];
-  for (const d of map.digSpots) {
+  for (const [index, d] of map.digSpots.entries()) {
     const layer = biome.layers.find((l) => l.id === d.layer);
     if (layer === undefined) continue;
     const w = coreWidth(layer.scrollFactor);
@@ -209,9 +257,32 @@ function digSpots(
       scale,
       fromX: viaGap ? gapX : x < w / 2 ? -off : w + off,
       fromY: viaGap ? map.gap.y - 4 : d.y,
+      index,
+      viaHole: false,
     });
   }
   return out;
+}
+
+/** v1.18 (D-081): the small hole's x on the gap's layer (null: the map has none). */
+export function holeX(map: HarvestMap, gapLayerWidth: number): number | null {
+  return map.hole === undefined ? null : map.hole.u * gapLayerWidth;
+}
+
+/** v1.18 (D-081): the dig spots a yearling through the hole goes for: the gap-side spots on the
+ *  gap's layer (the hole's side of the field), as copies that come in from the hole. */
+export function holeSpots(
+  spots: readonly DigSpot[],
+  map: HarvestMap,
+  gapLayerWidth: number,
+): DigSpot[] {
+  const hx = holeX(map, gapLayerWidth);
+  if (hx === null || map.hole === undefined) return [];
+  const y = map.hole.y - 4;
+  const gapX = map.gap.u * gapLayerWidth;
+  return spots
+    .filter((s) => s.layerId === map.gap.layer && s.fromX === gapX)
+    .map((s) => ({ ...s, fromX: hx, fromY: y, viaHole: true }));
 }
 
 /** The Harvest on its map (null: this biome has no Harvest geometry). */
@@ -245,6 +316,14 @@ export const createHarvestSystem: HarvestSystemFactory = (
   const spotsBy = (plane: 'near' | 'mid'): DigSpot[] => spots.filter((s) => s.plane === plane);
   const midSpots = spotsBy('mid');
   const nearSpots = spotsBy('near');
+  // v1.18 (D-081): the small hole and the spots its yearlings go for.
+  const Hh = H.hole;
+  const hx = holeX(map, gapW);
+  const viaHoleSpots = holeSpots(spots, map, gapW);
+  const patchFrac = Hh.patchAt;
+  let holeOpen = hx !== null;
+  // The first yearling at firstAfterSeconds, then one every 60 / youngPerMin seconds.
+  let holeAcc = 1 - (Hh.firstAfterSeconds * Hh.youngPerMin) / 60;
   // The intro family's spot: the gap-side mid spot nearest the gap.
   const introSpot =
     midSpots
@@ -258,6 +337,8 @@ export const createHarvestSystem: HarvestSystemFactory = (
   let introEnd = introTicks;
   let rushEnd = introTicks + rushTicks;
   let crop = 100;
+  /** v1.18 (D-081, review): the crop as the fence closed (null: not closed yet). */
+  let rushCrop: number | null = null;
   let warned = false;
   let acc = 0;
   let flockAcc = 0;
@@ -285,17 +366,34 @@ export const createHarvestSystem: HarvestSystemFactory = (
       t: 0,
       duckLeft: 0,
       cooldown: 0,
+      away: false,
+      leaveV: 0,
     };
   });
+  // v1.18 (D-081): Phase 2 (made when it unlocks).
+  const P2 = H.phase2;
+  const bannerTicks = secondsToTicks(P2.bannerSeconds);
+  const phase2Ticks = secondsToTicks(P2.seconds);
+  let p2: Phase2System | null = null;
+  let bannerEnd = -1;
+  /** Phase 2 started straight away (test builds: ?harvestPhase2=1). */
+  let direct = P2.direct === true;
 
   const speed = (pxPerSec: number, scale: number): number => (pxPerSec * scale) / 60;
+  /** v1.18 (D-081): where a worker walks off to (the farmhouse, past the layer's end). */
+  const leaveX = (w: Worker): number => gapX + H.workers.leavePx * w.scale;
+  const leaveTicks = Math.max(1, secondsToTicks(H.workers.leaveSeconds));
   const live = (): number => warthogs.filter((w) => !w.gone && w.phase !== 'tumble').length;
 
-  function spawn(spot: DigSpot, pigletCount: number): void {
+  function spawn(spot: DigSpot, pigletCount: number, young = false): void {
     const id = nextId++;
     const w: Warthog = {
       id,
       spot,
+      young,
+      scale: spot.scale * (young ? Hh.youngScale : 1),
+      exitX: spot.fromX,
+      exitY: spot.fromY,
       x: spot.fromX,
       y: spot.fromY,
       facing: spot.x >= spot.fromX ? 1 : -1,
@@ -318,6 +416,8 @@ export const createHarvestSystem: HarvestSystemFactory = (
         y: w.y,
         facing: w.facing,
         running: false,
+        exitX: spot.fromX,
+        exitY: spot.fromY,
         t: 0,
         cooldown: 0,
         gone: false,
@@ -332,22 +432,64 @@ export const createHarvestSystem: HarvestSystemFactory = (
       warthogId: id,
       plane: spot.plane,
       piglets: pigletCount,
+      young,
     });
   }
 
   function pickSpot(): DigSpot | null {
     const near = nearSpots.length > 0 && rng.chance(H.rush.nearShare);
     const pool = near ? nearSpots : midSpots;
-    const free = pool.filter((s) => !warthogs.some((w) => !w.gone && w.spot === s));
+    const free = pool.filter((s) => !taken(s));
     if (free.length === 0) return null;
     return free[rng.int(0, free.length - 1)] ?? null;
+  }
+
+  /** A spot some warthog in the field is on (or on its way to). */
+  function taken(s: DigSpot): boolean {
+    return warthogs.some((w) => !w.gone && w.spot.index === s.index);
+  }
+
+  /** v1.18 (D-081): a yearling (and maybe a piglet) squeezes through the small hole. */
+  function holeArrival(): void {
+    const free = viaHoleSpots.filter((s) => !taken(s));
+    if (free.length === 0 || hx === null) return;
+    // The spot nearest the hole (the yearlings stay on the hole's side).
+    let best = free[0];
+    for (const s of free)
+      if (best === undefined || Math.abs(s.x - hx) < Math.abs(best.x - hx)) best = s;
+    if (best === undefined) return;
+    spawn(best, rng.chance(Hh.pigletChance) ? 1 : 0, true);
+  }
+
+  /** v1.18 (D-081): the workers patch the hole; anyone who came in by it runs out by the gap. */
+  function patchHole(): void {
+    holeOpen = false;
+    for (const w of warthogs)
+      if (w.spot.viaHole) {
+        w.exitX = gapX;
+        w.exitY = map.gap.y - 4;
+      }
+    for (const p of piglets)
+      if (p.spot.viaHole) {
+        p.exitX = gapX;
+        p.exitY = map.gap.y - 4;
+      }
+    host.emit({ type: 'harvestHolePatched', tick: host.tick() });
+  }
+
+  /** v1.18 (D-081): in the small hole now (squeezing: slow, drawn low). */
+  function inHole(o: { readonly x: number; readonly y: number }, spot: DigSpot): boolean {
+    if (!spot.viaHole || hx === null || map.hole === undefined) return false;
+    return (
+      Math.abs(o.x - hx) <= map.hole.halfWidthPx && o.y <= map.hole.y + Hh.squeezePx * spot.scale
+    );
   }
 
   function runOff(w: Warthog): void {
     if (w.phase === 'tumble' || w.gone) return;
     w.phase = 'run';
     w.t = 0;
-    w.facing = w.spot.fromX >= w.x ? 1 : -1;
+    w.facing = w.exitX >= w.x ? 1 : -1;
     for (const id of w.piglets) {
       const p = piglets.find((x) => x.id === id);
       if (p !== undefined && !p.gone) p.running = true;
@@ -377,7 +519,8 @@ export const createHarvestSystem: HarvestSystemFactory = (
     }
     if (w.phase === 'trot') {
       w.facing = s.x >= w.x ? 1 : -1;
-      if (moveTo(w, s.x, s.y, speed(W.trotPxPerSec, s.scale))) {
+      const squeeze = inHole(w, s) ? Hh.squeezeMul : 1;
+      if (moveTo(w, s.x, s.y, speed(W.trotPxPerSec, w.scale) * squeeze)) {
         w.phase = 'dig';
         w.t = 0;
       }
@@ -392,7 +535,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
       return;
     }
     // run: back the way it came, out of the field.
-    if (moveTo(w, s.fromX, s.fromY, speed(W.runPxPerSec, s.scale))) {
+    if (moveTo(w, w.exitX, w.exitY, speed(W.runPxPerSec, w.scale))) {
       w.gone = true;
       host.emit({ type: 'warthogLeft', tick: host.tick(), warthogId: w.id });
     }
@@ -405,8 +548,8 @@ export const createHarvestSystem: HarvestSystemFactory = (
     const s = p.spot;
     if (p.running || m === undefined || m.gone || m.phase === 'tumble' || m.phase === 'run') {
       p.running = true;
-      p.facing = s.fromX >= p.x ? 1 : -1;
-      if (moveTo(p, s.fromX, s.fromY, speed(W.runPxPerSec, s.scale))) p.gone = true;
+      p.facing = p.exitX >= p.x ? 1 : -1;
+      if (moveTo(p, p.exitX, p.exitY, speed(W.runPxPerSec, s.scale))) p.gone = true;
       return;
     }
     // Trail the mother (never alone in range): a gap behind her, rooting when she digs.
@@ -416,12 +559,21 @@ export const createHarvestSystem: HarvestSystemFactory = (
     // Only ever towards where she is going: a piglet never walks back the way they came.
     if ((tx - p.x) * m.facing <= 0) return;
     p.facing = tx >= p.x ? 1 : -1;
-    moveTo(p, tx, ty, speed(W.trotPxPerSec * 1.15, s.scale));
+    const squeeze = inHole(p, s) ? Hh.squeezeMul : 1;
+    moveTo(p, tx, ty, speed(W.trotPxPerSec * 1.15, s.scale) * squeeze);
   }
 
   function stepWorker(w: Worker): void {
     w.t++;
     if (w.cooldown > 0) w.cooldown--;
+    if (w.phase === 'leave') {
+      // Off to the farmhouse along the fence, away from the field (the gap's far side).
+      w.facing = 1;
+      const o = { x: w.x, y: w.y };
+      if (moveTo(o, leaveX(w), w.y, w.leaveV)) w.away = true;
+      w.x = o.x;
+      return;
+    }
     if (w.phase === 'run') {
       w.facing = w.homeX >= w.x ? 1 : -1;
       const o = { x: w.x, y: w.y };
@@ -465,15 +617,123 @@ export const createHarvestSystem: HarvestSystemFactory = (
 
   function closeFence(): void {
     phase = 'outro';
+    rushCrop = crop;
     for (const w of warthogs) runOff(w);
     host.scatterFlocks();
     bonus = cropBonus(crop, H.crop.bonusPerPercent);
     if (bonus > 0) host.addScore(bonus);
     host.emit({ type: 'harvestFenceClosed', tick: host.tick(), crop, bonus });
+    // v1.18 (D-081): a good enough rush unlocks Phase 2 — if there is any crop left to defend.
+    const score = host.score();
+    if (score >= P2.unlockScore && crop > 0) {
+      host.extendBy(bannerTicks + phase2Ticks);
+      unlockPhase2(score);
+    }
+  }
+
+  /** v1.18 (D-081, review): what Phase 2 gets: the hunt's, but its piglet penalties count in the
+   *  tally's "Workers and piglets" row like the rush's. */
+  const phase2Host: Phase2Host = {
+    tick: host.tick,
+    emit: (e) => {
+      host.emit(e);
+    },
+    awardBonus: (bonus, b) => host.awardBonus(bonus, b),
+    basePoints: (plane) => host.basePoints(plane),
+    penalty: (points) => {
+      host.penalty(points);
+      bystanderPenalty -= points;
+    },
+  };
+
+  /** v1.18 (D-081): the banner: the fence whole, the hole patched, the workers off to the farm. */
+  function unlockPhase2(score: number): void {
+    phase = 'banner';
+    bannerEnd = host.tick() + bannerTicks;
+    if (holeOpen) holeOpen = false;
+    // They set off now and are gone within the banner (leaveSeconds <= bannerSeconds); from this
+    // tick on they are out of the line of fire: never hittable again.
+    for (const w of workers) {
+      w.phase = 'leave';
+      w.t = 0;
+      w.leaveV = Math.max(1, Math.abs(leaveX(w) - w.x)) / Math.max(1, leaveTicks - 1);
+    }
+    p2 = createPhase2(
+      H,
+      host.baboonTuning,
+      phase2Geometry(),
+      host.phase2Rng,
+      phase2Host,
+      () => nextId++,
+    );
+    host.emit({ type: 'phase2Unlocked', tick: host.tick(), score });
+  }
+
+  function phase2Geometry() {
+    const plane = (layerId: string, id: 'mid' | 'near'): Phase2Plane | null => {
+      const l = biome.layers.find((x) => x.id === layerId);
+      if (l === undefined) return null;
+      const width = coreWidth(l.scrollFactor);
+      const digs = spots.filter((s) => s.layerId === layerId).map((s) => ({ x: s.x, y: s.y }));
+      return {
+        layerId,
+        plane: id,
+        width,
+        scale: planeScale[id],
+        minHitRadius: minHitRadius[id],
+        digSpots: digs,
+        mielies: mielieSpots(biome.baboons?.spots ?? [], layerId, width),
+      };
+    };
+    const mid = plane(map.gap.layer, 'mid');
+    if (mid === null) throw new Error('harvest phase 2: no mid layer');
+    const nearLayer = biome.layers.find((l) => l.plane === 'near');
+    return {
+      fenceY: map.gap.y,
+      postPx: H.fence.postPx,
+      mid,
+      near: nearLayer === undefined ? null : plane(nearLayer.id, 'near'),
+    };
+  }
+
+  /** v1.18 (D-081): Phase 2 is over: its bonuses, the rest run off, the outro. */
+  function endPhase2(reason: 'clear' | 'time' | 'eaten'): void {
+    if (p2 === null) return;
+    const r = p2.finish(reason, crop);
+    const paid = r.cropBonus + r.perfectBonus + r.clearBonus;
+    if (paid > 0) host.addScore(paid);
+    phase = 'outro';
+    host.endAt(host.tick() + outroTicks);
   }
 
   function step(): void {
     const tick = host.tick();
+    if (direct) {
+      // Test builds: straight into Phase 2's banner (the fence never breaks; the crop is whole).
+      direct = false;
+      introEnd = tick;
+      rushEnd = tick;
+      for (const w of workers) w.away = true;
+      rushCrop = crop;
+      unlockPhase2(host.score());
+      host.endAt(tick + bannerTicks + phase2Ticks + outroTicks);
+    }
+    if (phase === 'banner') {
+      if (tick >= bannerEnd && p2 !== null) {
+        phase = 'defend';
+        p2.start(crop);
+      }
+    } else if (phase === 'defend' && p2 !== null) {
+      crop = Math.max(0, crop - p2.drainPerTick());
+      if (!warned && crop < H.crop.warnBelow) {
+        warned = true;
+        host.emit({ type: 'cropWarning', tick, crop });
+      }
+      if (crop <= 0) endPhase2('eaten');
+      else if (p2.cleared()) endPhase2('clear');
+      else if (p2.timeUp()) endPhase2('time');
+    }
+    p2?.step();
     if (phase === 'intro') {
       if (!broken && tick >= breakTick) breakFence();
       if (tick >= introEnd) startRush(false);
@@ -490,6 +750,17 @@ export const createHarvestSystem: HarvestSystemFactory = (
         }
         acc -= 1;
       }
+      // v1.18 (D-081): yearlings squeeze through the small hole until the workers patch it.
+      if (holeOpen) {
+        if (f >= patchFrac) patchHole();
+        else {
+          holeAcc += Hh.youngPerMin / 3600;
+          if (holeAcc >= 1) {
+            holeAcc -= 1;
+            if (live() < H.rush.maxWarthogs) holeArrival();
+          }
+        }
+      }
       // Guineafowl flocks pour in through the gap and run into the rows (away from the workers).
       flockAcc += rushRate(H.rush.keyframes, f, 'gapFlocksPerMin') / 3600;
       if (flockAcc >= 1) {
@@ -500,7 +771,10 @@ export const createHarvestSystem: HarvestSystemFactory = (
           host.gapFlock(map.gap.plane, gapFlockX(map, gapW, side), size, side === 1 ? -1 : 1);
         }
       }
-      const digging = warthogs.filter((w) => !w.gone && w.phase === 'dig').length;
+      // v1.18 (D-081): a yearling eats as much as its size (youngScale of an adult).
+      let digging = 0;
+      for (const w of warthogs)
+        if (!w.gone && w.phase === 'dig') digging += w.young ? Hh.youngScale : 1;
       crop = Math.max(
         0,
         crop -
@@ -534,8 +808,9 @@ export const createHarvestSystem: HarvestSystemFactory = (
   }
 
   function fireGate(): { gate: 'fire' | 'skip' | 'block'; shortenBy: number } {
-    if (phase === 'outro') return { gate: 'block', shortenBy: 0 };
-    if (phase === 'rush') return { gate: 'fire', shortenBy: 0 };
+    if (phase === 'outro' || phase === 'banner') return { gate: 'block', shortenBy: 0 };
+    if (phase === 'rush' || phase === 'defend') return { gate: 'fire', shortenBy: 0 };
+    if (direct) return { gate: 'block', shortenBy: 0 };
     const shortenBy = Math.max(0, introEnd - host.tick());
     startRush(true);
     return { gate: 'skip', shortenBy };
@@ -569,7 +844,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
       w.phase === 'dig' ? W.hitboxes.dig : W.hitboxes.trot,
       w.x,
       w.y,
-      w.spot.scale,
+      w.scale,
       w.facing,
       minHitRadius[w.spot.plane],
     );
@@ -586,8 +861,12 @@ export const createHarvestSystem: HarvestSystemFactory = (
       for (const sh of pigletShapes(p))
         add(p.spot.layerId, { kind: 'harvest', harvestId: p.id, ...sh });
     }
-    for (const w of workers)
+    for (const w of workers) {
+      // v1.18 (D-081, review): walking off to the farmhouse (Phase 2): out of the line of fire.
+      if (w.away || w.phase === 'leave') continue;
       for (const sh of workerShapes(w)) add(w.layerId, { kind: 'harvest', harvestId: w.id, ...sh });
+    }
+    p2?.extras(add);
   }
 
   function plane(id: number): PlaneId | null {
@@ -595,7 +874,9 @@ export const createHarvestSystem: HarvestSystemFactory = (
     if (w !== undefined) return w.spot.plane;
     const p = piglets.find((x) => x.id === id);
     if (p !== undefined) return p.spot.plane;
-    return workers.find((x) => x.id === id)?.plane ?? null;
+    const k = workers.find((x) => x.id === id);
+    if (k !== undefined) return k.plane;
+    return p2?.plane(id) ?? null;
   }
 
   const aimedAt = (
@@ -608,16 +889,26 @@ export const createHarvestSystem: HarvestSystemFactory = (
     hits: readonly number[],
     hitTarget: boolean,
     aimOn: (layerId: string) => { readonly x: number; readonly y: number },
+    heavy = false,
   ): void {
     const tick = host.tick();
+    // v1.18 (D-081): Phase 2's animals.
+    if (p2 !== null) {
+      const mine = hits.filter((id) => p2?.owns(id) === true);
+      if (mine.length > 0) {
+        const other = hits.some((id) => p2?.owns(id) !== true);
+        p2.shot(shotId, mine, hitTarget || other, aimOn, heavy);
+      }
+    }
     // Did the shot hit a warthog? Then a bystander behind it wasn't what it was aimed at.
     const hitWarthog = hits.some((id) => warthogs.some((w) => w.id === id && !w.gone));
     for (const id of hits) {
       const w = warthogs.find((x) => x.id === id);
       if (w !== undefined) {
         if (w.gone || w.phase === 'tumble') continue;
-        w.hits++;
-        const left = Math.max(0, W.hitsToBag - w.hits);
+        const toBag = w.young ? Hh.youngHitsToBag : W.hitsToBag;
+        w.hits = heavy ? Math.max(w.hits + 1, toBag) : w.hits + 1;
+        const left = Math.max(0, toBag - w.hits);
         host.emit({
           type: 'warthogHit',
           tick,
@@ -641,7 +932,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
         bagged++;
         const points = host.awardBonus(
           'warthog',
-          Math.round(host.basePoints(w.spot.plane) * W.pointsMul),
+          Math.round(host.basePoints(w.spot.plane) * (w.young ? Hh.youngPointsMul : W.pointsMul)),
         );
         host.emit({
           type: 'warthogBagged',
@@ -682,7 +973,7 @@ export const createHarvestSystem: HarvestSystemFactory = (
         continue;
       }
       const k = workers.find((x) => x.id === id);
-      if (k === undefined) continue;
+      if (k === undefined || k.away || k.phase === 'leave') continue;
       const aimed = !hitTarget && !hitWarthog && aimedAt(workerShapes(k), aimOn(k.layerId));
       let points = 0;
       if (aimed && k.cooldown === 0) {
@@ -717,13 +1008,15 @@ export const createHarvestSystem: HarvestSystemFactory = (
       id: w.id,
       layerId: w.spot.layerId,
       plane: w.spot.plane,
-      scale: w.spot.scale,
+      scale: w.scale,
       x: w.x,
       y: w.y,
       facing: w.facing,
       t: w.t,
       phase: w.phase,
       hits: w.hits,
+      young: w.young,
+      squeeze: inHole(w, w.spot),
     }));
     const pv: PigletView[] = piglets.map((p) => ({
       id: p.id,
@@ -736,36 +1029,70 @@ export const createHarvestSystem: HarvestSystemFactory = (
       t: p.t,
       motherId: p.motherId,
       running: p.running,
+      squeeze: inHole(p, p.spot),
     }));
-    const kv: WorkerView[] = workers.map((k) => ({
-      id: k.id,
-      layerId: k.layerId,
-      plane: k.plane,
-      scale: k.scale,
-      x: k.x,
-      y: k.y,
-      facing: k.facing,
-      t: k.t,
-      look: k.look,
-      phase: k.phase,
-    }));
+    const kv: WorkerView[] = workers
+      .filter((k) => !k.away)
+      .map((k) => ({
+        id: k.id,
+        layerId: k.layerId,
+        plane: k.plane,
+        scale: k.scale,
+        x: k.x,
+        y: k.y,
+        facing: k.facing,
+        t: k.t,
+        look: k.look,
+        phase: k.phase,
+      }));
     return {
       phase,
       t: phase === 'intro' ? tick : tick - introEnd,
       introTicks: introEnd,
       breakTick,
       crop,
-      repair: phase === 'intro' ? 0 : Math.min(1, (tick - introEnd) / rushTicks),
-      clockTicksLeft: phase === 'intro' ? rushTicks : Math.max(0, rushEnd - tick),
+      rushCrop: rushCrop ?? crop,
+      repair: p2 !== null ? 1 : phase === 'intro' ? 0 : Math.min(1, (tick - introEnd) / rushTicks),
+      clockTicksLeft:
+        p2 !== null ? p2.ticksLeft() : phase === 'intro' ? rushTicks : Math.max(0, rushEnd - tick),
       gap: { layerId: map.gap.layer, x: gapX, y: map.gap.y, halfWidth: map.gap.halfWidthPx },
+      hole:
+        hx === null || map.hole === undefined ? null : { x: hx, y: map.hole.y, patched: !holeOpen },
       warthogs: wv,
       piglets: pv,
       workers: kv,
       warthogsBagged: bagged,
       cropBonus: bonus,
       bystanderPenalty,
+      phase2:
+        p2 === null
+          ? null
+          : {
+              total: p2.total,
+              left: p2.left(),
+              bagged: p2.result()?.bagged ?? 0,
+              ticksLeft: p2.ticksLeft(),
+              cropAtStart: p2.result()?.cropAtStart ?? crop,
+              animals: p2.view(),
+              result: p2.result(),
+            },
     };
   }
 
-  return { introTicks, outroTicks, fireGate, extras, plane, shot, step, view };
+  function landed(aimOn: (layerId: string) => { readonly x: number; readonly y: number }): void {
+    if (phase === 'defend') p2?.landed(aimOn);
+  }
+
+  return {
+    introTicks,
+    outroTicks,
+    fireGate,
+    extras,
+    plane,
+    shot,
+    step,
+    view,
+    landed,
+    holdsSpawns: () => p2 !== null,
+  };
 };

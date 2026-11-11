@@ -775,6 +775,10 @@ export const HarvestMapSchema = obj({
     .min(2),
   /** Feeding spots in the field for the flocks that come in through the gap (u along the plane). */
   flockSpots: z.array(obj({ plane: z.enum(['mid', 'far']), u: fraction })).min(1),
+  /** v1.18 (D-081): a second, small hole low in the fence on the gap's layer (u, its half-width
+   *  and the fence's ground line): young warthogs and piglets squeeze through it now and then.
+   *  The layer art draws it there (tools/art/biomes/oes.ts HOLE_U). */
+  hole: obj({ u: fraction, halfWidthPx: pos, y: z.number() }).optional(),
 });
 export type HarvestMap = z.infer<typeof HarvestMapSchema>;
 
@@ -786,8 +790,29 @@ export const BaboonMapSchema = obj({
   /** v1.8c (D-063): when the first raid comes (seconds; absent = baboons.raids.firstAfterSeconds).
    *  The Harvest's 30-s rush needs its raiders early. */
   firstAfterSeconds: range(nonNeg).optional(),
+  /**
+   * v1.18 (D-081): the raid comes down where you can see it (the Harvest). The raiders scramble
+   * down the koppie on the troop's layer (a zig-zag of `legs` legs, `swayPx` either side, from
+   * their seat to the foot: the troop's centre ± footDx on the spot's side, footY), cross the
+   * open veld on `veldLayer` (y from veldY[0] to veldY[1], at veldPxPerSec, from the foot's u to
+   * the u where the spot's approach starts), then dash in at the raiders' run × dashMul. Layer
+   * px; a second raider follows pairLag of the way behind. Not targets until the spot's plane.
+   */
+  descent: obj({
+    footDx: pos,
+    footY: z.number(),
+    legs: posInt,
+    swayPx: nonNeg,
+    climbSeconds: pos,
+    veldLayer: id,
+    veldY: range(z.number()),
+    veldPxPerSec: pos,
+    dashMul: pos,
+    pairLag: z.number().min(0).max(0.5),
+  }).optional(),
 });
 export type BaboonMap = z.infer<typeof BaboonMapSchema>;
+export type BaboonDescent = NonNullable<BaboonMap['descent']>;
 
 export const BirdsSchema = obj({
   version,
@@ -913,6 +938,9 @@ const primaryWeaponSchema = obj({
   reachesVer: z.boolean().optional(),
   /** v1.4 (D-038): very loud — every shot threatens every flock (Die Langloop). */
   alertsAllFlocks: z.boolean().optional(),
+  /** v1.19 (D-084): a shotgun (the Dubbelloop, the Pomp): it can load the special shells
+   *  (power-ups with needsShotgun). */
+  shotgun: z.boolean().optional(),
   /** v1.3 rifles: hold to raise the sight and zoom, release to fire (GDD §10.6). */
   aim: obj({
     /** Sights that fit this gun (weapons.json sights), in upgrade order. */
@@ -978,6 +1006,8 @@ const crateWeaponSchema = obj({
     alertRadiusPx: nonNeg,
     windSensitivity: nonNeg,
     smokeMs: nonNegInt.optional(),
+    /** v1.19 (D-084): a shotgun (the Voorlaaier): it can fire the special shells. */
+    shotgun: z.boolean().optional(),
     scoreMul: scoreMulSchema,
     shake: shakeSchema,
   })
@@ -1035,6 +1065,28 @@ export const PowerupsSchema = obj({
               redDotSwayMul: z.number().min(0).max(1).optional(),
               /** 1.9.2 (D-055) Rooikol: a rifle's time between shots × this (multiplies). */
               fireCooldownMul: z.number().gt(0).max(1).optional(),
+              /** v1.19 (D-084) Dragon's Breath: a shotgun shell that throws a cone of fire: more
+               *  pellets (× pelletsMul) over a wider pattern (× spreadMul) that stop at the mid
+               *  plane (the flame never reaches far or Ver), and any pellet on a bird is a hit. */
+              dragonBreath: obj({
+                pelletsMul: z.number().min(1).max(4),
+                spreadMul: z.number().min(1).max(4),
+                /** The farthest plane the flame reaches. */
+                reach: z.enum(['near', 'mid']),
+                /** Never more pellets than this (the Voorlaaier's blast stays a cone). */
+                maxPellets: posInt,
+                /** The pattern grows to at most this (design px), or the gun's own if wider. */
+                maxSpreadPx: pos,
+              }).optional(),
+              /** v1.19 (D-084) Slug: a shotgun shell with one heavy projectile: no spread (hip
+               *  or not), reaches far and Ver like a rifle, drifts with the wind by
+               *  windSensitivity (more than a rifle bullet) and bags what it hits in one (armour,
+               *  a boss's hits, a two-hit warthog). */
+              slug: obj({ windSensitivity: nonNeg }).optional(),
+              /** v1.20 (D-085) "Jag, Brakkie!": for durationMs of hunting (the clock holds while
+               *  he carries a catch home and is at the bakkie) Brakkie sprints at guineafowl
+               *  foraging on the ground (brakkie.json jag) and catches up to maxCatches. */
+              brakkieJag: obj({ maxCatches: posInt }).optional(),
             })
             .refine((e) => Object.keys(e).length > 0, 'effect needs at least one entry'),
           durationMs: posInt.optional(),
@@ -1044,13 +1096,33 @@ export const PowerupsSchema = obj({
           /** 1.9.2 (D-055): only for a rifle (a gun with a sight): crates hold it only when the
            *  hunt's gun has one, and the Padstal never offers it (a run's gun can change). */
           needsSight: z.boolean().optional(),
+          /** v1.19 (D-084): a special shell: only a shotgun fires it (crates hold it only when
+           *  the hunt's gun is one; the Padstal offers it only in a shotgun run), and its shells
+           *  count down only on shotgun shots. Two special shells never stack: the newer one
+           *  replaces the other. */
+          needsShotgun: z.boolean().optional(),
+          /** v1.20 (D-085): only where Brakkie comes along (crates hold it only in his hunts;
+           *  a consumable waits in its slot while he can't hunt). */
+          needsBrakkie: z.boolean().optional(),
         })
         .refine((p) => p.durationMs !== undefined || p.durationShells !== undefined, {
           message: 'power-ups need durationMs or durationShells',
         })
         .refine((p) => p.padstalPrice !== undefined || p.needsSight === true, {
           message: 'power-ups need a padstalPrice unless they need a sight (D-055)',
-        }),
+        })
+        .refine(
+          (p) =>
+            (p.effect.dragonBreath === undefined && p.effect.slug === undefined) ||
+            (p.needsShotgun === true && p.durationShells !== undefined),
+          { message: 'special shells need needsShotgun and durationShells (D-084)' },
+        )
+        .refine(
+          (p) =>
+            p.effect.brakkieJag === undefined ||
+            (p.needsBrakkie === true && p.durationMs !== undefined),
+          { message: 'the Jag card needs needsBrakkie and durationMs (D-085)' },
+        ),
     )
     .min(1),
   /** v1.6b: no reload (or Kettie draw) shortened by a power-up goes below this (Snelhand included). */
@@ -1912,12 +1984,113 @@ const harvestSchema = modeSetupSchema.extend({
     penalty: posInt,
     cooldownSeconds: pos,
     duckSeconds: pos,
+    /** v1.18 (D-081): Phase 2: they walk off to the farmhouse this far right of the gap (plane
+     *  scale 1; past the layer's end) and are gone. */
+    leavePx: pos,
+    /** v1.18 (D-081, review): the walk off takes this long (no longer than phase2.bannerSeconds,
+     *  so nobody is in the line of fire when Phase 2's clock starts). They can't be hit once they
+     *  set off. */
+    leaveSeconds: pos,
+  }),
+  /** v1.18 (D-081): the small hole (the map's harvest.hole): young warthogs (yearlings: drawn
+   *  youngScale of an adult, youngHitsToBag hits, youngPointsMul × a guineafowl's base) come
+   *  through it at youngPerMin over the rush, a share with a piglet behind (pigletChance); in the
+   *  hole they squeeze (squeezeMul × their trot, until squeezePx past the fence line). The
+   *  workers patch it at patchAt of the rush: none come through after. */
+  hole: obj({
+    youngPerMin: nonNeg,
+    /** When the first one comes (seconds into the rush); then one every 60 / youngPerMin. */
+    firstAfterSeconds: nonNeg,
+    patchAt: fraction,
+    youngScale: z.number().gt(0).max(1),
+    youngHitsToBag: posInt,
+    youngPointsMul: pos,
+    pigletChance: fraction,
+    squeezeMul: z.number().gt(0).max(1),
+    squeezePx: pos,
+  }),
+  /**
+   * v1.18 (D-081) Phase 2, "Defend the field": a bonus round after the rush when the Harvest score
+   * (the crop bonus in) reached unlockScore. A banner (bannerSeconds, no shooting), then `seconds`
+   * on the clock: the fence whole all round, the workers gone to the farmhouse, the crop meter as
+   * the rush left it. The wave list (`waves`: when, what, from where; jitterSeconds of seeded
+   * jitter, its own stream `harvestPhase2`) comes from both ends and over the back fence on the
+   * mid plane (warthogs jump it, piglets squeeze under it, baboons climb over the posts), round
+   * the ends on the near plane. Each that reaches the field eats (drainPerSecond) until stopped:
+   * bagged or driven out (a warthog's first hit, a baboon's, a shot landing within pigletScarePx
+   * of a piglet: never a target, aimed at costs warthogs.pigletPenalty). It ends when every one
+   * is stopped, the clock runs out or the crop is gone; then cropBonusPerPercent × crop left, plus
+   * perfectBonus if the crop didn't drop, plus clearBonus if all were stopped in time.
+   * Sizes are design px at plane scale 1; speeds px/s; times in seconds.
+   */
+  phase2: obj({
+    unlockScore: nonNegInt,
+    bannerSeconds: pos,
+    seconds: pos,
+    waves: z
+      .array(
+        obj({
+          at: nonNeg,
+          kind: z.enum(['warthog', 'piglet', 'baboon']),
+          from: z.enum(['left', 'right', 'back']),
+          plane: z.enum(['mid', 'near']),
+        }),
+      )
+      .min(1)
+      .refine(
+        (ws) => ws.every((w) => w.plane === 'mid' || w.from !== 'back'),
+        'only the mid plane has a back fence: near arrivals come round the ends',
+      ),
+    jitterSeconds: nonNeg,
+    /** Where they cross the fence on the mid plane (u ranges per side). */
+    crossU: obj({ left: range(fraction), right: range(fraction), back: range(fraction) }),
+    /** They run up behind the fence this far behind its ground line; a `back` arrival starts
+     *  backStartPx behind it (coming up out of the veld). */
+    behindPx: pos,
+    backStartPx: pos,
+    /** Review: a `back` arrival fades in over this long coming up out of the veld (the view
+     *  draws it so); it has no hit shapes until then. */
+    backFadeSeconds: pos,
+    /** Off the panorama's end before they come in. */
+    entryPx: pos,
+    speeds: obj({ warthog: pos, piglet: pos, baboon: pos }),
+    fleeMul: pos,
+    jump: obj({ seconds: pos, heightPx: pos, lengthPx: pos }),
+    squeezeSeconds: pos,
+    /** Review: how far in a piglet's squeeze under the wire takes it (across, plane scale 1). */
+    squeezePx: pos,
+    /** A baboon's climb up a post and its drop down inside, dropPx in across (plane scale 1). */
+    climb: obj({ upSeconds: pos, dropSeconds: pos, dropPx: pos }),
+    /** Review: one hit or bagged off the fence (mid-jump, on a post) falls to this far below its
+     *  ground line (layer px). */
+    knockDownPx: nonNeg,
+    /** Where they land inside the fence (below its ground line) and the eating spots' jitter. */
+    landPx: pos,
+    eatJitterPx: nonNeg,
+    pigletScarePx: pos,
+    drainPerSecond: obj({ warthog: nonNeg, piglet: nonNeg, baboon: nonNeg }),
+    cropBonusPerPercent: nonNeg,
+    perfectBonus: nonNegInt,
+    clearBonus: nonNegInt,
+    /** Review (D-081): the guineafowl flocks still in the field at the unlock fly off across at
+     *  this speed (mid-plane px/s) and leave the panorama; none land again. */
+    flockLeavePxPerSec: pos,
+    /** Test builds only (?harvestPhase2=1): the hunt starts with Phase 2's banner. */
+    direct: z.boolean().optional(),
   }),
   /** v1.17b (D-080): the field's fence on the gap's plane: a post's height above the ground
    *  (plane scale 1; 631 = a true 1.2 m beside the guineafowl, 265 px on the mid plane). The
    *  layer art (tools/art/biomes/oes.ts) and the gap panel are drawn to it
    *  (harvestSheet.ts FENCE_POST_H = this × the mid plane's scale). */
   fence: obj({ postPx: pos }),
+}).superRefine((h, ctx) => {
+  // v1.18 (D-081, review): the workers are off the field before Phase 2's first arrival.
+  if (h.workers.leaveSeconds > h.phase2.bannerSeconds)
+    ctx.addIssue({
+      code: 'custom',
+      path: ['workers', 'leaveSeconds'],
+      message: 'the workers must be gone by the end of the Phase 2 banner (<= phase2.bannerSeconds)',
+    });
 });
 export type HarvestSetup = z.infer<typeof harvestSchema>;
 
@@ -2252,7 +2425,8 @@ export const BrakkieSchema = obj({
   }),
   fetch: obj({
     planes: z.array(z.enum(['near', 'mid'])).min(1),
-    /** The bird is down after this. */
+    /** The bird is down after this. v1.20 (D-085): he runs out this long after the bag, shooting
+     *  or not (the after-the-bag delay replaced v1.17's quiet rule). */
     delaySeconds: nonNeg,
     /** He goes only when no live bird is within this of the spot (plane px; mid converts). */
     clearPx: pos,
@@ -2261,9 +2435,6 @@ export const BrakkieSchema = obj({
     waitSeconds: nonNeg,
     /** v1.16 (D-078): birds he means to fetch, one at a time in the order they fell. */
     queueMax: posInt,
-    /** v1.17 (D-079): like a real gundog he is sent once the shooting stops: he runs out for a
-     *  bird only after the gun has been quiet (no shot, no sight or fire held) this long. */
-    quietSeconds: nonNeg,
     /** Only for a bag this close to the view's centre (screen px). */
     maxDxPx: pos,
     pickupSeconds: pos,
@@ -2313,9 +2484,34 @@ export const BrakkieSchema = obj({
   /** v1.17 (D-079): a reaction lasts `seconds`, only from idle, at most one per minGapSeconds;
    *  the head tilt after tiltMisses shots in a row that hit nothing. */
   react: obj({ seconds: pos, minGapSeconds: pos, tiltMisses: posInt }),
+  /** v1.20 (D-085) "Jag, Brakkie!" (powerups.json brakkie_jag): he sprints (sprintPx/s, near-plane
+   *  px) at a guineafowl of `creatures` foraging on the ground on the near or mid plane within
+   *  maxDxPx of the view's centre (screen px), pounces from pouncePx, and after pounceSeconds
+   *  catches it if it is still on the ground within reachPx (a bag of that bird, carried home
+   *  like a fetch); the rest of its flock reacts as to a threat (alarm…). lookSeconds: how often
+   *  he looks for one. */
+  jag: obj({
+    creatures: z.array(id).min(1),
+    /** The mid ground's reach (screen px from the view's centre). */
+    maxDxPx: pos,
+    /** v1.20 review: the near plane's reach, inside the view (a catch and its flush in sight). */
+    nearMaxDxPx: pos,
+    sprintPx: pos,
+    pouncePx: pos,
+    pounceSeconds: pos,
+    reachPx: pos,
+    lookSeconds: pos,
+    /** v1.20 review: the rest of the caught bird's flock hears `alarmThreats` threats from the
+     *  catch, alarmEverySeconds apart (one at the catch): alert → run → flush, as the bark's. */
+    alarmThreats: posInt,
+    alarmEverySeconds: pos,
+  }),
   /** Test builds only (?brakkiePreview=fetch, the screenshot spec): this many seconds in he
    *  fetches a bird placed beside him (visual only). Never in shipped content (cross-refs). */
   demoFetchSeconds: pos.optional(),
+  /** v1.20 (D-085) test builds only (?brakkiePreview=bag): this many seconds in a bird joins his
+   *  queue beside him (a bag without a shot; the real delay and clear rules). Never shipped. */
+  demoBagSeconds: pos.optional(),
   /** v1.17 (D-079) test builds only (?brakkiePreview=react): a proud hop this many seconds in
    *  (when he is idle). Never in shipped content (cross-refs). */
   demoProudSeconds: pos.optional(),
@@ -2945,6 +3141,8 @@ export const FeelSchema = obj({
     hitStopMs: nonNeg,
     hitStopTwoFliesMs: nonNeg,
     muzzleFlashMs: pos,
+    /** v1.19 (D-084): the Slug's muzzle flash: small and tight (× the gun's own). */
+    slugFlashScale: z.number().gt(0).max(1),
     gunKickPx: nonNeg,
     gunKickMs: pos,
     featherCount: range(nonNegInt),

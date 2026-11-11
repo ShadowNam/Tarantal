@@ -46,6 +46,8 @@ export interface DirectorContext {
   /** v1.12 (D-069): where Brakkie stands on the near plane and how much room he keeps (layer
    *  px): a pop-up never rises beside him (it rises just clear of him instead). */
   readonly popupAvoid?: { readonly x: number; readonly halfPx: number } | null;
+  /** v1.18 (D-081, review): false: no pop-ups now (the Harvest's Phase 2); their clock waits. */
+  readonly popups?: boolean;
   nextId(): number;
 }
 
@@ -436,7 +438,7 @@ export function createDirector(deps: DirectorDeps): Director {
         flyoverThreshold = spawns.range(THRESHOLD_MIN, THRESHOLD_MAX);
         if (ctx.aliveBirds + out.length < maxBirds) out.push(...spawnFlyoverGroup(ctx));
       }
-      popupCredit += (rates.popupsPerMin * rateMul) / TICKS_PER_MINUTE;
+      if (ctx.popups !== false) popupCredit += (rates.popupsPerMin * rateMul) / TICKS_PER_MINUTE;
       if (popupCredit >= popupThreshold) {
         popupCredit -= popupThreshold;
         popupThreshold = spawns.range(THRESHOLD_MIN, THRESHOLD_MAX);

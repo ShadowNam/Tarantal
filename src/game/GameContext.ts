@@ -1,6 +1,7 @@
 // What every scene shares: validated content, feel tuning, the asset manifest, audio, the save
 // (settings and progress), live prefs, the platform adapter, the safe area and the test hook.
 // Built once in main.ts.
+import type { Phase2HudHook } from './ui/Phase2Hud';
 import type { BraaiHook } from './braai/BraaiView';
 import type { GraphicsControl } from './assets/graphicsChoice';
 import type * as Phaser from 'phaser';
@@ -35,6 +36,8 @@ import type { DailyFlow } from './daily/DailyFlow';
 import type { Insets } from './layout';
 import type { Rect } from './ui/hudLayout';
 import type { AdminContext } from './admin/AdminContext';
+import type { SizeArea } from './sizes/sizeAreas';
+import type { SizeEditStore } from '../meta/sizeEdits';
 import type { SoundscapeHook } from './audio/soundscapeRuntime';
 
 /** v1.3x (D-037) Skietbaan state for Playwright (filled by the lazy range chunk). */
@@ -121,6 +124,35 @@ export interface RangeHookState {
   };
 }
 
+/** v1.22.1 (D-086): the Sizes tab (admin page) or the size editor (in the game), for the e2e. */
+export interface SizesHook {
+  view: 'tab' | 'editor';
+  /** The area shown (the tab: the one picked; the editor: its hunt's). */
+  area: string | null;
+  /** Knobs listed (the tab) or in this area (the editor). */
+  knobs: number;
+  /** The animal picked in the editor, or null. */
+  selected: string | null;
+  /** Its working factor (1 = as shipped), its value then, and the height it shows as (m). */
+  factor: number;
+  value: number | null;
+  shownM: number | null;
+  /** Its sprites on screen now (design px): their union box, and the tapped sprite's box. */
+  bounds: { x: number; y: number; w: number; h: number } | null;
+  sprite: { x: number; y: number; w: number; h: number } | null;
+  /** The tapped sprite's origin on screen (its feet, for a sprite drawn standing). */
+  feet: { x: number; y: number } | null;
+  /** Per knob on screen now: a point to tap (design px, the sprite's middle). */
+  spots: Record<string, { x: number; y: number }>;
+  /** Knobs with a factor other than 1; unsaved changes. */
+  changed: number;
+  dirty: boolean;
+  /** "Use my sizes in the game". */
+  apply: boolean;
+  /** The last exported sizes file (Download / Copy / Share), or null. */
+  lastExport: string | null;
+}
+
 /** Read by Playwright (dev/test builds and ?e2e=1 only). */
 export interface TestHook {
   ready: boolean;
@@ -134,6 +166,8 @@ export interface TestHook {
   scene: 'start' | 'hunt' | 'tally' | 'run' | 'challenge' | 'admin' | 'skietbaan' | 'range';
   /** v1.2x (D-034): the admin page on screen (list or play card), or null. */
   admin: { view: 'list' | 'play'; selected: string | null; entries: number } | null;
+  /** v1.22.1 (D-086): the admin page's Sizes tab or the size editor in the game (null: neither). */
+  sizes: SizesHook | null;
   /** v1.14 (D-076): the admin page's Texts & voices tab (null until it opens). */
   adminTexts: {
     /** Lines listed in all, and on the page after the search and filters. */
@@ -334,17 +368,18 @@ export interface TestHook {
   readonly masterGain: number | null;
   /** Manifest textures missing when the last hunt started (must be 0). */
   missingTextures: string[];
-  /** D-029: RGBA bytes of all textures (GPU memory estimate) during a hunt, and when the
-   *  Skiet-Skuur opens (D-035 review); 0 before. */
+  /** D-029: RGBA bytes of all textures (GPU memory estimate); 0 before the hunt scene's first
+   *  run. v1.22.2 (D-087): this and the texture entries below are read from the texture manager
+   *  when a spec reads them (accessors, `lazyHook.ts`), not sampled in the frame. */
   textureBytes: number;
-  /** v1.12 (D-069): Brakkie's sheet is in the texture manager (sampled with textureBytes; the
+  /** v1.12 (D-069): Brakkie's sheet is in the texture manager (read like textureBytes; the
    *  tally must show false: it goes with the hunt, lesson 40). */
   brakkieTexture: boolean;
-  /** v1.13 (D-075): a cameo sheet is in the texture manager (sampled with textureBytes). */
+  /** v1.13 (D-075): a cameo sheet is in the texture manager (read like textureBytes). */
   cameoTexture: boolean;
-  /** D-053: the largest textures (key, MB), sampled with textureBytes. */
+  /** D-053: the largest textures (key, MB), read like textureBytes. */
   textureTop: { key: string; mb: number }[];
-  /** v1.3: delivered gun atlases in the texture manager (sampled with textureBytes). */
+  /** v1.3: delivered gun atlases in the texture manager (read like textureBytes). */
   gunAtlases: string[];
   /** Boot milestones in ms since navigation start (content parsed, textures built, ready). */
   boot: Record<string, number>;
@@ -370,7 +405,8 @@ export interface TestHook {
     icon: string | null;
     /** 1.9.2 (D-055): on screen (own transforms, then the camera): where the icon belongs (the
      *  canopy or box front through the crate image), the picture's centre, and how many
-     *  pictures of its icon the whole hunt scene shows (1; R4). */
+     *  pictures of its icon the whole hunt scene shows (1; R4). Like the other spots
+     *  (D-087), worked out when read, from the crate art as the last frame drew it. */
     drawn: {
       spot: { x: number; y: number };
       tag: { x: number; y: number } | null;
@@ -509,13 +545,15 @@ export interface TestHook {
   /** D-051: props with an HD texture: their origin on screen (design px), HD showing yet. */
   hdProps: { id: string; hd: boolean; x: number; y: number }[];
   /** D-054: every far-animal part drawn: its herd, animal index, part, on-screen box (design px),
-   *  its frame's cut (texture px) and pivot, and its texture's source size. */
+   *  its frame's cut (texture px) and pivot, and its texture's source size (read when read,
+   *  D-087). */
   fauna: FaunaProbe[];
   /**
    * D-053: Standard or HD. `card`: the loading screen asked this launch (`pick`: its
    * recommendation); `loading`: the area's HD pack behind the loading screen; `bounds`: on-screen
    * boxes of sampled scenery and HUD images (design px, rounded), the same with Standard and HD;
-   * `hdTextures`: HD textures in the texture manager; `epoch`: the hunt manifest's hdEpoch;
+   * `hdTextures`: HD textures in the texture manager (both read when read, D-087); `epoch`: the
+   * hunt manifest's hdEpoch;
    * `refreshes`: HD refreshes run this page (every 30 rendered frames, v1.7d e2e).
    */
   graphics: {
@@ -602,7 +640,19 @@ export interface TestHook {
     warthogsBagged: number;
     cropBonus: number;
     bystanderPenalty: number;
+    /** v1.18 (D-081): the small hole and Phase 2 (null: not unlocked). */
+    hole: HarvestView['hole'];
+    phase2: {
+      total: number;
+      left: number;
+      ticksLeft: number;
+      cropAtStart: number;
+      result: NonNullable<HarvestView['phase2']>['result'];
+      animals: { id: number; kind: string; phase: string; x: number; y: number; from: string }[];
+    } | null;
   } | null;
+  /** v1.18 (D-081): Phase 2's HUD (null: not the Harvest, or its chunk not in yet). */
+  phase2Hud: Phase2HudHook | null;
   harvestMs: number;
   /** v1.10 (D-067): this hunt's Reënbui from the snapshot (null: none), what its view drew this
    *  frame (null: no view, or the chunk not in yet), the ms its view took summed over the frames
@@ -753,6 +803,19 @@ export interface TestHook {
   };
   /** D-035 review: weapon ids whose picture the Skiet-Skuur's Guns tab shows. */
   shedIcons?: string[];
+  /** v1.19 (D-084): the special shells' effects (cones, big ones and when, slugs, singes). */
+  shellFx?: import('./view/shells/ShellFx').ShellFxStats;
+  /** v1.19 (D-084): each Guns-tab picture: side view or first-person idle frame, where (design
+   *  px), and whether it is the locked (grey) one. */
+  shedPictures?: {
+    id: string;
+    source: 'side' | 'idle';
+    locked: boolean;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  }[];
   /** v1.5 (D-041): the gun names on the Guns tab's cards, as drawn (text language, toggle). */
   shedNames?: string[];
   /** v1.7b (D-046): the pickup card on screen (null = none): what it says and where. */
@@ -781,13 +844,25 @@ export interface TestHook {
   };
   /** v1.7b: the tally's "Power-ups used" row (ids, in order of first use). */
   tallyPowerups?: string[];
+  /** v1.18 (D-081): the tally's rows as shown ("label|value"). */
+  tallyRows?: string[];
   /** D-060: the title's line over "Continue run" (season, hunt, caps), when a run is in play. */
   runStatus?: string | null;
   /** v1.7b (D-046): the Gun Shed's Power-ups tab: each card as drawn, and the list's scroll. */
   shedPowerups?: {
-    cards: { id: string; name: string; effect: string; found: boolean; icon: boolean }[];
+    cards: {
+      id: string;
+      name: string;
+      effect: string;
+      found: boolean;
+      icon: boolean;
+      /** v1.19 (D-084): the icon's centre and half-size (list coordinates, design px). */
+      iconAt?: { x: number; y: number; r: number };
+    }[];
     scroll: number;
     maxScroll: number;
+    /** v1.19 (D-084): the list's top on screen (screen y = list y − scroll). */
+    viewY?: number;
   };
   /** M9: the Padstal help card's text bottom and OK button top (no overlap: textBottom < okTop). */
   helpCard?: { textBottom: number; okTop: number };
@@ -918,6 +993,9 @@ export interface GameContext {
   readonly sightOverride: string | undefined;
   /** v1.2x (D-034): the playtest admin page (`?admin=1`, web builds), or null. */
   readonly admin: AdminContext | null;
+  /** v1.22.1 (D-086): the size editor's area and the owner's saved sizes (`?admin=1&sizes=<area>`),
+   *  or null. */
+  readonly sizes: { readonly area: SizeArea; readonly store: SizeEditStore } | null;
   /** Device hint before the first touch: coarse pointer → touch hints on the start card. */
   readonly coarsePointer: boolean;
   readonly reducedMotion: boolean;

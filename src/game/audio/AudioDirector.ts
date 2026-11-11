@@ -658,6 +658,8 @@ export class AudioDirector {
           this.playGun('reloadFinished', 0.5);
           break;
         case 'targetBagged':
+          // v1.20 (D-085): a catch of Brakkie's has its own sounds (his view), no poof.
+          if (e.byDog === true) break;
           this.play('poof', panOf(e));
           if (e.behaviour !== 'flying' || Math.random() < 0.5) this.play('kek', panOf(e));
           break;

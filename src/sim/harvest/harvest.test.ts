@@ -168,6 +168,11 @@ describe('workers and piglets are never targets (aimed-at rule)', () => {
         flocksOn: () => 0,
         gapFlock: () => false,
         scatterFlocks: () => {},
+        score: () => 0,
+        extendBy: () => {},
+        endAt: () => {},
+        phase2Rng: createRng(4).stream('harvestPhase2'),
+        baboonTuning: content.birds.baboons,
       },
     );
     if (sys === null) throw new Error('no harvest');
@@ -183,6 +188,26 @@ describe('workers and piglets are never targets (aimed-at rule)', () => {
     if (body === undefined) throw new Error('no shapes');
     return body;
   }
+
+  it('v1.19 (D-084): one Slug (heavy) bags a two-hit warthog, and a yearling', () => {
+    expect(H.warthogs.hitsToBag).toBeGreaterThan(1);
+    const s = setup();
+    const w = s.sys.view().warthogs.find((x) => !x.young && x.phase !== 'tumble');
+    if (w === undefined) throw new Error('no warthog');
+    s.sys.shot(1, [w.id], false, () => ({ x: w.x, y: w.y }), true);
+    expect(ofType(s.events, 'warthogHit').map((e) => e.hitsLeft)).toEqual([0]);
+    expect(ofType(s.events, 'warthogBagged').map((e) => e.warthogId)).toEqual([w.id]);
+    // A yearling through the small hole: step the rush until one is in.
+    let y = s.sys.view().warthogs.find((x) => x.young && x.phase !== 'tumble');
+    for (let i = 0; i < RUSH && y === undefined; i++) {
+      s.sys.step();
+      y = s.sys.view().warthogs.find((x) => x.young && x.phase !== 'tumble');
+    }
+    if (y === undefined) throw new Error('no yearling');
+    const yid = y.id;
+    s.sys.shot(2, [yid], false, () => ({ x: y.x, y: y.y }), true);
+    expect(ofType(s.events, 'warthogBagged').map((e) => e.warthogId)).toContain(yid);
+  });
 
   it('a shot aimed at a worker costs the penalty (once per cooldown); the worker ducks', () => {
     const s = setup();

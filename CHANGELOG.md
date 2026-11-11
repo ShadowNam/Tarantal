@@ -3,23 +3,123 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
-## [1.20.3] — v1.17d: the fly-over birds at true size — PROPOSED (9 Nov 2026)
+## [1.23.0] — v1.20: Brakkie fetches sooner, and the "Jag, Brakkie!" card (10 Nov 2026)
 
-Decision record D-083, **proposed, awaiting the owner's decision** (the birds are targets: smaller
-is harder to hit). Option (a), true size, is on this branch; the balance report
-(`docs/balance/v1.17d-flyover-sizes.md`) also gives (b) a compromise and (c) leaving them as is.
+Decision record D-085. The owner's request of 10 Nov (afternoon): Brakkie should collect the shot
+birds, and a card should send him hunting guineafowl on the ground.
 
-- **The fly-over birds at their real size beside the guineafowl:** the Cape turtle dove (0.27 m,
-  was drawn as long as a guineafowl: 0.44×) and Swainson's spurfowl (0.36 m, 0.59×) over Die Oes,
-  the kwêvoël (0.49 m, 0.85×) and the African fish eagle (0.69 m, 0.87×). Each is hit where it is
-  drawn: its hit area shrinks with it (far birds keep the far plane's minimum hit size).
-- **The fish eagle's wings:** redrawn to its true ~2.1 m span (they were less than half of it).
-- **The kwêvoël's crest:** redrawn at its real 6–7 cm (it was twice that); the bird still sits on
-  its perch, not above it.
-- **Balance:** within the bots' noise everywhere (the competent bot −0.2 … +0.3 % in the Classic
-  areas, −0.2 % in the Harvest; the plinker −3.4 % in the Harvest).
-- **Behind the scenes:** a per-species `sizeMul` in `birds.json` (drawing and hit shapes alike);
-  the size table guards the four birds from their art; the smaller birds' textures are sharper.
+- **Brakkie fetches sooner:** he runs out about 1.5 s after a bird falls, even while you keep
+  shooting (he used to wait for 6 s of quiet), and remembers up to 3 birds. He still only goes
+  where no live bird is near and never into the line of fire. The first time he fetches, Oupa tells
+  you that he does it by himself and that F (or the whistle button on a phone) sends him at once.
+- **New power-up: "Jag, Brakkie!" (Hunt, Brakkie!):** from supply crates and the Farm Stall, only
+  in hunts Brakkie comes along to. He sprints at guineafowl feeding on the ground, pounces and
+  catches up to 3 in 10 seconds of hunting — each counts as your bag with its normal points, and he
+  brings it to the bakkie for his Bring bonus. The rest of the flock flies up: wing shots. Never
+  shoot at him: it costs 25 and ends the card. Its chip shows the seconds and the catches; Oupa
+  cheers him on (text for now, voices later).
+- **The Gun Shed's Power-ups tab** has the new card with its picture: Brakkie's head with a paw.
+- **Scores stay comparable (the owner: "Keep it near +5 %"):** he delivers about eight times as
+  many birds, so each delivery now pays "Bring!" +4 (was +15) and "Goeie hond!" pays +20 every 5th
+  in a row (was +30 every 3rd); scores land within about 5 % of before. The card itself is worth
+  about as much as Blitslaai. Details: docs/balance/v1.20-jag.md.
+- **Smaller first download:** the test-only content switches now load only in test runs
+  (1 KB smaller than main).
+
+## [1.22.2] — Steadier performance checks (10 Nov 2026)
+
+Decision record D-087. No change to the game or how it looks; the automatic checks behind each
+release are steadier.
+
+- **The frame-time checks measure the game, not the test's own probes:** the test build worked
+  out its texture-memory report and the crates' screen positions in every frame, which counted as
+  game time (about 2 ms a frame on a slowed-down phone profile — enough to fail the Christmas and
+  New Year checks). Those reports are now worked out only when a test asks for them.
+- **The HD memory checks measure during the hunt:** their texture report could stay minutes old,
+  so a check sometimes measured after the hunt had ended and missed Brakkie's or the animals'
+  pictures. It is now always current, and a check that can't settle says why instead of measuring
+  late.
+
+## [1.22.1] — Sizes: set the animals' sizes by eye (10 Nov 2026)
+
+Decision record D-086. The owner (10 Nov): the animals still look the wrong size in the test demo,
+especially the ostrich that runs past — so he can now set them himself.
+
+- **A Sizes tab on the admin page:** every area (Karoo, Bushveld, Kalahari, Okavango, Namibië, Die
+  Oes) with its animals — the real size each stands for, its size in the game now, and yours.
+- **Open in game:** the area's hunt with every animal out at once, standing still; drag to look
+  around. Tap an animal: it is outlined and named with how tall it is, and a guineafowl (0.5 m)
+  stands beside it. −10 % · −2 % · +2 % · +10 % · Reset change it straight away; Save keeps it on
+  your device (the page asks before you leave with changes unsaved).
+- **Use my sizes in the game** (off by default): your sizes in every hunt on that device — the
+  animals are hit where they are drawn. Those hunts don't count (no Daily result, streak or
+  challenge links) and the build line shows ⇲ and the number of animals changed.
+- **Send them:** Download sizes (or Copy, or Share on a phone) and put the file in Dropbox
+  `/AI-DEV/Tarantal-Madness/size-edits/`; the developer applies it with `npm run sizes:apply`.
+- The far herds, the veld cameos and the ostrich hen now always show at their content size (so a
+  changed size never leaves the drawing and the hit area apart).
+
+## [1.22.0] — v1.19: The Gun Shed, meerkats and two special shells (10 Nov 2026)
+
+Decision record D-084. The owner's requests of 8 Nov (night): better gun pictures in the Gun Shed,
+better meerkats, and two special shotgun shells.
+
+- **The Gun Shed shows the guns properly:** every card has a painted side view of its gun — the
+  Double Barrel with its hammers and engraved action, the Air Rifle's break barrel, the
+  Slingshot, the Farm Pump's slide and magazine tube, the Twenty-Two with its little scope, the
+  Long Rifle with its big scope and bipod (and the Voorlaaier and the Mielie-Masjien drawn the
+  same way). Locked guns show the same picture in grey. The pictures load when you open the shed.
+- **Better-looking guns in the hunt:** wood grain and figure on the stocks, blued steel with
+  highlights and wear, the pump's grooved slide and rails, glass that glints in the Long Rifle's
+  scope, the Voorlaaier's brass. Same sizes and feel.
+- **Real meerkats:** slim upright sentinels with their tail as a prop, dark "sunglasses" round the
+  eyes, dark ears, pale faces and bellies, banded backs, little hands held at the chest.
+- **New power-up — Dragon's Breath (Drakevuur):** for 4 shotgun shells every shot throws a cone of
+  fire: more pellets over a much wider pattern, and any pellet that touches a bird on the near or
+  mid ground brings it down. The flame doesn't reach far birds. A big orange flame with sparks
+  and a roar (smaller and dimmer with "reduce flashes", and never more than 3 big flashes a
+  second).
+- **New power-up — the Slug (Koeëlpatroon):** for 3 shotgun shells every shot is one heavy ball:
+  no spread, it reaches the far birds and the Ver plane like a rifle, and it brings down whatever
+  it hits in one shot — a boss, an armoured bird, a two-hit warthog. The wind pushes it more than
+  a rifle bullet. A heavy boom and a small, tight muzzle flash.
+- **Both shells** come in supply crates when you carry a shotgun (Double Barrel, Farm Pump), and
+  at the Padstal in a shotgun Season Run (3 caps). They only work in a shotgun (the Voorlaaier
+  too); a new one replaces the other. The HUD shows the shell's icon and the shells left; the Gun
+  Shed's Power-ups tab explains both.
+
+## [1.21.0] — v1.18: Die Oes, the raid and the bonus round (9 Nov 2026)
+
+Decision record D-081. The owner's requests of 8 Nov: the baboons climbing off the koppie, a small
+second hole in the fence, and a bonus round to defend the field.
+
+- **The baboons come down where you can see them:** in the Harvest a raid's baboons scramble down
+  the koppie behind the farm, run across the veld and dash into the mielies. Shoot them once they
+  reach the rows (as before).
+- **A small hole in the fence:** left of the big gap, low down. Now and then a young warthog
+  squeezes through it, sometimes with a piglet behind it; one shot bags a young one. The workers
+  patch it near the end of the rush.
+- **Bonus round — "Defend the field!":** score 1,850 or more in the rush and the Harvest goes on.
+  The fence is whole, the workers go off to the farmhouse, and 24 animals come at the field from
+  every side in three waves: warthogs jump the fence, piglets squeeze under it, baboons climb over
+  it. Keep them out for 30 seconds: hit a warthog or baboon once to send it running (twice to bag
+  it), and shoot the ground near a piglet to scare it off (never at it). "Animals left" and the
+  clock count down; your crop meter carries on from the rush.
+- **Bonuses:** 10 points for every percent of the crop left, +500 "Field defended!" if they didn't
+  eat a thing, +750 "All of them!" if you stopped every one in time. If they eat it all, the round
+  ends ("They ate the lot!") but you keep your score.
+- **The Harvest tally** shows the bonus round: how many you stopped, the crop at the end, the
+  bonuses. Your Harvest best counts the bonus round too.
+- The music picks up for the bonus round; warthogs grunt, piglets squeal and the baboons call as
+  they come.
+- **The bonus round has the field to itself:** the workers are gone before the first animal comes
+  and can't be hit on their way out; no more baboon raids, guineafowl flocks or pop-ups start (a
+  raid under way runs off, the flushed flocks fly away); birds still fly over.
+- The bonus round only starts if the animals left you some crop to defend.
+- **The Harvest tally:** "Crop saved" is the crop you saved in the rush (the bonus round's crop
+  has its own line), and "Workers and piglets" counts the bonus round's piglets too.
+- Baboons climbing the fence are always drawn, and animals coming up from behind the fence can
+  only be hit once you can see them. Oupa's "All of them!" line fits what happened.
 
 ## [1.20.2] — v1.17c: animal sizes, the audit's fixes (9 Nov 2026)
 
