@@ -86,3 +86,10 @@ boss birds, a shared **Daily Hunt** with a one-tap share card, and challenge lin
 ## Decisions you can still change
 See `docs/05-DECISIONS-AND-RESEARCH.md §4` (portrait support, launch portal, languages, art/audio
 budget, hunting vs camera-safari framing per market).
+
+## Game and animal-art review
+
+See [the illustrated review](docs/review-2026-11-14/GAME-REVIEW-2026-11-14.md) and
+[the delivered animal-art inventory](docs/ANIMAL-ART-AUDIT.md).
+`npm run assets:animals` refreshes the resolution audit. The full PDF and raw playtest
+artifacts remain local to the review workspace and are not included in this handoff.

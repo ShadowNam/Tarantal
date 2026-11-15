@@ -9,6 +9,7 @@
 //                         meerkats = the desert colonies' sheet (v1.7, D-044)
 //   --biome <id>          scenery for one biome
 //   --creature <id>       one bird
+//   --sprite <key>        one shared sprite (with --only sprites)
 //   --gun <id>            one gun
 //   --sheets              also write the contact sheets to docs/art-preview/
 //   --hd                  D-053: only the HD pack's 2× sources (art-source/hd/: layers, props
@@ -152,6 +153,7 @@ const content = loadContent();
 const only = arg('--only');
 const oneCreature = arg('--creature');
 const oneGun = arg('--gun');
+const oneSprite = arg('--sprite');
 const oneBiome = arg('--biome');
 const hdOnly = process.argv.includes('--hd');
 if (hdOnly && only !== 'scenery' && only !== 'sprites' && only !== 'fauna')
@@ -550,6 +552,7 @@ if (wants('sprites')) {
   if (home === undefined) throw new Error('no home biome');
   const m = createPlaceholderManifest(content, home, loadFeel().guns.ammo);
   for (const spec of [...SPRITES, ...AMMO_SPRITES, ...SIGHT_SPRITES]) {
+    if (oneSprite !== undefined && spec.key !== oneSprite) continue;
     const png = join(src, 'sprites', `${spec.key}.png`);
     if (!oursFile(png)) {
       console.warn(`skip sprites/${spec.key}: a human delivery is there`);
@@ -570,7 +573,8 @@ if (wants('sprites')) {
     // v1.3 (D-036): sight pictures are smooth gradients (full colour) in the long-range chunk.
     const sight = spec.key.startsWith('sight/');
     const art = ammo ? { ...cfg, masterScale: 4 } : cfg;
-    const img = renderSprite(art, spec, size, m.origin(spec.key));
+    const helper = spec.key === 'helper/meerkat';
+    const img = renderSprite(art, spec, size, m.origin(spec.key), helper ? 2 : 1);
     put(png, ammo || sight ? encodePng(img) : encodePng8(img));
     put(
       png.replace(/\.png$/, '.json'),
@@ -583,7 +587,7 @@ if (wants('sprites')) {
               ? // v1.7b (D-046): power-up icons load with the late group (the first crate drops at
                 // 22 % of a hunt at the earliest; placeholders stand in until then).
                 { origin: 'interim', encode: 'png8', group: LATE_GROUP }
-              : { origin: 'interim', encode: 'png8' },
+              : { origin: 'interim', encode: 'png8', ...(helper ? { master: 2 } : {}) },
       ),
     );
     console.log(`sprites/${spec.key}`);

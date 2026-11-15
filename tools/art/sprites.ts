@@ -504,6 +504,19 @@ function meerkat(p: SpriteCtx): string {
     0.8,
   );
   const id = nextId();
+  const coat = nextId();
+  // Fine directional fur stays inside the silhouette, including the burrow crop.
+  const hairs: string[] = [];
+  for (let i = 0; i < 105; i++) {
+    const x = -27 + p.rnd() * 54;
+    const y = -132 + p.rnd() * 119;
+    hairs.push(
+      line(`M${r2(x)} ${r2(y)}l1.2 3.2`, {
+        ink: i % 3 === 0 ? fur.light : fur.dark,
+        w: 0.65,
+      }),
+    );
+  }
   return g(
     {},
     flat(ellipseD(4, -2, 34, 6), '#5A3418', { opacity: 0.3 }),
@@ -531,11 +544,19 @@ function meerkat(p: SpriteCtx): string {
       3,
     ),
     el('clipPath', { id }, el('path', { d: body })),
-    flat(body, fur.fill),
+    el(
+      'linearGradient',
+      { id: coat, x1: 0, y1: 0, x2: 1, y2: 0.6 },
+      el('stop', { offset: 0, 'stop-color': fur.light }),
+      el('stop', { offset: 0.42, 'stop-color': fur.fill }),
+      el('stop', { offset: 1, 'stop-color': fur.dark }),
+    ),
+    flat(body, `url(#${coat})`),
     g(
       { 'clip-path': `url(#${id})` },
       flat(ellipseD(0, -66, 16, 50), fur.light),
-      flat(ellipseD(26, -70, 12, 70), fur.dark),
+      flat(ellipseD(26, -70, 12, 70), fur.dark, { opacity: 0.35 }),
+      g({ opacity: 0.32 }, ...hairs),
     ),
     el('path', {
       d: body,
@@ -591,6 +612,9 @@ function meerkat(p: SpriteCtx): string {
     ),
     flat(ellipseD(-11, -160, 4, 4), '#8FC6E8'),
     flat(ellipseD(11, -160, 4, 4), '#8FC6E8'),
+    flat(ellipseD(-12, -162, 1.4, 1.1), '#F7FCFF'),
+    flat(ellipseD(10, -162, 1.4, 1.1), '#F7FCFF'),
+    line('M-8 -140l-9 2M8 -140l9 2', { ink: fur.dark, w: 0.8 }),
     line('M-3 -160L3 -160', pen(p, 3)),
     inked('M-26 -150Q-34 -124 -22 -112L-14 -118Q-22 -128 -18 -148Z', fur.fill, p.ink, 3),
     inked('M26 -150Q34 -124 22 -112L14 -118Q22 -128 18 -148Z', fur.fill, p.ink, 3),

@@ -180,9 +180,8 @@ test.describe('maps (v1.2)', () => {
       expect(h.verder, `unlocked on day ${unlockDay}`).toBe(open);
       expect(h.rects['verder'] !== undefined).toBe(open);
       if (open) {
-        mkdirSync(join('test-results', 'maps'), { recursive: true });
         await page.screenshot({
-          path: join('test-results', 'maps', `title-verder-${info.project.name}.png`),
+          path: info.outputPath(`title-verder-${info.project.name}.png`),
         });
         await tapRect(page, isTouchProject(info), 'verder');
         await waitScene(page, 'hunt');

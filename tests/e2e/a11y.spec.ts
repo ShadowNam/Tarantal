@@ -137,10 +137,11 @@ async function touchGesture(
   x: number,
   y: number,
   path: readonly (readonly [number, number, number])[],
+  untilShots?: number,
 ): Promise<void> {
   await page.evaluate(
-    ([sx, sy, steps]) =>
-      new Promise<void>((resolve) => {
+    ([sx, sy, steps, targetShots]) =>
+      new Promise<void>((resolve, reject) => {
         const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
         const h = window.__TM__;
         if (!canvas || !h) throw new Error('game not booted');
@@ -157,13 +158,21 @@ async function touchGesture(
           cancelable: true,
         });
         canvas.dispatchEvent(new PointerEvent('pointerdown', at(0, 0)));
+        const deadline = performance.now() + 60_000;
         let i = 0;
         let last: [number, number] = [0, 0];
         const next = (): void => {
           const s = steps[i++];
           if (s === undefined) {
+            const pending = targetShots !== null && (window.__TM__?.shots ?? 0) < targetShots;
+            if (pending && performance.now() < deadline) {
+              setTimeout(next, 16);
+              return;
+            }
             canvas.dispatchEvent(new PointerEvent('pointerup', { ...at(...last), buttons: 0 }));
-            resolve();
+            if (pending)
+              reject(new Error('held finger did not produce repeated shots within 60 s'));
+            else resolve();
             return;
           }
           const move = (): void => {
@@ -177,7 +186,7 @@ async function touchGesture(
         };
         next();
       }),
-    [x, y, path] as const,
+    [x, y, path, untilShots ?? null] as const,
   );
 }
 
@@ -207,8 +216,9 @@ test('hold to fire on touch: a held finger repeats, a drag pans, a flick reloads
   expect(h.shots).toBe(h0.shots);
   expect(h.cameraX).not.toBe(camBefore);
 
-  // 2. Held still for 1.2 s: repeated shots from one finger.
-  await touchGesture(page, cx, cy, [[0, 0, 1200]]);
+  // 2. One finger stays down until two shots: software GL may not advance enough sim
+  // ticks in 1.2 wall-clock seconds to finish the gun cooldown (same rule as the mouse test).
+  await touchGesture(page, cx, cy, [[0, 0, 1200]], h0.shots + 2);
   await waitTicks(page, 10);
   h = await hook(page);
   expect(h.shots).toBeGreaterThanOrEqual(h0.shots + 2);

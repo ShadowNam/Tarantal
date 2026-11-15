@@ -111,7 +111,9 @@ test('a tap off the buttons skips the count-up and the story; [Menu] goes to the
   test.skip(!isLandscape(info), 'portrait shows the rotate card');
   test.setTimeout(300_000);
   const touch = isTouchProject(info);
-  await boot(page, `${BASE}&holdAt=20`);
+  // Freeze the story before the tally opens: rewinding after it finishes cannot undo
+  // already-delivered lines on a slow runner. The tap must exercise an unfinished story.
+  await boot(page, `${BASE}&holdAt=20&braaiAt=0`);
   await huntToBraai(page, touch);
   const h = await hook(page);
   const b = h.braai;
@@ -119,11 +121,6 @@ test('a tap off the buttons skips the count-up and the story; [Menu] goes to the
   // A spot in the sky above the story bubble (no button there).
   const spot = { x: Math.max(40, (b.oupa?.x ?? 60) + 20), y: 30 };
   for (const r of Object.values(h.rects)) expect(overlaps({ ...spot, w: 1, h: 1 }, r)).toBe(false);
-  // Hold the braai clock at 0 first: on a slow runner the story could otherwise be all told
-  // before the tap lands, and a skip then has nothing to do (`skip-ignored:done`).
-  await page.evaluate(() => {
-    (window as { __TM_BRAAI_AT__?: number }).__TM_BRAAI_AT__ = 0;
-  });
   await tapAt(page, touch, spot.x, spot.y);
   // The hook says what each tap did (button / skip / skip-ignored:<why>): print it on failure.
   const skipped = await page

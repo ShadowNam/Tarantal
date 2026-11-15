@@ -528,7 +528,7 @@ px = 1 design px), and the pack tool warns if it differs. Its origin defaults to
 | `gun/pomp` | 420 × 520 | common |
 | `gun/voorlaaier` | 420 × 520 | common |
 | `gun/windbuks` | 420 × 520 | common |
-| `helper/meerkat` | 120 × 220 | common |
+| `helper/meerkat` | 120 × 220 (deliver at 2×: 240 × 440, sidecar `"master": 2`) | common |
 | `desert/meerkats` | 896 × 576 (deliver at 2×: 1792 × 1152, sidecar `"master": 2`) | desert |
 | `omen/glare` | 256 × 64 | common |
 | `omen/rain` | 6 × 40 | common |
@@ -643,3 +643,13 @@ committed stand-in delivery in `tests/fixtures/standin-assets/`: one magenta tar
 `STANDIN=1 npm run dev`. The stand-ins are never part of a build. `tests/e2e/assets.spec.ts`
 serves them to the game to show the swap, the fallback with nothing delivered, and the fallback
 for one broken file.
+
+## Animal resolution review
+
+Run `npm run assets:animals` for a delivered animal-sheet and bird-plane inventory, or
+`npm run assets:animals -- --out docs/ANIMAL-ART-AUDIT.md` to save it. This distinguishes
+native high-resolution sheets from HD twins and deliberate mobile-memory exceptions.
+The cropped `helper/meerkat` is a native 240 × 440 master (`master: 2`) in both modes.
+WorldView applies the same scale to its display and burrow crop; never run it through
+`halveTexture`. Regenerate just this sprite with
+`npm run art:interim -- --only sprites --sprite helper/meerkat`, then `npm run assets:pack`.

@@ -3180,12 +3180,13 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/helper_meerkat.3a762a693e30.png",
-        "bytes": 4247,
-        "hash": "3a762a693e30"
+        "path": "assets/common/img/helper_meerkat.95ed1afccdbd.png",
+        "bytes": 12268,
+        "hash": "95ed1afccdbd"
       },
-      "width": 120,
-      "height": 220
+      "width": 240,
+      "height": 440,
+      "scale": 0.5
     },
     "kalahari/dead_camelthorn": {
       "group": "kalahari-summer",

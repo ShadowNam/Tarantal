@@ -14,7 +14,7 @@ test('startup defaults to English and remembers the selected language', async ({
   await expect(picker).toHaveValue('en');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await page.screenshot({
-    path: `tests/e2e/__screenshots__/startup-english-${info.project.name}.png`,
+    path: info.outputPath(`startup-english-${info.project.name}.png`),
   });
   for (const language of ['af', 'de']) {
     await picker.selectOption(language);
@@ -66,7 +66,7 @@ test('language selector remains usable on the graphics loading screen', async ({
   await expect(page.locator('html')).toHaveAttribute('lang', 'de');
   await expect(page.locator('#tm-graphics-q')).toHaveText('Wie soll das Spiel aussehen?');
   await page.screenshot({
-    path: `tests/e2e/__screenshots__/startup-loading-de-${info.project.name}.png`,
+    path: info.outputPath(`startup-loading-de-${info.project.name}.png`),
   });
   await page.locator('#tm-graphics-standard').click();
   await page.waitForFunction(() => window.__TM__?.ready === true);
@@ -94,7 +94,7 @@ test('English startup speech uses the translated English greeting', async ({ pag
     { timeout: 60_000 },
   );
   await page.screenshot({
-    path: 'tests/e2e/__screenshots__/startup-english-hunt-desktop-chromium.png',
+    path: info.outputPath('startup-english-hunt-desktop-chromium.png'),
   });
 });
 

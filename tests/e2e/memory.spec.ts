@@ -3,7 +3,7 @@
 // held them all (about 132.5 MB). Leaving a hunt now drops every gun atlas but the equipped one.
 // Measured on the Pixel 7 profile with the low tier pinned (test hook `textureBytes`).
 import { expect, test } from '@playwright/test';
-import { boot, startHunt, tapRect } from './helpers';
+import { boot, hook, startHunt, tapRect } from './helpers';
 
 test.use({ serviceWorkers: 'block' });
 
@@ -21,10 +21,11 @@ test('texture memory: the title after a hunt that used both crate guns (low tier
     };
     localStorage.setItem(
       key,
-      JSON.stringify({ ...save, settings: { ...save.settings, quality: 'low' } }),
+      JSON.stringify({ ...save, v: 1, settings: { ...save.settings, quality: 'low' } }),
     );
   });
   await boot(page, 'seed=42&huntSeconds=6&layout=none');
+  expect((await hook(page)).quality.tier).toBe('low');
   await startHunt(page, true);
   // Both crate guns as a crate would arm them: each one's atlas goes to the GPU (ensureGun).
   // Their art is in the late group, so wait until each rig is the one drawn.
@@ -109,6 +110,7 @@ test('texture memory: a scoped Nog Verder hunt with the .22, and the title after
     );
   });
   await boot(page, 'seed=42&today=2026-10-23&bonus=nogVerder&huntSeconds=12');
+  expect((await hook(page)).quality.tier).toBe('low');
   await startHunt(page, true);
   await page.waitForFunction(
     () => (window.__TM__?.gunAtlases ?? []).some((k) => k.includes('twee_twee')),

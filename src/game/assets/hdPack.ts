@@ -45,7 +45,7 @@ export const standardInHdLayer = (biome: string, layerId: string): boolean =>
  * Texture keys (prefixes) without an HD version: images that are cropped and drawn without a view
  * scale (hdTexture.ts: Phaser 4.2 clamps a crop to the frame's halved size). The HUD ammo (the
  * hopper level), the meerkat helper (it climbs out of its burrow) and the water channels (scope
- * culling crops them).
+ * culling crops them). The helper keeps native 2× art in both modes; WorldView scales its crop.
  */
 export const HD_SKIP_KEYS: readonly string[] = ['ui/ammo/', 'helper/meerkat', 'biome/water'];
 
