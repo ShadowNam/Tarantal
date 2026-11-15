@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import { createPlaceholderManifest, loadBiomeArt } from '../placeholder/ProceduralAssetFactory';
+import { BABOON_SHEET } from '../view/baboon/baboonKeys';
 import { LAZY_TIMEOUT_MUL } from './AssetManifest';
 import { parseAssetIndex } from './assetIndex';
 
@@ -35,12 +36,18 @@ describe('lazy images get a longer timeout (review R12)', () => {
     const { index, error } = parseAssetIndex(raw);
     expect(error).toBeNull();
     const m = createPlaceholderManifest(content, bushveld);
-    await m.loadFinal(index, {
+    asked.clear();
+    const loading = m.loadFinal(index, {
       atlasScale: 1,
       timeoutMs: 1000,
       audioFormat: null,
       biome: bushveld.id,
     });
+    const baboon = index.images[BABOON_SHEET];
+    if (!baboon) throw new Error('no baboon sheet');
+    // The first hunt needs this file: its request must start before core loading settles.
+    expect(asked.has(baboon.file.path)).toBe(true);
+    await loading;
     await m.lateLoaded;
     const of = (key: string): number | undefined => {
       const e = index.images[key];
