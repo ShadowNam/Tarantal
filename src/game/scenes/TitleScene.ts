@@ -506,6 +506,25 @@ export class TitleScene extends Phaser.Scene {
       }
     }
 
+    // First-time players need sound, language and accessibility controls before the lesson.
+    // Keep one primary action; the other game modes still wait until the lesson is complete.
+    if (!returning) {
+      const settings: Rect = {
+        x: width / 2 - 170,
+        y: height - safe.bottom - 170,
+        w: 340,
+        h: 96,
+      };
+      drawButton(this, settings, t('title.settings'), 'secondary', 44);
+      items.push({
+        id: 'settings',
+        rect: () => settings,
+        press: () => {
+          this.openOverlay('Settings');
+        },
+      });
+    }
+
     this.menu = new Menu(this, items, { focus: 'start', hook: this.ctx.hook });
     this.ctx.chrome.setOnTitle(true);
     if (this.ctx.hook) {

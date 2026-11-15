@@ -271,7 +271,7 @@ These follow the names above (and the toggle brings back their pre-v1.5 text too
 | `hud.tag_die_verste` | Die Verste · die heel verste | The Furthest · bonus map | Am weitesten · Bonuskarte | Het Verst · bonuskaart | |
 | `notaboek.unlock_nog_verder` | Sluit Nog Verder oop | Unlock Further Still | Schalte Noch weiter frei | Ontgrendel Nog Verder | |
 | `notaboek.unlock_die_verste` | Sluit Die Verste oop | Unlock The Furthest | Schalte Am weitesten frei | Ontgrendel Het Verst | |
-| `tally.notaboek_done` | Notaboek: {goal} | Notebook: {goal} | Notizbuch: {goal} | Notitieboek: {goal} | |
+| `tally.notaboek_done` | ✓ Notaboek: {goal} | ✓ Notebook: {goal} | ✓ Notizbuch: {goal} | ✓ Notitieboek: {goal} | |
 | `tally.charm_unlocked` | Nuwe gelukbringer by die Padstal: {charm} | New charm for the farm stall: {charm} | Neuer Talisman im Hofladen: {charm} | Nieuwe charm voor het stalletje: {charm} | |
 | `run.no_charms` | Nog geen gelukbringers nie — koop hulle by die Padstal | No charms yet — buy them at the farm stall | Noch keine Talismane — kauf sie im Hofladen | Nog geen charms — koop ze bij het stalletje | |
 | `run.to_padstal` | Na die Padstal | To the farm stall | Zum Hofladen | Naar het stalletje | |
