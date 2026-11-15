@@ -1823,7 +1823,7 @@ Afrikaans retains the original phrases. Settings → Afrikaans names brings the 
 back in any language.
 
 
-## Review follow-through (D-088, 15 November 2026)
+## Review follow-through (D-089, 15 November 2026)
 
 The first launch uses Standard art immediately. HD can be selected under Settings → Display &
 access → Artwork detail. Existing remembered choices and explicit Ask requests remain supported.

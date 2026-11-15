@@ -1213,7 +1213,7 @@ Test hook: `sizes` (the tab's or the editor's state: the picked knob, its factor
 its sprite's box and feet, a point per knob on screen, the last export).
 
 ### 8.3 Skietbaan: the range mode and its gating (v1.3x, D-037)
-- **Gating (D-088):** Title Help & practice on web/Capacitor, plus the existing web admin button. Public practice passes unlocked areas and no Fresh load control; retired portals omit the chunk.
+- **Gating (D-089):** Title Help & practice on web/Capacitor, plus the existing web admin button. Public practice passes unlocked areas and no Fresh load control; retired portals omit the chunk.
   The range's code is one lazy chunk (`src/game/range/` → `Skietbaan-*.js`, 8.7 KB gzip), loaded
   by `HuntScene.openSkietbaan()`. Its `import()` sits behind the raw `VITE_PLATFORM` flag (a literal
   after Vite's replacement), so Poki and CrazyGames builds drop it. `adapters.test.ts` checks the
