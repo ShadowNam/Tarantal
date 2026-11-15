@@ -3,7 +3,9 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
-## Unreleased — Game-flow and animal-art review
+## [1.24.0] — Game-flow and animal-art review (15 Nov 2026)
+
+Decision record D-088. From the owner's overnight review task (14 Nov 2026).
 
 - The Journal’s coaching points to the next ordinary hunt rather than an admin-only range,
   and completed Notebook goals have a check mark in all four languages.

@@ -5302,7 +5302,7 @@ once and passed on two re-runs (19 s). Unit tests 2,626 passed (`npm run check`)
   [Oiseaux-birds — African fish eagle](https://www.oiseaux-birds.com/card-african-fish-eagle.html) ·
   [African Raptor Centre — fish eagle](https://africanraptor.co.za/gallery/fish-eagle/)
 
-### D-087 — First-launch settings and animal-art review (14 Nov 2026)
+### D-088 — v1.24.0 First-launch settings and the animal-art review (14 Nov 2026)
 
 The owner requested an autonomous review of game flow and animal graphics. First-launch
 Settings are now available before Oupa's lesson so sound, language and accessibility do not
