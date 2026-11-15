@@ -1396,7 +1396,11 @@ export class HuntScene extends Phaser.Scene {
       run: () => {
         this.openRun();
       },
-      ...(import.meta.env.VITE_PLATFORM !== 'poki' && import.meta.env.VITE_PLATFORM !== 'crazygames'
+      // D-089: player practice on the web build only. The store app (Capacitor) and the retired
+      // portals stay without the range's code (D-037; size-check fails a build that carries it).
+      ...(import.meta.env.VITE_PLATFORM !== 'poki' &&
+      import.meta.env.VITE_PLATFORM !== 'crazygames' &&
+      import.meta.env.VITE_PLATFORM !== 'capacitor'
         ? {
             practice: () => {
               this.scene.stop('Title');
@@ -1491,9 +1495,11 @@ export class HuntScene extends Phaser.Scene {
 
   /** Lazy practice setup for players and admins; retired portal builds omit it. */
   private openSkietbaan(): void {
-    // Keep the raw platform guard so retired portal builds can drop this lazy chunk.
+    // Builds without the admin page (the PlatformAdapter's adminPage: web only) drop this chunk:
+    // compared against the raw flag (a literal after Vite's replacement) so the store app and the
+    // portals carry no range code; platform.spec and size-check check it (D-037, D-089).
     const flag = import.meta.env.VITE_PLATFORM;
-    if (flag === 'poki' || flag === 'crazygames') return;
+    if (flag === 'poki' || flag === 'crazygames' || flag === 'capacitor') return;
     this.ctx.platform.loadingProgress(1);
     if (this.ctx.hook) this.ctx.hook.scene = 'skietbaan';
     import('../range/Skietbaan').then(

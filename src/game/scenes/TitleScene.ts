@@ -552,7 +552,7 @@ export class TitleScene extends Phaser.Scene {
             lines: [
               t(this.ctx.coarsePointer ? 'start.hint_touch' : 'start.hint_mouse'),
               t(this.ctx.coarsePointer ? 'start.hint_rifle_touch' : 'start.hint_rifle_mouse'),
-              t('help.practice_hint'),
+              ...(this.data_?.practice ? [t('help.practice_hint')] : []),
               t('help.hd'),
             ],
             close: t('ui.back'),

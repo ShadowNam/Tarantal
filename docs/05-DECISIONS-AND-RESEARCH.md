@@ -5430,7 +5430,9 @@ without the pre-game art decision; explicit Ask/card requests still work and HD 
 Settings. Font requests begin alongside the asset index instead of after platform setup.
 Title help contains the full controls and a public, unranked practice entry. The range remains
 lazy, saves no practice outcomes, offers only unlocked areas to players, and retains all areas
-and Fresh load for admins. Web and Capacitor include practice; retired portal builds exclude it.
+and Fresh load for admins. Only the web build includes practice: the store app (Capacitor) and the retired portal builds
+stay without the range's code, so D-037's size-check gate is unchanged (the Help panel then
+leaves out the practice line and button).
 Harvest shows its content-derived bonus threshold and surviving-crop rule before starting.
 The title highlights a next hunt goal, Settings distinguishes rendering and artwork, and the
 run ending offers recorded hunt/season totals and relative quota margins without claiming
