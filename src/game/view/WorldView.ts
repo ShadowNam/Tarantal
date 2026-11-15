@@ -676,7 +676,12 @@ export class WorldView {
       .setOrigin(0.5, 0.5)
       .setCrop()
       .setPosition(width * 0.2, height + 210 * (1 - sink) - 10)
-      .setScale(0.9);
+      .setScale(this.helperDisplayScale());
+  }
+
+  /** Native 2× delivery and the 120px placeholder occupy the same screen space. */
+  private helperDisplayScale(): number {
+    return (0.9 * 120) / this.helper.width;
   }
 
   /**
@@ -712,7 +717,7 @@ export class WorldView {
     const left = active.ticksLeft ?? 0;
     const since = (active.totalTicks ?? left) - left;
     const rise = Math.max(0, Math.min(1, since / 30, left / 30));
-    const scale = 0.9;
+    const scale = this.helperDisplayScale();
     const dh = this.helper.height * scale;
     // Feet a third of the way down the burrow when fully out; all the way down at rise 0.
     const bottom = holeY + dh * 0.3 + (1 - rise) * dh * 0.7;

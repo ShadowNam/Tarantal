@@ -1045,6 +1045,8 @@ export function propPlaneRes(content: ContentBundle, key: string): number {
   if (key.startsWith('fauna/')) return FAUNA_RES;
   // v1.7 (D-044): the meerkat sheet keeps its 2× master (near meerkats are seen close up).
   if (key === MEERKAT_SHEET) return SHEET_MASTER;
+  // The cropped Spotter keeps native 2× pixels; WorldView scales its crop and display together.
+  if (key === 'helper/meerkat') return 2;
   // D-048: the Halloween sheet keeps its 2× master (its frame table is in texture px at 2×).
   if (key === HALLOWEEN_SHEET) return FEESDAE_MASTER;
   // D-064: the Christmas sheet packs at 1× (its frames scale by the image's own width); it stays
