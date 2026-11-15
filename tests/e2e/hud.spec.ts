@@ -27,7 +27,10 @@ const CASES: Record<string, { label: string; viewport?: { width: number; height:
 for (const [project, cases] of Object.entries(CASES)) {
   for (const c of cases) {
     test(`HUD fits the safe area at ${c.label} (screenshot)`, async ({ page }, info) => {
-      test.skip(info.project.name !== project, 'screenshot profiles only');
+      test.skip(
+        info.project.name !== project && info.project.name !== `${project}-chromium-fallback`,
+        'screenshot profiles only',
+      );
       test.setTimeout(120_000);
       const touch = isTouchProject(info);
       const errors = collectErrors(page);

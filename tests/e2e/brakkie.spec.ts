@@ -541,7 +541,9 @@ test('Fluit!: on phones the round whistle button calls him to heel', async ({ pa
   expect((await hook(page)).shots).toBe(0);
 });
 
-test('Bring!: his delivery pops "Bring! +15" at the screen edge', async ({ page }, info) => {
+test('Bring!: his delivery pops "Bring! +N" (brakkie.json bring.points) at the screen edge', async ({
+  page,
+}, info) => {
   test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
   test.setTimeout(600_000);
   const touch = isTouchProject(info);

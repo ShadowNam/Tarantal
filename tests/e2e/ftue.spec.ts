@@ -84,8 +84,14 @@ test('FTUE "Oupa se Les" completes with one line of text at a time', async ({ pa
   await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
     timeout: 60_000,
   });
-  // A new player's title is one giant START HUNT: no Skiet-Skuur or Settings yet.
+  // A new player can set sound/accessibility before the lesson; other modes stay hidden.
   expect((await hook(page)).rects['shed']).toBeUndefined();
+  expect((await hook(page)).rects['settings']).toBeDefined();
+  await tapRect(page, touch, 'settings');
+  await page.waitForFunction(() => window.__TM__?.menu === 'settings');
+  await tapRect(page, touch, 'settings.back');
+  await page.waitForFunction(() => window.__TM__?.menu === null);
+
   await page.screenshot({ path: `${SCREENSHOTS}/ftue-title-${info.project.name}.png` });
   await tapRect(page, touch, 'start');
   await page.waitForFunction(

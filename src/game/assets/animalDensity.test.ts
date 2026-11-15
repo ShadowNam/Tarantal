@@ -27,6 +27,12 @@ const images = std.images as Record<string, Img>;
 const hdImages = hd.images as Record<string, Img | undefined>;
 
 describe('the true-size animals’ texture density (D-080)', () => {
+  it('the cropped Spotter has native 2× pixels in both modes without doubling its screen size', () => {
+    expect(images['helper/meerkat']).toMatchObject({ width: 240, height: 440 });
+    expect(std.images['helper/meerkat'].scale).toBe(0.5);
+    expect(hdImages['helper/meerkat']).toBeUndefined();
+  });
+
   for (const area of CAMEO_SHEET_AREAS)
     it(`cameos/${area}: ≥ 0.5 texture px per drawn px (Standard), ≥ 1.0 in its HD twin`, () => {
       const key = CAMEO_SHEETS[area];
