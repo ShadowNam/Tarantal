@@ -150,6 +150,7 @@ async function bootTitle(page: Page, q: string, gfx: 'standard' | 'hd'): Promise
 async function startHarvest(page: Page, info: TestInfo, gfx: 'standard' | 'hd'): Promise<void> {
   const touch = isTouchProject(info);
   await tapRect(page, touch, 'harvest');
+  await page.locator('#tm-player-help [data-action="confirm"]').click();
   if (gfx === 'hd')
     await page.waitForFunction(() => (window.__TM__?.graphics.hdTextures ?? 0) > 0, null, {
       timeout: 600_000,

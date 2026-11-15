@@ -595,6 +595,7 @@ test('3. Die Oes: the warthogs and piglets beside mid and near guineafowl', asyn
     timeout: 600_000,
   });
   await tapRect(page, touch, 'harvest');
+  await page.locator('#tm-player-help [data-action="confirm"]').click();
   await page.waitForFunction(
     () => {
       const t = window.__TM__;

@@ -299,6 +299,7 @@ test('HD texture memory, title → the Harvest (oes)', async ({ page, browserNam
     timeout: 60_000,
   });
   await tapRect(page, isTouchProject(info), 'harvest');
+  await page.locator('#tm-player-help [data-action="confirm"]').click();
   await page.waitForFunction(
     () => {
       const tm = window.__TM__;
@@ -811,6 +812,7 @@ test('perf: the Harvest rush at its peak at 4× CPU throttle (Pixel 7)', async (
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
   await tapRect(page, touch, 'harvest');
+  await page.locator('#tm-player-help [data-action="confirm"]').click();
   await page.waitForFunction(() => window.__TM__?.harvest?.phase === 'rush', null, {
     timeout: 180_000,
   });
@@ -874,6 +876,7 @@ test('perf: the Harvest Phase 2 at its busiest at 4× CPU throttle (Pixel 7)', a
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
   await tapRect(page, touch, 'harvest');
+  await page.locator('#tm-player-help [data-action="confirm"]').click();
   await page.waitForFunction(() => window.__TM__?.harvest?.phase === 'defend', null, {
     timeout: 180_000,
   });

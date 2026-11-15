@@ -351,7 +351,7 @@ describe('CrazyGamesPlatform (fake SDK)', () => {
 });
 
 describe('Skietbaan gate (D-037)', () => {
-  it('the range chunk is compiled out of exactly the builds whose adapter has no admin page', () => {
+  it('player practice is available on web and Capacitor, not retired portals', () => {
     // HuntScene guards the Skietbaan's import() with the raw VITE_PLATFORM flag (a literal after
     // Vite's replacement, so those builds drop the chunk). It must name the same platforms the
     // adapters deny the admin page to.
@@ -359,13 +359,7 @@ describe('Skietbaan gate (D-037)', () => {
     const body = src.slice(src.indexOf('private openSkietbaan(): void {'));
     const guard = /if \(([^)]*)\) return;/.exec(body)?.[1] ?? '';
     const named = [...guard.matchAll(/flag === '(\w+)'/g)].map((m) => m[1]).sort();
-    const admin: Record<(typeof BUILD_PLATFORMS)[number], boolean> = {
-      web: WebPlatform.ADMIN_PAGE,
-      poki: PokiPlatform.ADMIN_PAGE,
-      crazygames: CrazyGamesPlatform.ADMIN_PAGE,
-      capacitor: CapacitorPlatform.ADMIN_PAGE,
-    };
-    expect(named).toEqual(BUILD_PLATFORMS.filter((p) => !admin[p]).sort());
+    expect(named).toEqual(['crazygames', 'poki']);
     // And it is the first thing the method does.
     expect(body.indexOf('const flag = import.meta.env.VITE_PLATFORM;')).toBeLessThan(
       body.indexOf("import('../range/Skietbaan')"),
