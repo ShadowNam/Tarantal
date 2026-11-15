@@ -6,6 +6,7 @@
 // 'range' stream (the mixed layout, fly-over bob, flock placement).
 import type { ContentBundle } from '../../content/schemas';
 import { createFlyover, type Bird, type BirdCreature } from '../birds/Bird';
+import { birdHitbox } from '../birds/size';
 import { planeCentreX, planeToDx } from '../camera';
 import { tuningRatio } from '../planes';
 import type { Flock } from '../flocks/Flock';
@@ -121,7 +122,7 @@ export const createRangeProgram: RangeProgramFactory = ({
     throw new Error(`range creature ${setup.creature} is not a bird`);
   const creature: BirdCreature = found;
   const respawnTicks = Math.max(1, msToTicks(setup.respawnMs));
-  const body = creature.hitbox.body;
+  const body = birdHitbox(creature).body;
   const centre = (plane: PlaneId): number => planeCentreX(cameraX, planes[plane].scrollFactor);
   const margin = (plane: PlaneId): number =>
     (body.rx + Math.abs(body.ox)) * 2 * planes[plane].scale;

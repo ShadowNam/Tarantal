@@ -68,6 +68,25 @@ notes. "Copy report" copies all notes as markdown; "Send to GitHub" opens a pref
 (attach screenshots there). Admin hunts are unranked and never touch your normal save.
 Web build only (docs/02 §8.2, D-034).
 
+## Commands (from M0)
+`npm run dev` · `npm run check` (typecheck + lint + unit tests + content validation) ·
+`npm run test:e2e` · `npm run build` · `npm run size` · `npm run content:validate [-- --strict]`.
+
+## After M0
+Ask Claude to add hooks that enforce the rules — e.g. "write a PostToolUse hook that runs
+`npm run typecheck` after edits to `src/**`". Hooks are deterministic; CLAUDE.md is advice.
+
+## The game in one paragraph
+Moorhuhn meets Balatro in the African bushveld: 90-second slapstick shooting-gallery hunts across a
+panning South African panorama, where realistic guineafowl flocks forage, alert, run and finally
+*flush* into steep take-offs — so flushing on purpose, chasing wing shots and wiping whole flocks
+becomes the skill. Around that: a four-season roguelite **Season Run** with charm build-crafting and
+boss birds, a shared **Daily Hunt** with a one-tap share card, and challenge links.
+
+## Decisions you can still change
+See `docs/05-DECISIONS-AND-RESEARCH.md §4` (portrait support, launch portal, languages, art/audio
+budget, hunting vs camera-safari framing per market).
+
 ## Game and animal-art review
 
 See [the illustrated review](docs/review-2026-11-14/GAME-REVIEW-2026-11-14.md) and

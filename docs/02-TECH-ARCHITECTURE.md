@@ -160,7 +160,12 @@ export interface Sim {
 - Hitboxes: per animation state, body ellipse + head circle, defined in `birds.json` in sprite-local
   units; scaled by plane. **Plane scale vs hit size (D-049):** the body ellipse's radii are at least
   `minHitRadiusPx[plane]` (far 18, Ver 10; every input), so a hit area may shrink less than the
-  picture; the head circle scales as drawn (`src/sim/planes.ts` `hitRadius`). When
+  picture; the head circle scales as drawn (`src/sim/planes.ts` `hitRadius`). **Per-species size
+  (D-083):** a creature's `sizeMul` (birds.json; absent = 1) scales its body ellipse and head
+  circle, radii and offsets, before the plane's scale and the floor (`src/sim/birds/size.ts`
+  `birdHitbox`: the pellet test, the assist's snap point, the aimed-at guard, exit margins), and
+  BirdView scales its drawing the same; a percher with `perchFeetOy` sits lower by feet × plane
+  scale × (1 − sizeMul) so its feet stay on the perch. When
   `inputKind = 'touch'`, radii grow by `aimAssistPx[plane]` on top. Px tunings written at the mid
   plane (spacing, speeds, alert radii) are × plane scale ÷ `scoring.tuningRefScale` (`tuningRatio`).
   Bird atlases are packed at the content plane scale and the index records it (`planeScale`);
@@ -1116,6 +1121,14 @@ export interface PlatformAdapter {
   Dailies are practice (no attempt, streak or best saved), no tally offers [Share], and `?c=`
   links are ignored. `tests/e2e/daily-public.spec.ts` (CI job `public`, `E2E_BUILD=public`)
   proves it on the build Pages ships.
+  v1.22.2 (D-087): hook entries that cost real work are accessors computed when a spec reads
+  them (`src/game/lazyHook.ts`), never in the game's frame: the perf specs time the frame
+  (`cpuFrameMs`), and a read between frames sees what the last frame drew. Texture memory and the
+  largest textures, the HD texture count, on-screen boxes, the far-herd probe and the gun atlases
+  are read afresh on every read (`defineLazy`); the on-screen spots (birds, flocks, crates with
+  their drawn check, secrets), the special day's things, the crosshair, the gun's rect and the
+  views' entries are worked out at most once per hunt frame (`LazyEntries`) and keep the last
+  frame's values once the hunt scene shuts down.
 - **Release aim (D-052, 27 Oct 2026):** friends on the web test build first, then the Apple App Store and
   Google Play through Capacitor. Poki and CrazyGames are no longer targets; their adapters and builds
   stay until they are removed on purpose. The portal notes below are kept for reference.
@@ -1178,8 +1191,10 @@ Test hook: `adminTexts` (counts, the page's ids, the last Save refusal, export a
 (`data-action="tab-sizes"`, `?admin=1&tab=sizes` opens on it): `src/game/admin/sizes/SizesPanel.ts`
 lists `src/game/sizes/sizeKnobs.ts` (one knob per sized animal: its content path(s) or code
 constant, its px hit box sets, real size, metres per unit — held to `tools/sizes.ts` by
-`tools/sizeKnobs.test.ts` — and the texture/frame of its sprites) per area. "Open in game" loads
-`?admin=1&sizes=<area>`: `main.ts` builds the admin hunt of that area's plain map (or the Harvest)
+`tools/sizeKnobs.test.ts` — and the texture/frame of its sprites) per area; since 1.23.1 (D-083)
+also the birds drawn at a `sizeMul` (`bird_<id>`: the Harvest's turtle dove and spurfowl, the
+kwêvoël, the fish eagle; `creatures[id=…].sizeMul`, their hit shapes follow in the sim). "Open
+in game" loads `?admin=1&sizes=<area>`: `main.ts` builds the admin hunt of that area's plain map (or the Harvest)
 on `withSizePreview` content, holds it at `SIZE_HOLD_TICK`, and `HuntScene` starts it at once,
 loads `src/game/sizes/SizeEditor.ts` (lazy) and, while held, advances the `InputMapper`'s pan
 itself (`panCameraX`, `panDrag`) and draws every view from that camera (the sim's camera stays).
@@ -1417,7 +1432,7 @@ The friends' Android app before any store account (docs/ANDROID-TEST-APP.md). Ca
     HD image under the same key with its frames reporting the standard size and the source's
     resolution 2 (`hdTexture.ts halveTexture`): Phaser draws the quad at cutWidth / resolution,
     so every view, origin, particle and hit area sees design px unchanged. The sim never sees any
-    of it; `HuntScene` samples on-screen boxes into the test hook (`graphics.bounds`).
+    of it; the test hook reads on-screen boxes (`graphics.bounds`) when a spec reads it (D-087).
   - **Swapping:** `AssetManifest.applyHd()` puts the chosen art under each key: the old texture is
     renamed and retired (never removed under an object, D-046), and `purgeRetired()` frees retired
     textures no object draws (`textureUse.ts` scans every scene) at the next scene change

@@ -8,6 +8,7 @@
 // Bots read only snapshot() (what the screen shows), never sim internals.
 // M4 (D-021): both styles shoot supply crates and the boss when they see them; only the competent
 // bot shoots visible secret parts, and only when nothing better is in view.
+import { birdHitbox } from '../src/sim/birds/size';
 import type { ContentBundle } from '../src/content/schemas';
 import { planeToDx } from '../src/sim/camera';
 import { createStream, fnv1a32, type RandomStream } from '../src/sim/rng';
@@ -116,7 +117,7 @@ export function createHumanBot(
   ): Aim {
     const p = planes[b.plane];
     const c = creatures.get(b.creature);
-    const body = c !== undefined && 'hitbox' in c ? c.hitbox.body : { ox: 0, oy: 0 };
+    const body = c !== undefined && 'hitbox' in c ? birdHitbox(c).body : { ox: 0, oy: 0 };
     const stone = flight.get(weapon);
     // Stones never reach the Ver plane (v1.3).
     const band = b.plane === 'ver' ? null : b.plane;

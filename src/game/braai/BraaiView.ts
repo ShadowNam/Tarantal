@@ -18,7 +18,7 @@ import type { AssetIndex } from '../assets/assetIndex';
 import { fetchAssetIndex, loadBytes, loadImage } from '../assets/finalLoader';
 import { HD_INDEX_PATH } from '../assets/assetIndex';
 import { parseHdIndex } from '../assets/hdIndex';
-import { largestTextures, textureBytes } from '../assets/textureBytes';
+import { textureBytes } from '../assets/textureBytes';
 import { loadVoiceIndex } from '../assets/voiceIndex';
 import { voiceKey } from '../assets/AssetManifest';
 import type { AudioDirector } from '../audio/AudioDirector';
@@ -632,11 +632,6 @@ export class BraaiView {
       glowPulse: this.s.tuning.fire.glowPulse,
     };
     return this.animTargets;
-  }
-
-  /** The texture usage the e2e memory case reads (after the sheet was added). */
-  textureTop(): { key: string; mb: number }[] {
-    return largestTextures(this.s.scene.textures, 15);
   }
 
   /** Removes everything and the sheet's texture (nothing else draws it), and gives the music

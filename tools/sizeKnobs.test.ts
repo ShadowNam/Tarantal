@@ -120,6 +120,11 @@ describe('size knobs (D-086)', () => {
     expect(ids('tells/sheet', 'rock_agama_rest')).toEqual(['tell_rock_agama']);
     expect(ids('bushveld/baobab_life', 'owl_fly_a')).toEqual(['baobab_owl']);
     expect(ids('bushveld/baobab_life', 'owl_front')).toEqual([]);
+    // D-083: a bird drawn at a sizeMul, final atlas or placeholder; the guineafowl is no knob.
+    expect(ids('final:bird/visarend/far@2x', 'glide/00')).toEqual(['bird_visarend']);
+    expect(ids('bird/kwevoel/mid/alert_0', '__BASE')).toEqual(['bird_kwevoel']);
+    expect(ids('final:bird/tortelduif/far@1x', 'flap/01')).toEqual(['bird_tortelduif']);
+    expect(ids('final:bird/tarentaal/mid@1x', 'glide/00')).toEqual([]);
     expect(ids('karoo/windpomp', 'x')).toEqual([]);
   });
 });

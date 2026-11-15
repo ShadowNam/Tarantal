@@ -2,7 +2,8 @@
 // (art-source/: opaque bounds, alpha ≥ 64) and must agree within ±3 %, so the true-size table
 // (tools/sizes.test.ts, ±15 % of real) fails when the art drifts — D-080 computed most rows from
 // the same metres the art was drawn to, and the audit found the ostrich hen drawn as tall as the
-// cock and Brakkie's bird at 0.27× without a test failing.
+// cock and Brakkie's bird at 0.27× without a test failing. v1.23.1 (D-083): the fly-overs and the
+// kwêvoël, read from their bird frames (art-source/birds/<creature>/planes/<plane>/<clip>/<NN>.png).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -22,8 +23,10 @@ import {
   residentFrames,
 } from '../src/game/view/tree/residentSheet';
 import { BRAKKIE_SHEET } from '../src/game/brakkie/brakkieKeys';
+import { EAGLE_WINGSPAN_M, FLYER_BOX_SHRINK } from './art/flyers';
 import { decodePng, type Rgba } from './assets/image';
-import { MEASURED_ART, type ArtSource } from './sizes';
+import { BIRD_BOX } from './assets/targets';
+import { EAGLE_HALF_SPAN_M, MEASURED_ART, type ArtSource } from './sizes';
 
 const ALPHA = 64;
 const TOLERANCE = 0.03;
@@ -107,7 +110,25 @@ function faunaTop(sheet: string, look: string, part: 'body' | 'all'): number {
   return top;
 }
 
-function cell(s: Exclude<ArtSource, { kind: 'fauna' }>): Cell {
+/** D-083: a bird frame, in the creature's art units (its rig.json boxShrink undone). */
+function flyerCell(s: Extract<ArtSource, { kind: 'flyer' }>): Cell {
+  const dir = join(process.cwd(), 'art-source', 'birds', s.creature);
+  const img = decodePng(readFileSync(join(dir, 'planes', s.artPlane, `${s.frame}.png`)));
+  const rig = JSON.parse(readFileSync(join(dir, 'rig.json'), 'utf8')) as { boxShrink?: number };
+  const box = img.width / BIRD_BOX.width;
+  return {
+    img,
+    x: 0,
+    y: 0,
+    w: img.width,
+    h: img.height,
+    fx: BIRD_BOX.originX * box,
+    fy: BIRD_BOX.originY * box,
+    k: box / (rig.boxShrink ?? 1),
+  };
+}
+
+function cell(s: Exclude<ArtSource, { kind: 'fauna' | 'flyer' }>): Cell {
   if (s.kind === 'ostrich') {
     const img = png(OSTRICH_SHEET);
     const k = img.width / OSTRICH_SHEET_W;
@@ -196,7 +217,11 @@ describe('the measured animal sizes are the delivered art’s (D-082)', () => {
     it(`${m.id}: ${m.artPx} art px (${m.measure})`, () => {
       const s = m.source;
       const got =
-        s.kind === 'fauna' ? faunaTop(s.sheet, s.look, s.part) : measure(cell(s), s.extent, s.band);
+        s.kind === 'fauna'
+          ? faunaTop(s.sheet, s.look, s.part)
+          : s.kind === 'flyer'
+            ? measure(flyerCell(s), s.extent)
+            : measure(cell(s), s.extent, s.band);
       expect(Math.abs(got / m.artPx - 1), `measured ${got.toFixed(1)} px`).toBeLessThanOrEqual(
         TOLERANCE,
       );
@@ -219,5 +244,26 @@ describe('the measured animal sizes are the delivered art’s (D-082)', () => {
       'harvest_fence_post',
     ])
       expect(ids.has(id), id).toBe(true);
+  });
+
+  it('D-083: covers the fly-overs on both their planes, the kwêvoël and the fish eagle’s body and wings', () => {
+    const ids = new Set(MEASURED_ART.map((m) => m.id));
+    for (const id of [
+      'flyover_tortelduif_mid',
+      'flyover_tortelduif_far',
+      'flyover_fisant_mid',
+      'flyover_fisant_far',
+      'kwevoel_perched',
+      'visarend_body',
+      'visarend_wing',
+    ])
+      expect(ids.has(id), id).toBe(true);
+    // The wing row's real size is the span the art is drawn to.
+    expect(EAGLE_HALF_SPAN_M).toBeCloseTo(EAGLE_WINGSPAN_M / 2, 6);
+    // The eagle's rig says it is drawn small (its wings would not fit the box otherwise).
+    const rig = JSON.parse(
+      readFileSync(join(process.cwd(), 'art-source', 'birds', 'visarend', 'rig.json'), 'utf8'),
+    ) as { boxShrink?: number };
+    expect(rig.boxShrink).toBe(FLYER_BOX_SHRINK.visarend);
   });
 });

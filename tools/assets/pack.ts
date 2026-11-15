@@ -184,6 +184,11 @@ const rigSchema = z
     x2: z.boolean(),
     /** Pack resolution per plane (≤ 1): drawn scaled up by 1/res (saves memory on small planes). */
     planeRes: z.partialRecord(z.enum(['near', 'mid', 'far']), z.number().min(0.25).max(1)),
+    /** v1.23.1 (D-083): the frames draw the creature at 1/boxShrink of its size in the bird box
+     *  (the fish eagle's true wings would not fit it at full size). Packed at boxShrink × the
+     *  box's px (the masters must be that big), so the bird keeps its plane's texture density,
+     *  and shown boxShrink × larger: the index's scale is unchanged (1 / planeRes). */
+    boxShrink: z.number().int().min(1).max(4),
     /** Load group override: "late" (after the first download settles), "common" or a biome id. */
     group: z.string(),
     /** D-053: false = no HD version in the HD pack (default: one when a 2× source exists). */
@@ -721,12 +726,23 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       );
       // D-029: a plane may be packed below its display size (rig planeRes) and drawn scaled up.
       const res = rig.planeRes?.[plane] ?? 1;
-      const x1 = packAtlas(cells, 1, `${slug(creature)}-${plane}`, group, 'birds', rig, res);
+      // D-083: a creature drawn small in the box is packed that much larger (scale stays 1/res).
+      const packRes = res * (rig.boxShrink ?? 1);
+      const x1 = packAtlas(cells, 1, `${slug(creature)}-${plane}`, group, 'birds', rig, packRes);
       if (x1 === null) continue;
       const x2 =
         rig.x2 === false
           ? null
-          : packAtlas(cells, 2, `${slug(creature)}-${plane}`, group, 'birds', rig, res, x1.alias);
+          : packAtlas(
+              cells,
+              2,
+              `${slug(creature)}-${plane}`,
+              group,
+              'birds',
+              rig,
+              packRes,
+              x1.alias,
+            );
       // D-053: the HD pack's @2x set from the same masters (null when they are smaller).
       const hdSet =
         rig.hd === false || !hdBird(plane, group, creature)
@@ -738,7 +754,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
               hdGroupOf(group),
               'birds',
               rig,
-              res,
+              packRes,
               x1.alias,
             );
       const clipEntries: BirdPlaneEntry['clips'] = {};

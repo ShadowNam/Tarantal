@@ -19,6 +19,7 @@ import {
   type BirdCreature,
 } from './birds/Bird';
 import { duckBoss, spookBoss, updateScripted } from './birds/scripted';
+import { birdHitbox } from './birds/size';
 import {
   BLIKKIESDANS_SECRET,
   CAN_ID_BASE,
@@ -2083,7 +2084,7 @@ export function createSim(config: SimConfig): Sim {
       if (!canHit(b)) continue;
       // From the bird's body centre (its hitbox body on its plane).
       const k = geometry.planeScale[b.plane];
-      const body = b.creature.hitbox.body;
+      const body = birdHitbox(b.creature).body;
       const bx = b.x + hazeDx(b) + body.ox * k * b.facing;
       if (near(planeToDx(cx, planeGeo[b.plane].scrollFactor, bx), b.y + body.oy * k)) return true;
     }
@@ -2110,7 +2111,7 @@ export function createSim(config: SimConfig): Sim {
         x: b.x + hazeDx(b),
         y: b.y,
         facing: b.facing,
-        hitbox: b.creature.hitbox,
+        hitbox: birdHitbox(b.creature),
         hittable: canHit(b),
         snappable: b.creature.kind === 'target' || b.creature.kind === 'boss',
       });

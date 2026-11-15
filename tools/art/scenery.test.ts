@@ -14,7 +14,7 @@ import { BIRD_BOX } from '../assets/targets';
 import { loadContent } from '../testContent';
 import { BIOME_PLANS } from './biomes';
 import { loadArtConfig } from './config';
-import { FLYER_FRAMES, FLYERS, renderFlyerFrame } from './flyers';
+import { FLYER_BOX_SHRINK, FLYER_FRAMES, FLYERS, renderFlyerFrame } from './flyers';
 import { propBox, renderLayer, renderProp } from './landscape';
 import { renderSprite, SPRITES } from './sprites';
 
@@ -70,6 +70,8 @@ describe('interim flyers fit the bird box and their hitbox (D-031)', () => {
         const c = content.birds.creatures.find((x) => x.id === creature);
         const hb = c !== undefined && 'hitbox' in c ? c.hitbox.body : undefined;
         expect(hb, `${creature} has a body hitbox`).toBeDefined();
+        // D-083: a flyer drawn at 1/n of its size in the box sits on its hitbox / n there.
+        const n = FLYER_BOX_SHRINK[creature] ?? 1;
         for (const [plane, clips] of Object.entries(planes) as [
           'near' | 'mid' | 'far',
           readonly BirdClip[],
@@ -79,9 +81,10 @@ describe('interim flyers fit the bird box and their hitbox (D-031)', () => {
               const img = renderFlyerFrame(cfg, content, creature, plane, clip, k);
               expect(edgeAlpha(img), `${plane} ${clip}/${k} touches the frame edge`).toBe(0);
               if (clip === 'hit_poof' || hb === undefined) continue;
-              expect(bodyCover(img, hb.rx, hb.ry), `${plane} ${clip}/${k} body`).toBeGreaterThan(
-                MIN_COVER[creature] ?? 0.85,
-              );
+              expect(
+                bodyCover(img, hb.rx / n, hb.ry / n),
+                `${plane} ${clip}/${k} body`,
+              ).toBeGreaterThan(MIN_COVER[creature] ?? 0.85);
             }
       },
       60_000,

@@ -449,18 +449,42 @@ bird, the Harvest's workers and post, the baobab's owl and hornbill), and
 `tools/sizesArt.test.ts` re-measures the PNGs (±3 %), so the ±15 % table fails if the art
 drifts. All measured rows are within −10.3 … +9.2 % of real (each far herd animal at its herd scale).
 
+**v1.23.1 (D-083; the owner chose "(a) true size", 11 Nov 2026): the fly-overs.** Each creature in
+`birds.json` may set `sizeMul`: its drawing and its hit shapes are scaled by it on every plane (the
+art and the hitbox stay in the guineafowl's units). The fly-over birds were drawn at the
+guineafowl's size; measured in their bird frames (`MEASURED_ART` `flyer` rows):
+
+| animal | measure | real | plane | px (before → 1.23.1) | sizeMul |
+|---|---|---|---|---|---|
+| tortelduif (Cape turtle dove) | bill to tail, gliding | 0.25–0.28 | mid · far | 131.5 · 48.0 → 57.8 · 21.1 | 0.44 |
+| fisant (Swainson's spurfowl) | bill to tail, gliding | 0.33–0.38 | mid · far | 131.0 · 47.6 → 77.3 · 28.1 | 0.59 |
+| kwêvoël (grey go-away-bird) | crest tip to tail tip, perched, crest raised | ~0.525 | mid | 154.6 → 121.0 | 0.85 |
+| visarend (African fish eagle) | bill to tail, soaring | 0.63–0.75 | far | 62.6 → 54.4 | 0.87 |
+| visarend | half its wingspan (raised wing above the body line) | 1.0–1.2 (span 2.0–2.4) | far | 31.5 → 83.5 | 0.87 |
+
+The kwêvoël's crest is redrawn at its true 6–7 cm (it was ~0.13 m) and it perches lower by its
+feet × (1 − sizeMul) (`perchFeetOy`), so its feet stay on the perch. The fish eagle's wings are
+redrawn from a true 2.1 m span with a broader chord; a true raised wing does not fit the 620 × 400
+bird box, so the eagle is drawn at a third of its size in the box (`rig.json boxShrink` 3),
+rendered and packed 3× larger and shown 3× larger: the same texture density as any bird (Standard
+1.15, HD 2.3 texture px per drawn px at sizeMul 0.87). The dove, the spurfowl and the kwêvoël are
+not redrawn smaller, so they are crisper than before (Standard 2.27 · 1.69 · 1.18). Still at the
+guineafowl's units: the hadeda and the crop sprayer.
+
 Kept off true size, each for a reason: the **dung beetle** (drawn about twice its true size on
 purpose, so it reads at all), the **bakkie** (a stage-set prop: true, it would be 398 px tall and
 ~1 050 long on the mid plane, as tall as the 9 m windpomp drawn at 395 px and three times the
-1.5 m reservoir drawn at 133; the owner decides), the **Harvest's mielies** (true, 490–550 px on
-the mid plane: the front rows would hide the flocks feeding in the field; the owner decides).
+1.5 m reservoir drawn at 133), the **Harvest's mielies** (true, 490–550 px on the mid plane: the
+front rows would hide the flocks feeding in the field). The owner kept both at stage scale,
+smaller than life ("1, keep both", D-083, 11 Nov 2026).
 Props stay on their stage-set scale (trees, windpompe, the reservoir, the hippo), so a true-size
 animal can look big against them; the Harvest's workers and fence are at true scale with its
 warthogs. D-082 adds: the baobab's **perched barn owl** (its head and shoulders show through the
 stage-set tree's 38 × 50 px cavity; a whole true owl would not fit it), its **buffalo weaver** (a
 true one would be longer than its 46 px stick nest) and its **tree squirrel** (0.8×); and the
 **boss birds** (the Generaal, Ou Grys, the Kuifkop Koning, the Stormvoël: "legendary", fantasy,
-no real size). The ordinary fly-over birds are a separate owner decision.
+no real size). The ordinary fly-over birds were a separate owner decision: D-083 (above) puts
+them at true size (the owner's choice, 11 Nov 2026).
 **Texture memory (HD ≤ 256 MB on every hunt):** the far herds redrawn at true size are Standard
 in HD (they stand on the far veld, itself Standard in HD; 1 texture px per design px is a phone's
 screen px); the cameos are redrawn from their vector shapes at the new size at 0.25 sheet px per
@@ -855,7 +879,7 @@ warts and two curved upper tusks, a bristle mane (D-080: shown at its true 0.7 m
 375 px on the mid plane, `workers.heightPx` 894) and the fence (1.2 m posts, 70 → 265 px,
 `harvest.fence.postPx`, the wires and the gap's panel with them, the mid layer drawn from y 400)
 on the same true scale, so a warthog is 0.41× a worker and 0.58× a post; the mielies stay
-stage-scale — true they would hide the flocks in the rows, the owner decides);
+stage-scale — true they would hide the flocks in the rows; the owner kept them so, D-083);
 trot ×4 with the tail straight up like an
 aerial, dig ×2 kneeling on the front knees with the snout in the soil, run ×2, the tumble and lying
 still — no blood), piglets (lighter, faint stripes; trot ×2, run), three farm

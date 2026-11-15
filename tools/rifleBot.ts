@@ -6,6 +6,7 @@
 // the sight's zoom (a scope is why you can hit a 4 px bird), then aimRelease — as soon as the
 // sight is up (impatient) or once the breath is held (patient), never later than `maxHoldTicks`.
 // Bots read only snapshot(), like the renderer.
+import { birdHitbox } from '../src/sim/birds/size';
 import type { ContentBundle } from '../src/content/schemas';
 import { planeToDx } from '../src/sim/camera';
 import { createStream, fnv1a32 } from '../src/sim/rng';
@@ -70,7 +71,7 @@ export function withRifle(
   const bodyAt = (b: BirdView, cx: number): { dx: number; sy: number } => {
     const p = planes[b.plane];
     const c = creatures.get(b.creature);
-    const body = c !== undefined && 'hitbox' in c ? c.hitbox.body : { ox: 0, oy: 0 };
+    const body = c !== undefined && 'hitbox' in c ? birdHitbox(c).body : { ox: 0, oy: 0 };
     return {
       dx: planeToDx(cx, p.scrollFactor, b.x + body.ox * p.scale * b.facing),
       sy: b.y + body.oy * p.scale,

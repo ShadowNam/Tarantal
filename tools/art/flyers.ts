@@ -52,7 +52,26 @@ export const FLYER_FRAMES: Readonly<Partial<Record<BirdClip, number>>> = {
 /** Download group override (rig.json `group`); the rest follow the catalog. */
 export const FLYER_GROUPS: Readonly<Record<string, string>> = { stormvoel: 'late' };
 
+/**
+ * v1.23.1 (D-083): flyers drawn at 1/n of their size in the bird box (rig.json `boxShrink`), for
+ * wings longer than the box: the fish eagle's true ~2.1 m span reaches 635 units above its body's
+ * centre line, the box only 230. Their masters are rendered n × larger, the pack packs them n ×
+ * larger and the game shows them n × larger, so they keep their plane's texture density.
+ */
+export const FLYER_BOX_SHRINK: Readonly<Record<string, number>> = { visarend: 3 };
+
+/**
+ * v1.23.1 (D-083): the African fish eagle's wingspan (m): 2.0–2.4 m (a male ~2.0, a female ~2.4;
+ * other guides 1.75–2.1 m). Its raised wing reaches half of it above its body's centre line.
+ */
+export const EAGLE_WINGSPAN_M = 2.1;
+
+/** The guineafowl's units per metre (263 units = its 0.5 m standing height, tools/sizes.ts). */
+const UNITS_PER_M = 263 / 0.5;
+
 interface Draw {
+  /** D-083: the fish eagle's raised wing above its centre line, in its art units. */
+  readonly eagleWing: number;
   readonly ink: string;
   /** Ink width in bird units for this plane. */
   readonly w: number;
@@ -498,22 +517,26 @@ const SLIM_WING: readonly (readonly [number, number])[] = [
   [-30, 0],
 ];
 
-/** Crest: tall pointed tuft of 4 feathers, raised by `up` (0 … 1). */
+/**
+ * Crest: pointed tuft of 4 feathers, raised by `up` (0 … 1). v1.23.1 (D-083): at its true length,
+ * a real crest's 6–7 cm (raised: ~42 units above the crown at −140, × the content sizeMul 0.85);
+ * it was drawn ~0.13 m, twice that, and made the bird's whole outline read 40 % too tall.
+ */
 function crest(o: Draw, up: number): string {
   const tips: Pt[] = [
-    [-2, -200 - up * 10],
-    [14, -196 - up * 14],
-    [30, -184 - up * 10],
-    [42, -164],
+    [-2, -172 - up * 10],
+    [14, -170 - up * 12],
+    [30, -162 - up * 8],
+    [42, -150],
   ];
   const parts = tips.map(([tx, ty], i) =>
     fill(
       smoothD(
         [
           [0 + i * 10, -132],
-          [tx - 6, ty + 30],
+          [tx - 5, ty + 18],
           [tx, ty],
-          [tx + 8, ty + 26],
+          [tx + 7, ty + 16],
           [12 + i * 10, -130],
         ],
         true,
@@ -683,10 +706,23 @@ const EAGLE_WING: readonly (readonly [number, number])[] = [
   [-60, 0],
 ];
 
+/** D-083: the eagle's broad wing, 1.3× the chord of the old drawing's (a true eagle's span is
+ *  about 6.5× its chord); s is still 0 … 1 from the shoulder out. */
+const EAGLE_CHORD = 1.3;
+const EAGLE_BROAD_WING = EAGLE_WING.map(([x, sp]) => [x * EAGLE_CHORD, sp] as const);
+
+/**
+ * The fish eagle (D-083): its body in the guineafowl's units (content sizeMul 0.87 brings it to
+ * its true 0.63–0.75 m), its wings from its true wingspan (o.eagleWing), the whole drawn at
+ * 1/FLYER_BOX_SHRINK of its size so the raised wings fit the bird box; the game shows it n ×
+ * larger, so its line weight in art units is the other birds' (no compensation here).
+ */
 function visarend(o: Draw, clip: BirdClip, k: number): string {
+  const n = FLYER_BOX_SHRINK.visarend ?? 1;
   const P = EAGLE;
   const a = clip === 'glide' ? 0.2 + k * 0.05 : beat(k);
-  const len = clip === 'glide' ? 190 : 180;
+  // The shoulder sits 24 units above the centre line; the raised wing reaches eagleWing above it.
+  const len = (clip === 'glide' ? 190 / 180 : 1) * (o.eagleWing - 24);
   const body = smoothD(
     [
       [-150, -6],
@@ -702,8 +738,8 @@ function visarend(o: Draw, clip: BirdClip, k: number): string {
   );
   const id = nextId();
   return g(
-    {},
-    fill(wingD(EAGLE_WING, 30, -20, len * 0.9, a), P.wing, o),
+    { transform: `scale(${1 / n})` },
+    fill(wingD(EAGLE_BROAD_WING, 30, -20, len * 0.9, a), P.wing, o),
     // White wedge tail.
     fill(
       polyD([
@@ -730,15 +766,16 @@ function visarend(o: Draw, clip: BirdClip, k: number): string {
     flat('M168 -24Q178 -22 178 -14L172 -12Z', P.bill),
     flat(ellipseD(138, -28, 5, 5), P.face),
     flat(ellipseD(139, -28, 2.6, 2.6), o.ink),
-    fill(wingD(EAGLE_WING, 10, -24, len, a), a >= 0 ? P.wing : P.wingLight, o),
+    fill(wingD(EAGLE_BROAD_WING, 10, -24, len, a), a >= 0 ? P.wing : P.wingLight, o),
+    // Chestnut forewing (the lesser coverts), the inner third of the wing.
     flat(
       wingD(
         [
-          [40, 0.05],
-          [52, 0.32],
-          [30, 0.36],
+          [40 * EAGLE_CHORD, 0.05],
+          [52 * EAGLE_CHORD, 0.32],
+          [30 * EAGLE_CHORD, 0.36],
           [0, 0.3],
-          [-20, 0.05],
+          [-20 * EAGLE_CHORD, 0.05],
         ],
         10,
         -24,
@@ -1187,6 +1224,16 @@ const DRAW: Readonly<Record<string, (o: Draw, clip: BirdClip, k: number) => stri
   stormvoel,
 };
 
+/**
+ * D-083: the fish eagle's raised wing above its body's centre line, in its art units: half its
+ * true wingspan beside the guineafowl, over the content sizeMul the game draws it at.
+ */
+export function eagleWingUnits(content: ContentBundle): number {
+  const c = content.birds.creatures.find((x) => x.id === 'visarend');
+  const mul = c !== undefined && 'sizeMul' in c ? (c.sizeMul ?? 1) : 1;
+  return ((EAGLE_WINGSPAN_M / 2) * UNITS_PER_M) / mul;
+}
+
 /** One master frame (masterScale × the plane's @1x frame), far frames tinted toward the sky. */
 export function renderFlyerFrame(
   cfg: ArtConfig,
@@ -1208,8 +1255,17 @@ export function renderFlyerFrame(
   resetIds();
   emitted.clear();
   const look = planeLook(cfg, content, plane);
-  const o: Draw = { ink: cfg.ink, w: look.line, far: plane === 'far', rnd: prng(k + 1) };
-  const { w, h } = masterSize(cfg, content, plane);
+  const o: Draw = {
+    ink: cfg.ink,
+    w: look.line,
+    far: plane === 'far',
+    rnd: prng(k + 1),
+    eagleWing: eagleWingUnits(content),
+  };
+  // D-083: a flyer drawn small in the box gets a master that much larger (rig.json boxShrink).
+  const m = masterSize(cfg, content, plane);
+  const n = FLYER_BOX_SHRINK[creature] ?? 1;
+  const [w, h] = [m.w * n, m.h * n];
   const wob = cfg.birds.wobble[plane];
   const filter = wobbleFilter('wob', cfg.birds.wobble.frequency, wob, 13);
   const svg = svgDoc(

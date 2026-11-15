@@ -9,6 +9,7 @@ import { cos, sin } from '../detmath';
 import type { PlaneId } from '../types';
 import { LAYER_BLEED_PX } from '../world';
 import { enter, type Bird, type BirdCreature } from './Bird';
+import { birdHitbox } from './size';
 
 // Structure, not tuning: a bird is gone once it is this far above the top of the screen.
 const EXIT_ABOVE_Y = -200;
@@ -97,7 +98,7 @@ export interface ScriptedSpec {
 }
 
 function base(s: ScriptedSpec, motion: 'perch' | 'boss' | 'hop', x: number, y: number): Bird {
-  const body = s.creature.hitbox.body;
+  const body = birdHitbox(s.creature).body;
   return {
     id: s.id,
     creature: s.creature,

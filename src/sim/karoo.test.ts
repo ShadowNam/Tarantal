@@ -21,6 +21,7 @@ import {
   onlyEvent,
   type Content,
 } from '../../tools/simHarness';
+import { perchFeetShift } from './birds/size';
 import { WORLD_EVENT_HANDLERS } from './director/events';
 import type { SimEvent } from './events';
 import type { Sim } from './Sim';
@@ -253,8 +254,15 @@ describe('penalties (GDD §7)', () => {
     expect(called).toMatchObject([{ creature: 'kwevoel' }]);
     const bird = sim.snapshot().birds.find((b) => b.creature === 'kwevoel');
     // Perched at the windpomp's perch point (u 0.22 on mid, perch −150/−92 from the prop).
-    expect(bird).toMatchObject({ phase: 'perch', x: 0.22 * 3840 - 150, y: 430 - 92 });
+    // v1.23.1 (D-083): drawn at sizeMul 0.85, it sits lower by its feet × (1 − 0.85) so its
+    // feet stay on the perch (perchFeetOy 122 units × the mid plane's 0.42: 7.7 px).
+    expect(bird).toMatchObject({ phase: 'perch', x: 0.22 * 3840 - 150 });
     if (bird === undefined) throw new Error('kwevoel');
+    const kwe = c.birds.creatures.find((x) => x.id === 'kwevoel');
+    if (kwe === undefined) throw new Error('no kwevoel');
+    const shift = perchFeetShift(kwe, c.scoring.planes.mid.scale);
+    expect(shift).toBeCloseTo(122 * 0.42 * 0.15, 6);
+    expect(bird.y).toBeCloseTo(430 - 92 + shift, 6);
     const ev = shootBird(sim, c, bird);
     expect(ofType(ev, 'penaltyApplied')).toMatchObject([{ creature: 'kwevoel', points: -35 }]);
     expect(sim.snapshot().score).toBe(-35);

@@ -1,6 +1,7 @@
 // Test harness for sim behaviour tests (karoo, charms, season): a quiet copy of the real content
 // (nothing spawns on its own; a spread-free gun) plus helpers to step, aim and shoot. Tests turn
 // on only what they check.
+import { birdHitbox } from '../src/sim/birds/size';
 import { loadContent } from './testContent';
 import type { Biome, ContentBundle } from '../src/content/schemas';
 import { planeToDx } from '../src/sim/camera';
@@ -101,7 +102,7 @@ export function shootPart(sim: Sim, c: Content, propId: string, partId: string):
 export function shootBird(sim: Sim, c: Content, bird: BirdView): SimEvent[] {
   const plane = c.scoring.planes[bird.plane];
   const creature = c.birds.creatures.find((x) => x.id === bird.creature);
-  const body = creature !== undefined && 'hitbox' in creature ? creature.hitbox.body : null;
+  const body = creature !== undefined && 'hitbox' in creature ? birdHitbox(creature).body : null;
   const bx = bird.x + (body?.ox ?? 0) * plane.scale * bird.facing;
   const by = bird.y + (body?.oy ?? 0) * plane.scale;
   return run(sim, 1, aimAt(plane.scrollFactor, bx, by));

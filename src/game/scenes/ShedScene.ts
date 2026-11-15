@@ -8,7 +8,6 @@ import { MAKALANI_SECRET } from '../../sim/nuts/makalani';
 import { designSize, renderScale } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
-import { textureBytes } from '../assets/textureBytes';
 import type { Weapon } from '../../content/schemas';
 import { fill, t, tOr } from '../../i18n/i18n';
 import {
@@ -187,8 +186,8 @@ export class ShedScene extends Phaser.Scene {
     afterMenu?.(menu);
     if (this.ctx.hook) {
       this.ctx.hook.menu = `shed.${tab}`;
-      // D-035 review: texture memory with the shed open (its gun icons included).
-      this.ctx.hook.textureBytes = textureBytes(this.textures);
+      // D-035 review: texture memory with the shed open (its gun icons included) is what the
+      // hook reads from the texture manager (D-087).
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       if (this.ctx.hook) delete this.ctx.hook.shedPlaque;
