@@ -1,10 +1,10 @@
-import { playerDialog } from '../ui/playerDialog';
 // Title (GDD §16 step 1): over the live panorama, one giant START HUNT — no login, no settings, no
 // story wall for a new player. START reacts on press like the M2 start card: it unlocks audio and
 // fixes the hunt's inputKind from the pointer that pressed it. A new player's first hunt is the
 // FTUE "Oupa se Les"; afterwards START plays Classic and the title also shows the rank, the Karoo
 // best, the Skiet-Skuur and Settings (and, in the DOM, the fullscreen button where it works).
 import { designSize } from '../layout';
+import { playerDialog } from '../ui/playerDialog';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import { fill, t, tOr } from '../../i18n/i18n';
@@ -582,10 +582,15 @@ export class TitleScene extends Phaser.Scene {
     // First-time players need sound, language and accessibility controls before the lesson.
     // Keep one primary action; the other game modes still wait until the lesson is complete.
     if (!returning) {
+      // The same spot as a returning player's Settings (the bottom row's last slot), clear of the
+      // gun in the middle of the screen.
+      const gap = 24;
+      const bw = Math.min(340, (width - safe.left - safe.right - 120 - gap * 4) / 5);
+      const x0 = width / 2 - (bw * 5 + gap * 4) / 2;
       const settings: Rect = {
-        x: width / 2 - 170,
+        x: x0 + 4 * (bw + gap),
         y: height - safe.bottom - 170,
-        w: 340,
+        w: bw,
         h: 96,
       };
       drawButton(this, settings, t('title.settings'), 'secondary', 44);

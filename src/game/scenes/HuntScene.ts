@@ -1,10 +1,10 @@
-import { unlockedBiomes } from '../../meta/areas';
 // The hunt (Classic and the FTUE "Oupa se Les"). Shows the panorama behind the title; START
 // unlocks audio, fixes the hunt's inputKind (touch → aim assist, at the Settings level) and starts
 // the sim. Each frame: advance the fixed-step runner, route the frame's events to FX / audio /
 // HUD / the hunt log (meta) / the FTUE director, then draw the interpolated snapshot. The scene
 // never writes into the sim: input reaches it only as Commands. Esc, P, the HUD pause button or
 // a hidden tab open the pause menu; the hunt clock holds while it is open.
+import { unlockedBiomes } from '../../meta/areas';
 import { inputSightZoom, redDotIds, redDotUp } from '../view/redDot';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';

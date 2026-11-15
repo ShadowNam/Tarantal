@@ -3,7 +3,7 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
-## Unreleased — Review follow-through
+## [1.25.0] — Review follow-through (15 Nov 2026)
 
 Decision record D-089.
 
@@ -16,6 +16,7 @@ Decision record D-089.
 - Season Run results include an optional recap of recorded hunts, seasonal totals and quota margins.
 - Bird shading, distant fauna lighting and Harvest fur detail improve at existing texture sizes.
 - Help panels open at their headings, and accessibility hints reserve space for wrapped Large text.
+- A new player's Settings button sits where a returning player's does (bottom right), clear of the gun.
 
 ## [1.24.0] — Game-flow and animal-art review (15 Nov 2026)
 

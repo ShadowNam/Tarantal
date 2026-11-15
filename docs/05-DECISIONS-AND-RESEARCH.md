@@ -5423,7 +5423,7 @@ subagent, verification Claude can run itself, plan mode for multi-file work.
 5. Keep the hunting framing for all markets, or offer a "camera safari" reskin for sensitive markets?
 
 
-### D-089 — Follow-through on the critical game review (15 November 2026)
+### D-089 — v1.25.0 Follow-through on the critical game review (15 November 2026)
 
 The owner requested all ten prioritised follow-up improvements. Fresh players start in Standard
 without the pre-game art decision; explicit Ask/card requests still work and HD remains in
@@ -5439,4 +5439,5 @@ Animal drawing improvements retain delivered dimensions and memory policy; no in
 HD upscaling. Physical iPhone/Android performance is still a release gate, not certified by
 browser emulation. The unchanged desktop startup criterion passed at 2.61 seconds after overlapping font loading
 and requesting the baboon sheet alongside core artwork; this is a sandbox measurement, not
-a physical-phone result.
+a physical-phone result. A new player's Settings button takes the bottom row's last slot (a
+returning player's Settings), so the gun in the middle of the title no longer crowds it.
