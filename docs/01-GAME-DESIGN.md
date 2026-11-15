@@ -1599,7 +1599,7 @@ note "verskrikker", not the Dutch "verschrikker" used in the earlier draft.)
 
 ## 16. First-time user experience (the first three minutes decide everything)
 Portal players decide in minutes. Script:
-1. Title loads ≤ 3 s; one giant **START HUNT** (no login, no settings, no story wall).
+1. Title loads ≤ 3 s; one giant **START HUNT** (no login or story wall), with a secondary **Settings** button so sound, language and accessibility can be set before the lesson. Other modes stay hidden until the lesson is complete.
 2. First hunt is "Oupa se Les" (60 s Karoo, slower pacing): a foraging flock is already in view.
    Pulsing hand/cursor icon + 1-line prompt "Tap to shoot" / "Click to shoot". Generous first hit.
 3. When the player fires twice in quick succession near the flock it RUNS — banner "They run! Hit

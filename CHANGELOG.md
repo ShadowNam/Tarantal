@@ -3,6 +3,18 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## Unreleased — Game-flow and animal-art review
+
+- The Journal’s coaching points to the next ordinary hunt rather than an admin-only range,
+  and completed Notebook goals have a check mark in all four languages.
+- The illustrated critical review and animal inventory document findings and priorities;
+  a selected screenshot set accompanies the GitHub handoff.
+- Settings are available before the first tutorial, including sound, language and accessibility.
+- The binocular meerkat helper uses native 2× art with finer fur and lens highlights; its size
+  and burrow reveal stay consistent in both graphics modes.
+- Dusk and other bounded sky haze fades at its edges instead of forming hard horizontal bands.
+- `npm run assets:animals` reports delivered animal resolution and documented HD exclusions.
+
 ## [1.23.0] — v1.20: Brakkie fetches sooner, and the "Jag, Brakkie!" card (10 Nov 2026)
 
 Decision record D-085. The owner's request of 10 Nov (afternoon): Brakkie should collect the shot

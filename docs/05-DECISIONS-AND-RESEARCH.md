@@ -5035,6 +5035,26 @@ case (hunting at 4× throttle on Pixel 7). Golden replays re-recorded: he fetche
 crate table gained an entry.
 
 
+### D-087 — First-launch settings and animal-art review (14 Nov 2026)
+
+The owner requested an autonomous review of game flow and animal graphics. First-launch
+Settings are now available before Oupa's lesson so sound, language and accessibility do not
+require playing first. Start Hunt remains the primary action and other modes remain gated.
+
+The cropped binocular meerkat helper now keeps a native 2× source in both graphics modes,
+with coat shading, fine fur and lens highlights. Its display scale and crop are calculated
+from the texture width, preserving its existing screen size and burrow reveal. It does not
+use the HD frame-halving path, which is incompatible with this crop. This adds approximately
+0.30 MiB of texture memory, rather than enabling large excluded bird or herd atlases.
+
+The screenshot review also found hard horizontal edges on bounded sky haze at dusk. Sky-only
+bands now feather across their outer quarters with 32 batchable rectangles; whole-sky haze and
+ground mist remain unchanged. The readability audit uses the same opacity profile.
+
+`npm run assets:animals` inventories all delivered animal sheets and bird planes, distinguishing
+HD twins, native high-resolution sheets and documented memory-budget exclusions. It does not
+call interim artwork final or claim that resolution proves artistic quality.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
