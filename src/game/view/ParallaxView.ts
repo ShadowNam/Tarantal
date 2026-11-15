@@ -16,6 +16,7 @@ import { hazeBelowProps } from './hazeOrder';
 import type { FaunaOptions, FaunaView } from './FaunaView';
 import type { FaunaProbe } from '../GameContext';
 import { lightTint } from './lightTint';
+import { skyHazeBands } from './skyHaze';
 import { LayerDimmer } from './layerDimmer';
 import {
   CLOUD_DECKS,
@@ -732,7 +733,7 @@ export class ParallaxView {
 
   /**
    * v1.2 (D-033): the map's light — a multiply tint on each layer's art and props, and flat haze
-   * bands over a layer's art (below its fixtures and birds, so birds stay crisp). Presets apply in
+   * bands (soft-edged on the sky) over a layer's art (below its fixtures and birds, so birds stay crisp). Presets apply in
    * order and compound. No textures: tints and rectangles only. Call once, after construction.
    */
   applyLight(lights: readonly Light[]): void {
@@ -745,29 +746,36 @@ export class ParallaxView {
       for (const light of lights) {
         for (const h of light.haze ?? []) {
           if (h.layer !== l.id) continue;
-          const top = h.top ?? 0;
-          const bottom = h.bottom ?? DESIGN_HEIGHT;
-          const rect = l.root.scene.add
-            .rectangle(
-              -LAYER_BLEED_PX,
-              top,
-              width,
-              Math.max(0, bottom - top),
-              parseInt(h.color.slice(1), 16),
-              h.alpha,
-            )
-            .setOrigin(0, 0);
-          // A band with an edge (mist lying on the veld) goes under the layer's props, so a tall
-          // prop never shows a hard light band where the mist starts (D-057); a whole-layer
-          // distance haze has no edge and stays over the props, which are as far away as the art.
-          const under = l.plane !== null && hazeBelowProps(h);
-          l.root.addAt(rect, under ? l.root.getIndex(l.fruit) + 1 : l.root.getIndex(l.fixtures));
-          this.shapes[i]?.push({
-            shape: rect,
-            rect: { x0: -LAYER_BLEED_PX, y0: top, x1: width - LAYER_BLEED_PX, y1: bottom },
-            crop: true,
-            changed: false,
-          });
+          const bands =
+            l.id === 'sky'
+              ? skyHazeBands(h)
+              : [{ top: h.top ?? 0, bottom: h.bottom ?? DESIGN_HEIGHT, alpha: h.alpha }];
+          for (const band of bands) {
+            const rect = l.root.scene.add
+              .rectangle(
+                -LAYER_BLEED_PX,
+                band.top,
+                width,
+                Math.max(0, band.bottom - band.top),
+                parseInt(h.color.slice(1), 16),
+                band.alpha,
+              )
+              .setOrigin(0, 0);
+            // Ground mist stays below props; whole-layer distance haze still covers them.
+            const under = l.plane !== null && hazeBelowProps(h);
+            l.root.addAt(rect, under ? l.root.getIndex(l.fruit) + 1 : l.root.getIndex(l.fixtures));
+            this.shapes[i]?.push({
+              shape: rect,
+              rect: {
+                x0: -LAYER_BLEED_PX,
+                y0: band.top,
+                x1: width - LAYER_BLEED_PX,
+                y1: band.bottom,
+              },
+              crop: true,
+              changed: false,
+            });
+          }
         }
         // Clouds sit on the sky layer, spread evenly along it with a fixed jitter (the same
         // sky every time this light is drawn). v1.6 (D-042): soft cloud sprites, drifting, in

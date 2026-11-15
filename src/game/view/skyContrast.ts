@@ -2,6 +2,7 @@
 // a tint (and may lay a haze over it); fly-overs cross the sky lanes, so the sky band there must
 // keep enough contrast with the tarentaal's dark plumage. Pure: callers pass the sky pixels.
 import type { Light } from '../../content/schemas';
+import { skyHazeAlpha } from './skyHaze';
 
 const channel = (v: number): number => {
   const c = v / 255;
@@ -50,9 +51,10 @@ export function litSky(
     for (const h of light.haze ?? []) {
       if (h.layer !== skyLayer || y < (h.top ?? 0) || y >= (h.bottom ?? Infinity)) continue;
       const c = hex(h.color);
-      r = r * (1 - h.alpha) + ((c >> 16) & 0xff) * h.alpha;
-      g = g * (1 - h.alpha) + ((c >> 8) & 0xff) * h.alpha;
-      b = b * (1 - h.alpha) + (c & 0xff) * h.alpha;
+      const alpha = skyHazeAlpha(h, y);
+      r = r * (1 - alpha) + ((c >> 16) & 0xff) * alpha;
+      g = g * (1 - alpha) + ((c >> 8) & 0xff) * alpha;
+      b = b * (1 - alpha) + (c & 0xff) * alpha;
     }
   return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b);
 }
