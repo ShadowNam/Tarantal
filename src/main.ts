@@ -595,6 +595,8 @@ const feel =
     : sizedFeel;
 // M10: the final-asset index, fetched while the platform SDK starts (absent = all placeholders).
 const indexLoad = fetchAssetIndex(feel.assets.indexTimeoutMs);
+// Fonts are independent of platform and asset setup; overlap their network/decode work.
+const fontsLoad = loadFonts(feel.assets.fontTimeoutMs);
 // e2e/dev only (v1.11, D-068): ?braai=0 — the plain slate (specs that don't test the braai);
 // ?braaiDance=1 — Oupa dances whatever the result; ?braaiAt=<ms> holds the braai's clock there.
 if (testHooks) {
@@ -1378,12 +1380,18 @@ async function boot(): Promise<void> {
 
   // M10: Phaser draws text onto canvases once, so the self-hosted fonts must be ready first
   // (bounded by fontTimeoutMs; a slow or blocked font leaves the system font, as before).
-  hook.fontsReady = await loadFonts(feel.assets.fontTimeoutMs);
+  hook.fontsReady = await fontsLoad;
   hook.boot['fonts'] = performance.now();
   // D-053: the light loading screen: Standard or HD (first launch, or no preset saved), then the
   // home area's HD pack behind it when HD is chosen.
   if (assetIndex !== null) {
     let mode = startMode(save.data.settings.graphics, forcedGraphics);
+    // A fresh player reaches the lesson immediately. Explicit comparison/test requests and
+    // returning players who chose Ask retain the existing card and remembered preference.
+    if (mode === null && !save.data.ftue.done && graphicsParam !== 'card') {
+      mode = 'standard';
+      save.update((d) => ({ ...d, settings: { ...d.settings, graphics: 'standard' } }));
+    }
     // Without the HD runtime and index (offline, a 404) there is no HD to offer: no card, Standard
     // this session, and nothing saved (the next start asks again).
     if (mode === null && cardShown && (await ensureHdRuntime()) !== null) {

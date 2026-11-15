@@ -1,3 +1,5 @@
+import { playerDialog } from '../ui/playerDialog';
+import { runRecap } from '../run/runRecap';
 // Season Run screens (GDD §13): the hunt card before each hunt (season, quota, Boss Rule), the run
 // tally after it (quota met or missed, doppies earned), the Padstal (offers, reroll, buy, sell,
 // drag charms to reorder) and the run summary (victory or defeat). Every change goes through
@@ -65,6 +67,8 @@ export class RunScene extends Phaser.Scene {
   private panel!: Rect;
   /** D-060: what Escape / the Android back button does on this view (set by the view). */
   private back: (() => void) | null = null;
+  private menu: Menu | null = null;
+  private closeRecap: (() => void) | null = null;
 
   constructor(ctx: GameContext) {
     super({ key: 'Run' });
@@ -113,12 +117,16 @@ export class RunScene extends Phaser.Scene {
         focus = this.summary(run, items);
         break;
     }
-    new Menu(this, items, {
+    this.menu = new Menu(this, items, {
       focus,
       hook: this.ctx.hook,
       onBack: () => {
         this.back?.();
       },
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.closeRecap?.();
+      this.menu = null;
     });
     const hook = this.ctx.hook;
     if (hook) {
@@ -776,6 +784,63 @@ export class RunScene extends Phaser.Scene {
         if (r !== undefined) drawCharmCard(this, this.ctx.content, r, id);
       });
     }
+    const recap: Rect = { x: cx - 230, y: p.y + 555, w: 460, h: 72 };
+    this.button(items, 'run.recap', recap, t('run.recap'), 'secondary', 34, () => {
+      const facts = runRecap(run.history);
+      const line = (h: (typeof run.history)[number]) =>
+        fill(t('run.recap_hunt'), {
+          n: h.huntIndex + 1,
+          score: formatScore(h.score),
+          quota: formatScore(h.quota),
+          margin: h.score - h.quota,
+        });
+      const seasons = new Map<string, { score: number; quota: number; n: number }>();
+      for (const h of facts.hunts) {
+        const season = this.ctx.run.info({ ...run, huntIndex: h.huntIndex }).season;
+        const sum = seasons.get(season) ?? { score: 0, quota: 0, n: 0 };
+        seasons.set(season, {
+          score: sum.score + h.score,
+          quota: sum.quota + h.quota,
+          n: sum.n + 1,
+        });
+      }
+      const lines = [...seasons].map(([season, sum]) =>
+        fill(t('run.recap_season'), {
+          season: tOr(`season.${season}`, season),
+          score: formatScore(sum.score),
+          quota: formatScore(sum.quota),
+          n: sum.n,
+        }),
+      );
+      lines.push(...facts.hunts.map(line));
+      if (facts.strongest)
+        lines.unshift(
+          fill(t('run.recap_best'), {
+            n: facts.strongest.huntIndex + 1,
+            margin: facts.strongest.score - facts.strongest.quota,
+          }),
+        );
+      if (facts.weakest)
+        lines.unshift(
+          fill(t('run.recap_weak'), {
+            n: facts.weakest.huntIndex + 1,
+            margin: facts.weakest.score - facts.weakest.quota,
+          }),
+        );
+      if (!lines.length) lines.push(t('run.recap_empty'));
+      lines.push(t('run.recap_charms'));
+      this.menu?.setActive(false);
+      this.closeRecap = playerDialog({
+        textScale: this.ctx.prefs.textScale,
+        title: t('run.recap'),
+        lines,
+        close: t('ui.back'),
+        onClose: () => {
+          this.closeRecap = null;
+          if (this.sys.isActive()) this.menu?.setActive(true);
+        },
+      });
+    });
     const again: Rect = { x: cx - 280, y: p.y + p.h - 150, w: 560, h: 112 };
     const menu: Rect = { x: p.x + 40, y: p.y + p.h - 130, w: 260, h: 84 };
     this.button(items, 'run.new', again, t('run.new_run'), 'primary', 52, () => {

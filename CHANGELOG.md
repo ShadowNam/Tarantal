@@ -3,6 +3,21 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.25.0] — Review follow-through (15 Nov 2026)
+
+Decision record D-089.
+
+- New players begin in Standard; HD is offered after their first hunt and stays available in Settings.
+- Fonts and the first hunt’s baboon sheet begin loading earlier, reducing startup waits.
+- Returning players get a next-goal prompt and a Help & practice button. Public practice offers
+  unlocked areas without changing progression; admin-only reset tools remain private.
+- Harvest explains its crop bonus and content-derived Phase 2 threshold before starting.
+- Performance tier and Artwork detail have separate explanations in all four languages.
+- Season Run results include an optional recap of recorded hunts, seasonal totals and quota margins.
+- Bird shading, distant fauna lighting and Harvest fur detail improve at existing texture sizes.
+- Help panels open at their headings, and accessibility hints reserve space for wrapped Large text.
+- A new player's Settings button sits where a returning player's does (bottom right), clear of the gun.
+
 ## [1.24.0] — Game-flow and animal-art review (15 Nov 2026)
 
 Decision record D-088. From the owner's overnight review task (14 Nov 2026).

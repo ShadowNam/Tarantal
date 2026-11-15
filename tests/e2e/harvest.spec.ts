@@ -125,6 +125,7 @@ async function startHarvest(page: Page, touch: boolean): Promise<void> {
     timeout: 120_000,
   });
   await tapRect(page, touch, 'harvest');
+  await page.locator('#tm-player-help [data-action="confirm"]').click();
   await page.waitForFunction(
     () => window.__TM__?.scene === 'hunt' && window.__TM__.harvest !== null,
     null,

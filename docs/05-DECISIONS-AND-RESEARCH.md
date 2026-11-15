@@ -5421,3 +5421,25 @@ subagent, verification Claude can run itself, plan mode for multi-file work.
 3. Budget for a human illustrator, animator, voice actor and composer (art bible §9–10)?
 4. ~~Which portal first: Poki or CrazyGames?~~ Answered 27 Oct (D-052): neither; friends first, then the Apple App Store and Google Play.
 5. Keep the hunting framing for all markets, or offer a "camera safari" reskin for sensitive markets?
+
+
+### D-089 — v1.25.0 Follow-through on the critical game review (15 November 2026)
+
+The owner requested all ten prioritised follow-up improvements. Fresh players start in Standard
+without the pre-game art decision; explicit Ask/card requests still work and HD remains in
+Settings. Font requests begin alongside the asset index instead of after platform setup.
+Title help contains the full controls and a public, unranked practice entry. The range remains
+lazy, saves no practice outcomes, offers only unlocked areas to players, and retains all areas
+and Fresh load for admins. Only the web build includes practice: the store app (Capacitor) and the retired portal builds
+stay without the range's code, so D-037's size-check gate is unchanged (the Help panel then
+leaves out the practice line and button).
+Harvest shows its content-derived bonus threshold and surviving-crop rule before starting.
+The title highlights a next hunt goal, Settings distinguishes rendering and artwork, and the
+run ending offers recorded hunt/season totals and relative quota margins without claiming
+unrecorded charm contributions. Four-language strings accompany these changes.
+Animal drawing improvements retain delivered dimensions and memory policy; no indiscriminate
+HD upscaling. Physical iPhone/Android performance is still a release gate, not certified by
+browser emulation. The unchanged desktop startup criterion passed at 2.61 seconds after overlapping font loading
+and requesting the baboon sheet alongside core artwork; this is a sandbox measurement, not
+a physical-phone result. A new player's Settings button takes the bottom row's last slot (a
+returning player's Settings), so the gun in the middle of the title no longer crowds it.

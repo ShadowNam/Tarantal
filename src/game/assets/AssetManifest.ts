@@ -533,7 +533,12 @@ export class AssetManifest {
       // v1.3: the Ver strips aren't needed to start a hunt either (only bonus maps show them).
       // v1.8b (D-062): the baboon sheet too (a hunt with a troop waits for that one file).
       if (backgroundGroup(group)) {
-        (group === BABOON_GROUP ? lateFirst : late).push(job);
+        if (group === BABOON_GROUP) {
+          // This sheet is required by the first hunt. Fetch/decode it beside the core art,
+          // rather than placing its request behind all core images and audio downloads.
+          const started = job();
+          lateFirst.push(() => started);
+        } else late.push(job);
         if (need !== undefined) expectLate.push({ ...need, group });
       } else {
         jobs.push(job());

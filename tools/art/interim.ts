@@ -128,7 +128,8 @@ import { FAUNA_MASTER, sheetHerds } from '../../src/game/view/faunaHerds';
 
 /** D-054: palette size of the far animals' sheets: no visible change, far fewer bytes (the biome
  *  chunks are nearly full). D-080: no HD twin (Standard in HD). */
-const FAUNA_COLOURS = 48;
+// Preserve soft anatomical shading without adding texture pixels.
+const FAUNA_COLOURS = 128;
 /** D-054: dust on the elephants (the Bushveld's red earth, the delta's grey mud). */
 const FAUNA_DUST: Readonly<Record<string, string>> = {
   'bushveld-winter': '#A07E62',

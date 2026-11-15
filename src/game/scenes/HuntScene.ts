@@ -4,6 +4,7 @@
 // HUD / the hunt log (meta) / the FTUE director, then draw the interpolated snapshot. The scene
 // never writes into the sim: input reaches it only as Commands. Esc, P, the HUD pause button or
 // a hidden tab open the pause menu; the hunt clock holds while it is open.
+import { unlockedBiomes } from '../../meta/areas';
 import { inputSightZoom, redDotIds, redDotUp } from '../view/redDot';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
@@ -1395,6 +1396,18 @@ export class HuntScene extends Phaser.Scene {
       run: () => {
         this.openRun();
       },
+      // D-089: player practice on the web build only. The store app (Capacitor) and the retired
+      // portals stay without the range's code (D-037; size-check fails a build that carries it).
+      ...(import.meta.env.VITE_PLATFORM !== 'poki' &&
+      import.meta.env.VITE_PLATFORM !== 'crazygames' &&
+      import.meta.env.VITE_PLATFORM !== 'capacitor'
+        ? {
+            practice: () => {
+              this.scene.stop('Title');
+              this.openSkietbaan();
+            },
+          }
+        : {}),
     };
     this.scene.launch('Title', data);
     this.scene.bringToTop('Title');
@@ -1480,14 +1493,13 @@ export class HuntScene extends Phaser.Scene {
 
   // --- Skietbaan (D-037) ---------------------------------------------------------------------
 
-  /** The Skietbaan's setup page, from its lazy chunk (admin page builds only). */
+  /** Lazy practice setup for players and admins; retired portal builds omit it. */
   private openSkietbaan(): void {
-    // Builds with the admin page only (the PlatformAdapter's adminPage: web). Compared against
-    // the raw flag (a literal after Vite's replacement) so a portal build drops this import()
-    // and its chunk altogether; platform.spec checks the portal builds carry no such chunk.
+    // Builds without the admin page (the PlatformAdapter's adminPage: web only) drop this chunk:
+    // compared against the raw flag (a literal after Vite's replacement) so the store app and the
+    // portals carry no range code; platform.spec and size-check check it (D-037, D-089).
     const flag = import.meta.env.VITE_PLATFORM;
     if (flag === 'poki' || flag === 'crazygames' || flag === 'capacitor') return;
-    if (this.ctx.admin === null) return;
     this.ctx.platform.loadingProgress(1);
     if (this.ctx.hook) this.ctx.hook.scene = 'skietbaan';
     import('../range/Skietbaan').then(
@@ -1496,7 +1508,15 @@ export class HuntScene extends Phaser.Scene {
         m.openSkietbaan({
           content: this.ctx.content,
           // The admin page's tool (its own save): every playable biome, like admin hunts (D-039).
-          playableBiomes: this.ctx.playableBiomes,
+          playableBiomes:
+            this.ctx.admin === null
+              ? unlockedBiomes(
+                  this.ctx.content,
+                  this.ctx.save.data,
+                  this.ctx.playableBiomes,
+                  this.ctx.notaboek,
+                )
+              : this.ctx.playableBiomes,
           hook: this.ctx.hook,
           today: () => this.ctx.today(),
           nextSeed: () => this.ctx.nextSeed(),
@@ -1505,20 +1525,23 @@ export class HuntScene extends Phaser.Scene {
             this.scene.restart({ range: session } satisfies HuntData);
           },
           back: () => {
-            this.showAdmin();
+            if (this.ctx.admin === null) this.showTitle();
+            else this.showAdmin();
           },
           // D-042 (14): dev builds only (the web build's admin page: dev server, GitHub Pages).
-          freshLoad: freshLoadShown(this.ctx.platform)
-            ? () => {
-                void this.ctx.platform.hardRefresh();
-              }
-            : null,
+          freshLoad:
+            this.ctx.admin !== null && freshLoadShown(this.ctx.platform)
+              ? () => {
+                  void this.ctx.platform.hardRefresh();
+                }
+              : null,
         });
       },
       (err: unknown) => {
         // The chunk didn't load (offline, a new deploy): back to the admin list.
         console.warn('[skietbaan] could not load', err);
-        this.showAdmin();
+        if (this.ctx.admin === null) this.showTitle();
+        else this.showAdmin();
       },
     );
   }
