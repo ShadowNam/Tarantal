@@ -1,0 +1,581 @@
+ CHANGELOG.md                                       |  14 +
+ art-source/birds/generaal/planes/mid/flap/00.png   | Bin 21922 -> 22015 bytes
+ art-source/birds/generaal/planes/mid/flap/01.png   | Bin 18206 -> 18055 bytes
+ art-source/birds/generaal/planes/mid/flap/02.png   | Bin 16490 -> 16373 bytes
+ art-source/birds/generaal/planes/mid/flap/03.png   | Bin 19084 -> 19141 bytes
+ art-source/birds/generaal/planes/mid/flap/04.png   | Bin 17480 -> 17463 bytes
+ art-source/birds/generaal/planes/mid/flap/05.png   | Bin 16332 -> 16338 bytes
+ .../birds/generaal/planes/mid/forage_walk/00.png   | Bin 17065 -> 17325 bytes
+ .../birds/generaal/planes/mid/forage_walk/01.png   | Bin 17585 -> 17630 bytes
+ .../birds/generaal/planes/mid/forage_walk/02.png   | Bin 18035 -> 17953 bytes
+ .../birds/generaal/planes/mid/forage_walk/03.png   | Bin 17578 -> 17647 bytes
+ .../birds/generaal/planes/mid/forage_walk/04.png   | Bin 17125 -> 17227 bytes
+ .../birds/generaal/planes/mid/forage_walk/05.png   | Bin 17190 -> 17454 bytes
+ .../birds/generaal/planes/mid/forage_walk/06.png   | Bin 17222 -> 17465 bytes
+ .../birds/generaal/planes/mid/forage_walk/07.png   | Bin 17193 -> 17412 bytes
+ .../birds/generaal/planes/mid/hit_poof/00.png      | Bin 18013 -> 18031 bytes
+ .../birds/generaal/planes/mid/hit_poof/01.png      | Bin 14668 -> 14689 bytes
+ art-source/birds/generaal/planes/mid/peek/00.png   | Bin 17658 -> 17676 bytes
+ art-source/birds/generaal/planes/mid/peek/01.png   | Bin 17658 -> 17676 bytes
+ art-source/birds/generaal/planes/mid/peek/02.png   | Bin 17828 -> 17782 bytes
+ art-source/birds/generaal/planes/mid/peek/03.png   | Bin 17658 -> 17676 bytes
+ art-source/birds/generaal/planes/mid/peek/04.png   | Bin 17745 -> 17909 bytes
+ art-source/birds/generaal/planes/mid/peek/05.png   | Bin 17737 -> 17836 bytes
+ art-source/birds/generaal/planes/mid/run/00.png    | Bin 18324 -> 18483 bytes
+ art-source/birds/generaal/planes/mid/run/01.png    | Bin 18478 -> 18465 bytes
+ art-source/birds/generaal/planes/mid/run/02.png    | Bin 18465 -> 18451 bytes
+ art-source/birds/generaal/planes/mid/run/03.png    | Bin 18780 -> 18557 bytes
+ art-source/birds/generaal/planes/mid/run/04.png    | Bin 18432 -> 18247 bytes
+ art-source/birds/generaal/planes/mid/run/05.png    | Bin 18462 -> 18436 bytes
+ art-source/birds/generaal/planes/mid/run/06.png    | Bin 18574 -> 18682 bytes
+ art-source/birds/generaal/planes/mid/run/07.png    | Bin 18808 -> 18720 bytes
+ .../birds/generaal/planes/mid/takeoff/00.png       | Bin 16851 -> 16859 bytes
+ .../birds/generaal/planes/mid/takeoff/01.png       | Bin 20294 -> 20479 bytes
+ .../birds/generaal/planes/mid/takeoff/02.png       | Bin 21722 -> 21679 bytes
+ .../birds/generaal/planes/mid/takeoff/03.png       | Bin 18781 -> 18771 bytes
+ .../birds/generaal/planes/mid/takeoff/04.png       | Bin 17168 -> 17076 bytes
+ .../birds/generaal/planes/mid/takeoff/05.png       | Bin 22348 -> 22310 bytes
+ art-source/birds/kuifkop/planes/mid/flap/00.png    | Bin 17543 -> 17477 bytes
+ art-source/birds/kuifkop/planes/mid/flap/01.png    | Bin 15190 -> 14981 bytes
+ art-source/birds/kuifkop/planes/mid/flap/02.png    | Bin 13630 -> 13636 bytes
+ art-source/birds/kuifkop/planes/mid/flap/03.png    | Bin 15650 -> 15534 bytes
+ art-source/birds/kuifkop/planes/mid/flap/04.png    | Bin 14686 -> 14743 bytes
+ art-source/birds/kuifkop/planes/mid/flap/05.png    | Bin 13524 -> 13627 bytes
+ .../birds/kuifkop/planes/mid/forage_walk/00.png    | Bin 14180 -> 13937 bytes
+ .../birds/kuifkop/planes/mid/forage_walk/01.png    | Bin 14558 -> 14290 bytes
+ .../birds/kuifkop/planes/mid/forage_walk/02.png    | Bin 15054 -> 15064 bytes
+ .../birds/kuifkop/planes/mid/forage_walk/03.png    | Bin 14570 -> 14275 bytes
+ .../birds/kuifkop/planes/mid/forage_walk/04.png    | Bin 14065 -> 13959 bytes
+ .../birds/kuifkop/planes/mid/forage_walk/05.png    | Bin 14417 -> 14231 bytes
+ .../birds/kuifkop/planes/mid/forage_walk/06.png    | Bin 14450 -> 14165 bytes
+ .../birds/kuifkop/planes/mid/forage_walk/07.png    | Bin 14468 -> 14358 bytes
+ .../birds/kuifkop/planes/mid/hit_poof/00.png       | Bin 16552 -> 16619 bytes
+ .../birds/kuifkop/planes/mid/hit_poof/01.png       | Bin 12642 -> 12581 bytes
+ art-source/birds/kuifkop/planes/mid/peek/00.png    | Bin 14511 -> 14288 bytes
+ art-source/birds/kuifkop/planes/mid/peek/01.png    | Bin 14511 -> 14288 bytes
+ art-source/birds/kuifkop/planes/mid/peek/02.png    | Bin 14527 -> 14494 bytes
+ art-source/birds/kuifkop/planes/mid/peek/03.png    | Bin 14511 -> 14288 bytes
+ art-source/birds/kuifkop/planes/mid/peek/04.png    | Bin 14754 -> 14796 bytes
+ art-source/birds/kuifkop/planes/mid/peek/05.png    | Bin 14796 -> 14770 bytes
+ art-source/birds/kuifkop/planes/mid/run/00.png     | Bin 15346 -> 15430 bytes
+ art-source/birds/kuifkop/planes/mid/run/01.png     | Bin 15600 -> 15493 bytes
+ art-source/birds/kuifkop/planes/mid/run/02.png     | Bin 15601 -> 15647 bytes
+ art-source/birds/kuifkop/planes/mid/run/03.png     | Bin 15248 -> 15260 bytes
+ art-source/birds/kuifkop/planes/mid/run/04.png     | Bin 15583 -> 15539 bytes
+ art-source/birds/kuifkop/planes/mid/run/05.png     | Bin 15571 -> 15453 bytes
+ art-source/birds/kuifkop/planes/mid/run/06.png     | Bin 15430 -> 15702 bytes
+ art-source/birds/kuifkop/planes/mid/run/07.png     | Bin 15372 -> 15457 bytes
+ art-source/birds/kuifkop/planes/mid/takeoff/00.png | Bin 14063 -> 14015 bytes
+ art-source/birds/kuifkop/planes/mid/takeoff/01.png | Bin 16622 -> 16412 bytes
+ art-source/birds/kuifkop/planes/mid/takeoff/02.png | Bin 17405 -> 17208 bytes
+ art-source/birds/kuifkop/planes/mid/takeoff/03.png | Bin 15490 -> 15368 bytes
+ art-source/birds/kuifkop/planes/mid/takeoff/04.png | Bin 14420 -> 14544 bytes
+ art-source/birds/kuifkop/planes/mid/takeoff/05.png | Bin 17945 -> 17926 bytes
+ .../birds/kuifkop_koning/planes/mid/flap/00.png    | Bin 19230 -> 19234 bytes
+ .../birds/kuifkop_koning/planes/mid/flap/01.png    | Bin 16319 -> 16505 bytes
+ .../birds/kuifkop_koning/planes/mid/flap/02.png    | Bin 15038 -> 14849 bytes
+ .../birds/kuifkop_koning/planes/mid/flap/03.png    | Bin 16931 -> 16703 bytes
+ .../birds/kuifkop_koning/planes/mid/flap/04.png    | Bin 15845 -> 15912 bytes
+ .../birds/kuifkop_koning/planes/mid/flap/05.png    | Bin 14784 -> 14669 bytes
+ .../kuifkop_koning/planes/mid/forage_walk/00.png   | Bin 15194 -> 15115 bytes
+ .../kuifkop_koning/planes/mid/forage_walk/01.png   | Bin 15704 -> 15667 bytes
+ .../kuifkop_koning/planes/mid/forage_walk/02.png   | Bin 16098 -> 16079 bytes
+ .../kuifkop_koning/planes/mid/forage_walk/03.png   | Bin 15663 -> 15706 bytes
+ .../kuifkop_koning/planes/mid/forage_walk/04.png   | Bin 15229 -> 15128 bytes
+ .../kuifkop_koning/planes/mid/forage_walk/05.png   | Bin 15489 -> 15507 bytes
+ .../kuifkop_koning/planes/mid/forage_walk/06.png   | Bin 15422 -> 15480 bytes
+ .../kuifkop_koning/planes/mid/forage_walk/07.png   | Bin 15503 -> 15548 bytes
+ .../kuifkop_koning/planes/mid/hit_poof/00.png      | Bin 17243 -> 17284 bytes
+ .../kuifkop_koning/planes/mid/hit_poof/01.png      | Bin 13671 -> 13671 bytes
+ .../birds/kuifkop_koning/planes/mid/peek/00.png    | Bin 15778 -> 15657 bytes
+ .../birds/kuifkop_koning/planes/mid/peek/01.png    | Bin 15778 -> 15657 bytes
+ .../birds/kuifkop_koning/planes/mid/peek/02.png    | Bin 15755 -> 15767 bytes
+ .../birds/kuifkop_koning/planes/mid/peek/03.png    | Bin 15778 -> 15657 bytes
+ .../birds/kuifkop_koning/planes/mid/peek/04.png    | Bin 15881 -> 15825 bytes
+ .../birds/kuifkop_koning/planes/mid/peek/05.png    | Bin 15891 -> 15836 bytes
+ .../birds/kuifkop_koning/planes/mid/run/00.png     | Bin 16594 -> 16637 bytes
+ .../birds/kuifkop_koning/planes/mid/run/01.png     | Bin 16961 -> 16955 bytes
+ .../birds/kuifkop_koning/planes/mid/run/02.png     | Bin 16769 -> 17042 bytes
+ .../birds/kuifkop_koning/planes/mid/run/03.png     | Bin 16596 -> 16879 bytes
+ .../birds/kuifkop_koning/planes/mid/run/04.png     | Bin 16738 -> 16984 bytes
+ .../birds/kuifkop_koning/planes/mid/run/05.png     | Bin 16809 -> 16920 bytes
+ .../birds/kuifkop_koning/planes/mid/run/06.png     | Bin 16811 -> 17145 bytes
+ .../birds/kuifkop_koning/planes/mid/run/07.png     | Bin 16756 -> 16860 bytes
+ .../birds/kuifkop_koning/planes/mid/takeoff/00.png | Bin 15433 -> 15533 bytes
+ .../birds/kuifkop_koning/planes/mid/takeoff/01.png | Bin 18441 -> 18094 bytes
+ .../birds/kuifkop_koning/planes/mid/takeoff/02.png | Bin 19352 -> 19307 bytes
+ .../birds/kuifkop_koning/planes/mid/takeoff/03.png | Bin 16868 -> 16970 bytes
+ .../birds/kuifkop_koning/planes/mid/takeoff/04.png | Bin 15866 -> 16010 bytes
+ .../birds/kuifkop_koning/planes/mid/takeoff/05.png | Bin 19868 -> 19514 bytes
+ art-source/birds/ou_grys/planes/mid/flap/00.png    | Bin 20776 -> 20794 bytes
+ art-source/birds/ou_grys/planes/mid/flap/01.png    | Bin 17598 -> 17362 bytes
+ art-source/birds/ou_grys/planes/mid/flap/02.png    | Bin 16204 -> 15866 bytes
+ art-source/birds/ou_grys/planes/mid/flap/03.png    | Bin 18255 -> 18448 bytes
+ art-source/birds/ou_grys/planes/mid/flap/04.png    | Bin 17196 -> 17075 bytes
+ art-source/birds/ou_grys/planes/mid/flap/05.png    | Bin 15799 -> 15853 bytes
+ .../birds/ou_grys/planes/mid/forage_walk/00.png    | Bin 16689 -> 16386 bytes
+ .../birds/ou_grys/planes/mid/forage_walk/01.png    | Bin 16767 -> 16686 bytes
+ .../birds/ou_grys/planes/mid/forage_walk/02.png    | Bin 17329 -> 17143 bytes
+ .../birds/ou_grys/planes/mid/forage_walk/03.png    | Bin 16750 -> 16695 bytes
+ .../birds/ou_grys/planes/mid/forage_walk/04.png    | Bin 16553 -> 16394 bytes
+ .../birds/ou_grys/planes/mid/forage_walk/05.png    | Bin 16870 -> 16669 bytes
+ .../birds/ou_grys/planes/mid/forage_walk/06.png    | Bin 16593 -> 16411 bytes
+ .../birds/ou_grys/planes/mid/forage_walk/07.png    | Bin 16894 -> 16686 bytes
+ .../birds/ou_grys/planes/mid/hit_poof/00.png       | Bin 17848 -> 17663 bytes
+ .../birds/ou_grys/planes/mid/hit_poof/01.png       | Bin 14185 -> 14081 bytes
+ art-source/birds/ou_grys/planes/mid/peek/00.png    | Bin 17139 -> 16873 bytes
+ art-source/birds/ou_grys/planes/mid/peek/01.png    | Bin 17139 -> 16873 bytes
+ art-source/birds/ou_grys/planes/mid/peek/02.png    | Bin 17117 -> 16818 bytes
+ art-source/birds/ou_grys/planes/mid/peek/03.png    | Bin 17139 -> 16873 bytes
+ art-source/birds/ou_grys/planes/mid/peek/04.png    | Bin 17435 -> 17356 bytes
+ art-source/birds/ou_grys/planes/mid/peek/05.png    | Bin 17410 -> 17353 bytes
+ art-source/birds/ou_grys/planes/mid/run/00.png     | Bin 18256 -> 18038 bytes
+ art-source/birds/ou_grys/planes/mid/run/01.png     | Bin 18540 -> 18306 bytes
+ art-source/birds/ou_grys/planes/mid/run/02.png     | Bin 18359 -> 18137 bytes
+ art-source/birds/ou_grys/planes/mid/run/03.png     | Bin 18240 -> 18137 bytes
+ art-source/birds/ou_grys/planes/mid/run/04.png     | Bin 18164 -> 17966 bytes
+ art-source/birds/ou_grys/planes/mid/run/05.png     | Bin 18432 -> 18394 bytes
+ art-source/birds/ou_grys/planes/mid/run/06.png     | Bin 18528 -> 18281 bytes
+ art-source/birds/ou_grys/planes/mid/run/07.png     | Bin 18264 -> 18108 bytes
+ art-source/birds/ou_grys/planes/mid/takeoff/00.png | Bin 16687 -> 16547 bytes
+ art-source/birds/ou_grys/planes/mid/takeoff/01.png | Bin 19231 -> 19081 bytes
+ art-source/birds/ou_grys/planes/mid/takeoff/02.png | Bin 20209 -> 20248 bytes
+ art-source/birds/ou_grys/planes/mid/takeoff/03.png | Bin 17714 -> 17664 bytes
+ art-source/birds/ou_grys/planes/mid/takeoff/04.png | Bin 16711 -> 16663 bytes
+ art-source/birds/ou_grys/planes/mid/takeoff/05.png | Bin 20901 -> 20846 bytes
+ art-source/birds/tarentaal/planes/far/alert/00.png | Bin 4221 -> 4297 bytes
+ art-source/birds/tarentaal/planes/far/alert/01.png | Bin 4284 -> 4218 bytes
+ art-source/birds/tarentaal/planes/far/alert/02.png | Bin 4351 -> 4323 bytes
+ art-source/birds/tarentaal/planes/far/alert/03.png | Bin 4330 -> 4383 bytes
+ art-source/birds/tarentaal/planes/far/flap/00.png  | Bin 5066 -> 5068 bytes
+ art-source/birds/tarentaal/planes/far/flap/01.png  | Bin 4383 -> 4419 bytes
+ art-source/birds/tarentaal/planes/far/flap/02.png  | Bin 3806 -> 3865 bytes
+ art-source/birds/tarentaal/planes/far/flap/03.png  | Bin 4515 -> 4549 bytes
+ art-source/birds/tarentaal/planes/far/flap/04.png  | Bin 4227 -> 4239 bytes
+ art-source/birds/tarentaal/planes/far/flap/05.png  | Bin 3879 -> 3948 bytes
+ .../birds/tarentaal/planes/far/forage_walk/00.png  | Bin 4228 -> 4252 bytes
+ .../birds/tarentaal/planes/far/forage_walk/01.png  | Bin 4300 -> 4313 bytes
+ .../birds/tarentaal/planes/far/forage_walk/02.png  | Bin 4351 -> 4300 bytes
+ .../birds/tarentaal/planes/far/forage_walk/03.png  | Bin 4300 -> 4343 bytes
+ .../birds/tarentaal/planes/far/forage_walk/04.png  | Bin 4186 -> 4212 bytes
+ .../birds/tarentaal/planes/far/forage_walk/05.png  | Bin 4200 -> 4196 bytes
+ .../birds/tarentaal/planes/far/forage_walk/06.png  | Bin 4178 -> 4195 bytes
+ .../birds/tarentaal/planes/far/forage_walk/07.png  | Bin 4257 -> 4236 bytes
+ art-source/birds/tarentaal/planes/far/glide/00.png | Bin 4577 -> 4501 bytes
+ art-source/birds/tarentaal/planes/far/glide/01.png | Bin 4370 -> 4353 bytes
+ .../birds/tarentaal/planes/far/hit_poof/00.png     | Bin 4578 -> 4702 bytes
+ .../birds/tarentaal/planes/far/hit_poof/01.png     | Bin 3380 -> 3367 bytes
+ art-source/birds/tarentaal/planes/far/land/00.png  | Bin 5157 -> 5127 bytes
+ art-source/birds/tarentaal/planes/far/land/01.png  | Bin 3987 -> 4161 bytes
+ art-source/birds/tarentaal/planes/far/land/02.png  | Bin 4414 -> 4362 bytes
+ art-source/birds/tarentaal/planes/far/land/03.png  | Bin 4325 -> 4387 bytes
+ art-source/birds/tarentaal/planes/far/peck/00.png  | Bin 4254 -> 4295 bytes
+ art-source/birds/tarentaal/planes/far/peck/01.png  | Bin 4312 -> 4336 bytes
+ art-source/birds/tarentaal/planes/far/peck/02.png  | Bin 4196 -> 4246 bytes
+ art-source/birds/tarentaal/planes/far/peck/03.png  | Bin 4378 -> 4345 bytes
+ art-source/birds/tarentaal/planes/far/peck/04.png  | Bin 4263 -> 4371 bytes
+ art-source/birds/tarentaal/planes/far/peck/05.png  | Bin 4267 -> 4312 bytes
+ art-source/birds/tarentaal/planes/far/peek/00.png  | Bin 4230 -> 4181 bytes
+ art-source/birds/tarentaal/planes/far/peek/01.png  | Bin 4230 -> 4181 bytes
+ art-source/birds/tarentaal/planes/far/peek/02.png  | Bin 4158 -> 4167 bytes
+ art-source/birds/tarentaal/planes/far/peek/03.png  | Bin 4230 -> 4181 bytes
+ art-source/birds/tarentaal/planes/far/peek/04.png  | Bin 4215 -> 4260 bytes
+ art-source/birds/tarentaal/planes/far/peek/05.png  | Bin 4213 -> 4311 bytes
+ art-source/birds/tarentaal/planes/far/run/00.png   | Bin 4502 -> 4502 bytes
+ art-source/birds/tarentaal/planes/far/run/01.png   | Bin 4510 -> 4500 bytes
+ art-source/birds/tarentaal/planes/far/run/02.png   | Bin 4516 -> 4510 bytes
+ art-source/birds/tarentaal/planes/far/run/03.png   | Bin 4512 -> 4484 bytes
+ art-source/birds/tarentaal/planes/far/run/04.png   | Bin 4509 -> 4505 bytes
+ art-source/birds/tarentaal/planes/far/run/05.png   | Bin 4529 -> 4532 bytes
+ art-source/birds/tarentaal/planes/far/run/06.png   | Bin 4527 -> 4506 bytes
+ art-source/birds/tarentaal/planes/far/run/07.png   | Bin 4513 -> 4510 bytes
+ .../birds/tarentaal/planes/far/takeoff/00.png      | Bin 4149 -> 4178 bytes
+ .../birds/tarentaal/planes/far/takeoff/01.png      | Bin 4887 -> 4875 bytes
+ .../birds/tarentaal/planes/far/takeoff/02.png      | Bin 4969 -> 4999 bytes
+ .../birds/tarentaal/planes/far/takeoff/03.png      | Bin 4389 -> 4414 bytes
+ .../birds/tarentaal/planes/far/takeoff/04.png      | Bin 4063 -> 4055 bytes
+ .../birds/tarentaal/planes/far/takeoff/05.png      | Bin 5118 -> 5111 bytes
+ .../birds/tarentaal/planes/far/tumble/00.png       | Bin 3297 -> 3252 bytes
+ .../birds/tarentaal/planes/far/tumble/01.png       | Bin 3307 -> 3297 bytes
+ .../birds/tarentaal/planes/far/tumble/02.png       | Bin 3279 -> 3252 bytes
+ .../birds/tarentaal/planes/far/tumble/03.png       | Bin 3262 -> 3287 bytes
+ art-source/birds/tarentaal/planes/mid/alert/00.png | Bin 15681 -> 15533 bytes
+ art-source/birds/tarentaal/planes/mid/alert/01.png | Bin 15957 -> 15894 bytes
+ art-source/birds/tarentaal/planes/mid/alert/02.png | Bin 15907 -> 15993 bytes
+ art-source/birds/tarentaal/planes/mid/alert/03.png | Bin 15762 -> 15964 bytes
+ art-source/birds/tarentaal/planes/mid/flap/00.png  | Bin 19435 -> 19242 bytes
+ art-source/birds/tarentaal/planes/mid/flap/01.png  | Bin 16400 -> 16284 bytes
+ art-source/birds/tarentaal/planes/mid/flap/02.png  | Bin 14854 -> 14663 bytes
+ art-source/birds/tarentaal/planes/mid/flap/03.png  | Bin 16912 -> 16944 bytes
+ art-source/birds/tarentaal/planes/mid/flap/04.png  | Bin 15526 -> 15555 bytes
+ art-source/birds/tarentaal/planes/mid/flap/05.png  | Bin 14576 -> 14513 bytes
+ .../birds/tarentaal/planes/mid/forage_walk/00.png  | Bin 15026 -> 15003 bytes
+ .../birds/tarentaal/planes/mid/forage_walk/01.png  | Bin 15815 -> 15565 bytes
+ .../birds/tarentaal/planes/mid/forage_walk/02.png  | Bin 16187 -> 15991 bytes
+ .../birds/tarentaal/planes/mid/forage_walk/03.png  | Bin 15826 -> 15576 bytes
+ .../birds/tarentaal/planes/mid/forage_walk/04.png  | Bin 15091 -> 14971 bytes
+ .../birds/tarentaal/planes/mid/forage_walk/05.png  | Bin 15487 -> 15423 bytes
+ .../birds/tarentaal/planes/mid/forage_walk/06.png  | Bin 15266 -> 15403 bytes
+ .../birds/tarentaal/planes/mid/forage_walk/07.png  | Bin 15412 -> 15342 bytes
+ art-source/birds/tarentaal/planes/mid/glide/00.png | Bin 16463 -> 16490 bytes
+ art-source/birds/tarentaal/planes/mid/glide/01.png | Bin 15926 -> 15972 bytes
+ .../birds/tarentaal/planes/mid/hit_poof/00.png     | Bin 17190 -> 17299 bytes
+ .../birds/tarentaal/planes/mid/hit_poof/01.png     | Bin 13365 -> 13294 bytes
+ art-source/birds/tarentaal/planes/mid/land/00.png  | Bin 19648 -> 19883 bytes
+ art-source/birds/tarentaal/planes/mid/land/01.png  | Bin 15112 -> 14980 bytes
+ art-source/birds/tarentaal/planes/mid/land/02.png  | Bin 16039 -> 16279 bytes
+ art-source/birds/tarentaal/planes/mid/land/03.png  | Bin 15695 -> 15604 bytes
+ art-source/birds/tarentaal/planes/mid/peck/00.png  | Bin 15538 -> 15157 bytes
+ art-source/birds/tarentaal/planes/mid/peck/01.png  | Bin 15779 -> 15683 bytes
+ art-source/birds/tarentaal/planes/mid/peck/02.png  | Bin 16040 -> 15698 bytes
+ art-source/birds/tarentaal/planes/mid/peck/03.png  | Bin 16031 -> 15980 bytes
+ art-source/birds/tarentaal/planes/mid/peck/04.png  | Bin 15965 -> 15953 bytes
+ art-source/birds/tarentaal/planes/mid/peck/05.png  | Bin 15597 -> 15371 bytes
+ art-source/birds/tarentaal/planes/mid/peek/00.png  | Bin 15817 -> 15463 bytes
+ art-source/birds/tarentaal/planes/mid/peek/01.png  | Bin 15817 -> 15463 bytes
+ art-source/birds/tarentaal/planes/mid/peek/02.png  | Bin 15882 -> 15726 bytes
+ art-source/birds/tarentaal/planes/mid/peek/03.png  | Bin 15817 -> 15463 bytes
+ art-source/birds/tarentaal/planes/mid/peek/04.png  | Bin 15834 -> 15929 bytes
+ art-source/birds/tarentaal/planes/mid/peek/05.png  | Bin 15841 -> 15939 bytes
+ art-source/birds/tarentaal/planes/mid/run/00.png   | Bin 16694 -> 16864 bytes
+ art-source/birds/tarentaal/planes/mid/run/01.png   | Bin 16743 -> 16897 bytes
+ art-source/birds/tarentaal/planes/mid/run/02.png   | Bin 16822 -> 17068 bytes
+ art-source/birds/tarentaal/planes/mid/run/03.png   | Bin 16863 -> 16754 bytes
+ art-source/birds/tarentaal/planes/mid/run/04.png   | Bin 16859 -> 17005 bytes
+ art-source/birds/tarentaal/planes/mid/run/05.png   | Bin 16754 -> 16726 bytes
+ art-source/birds/tarentaal/planes/mid/run/06.png   | Bin 16928 -> 17291 bytes
+ art-source/birds/tarentaal/planes/mid/run/07.png   | Bin 16878 -> 16935 bytes
+ .../birds/tarentaal/planes/mid/takeoff/00.png      | Bin 15391 -> 15281 bytes
+ .../birds/tarentaal/planes/mid/takeoff/01.png      | Bin 18166 -> 18214 bytes
+ .../birds/tarentaal/planes/mid/takeoff/02.png      | Bin 19463 -> 19178 bytes
+ .../birds/tarentaal/planes/mid/takeoff/03.png      | Bin 16772 -> 16666 bytes
+ .../birds/tarentaal/planes/mid/takeoff/04.png      | Bin 15517 -> 15391 bytes
+ .../birds/tarentaal/planes/mid/takeoff/05.png      | Bin 19696 -> 19846 bytes
+ .../birds/tarentaal/planes/mid/tumble/00.png       | Bin 12739 -> 12762 bytes
+ .../birds/tarentaal/planes/mid/tumble/01.png       | Bin 12986 -> 12925 bytes
+ .../birds/tarentaal/planes/mid/tumble/02.png       | Bin 12775 -> 12637 bytes
+ .../birds/tarentaal/planes/mid/tumble/03.png       | Bin 13010 -> 12905 bytes
+ .../birds/tarentaal/planes/near/alert/00.png       | Bin 52936 -> 52702 bytes
+ .../birds/tarentaal/planes/near/alert/01.png       | Bin 53508 -> 53755 bytes
+ .../birds/tarentaal/planes/near/alert/02.png       | Bin 54806 -> 53449 bytes
+ .../birds/tarentaal/planes/near/alert/03.png       | Bin 54728 -> 54160 bytes
+ .../birds/tarentaal/planes/near/hit_poof/00.png    | Bin 55528 -> 55394 bytes
+ .../birds/tarentaal/planes/near/hit_poof/01.png    | Bin 38584 -> 38684 bytes
+ art-source/birds/tarentaal/planes/near/peek/00.png | Bin 55093 -> 54437 bytes
+ art-source/birds/tarentaal/planes/near/peek/01.png | Bin 55093 -> 54437 bytes
+ art-source/birds/tarentaal/planes/near/peek/02.png | Bin 54807 -> 55061 bytes
+ art-source/birds/tarentaal/planes/near/peek/03.png | Bin 55093 -> 54437 bytes
+ art-source/birds/tarentaal/planes/near/peek/04.png | Bin 53885 -> 53479 bytes
+ art-source/birds/tarentaal/planes/near/peek/05.png | Bin 53848 -> 53603 bytes
+ .../birds/tarentaal/planes/near/tumble/00.png      | Bin 43216 -> 43007 bytes
+ .../birds/tarentaal/planes/near/tumble/01.png      | Bin 43988 -> 44361 bytes
+ .../birds/tarentaal/planes/near/tumble/02.png      | Bin 42930 -> 42985 bytes
+ .../birds/tarentaal/planes/near/tumble/03.png      | Bin 43714 -> 44032 bytes
+ .../tarentaal_lavendel/planes/far/alert/00.png     | Bin 4014 -> 4005 bytes
+ .../tarentaal_lavendel/planes/far/alert/01.png     | Bin 4165 -> 4115 bytes
+ .../tarentaal_lavendel/planes/far/alert/02.png     | Bin 4186 -> 4172 bytes
+ .../tarentaal_lavendel/planes/far/alert/03.png     | Bin 4109 -> 4110 bytes
+ .../tarentaal_lavendel/planes/far/flap/00.png      | Bin 4932 -> 4919 bytes
+ .../tarentaal_lavendel/planes/far/flap/01.png      | Bin 4198 -> 4115 bytes
+ .../tarentaal_lavendel/planes/far/flap/02.png      | Bin 3673 -> 3643 bytes
+ .../tarentaal_lavendel/planes/far/flap/03.png      | Bin 4314 -> 4353 bytes
+ .../tarentaal_lavendel/planes/far/flap/04.png      | Bin 4007 -> 4030 bytes
+ .../tarentaal_lavendel/planes/far/flap/05.png      | Bin 3715 -> 3633 bytes
+ .../planes/far/forage_walk/00.png                  | Bin 3921 -> 3920 bytes
+ .../planes/far/forage_walk/01.png                  | Bin 4155 -> 4094 bytes
+ .../planes/far/forage_walk/02.png                  | Bin 4140 -> 4090 bytes
+ .../planes/far/forage_walk/03.png                  | Bin 4142 -> 4073 bytes
+ .../planes/far/forage_walk/04.png                  | Bin 3913 -> 3917 bytes
+ .../planes/far/forage_walk/05.png                  | Bin 4052 -> 3950 bytes
+ .../planes/far/forage_walk/06.png                  | Bin 4037 -> 3898 bytes
+ .../planes/far/forage_walk/07.png                  | Bin 4036 -> 3922 bytes
+ .../tarentaal_lavendel/planes/far/hit_poof/00.png  | Bin 4491 -> 4508 bytes
+ .../tarentaal_lavendel/planes/far/hit_poof/01.png  | Bin 3351 -> 3363 bytes
+ .../birds/tarentaal_lavendel/planes/far/run/00.png | Bin 4344 -> 4340 bytes
+ .../birds/tarentaal_lavendel/planes/far/run/01.png | Bin 4363 -> 4353 bytes
+ .../birds/tarentaal_lavendel/planes/far/run/02.png | Bin 4365 -> 4366 bytes
+ .../birds/tarentaal_lavendel/planes/far/run/03.png | Bin 4425 -> 4415 bytes
+ .../birds/tarentaal_lavendel/planes/far/run/04.png | Bin 4414 -> 4393 bytes
+ .../birds/tarentaal_lavendel/planes/far/run/05.png | Bin 4353 -> 4354 bytes
+ .../birds/tarentaal_lavendel/planes/far/run/06.png | Bin 4373 -> 4365 bytes
+ .../birds/tarentaal_lavendel/planes/far/run/07.png | Bin 4419 -> 4415 bytes
+ .../tarentaal_lavendel/planes/far/takeoff/00.png   | Bin 3949 -> 3944 bytes
+ .../tarentaal_lavendel/planes/far/takeoff/01.png   | Bin 4737 -> 4603 bytes
+ .../tarentaal_lavendel/planes/far/takeoff/02.png   | Bin 4795 -> 4709 bytes
+ .../tarentaal_lavendel/planes/far/takeoff/03.png   | Bin 4076 -> 4138 bytes
+ .../tarentaal_lavendel/planes/far/takeoff/04.png   | Bin 3895 -> 3925 bytes
+ .../tarentaal_lavendel/planes/far/takeoff/05.png   | Bin 5018 -> 4969 bytes
+ .../tarentaal_lavendel/planes/mid/alert/00.png     | Bin 15564 -> 15484 bytes
+ .../tarentaal_lavendel/planes/mid/alert/01.png     | Bin 15773 -> 15775 bytes
+ .../tarentaal_lavendel/planes/mid/alert/02.png     | Bin 16058 -> 15760 bytes
+ .../tarentaal_lavendel/planes/mid/alert/03.png     | Bin 15936 -> 15887 bytes
+ .../tarentaal_lavendel/planes/mid/flap/00.png      | Bin 18854 -> 18776 bytes
+ .../tarentaal_lavendel/planes/mid/flap/01.png      | Bin 16239 -> 15865 bytes
+ .../tarentaal_lavendel/planes/mid/flap/02.png      | Bin 14531 -> 14285 bytes
+ .../tarentaal_lavendel/planes/mid/flap/03.png      | Bin 16603 -> 16758 bytes
+ .../tarentaal_lavendel/planes/mid/flap/04.png      | Bin 15356 -> 15399 bytes
+ .../tarentaal_lavendel/planes/mid/flap/05.png      | Bin 14251 -> 14411 bytes
+ .../planes/mid/forage_walk/00.png                  | Bin 15012 -> 14930 bytes
+ .../planes/mid/forage_walk/01.png                  | Bin 15762 -> 15493 bytes
+ .../planes/mid/forage_walk/02.png                  | Bin 15630 -> 16086 bytes
+ .../planes/mid/forage_walk/03.png                  | Bin 15706 -> 15529 bytes
+ .../planes/mid/forage_walk/04.png                  | Bin 14988 -> 14880 bytes
+ .../planes/mid/forage_walk/05.png                  | Bin 15230 -> 15086 bytes
+ .../planes/mid/forage_walk/06.png                  | Bin 15073 -> 15200 bytes
+ .../planes/mid/forage_walk/07.png                  | Bin 15226 -> 15017 bytes
+ .../tarentaal_lavendel/planes/mid/hit_poof/00.png  | Bin 16938 -> 16944 bytes
+ .../tarentaal_lavendel/planes/mid/hit_poof/01.png  | Bin 13254 -> 13193 bytes
+ .../birds/tarentaal_lavendel/planes/mid/run/00.png | Bin 16725 -> 16366 bytes
+ .../birds/tarentaal_lavendel/planes/mid/run/01.png | Bin 16483 -> 16461 bytes
+ .../birds/tarentaal_lavendel/planes/mid/run/02.png | Bin 16583 -> 16380 bytes
+ .../birds/tarentaal_lavendel/planes/mid/run/03.png | Bin 16932 -> 16879 bytes
+ .../birds/tarentaal_lavendel/planes/mid/run/04.png | Bin 16592 -> 16323 bytes
+ .../birds/tarentaal_lavendel/planes/mid/run/05.png | Bin 16238 -> 16286 bytes
+ .../birds/tarentaal_lavendel/planes/mid/run/06.png | Bin 16761 -> 16678 bytes
+ .../birds/tarentaal_lavendel/planes/mid/run/07.png | Bin 16909 -> 16811 bytes
+ .../tarentaal_lavendel/planes/mid/takeoff/00.png   | Bin 15089 -> 14666 bytes
+ .../tarentaal_lavendel/planes/mid/takeoff/01.png   | Bin 17609 -> 17417 bytes
+ .../tarentaal_lavendel/planes/mid/takeoff/02.png   | Bin 18789 -> 18576 bytes
+ .../tarentaal_lavendel/planes/mid/takeoff/03.png   | Bin 16231 -> 16156 bytes
+ .../tarentaal_lavendel/planes/mid/takeoff/04.png   | Bin 15021 -> 14967 bytes
+ .../tarentaal_lavendel/planes/mid/takeoff/05.png   | Bin 19207 -> 19219 bytes
+ .../birds/tarentaal_wit/planes/far/alert/00.png    | Bin 3833 -> 3817 bytes
+ .../birds/tarentaal_wit/planes/far/alert/01.png    | Bin 3812 -> 3794 bytes
+ .../birds/tarentaal_wit/planes/far/alert/02.png    | Bin 3865 -> 3902 bytes
+ .../birds/tarentaal_wit/planes/far/alert/03.png    | Bin 3853 -> 3832 bytes
+ .../birds/tarentaal_wit/planes/far/flap/00.png     | Bin 4549 -> 4541 bytes
+ .../birds/tarentaal_wit/planes/far/flap/01.png     | Bin 3772 -> 3821 bytes
+ .../birds/tarentaal_wit/planes/far/flap/02.png     | Bin 3326 -> 3331 bytes
+ .../birds/tarentaal_wit/planes/far/flap/03.png     | Bin 3897 -> 3905 bytes
+ .../birds/tarentaal_wit/planes/far/flap/04.png     | Bin 3558 -> 3601 bytes
+ .../birds/tarentaal_wit/planes/far/flap/05.png     | Bin 3434 -> 3433 bytes
+ .../tarentaal_wit/planes/far/forage_walk/00.png    | Bin 3713 -> 3654 bytes
+ .../tarentaal_wit/planes/far/forage_walk/01.png    | Bin 3836 -> 3798 bytes
+ .../tarentaal_wit/planes/far/forage_walk/02.png    | Bin 3877 -> 3753 bytes
+ .../tarentaal_wit/planes/far/forage_walk/03.png    | Bin 3836 -> 3789 bytes
+ .../tarentaal_wit/planes/far/forage_walk/04.png    | Bin 3759 -> 3672 bytes
+ .../tarentaal_wit/planes/far/forage_walk/05.png    | Bin 3752 -> 3787 bytes
+ .../tarentaal_wit/planes/far/forage_walk/06.png    | Bin 3811 -> 3762 bytes
+ .../tarentaal_wit/planes/far/forage_walk/07.png    | Bin 3779 -> 3752 bytes
+ .../birds/tarentaal_wit/planes/far/hit_poof/00.png | Bin 4109 -> 4114 bytes
+ .../birds/tarentaal_wit/planes/far/hit_poof/01.png | Bin 3244 -> 3258 bytes
+ .../birds/tarentaal_wit/planes/far/run/00.png      | Bin 4331 -> 4327 bytes
+ .../birds/tarentaal_wit/planes/far/run/01.png      | Bin 4352 -> 4330 bytes
+ .../birds/tarentaal_wit/planes/far/run/02.png      | Bin 4384 -> 4350 bytes
+ .../birds/tarentaal_wit/planes/far/run/03.png      | Bin 4346 -> 4360 bytes
+ .../birds/tarentaal_wit/planes/far/run/04.png      | Bin 4356 -> 4392 bytes
+ .../birds/tarentaal_wit/planes/far/run/05.png      | Bin 4434 -> 4413 bytes
+ .../birds/tarentaal_wit/planes/far/run/06.png      | Bin 4354 -> 4330 bytes
+ .../birds/tarentaal_wit/planes/far/run/07.png      | Bin 4367 -> 4343 bytes
+ .../birds/tarentaal_wit/planes/far/takeoff/00.png  | Bin 3696 -> 3645 bytes
+ .../birds/tarentaal_wit/planes/far/takeoff/01.png  | Bin 4321 -> 4325 bytes
+ .../birds/tarentaal_wit/planes/far/takeoff/02.png  | Bin 4359 -> 4391 bytes
+ .../birds/tarentaal_wit/planes/far/takeoff/03.png  | Bin 3740 -> 3746 bytes
+ .../birds/tarentaal_wit/planes/far/takeoff/04.png  | Bin 3535 -> 3534 bytes
+ .../birds/tarentaal_wit/planes/far/takeoff/05.png  | Bin 4697 -> 4682 bytes
+ .../birds/tarentaal_wit/planes/mid/alert/00.png    | Bin 16091 -> 15951 bytes
+ .../birds/tarentaal_wit/planes/mid/alert/01.png    | Bin 16124 -> 16364 bytes
+ .../birds/tarentaal_wit/planes/mid/alert/02.png    | Bin 16357 -> 16302 bytes
+ .../birds/tarentaal_wit/planes/mid/alert/03.png    | Bin 16326 -> 16161 bytes
+ .../birds/tarentaal_wit/planes/mid/flap/00.png     | Bin 19150 -> 19127 bytes
+ .../birds/tarentaal_wit/planes/mid/flap/01.png     | Bin 16515 -> 16367 bytes
+ .../birds/tarentaal_wit/planes/mid/flap/02.png     | Bin 15030 -> 15085 bytes
+ .../birds/tarentaal_wit/planes/mid/flap/03.png     | Bin 16696 -> 16572 bytes
+ .../birds/tarentaal_wit/planes/mid/flap/04.png     | Bin 15544 -> 15619 bytes
+ .../birds/tarentaal_wit/planes/mid/flap/05.png     | Bin 15044 -> 14995 bytes
+ .../tarentaal_wit/planes/mid/forage_walk/00.png    | Bin 15410 -> 15313 bytes
+ .../tarentaal_wit/planes/mid/forage_walk/01.png    | Bin 16014 -> 15927 bytes
+ .../tarentaal_wit/planes/mid/forage_walk/02.png    | Bin 16339 -> 16302 bytes
+ .../tarentaal_wit/planes/mid/forage_walk/03.png    | Bin 15882 -> 15861 bytes
+ .../tarentaal_wit/planes/mid/forage_walk/04.png    | Bin 15522 -> 15197 bytes
+ .../tarentaal_wit/planes/mid/forage_walk/05.png    | Bin 15748 -> 15377 bytes
+ .../tarentaal_wit/planes/mid/forage_walk/06.png    | Bin 15711 -> 15474 bytes
+ .../tarentaal_wit/planes/mid/forage_walk/07.png    | Bin 15670 -> 15504 bytes
+ .../birds/tarentaal_wit/planes/mid/hit_poof/00.png | Bin 17293 -> 17204 bytes
+ .../birds/tarentaal_wit/planes/mid/hit_poof/01.png | Bin 13905 -> 13906 bytes
+ .../birds/tarentaal_wit/planes/mid/run/00.png      | Bin 16522 -> 16639 bytes
+ .../birds/tarentaal_wit/planes/mid/run/01.png      | Bin 16726 -> 16808 bytes
+ .../birds/tarentaal_wit/planes/mid/run/02.png      | Bin 17138 -> 16860 bytes
+ .../birds/tarentaal_wit/planes/mid/run/03.png      | Bin 16938 -> 16949 bytes
+ .../birds/tarentaal_wit/planes/mid/run/04.png      | Bin 16833 -> 16895 bytes
+ .../birds/tarentaal_wit/planes/mid/run/05.png      | Bin 16616 -> 16631 bytes
+ .../birds/tarentaal_wit/planes/mid/run/06.png      | Bin 17050 -> 16632 bytes
+ .../birds/tarentaal_wit/planes/mid/run/07.png      | Bin 17107 -> 17165 bytes
+ .../birds/tarentaal_wit/planes/mid/takeoff/00.png  | Bin 15382 -> 15328 bytes
+ .../birds/tarentaal_wit/planes/mid/takeoff/01.png  | Bin 18023 -> 17919 bytes
+ .../birds/tarentaal_wit/planes/mid/takeoff/02.png  | Bin 18928 -> 18860 bytes
+ .../birds/tarentaal_wit/planes/mid/takeoff/03.png  | Bin 15925 -> 15951 bytes
+ .../birds/tarentaal_wit/planes/mid/takeoff/04.png  | Bin 15634 -> 15525 bytes
+ .../birds/tarentaal_wit/planes/mid/takeoff/05.png  | Bin 19204 -> 19234 bytes
+ art-source/sprites/fauna/bushveld_elephants.png    | Bin 28610 -> 41203 bytes
+ art-source/sprites/fauna/bushveld_giraffes_a.png   | Bin 31909 -> 39356 bytes
+ art-source/sprites/fauna/bushveld_wildebeest.png   | Bin 15085 -> 19597 bytes
+ art-source/sprites/fauna/bushveld_zebra.png        | Bin 24119 -> 29823 bytes
+ art-source/sprites/fauna/kalahari_ostrich.png      | Bin 5407 -> 6872 bytes
+ art-source/sprites/fauna/kalahari_springbok.png    | Bin 8589 -> 10721 bytes
+ art-source/sprites/fauna/kalahari_wildebeest.png   | Bin 15062 -> 19523 bytes
+ art-source/sprites/fauna/karoo_ostrich.png         | Bin 7231 -> 9034 bytes
+ art-source/sprites/fauna/karoo_springbok_a.png     | Bin 8199 -> 10352 bytes
+ art-source/sprites/fauna/karoo_springbok_b.png     | Bin 6155 -> 7968 bytes
+ art-source/sprites/fauna/namibie_gemsbok.png       | Bin 12565 -> 15466 bytes
+ art-source/sprites/fauna/namibie_ostrich.png       | Bin 5425 -> 6872 bytes
+ art-source/sprites/fauna/namibie_waterhole.png     | Bin 19565 -> 23884 bytes
+ art-source/sprites/fauna/namibie_zebra.png         | Bin 20881 -> 26216 bytes
+ art-source/sprites/fauna/okavango_elephants.png    | Bin 29801 -> 43083 bytes
+ art-source/sprites/fauna/okavango_lechwe.png       | Bin 13194 -> 16731 bytes
+ art-source/sprites/fauna/okavango_wildebeest.png   | Bin 11677 -> 15627 bytes
+ art-source/sprites/fauna/okavango_zebra.png        | Bin 21099 -> 26432 bytes
+ art-source/sprites/oes/harvest.png                 | Bin 341218 -> 350420 bytes
+ art-source/sprites/oes/harvest2.png                | Bin 70748 -> 72582 bytes
+ docs/01-GAME-DESIGN.md                             |  13 +
+ docs/02-TECH-ARCHITECTURE.md                       |   2 +-
+ docs/05-DECISIONS-AND-RESEARCH.md                  |  19 +
+ docs/review-2026-11-14/GAME-REVIEW-2026-11-14.md   |  13 +
+ docs/review-2026-11-15/ANIMAL-ART-AUDIT.md         |  71 +++
+ docs/review-2026-11-15/DIFF-STAT.txt               | 581 +++++++++++++++++++++
+ docs/review-2026-11-15/IMPROVEMENTS.md             |  88 ++++
+ .../images/harvest-goal-iphone.png                 | Bin 0 -> 214488 bytes
+ .../images/help-german-iphone.png                  | Bin 0 -> 242142 bytes
+ docs/review-2026-11-15/images/practice-pixel.png   | Bin 0 -> 334483 bytes
+ .../images/quality-high-bushveld-winter.png        | Bin 0 -> 779189 bytes
+ .../images/quality-high-namibie.png                | Bin 0 -> 761184 bytes
+ .../images/quality-high-okavango-spring.png        | Bin 0 -> 718829 bytes
+ .../review-2026-11-15/images/run-recap-desktop.png | Bin 0 -> 150489 bytes
+ .../images/settings-german-iphone.png              | Bin 0 -> 342355 bytes
+ docs/review-2026-11-15/images/title-iphone.png     | Bin 0 -> 522039 bytes
+ docs/review-2026-11-15/verification.json           | 155 ++++++
+ public/assets/asset-index-hd.json                  |  46 +-
+ public/assets/asset-index.json                     | 260 ++++-----
+ ...e37.json => ou_grys-mid@1x-0.1cdc58d000fe.json} |   2 +-
+ .../birds/ou_grys-mid@1x-0.8d83a431f90b.png        | Bin 0 -> 167776 bytes
+ .../birds/ou_grys-mid@1x-0.fbcaebe55e60.png        | Bin 170694 -> 0 bytes
+ .../birds/tarentaal-far@2x-0.287143f8374c.png      | Bin 0 -> 95861 bytes
+ .../birds/tarentaal-far@2x-0.29b330667c5b.png      | Bin 95939 -> 0 bytes
+ ...c.json => tarentaal-far@2x-0.805b048025eb.json} |   2 +-
+ ...8.json => tarentaal-far@2x-1.035f1a52ed28.json} |   2 +-
+ .../birds/tarentaal-far@2x-1.da46753fe3d7.png      | Bin 43902 -> 0 bytes
+ .../birds/tarentaal-far@2x-1.fc52ed50b8f6.png      | Bin 0 -> 44196 bytes
+ .../birds/tarentaal-mid@2x-0.120494a540ff.png      | Bin 508001 -> 0 bytes
+ .../birds/tarentaal-mid@2x-0.a28a71b72d43.png      | Bin 0 -> 506740 bytes
+ ...9.json => tarentaal-mid@2x-0.ca11fde2840d.json} |   2 +-
+ .../birds/tarentaal-mid@2x-1.acd73a1f726a.png      | Bin 0 -> 162432 bytes
+ ...4.json => tarentaal-mid@2x-1.f03473c592f1.json} |   2 +-
+ .../birds/tarentaal-mid@2x-1.f8ca9d4b16f9.png      | Bin 161953 -> 0 bytes
+ .../birds/tarentaal-far@1x-0.1021fae51285.png      | Bin 0 -> 50345 bytes
+ ...7.json => tarentaal-far@1x-0.a750c61ec4ad.json} |   2 +-
+ .../birds/tarentaal-far@1x-0.baa045c7b83f.png      | Bin 50482 -> 0 bytes
+ ...6.json => tarentaal-mid@1x-0.19a12e7ae0db.json} |   2 +-
+ .../birds/tarentaal-mid@1x-0.ef936fb187b9.png      | Bin 182433 -> 0 bytes
+ .../birds/tarentaal-mid@1x-0.fd9aeb30bcb7.png      | Bin 0 -> 183729 bytes
+ .../birds/tarentaal-mid@1x-1.eb9d02400cc0.png      | Bin 54448 -> 0 bytes
+ .../birds/tarentaal-mid@1x-1.fcc7715c1e11.png      | Bin 0 -> 55063 bytes
+ ...7.json => tarentaal-mid@1x-1.feb3d404bcf7.json} |   2 +-
+ ....json => tarentaal-near@1x-0.3e3e0d794462.json} |   2 +-
+ .../birds/tarentaal-near@1x-0.84e07db40249.png     | Bin 0 -> 130777 bytes
+ .../birds/tarentaal-near@1x-0.f2ffb47a736d.png     | Bin 129144 -> 0 bytes
+ .../img/fauna_bushveld_elephants.337b3cd20e50.png  | Bin 28610 -> 0 bytes
+ .../img/fauna_bushveld_elephants.e5e1fd077bd1.png  | Bin 0 -> 41203 bytes
+ .../img/fauna_bushveld_giraffes_a.c86e183c3dae.png | Bin 0 -> 39318 bytes
+ .../img/fauna_bushveld_giraffes_a.d48e16ed6fcf.png | Bin 31909 -> 0 bytes
+ .../img/fauna_bushveld_wildebeest.229a5c6351a2.png | Bin 15085 -> 0 bytes
+ .../img/fauna_bushveld_wildebeest.cc8dff214313.png | Bin 0 -> 19597 bytes
+ .../img/fauna_bushveld_zebra.6193d6acd27e.png      | Bin 0 -> 29823 bytes
+ .../img/fauna_bushveld_zebra.dae8822557b9.png      | Bin 24119 -> 0 bytes
+ .../img/fauna_kalahari_ostrich.65c54a777c40.png    | Bin 5407 -> 0 bytes
+ .../img/fauna_kalahari_ostrich.c2e7904bd554.png    | Bin 0 -> 6864 bytes
+ .../img/fauna_kalahari_springbok.237f623ee0c8.png  | Bin 0 -> 10721 bytes
+ .../img/fauna_kalahari_springbok.55e6c41041f6.png  | Bin 8589 -> 0 bytes
+ .../img/fauna_kalahari_wildebeest.8d25967cd788.png | Bin 15062 -> 0 bytes
+ .../img/fauna_kalahari_wildebeest.9db446648601.png | Bin 0 -> 19504 bytes
+ .../img/fauna_karoo_ostrich.3e4af67dd1af.png       | Bin 0 -> 9023 bytes
+ .../img/fauna_karoo_ostrich.85bb250bc733.png       | Bin 7231 -> 0 bytes
+ .../img/fauna_karoo_springbok_a.4c915329a33e.png   | Bin 0 -> 10352 bytes
+ .../img/fauna_karoo_springbok_a.6d8810e16405.png   | Bin 8199 -> 0 bytes
+ .../img/fauna_karoo_springbok_b.511d461b816d.png   | Bin 0 -> 7937 bytes
+ .../img/fauna_karoo_springbok_b.f9296fdcf117.png   | Bin 6155 -> 0 bytes
+ .../img/fauna_namibie_gemsbok.0a8a1375328a.png     | Bin 0 -> 15442 bytes
+ .../img/fauna_namibie_gemsbok.1ab7dcf79598.png     | Bin 12502 -> 0 bytes
+ .../img/fauna_namibie_ostrich.380a16eafac2.png     | Bin 0 -> 6870 bytes
+ .../img/fauna_namibie_ostrich.f91e671ec704.png     | Bin 5420 -> 0 bytes
+ .../img/fauna_namibie_zebra.1dd54ed279af.png       | Bin 20881 -> 0 bytes
+ .../img/fauna_namibie_zebra.a054a96bb9c1.png       | Bin 0 -> 26216 bytes
+ .../img/fauna_okavango_elephants.2abe5b4bba97.png  | Bin 0 -> 42404 bytes
+ .../img/fauna_okavango_elephants.544eb726d841.png  | Bin 29801 -> 0 bytes
+ .../img/fauna_okavango_lechwe.6ef6197b0553.png     | Bin 13194 -> 0 bytes
+ .../img/fauna_okavango_lechwe.7d91e78b2e8a.png     | Bin 0 -> 16702 bytes
+ .../img/fauna_okavango_wildebeest.155c693eb355.png | Bin 0 -> 15561 bytes
+ .../img/fauna_okavango_wildebeest.8a7190930b67.png | Bin 11677 -> 0 bytes
+ .../img/fauna_okavango_zebra.7c66fc68b297.png      | Bin 21099 -> 0 bytes
+ .../img/fauna_okavango_zebra.f886dcc1e148.png      | Bin 0 -> 26396 bytes
+ ...ff.json => generaal-mid@1x-0.38696f293e83.json} |   2 +-
+ .../late/birds/generaal-mid@1x-0.bb141f4376a2.png  | Bin 0 -> 181455 bytes
+ .../late/birds/generaal-mid@1x-0.ea0620f5822c.png  | Bin 179837 -> 0 bytes
+ ... tarentaal_lavendel-far@1x-0.2c9401b99e96.json} |   2 +-
+ .../tarentaal_lavendel-far@1x-0.48b59bee80e2.png   | Bin 0 -> 31903 bytes
+ .../tarentaal_lavendel-far@1x-0.dbadecc44457.png   | Bin 32019 -> 0 bytes
+ ... tarentaal_lavendel-far@1x-1.0173d55bcb56.json} |   2 +-
+ .../tarentaal_lavendel-far@1x-1.479042a7a760.png   | Bin 0 -> 3268 bytes
+ .../tarentaal_lavendel-far@1x-1.982f1ffe9a74.png   | Bin 3426 -> 0 bytes
+ .../tarentaal_lavendel-mid@1x-0.304985dc2b36.png   | Bin 168086 -> 0 bytes
+ ... tarentaal_lavendel-mid@1x-0.346815215b7b.json} |   2 +-
+ .../tarentaal_lavendel-mid@1x-0.da82a4b6337a.png   | Bin 0 -> 165424 bytes
+ .../birds/tarentaal_wit-far@1x-0.a67b33db7625.png  | Bin 0 -> 33548 bytes
+ ...on => tarentaal_wit-far@1x-0.b42e29e8eb65.json} |   2 +-
+ .../birds/tarentaal_wit-far@1x-0.de3390a1acc3.png  | Bin 33733 -> 0 bytes
+ .../birds/tarentaal_wit-far@1x-1.afc6544a0648.png  | Bin 0 -> 3408 bytes
+ .../birds/tarentaal_wit-far@1x-1.cc61def523f2.png  | Bin 3374 -> 0 bytes
+ ...on => tarentaal_wit-far@1x-1.dd625f1369d2.json} |   2 +-
+ ...on => tarentaal_wit-mid@1x-0.155a0da71e65.json} |   2 +-
+ .../birds/tarentaal_wit-mid@1x-0.8e19f3e4b3d0.png  | Bin 174047 -> 0 bytes
+ .../birds/tarentaal_wit-mid@1x-0.f56f662e5c23.png  | Bin 0 -> 175286 bytes
+ .../assets/oes-hd/img/oes_harvest.7556311c80fe.png | Bin 341206 -> 0 bytes
+ .../assets/oes-hd/img/oes_harvest.cbaf26722202.png | Bin 0 -> 350258 bytes
+ public/assets/oes/img/oes_harvest.84e743271f52.png | Bin 0 -> 153593 bytes
+ public/assets/oes/img/oes_harvest.a450135aa991.png | Bin 149885 -> 0 bytes
+ .../assets/oes/img/oes_harvest2.402bc3b083d3.png   | Bin 0 -> 72481 bytes
+ .../assets/oes/img/oes_harvest2.496f878f5de6.png   | Bin 70553 -> 0 bytes
+ ...68d.json => kuifkop-mid@1x-0.52a271aba851.json} |   2 +-
+ .../birds/kuifkop-mid@1x-0.a90062cc40e9.png        | Bin 0 -> 150810 bytes
+ .../birds/kuifkop-mid@1x-0.eb9ddcf9350c.png        | Bin 151563 -> 0 bytes
+ .../birds/kuifkop_koning-mid@1x-0.75f9cd036455.png | Bin 161160 -> 0 bytes
+ .../birds/kuifkop_koning-mid@1x-0.95e1e8e1d4d4.png | Bin 0 -> 159965 bytes
+ ...n => kuifkop_koning-mid@1x-0.aecc1920bf7a.json} |   2 +-
+ .../img/fauna_namibie_waterhole.ad074a4a37c3.png   | Bin 19565 -> 0 bytes
+ .../img/fauna_namibie_waterhole.c9f8c396bad4.png   | Bin 0 -> 23884 bytes
+ src/game/assets/AssetManifest.arrival.test.ts      |   9 +-
+ src/game/assets/AssetManifest.ts                   |   7 +-
+ src/game/run/runRecap.test.ts                      |  22 +
+ src/game/run/runRecap.ts                           |  10 +
+ src/game/scenes/HuntScene.ts                       |  45 +-
+ src/game/scenes/RunScene.ts                        |  67 ++-
+ src/game/scenes/SettingsScene.ts                   |  17 +-
+ src/game/scenes/TitleScene.ts                      | 115 +++-
+ src/game/ui/playerDialog.ts                        |  71 +++
+ src/i18n/af.json                                   |  30 +-
+ src/i18n/de.json                                   |  30 +-
+ src/i18n/en.json                                   |  30 +-
+ src/i18n/graphics/af.json                          |   2 +-
+ src/i18n/graphics/de.json                          |   2 +-
+ src/i18n/graphics/en.json                          |   2 +-
+ src/i18n/graphics/nl.json                          |   2 +-
+ src/i18n/nl.json                                   |  30 +-
+ src/i18n/range/af.json                             |   4 +-
+ src/i18n/range/de.json                             |   4 +-
+ src/i18n/range/en.json                             |   4 +-
+ src/i18n/range/nl.json                             |   4 +-
+ src/main.ts                                        |  10 +-
+ src/platform/adapters.test.ts                      |  10 +-
+ tests/e2e/art-preview-harvest2.spec.ts             |   1 +
+ tests/e2e/art-preview-sizes.spec.ts                |   1 +
+ tests/e2e/art-preview-v18c.spec.ts                 |   1 +
+ tests/e2e/harvest.spec.ts                          |   1 +
+ tests/e2e/harvest2.spec.ts                         |   1 +
+ tests/e2e/perf.spec.ts                             |   3 +
+ tests/e2e/player-improvements.spec.ts              | 160 ++++++
+ tools/art/bird.ts                                  |   4 +-
+ tools/art/farFauna.ts                              |  22 +-
+ tools/art/harvest.ts                               |  12 +-
+ tools/art/interim.ts                               |   3 +-
+ tools/build-playtest-report.py                     | 219 ++++++++
+ tools/serve-review.py                              |  50 ++
+ 580 files changed, 2036 insertions(+), 267 deletions(-)
