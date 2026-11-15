@@ -79,8 +79,8 @@ const GRAPHICS: Choice<'graphics'> = {
   label: (v) => `settings.graphics.${v}`,
 };
 
-const ROW_H = 96;
-const ROW_GAP = 18;
+const ROW_H = 88;
+const ROW_GAP = 14;
 /** v1.5: Sound & game has six rows per column (voice language, Afrikaans names); v1.7b: seven
  *  in the left column (Oupa's comments), so its rows are a little shorter (still ≥ 64 px). */
 const ROW_H_TIGHT = 68;
@@ -160,9 +160,14 @@ export class SettingsScene extends Phaser.Scene {
     const page = data.page === 1 ? 1 : 0;
     const rowH = page === 0 ? ROW_H_TIGHT : ROW_H;
     const rowGap = page === 0 ? ROW_GAP_TIGHT : ROW_GAP;
-    /** Design px of the hint bands above row `i` (page 0 only). */
+    /** Keep both columns aligned, including the performance explanation on page 1. */
+    let performanceHintBand = HINT_BAND;
     const bands = (i: number): number =>
-      page === 0 ? HINT_ROWS.filter((r) => r < i).length * HINT_BAND : 0;
+      page === 0
+        ? HINT_ROWS.filter((r) => r < i).length * HINT_BAND
+        : i > 2
+          ? performanceHintBand
+          : 0;
     /** A row's label (and an optional hint line under it); returns the control's rect. */
     const row = (col: 0 | 1, i: number, labelKey: I18nKey, hintKey?: I18nKey): Rect => {
       const x = px + 40 + col * (colW + 40);
@@ -174,6 +179,8 @@ export class SettingsScene extends Phaser.Scene {
           .text(x, y + rowH + 2, t(hintKey), textStyle(HINT_PX, '#E3E9DF'))
           .setOrigin(0, 0);
         fitHint(hint, colW);
+        if (hintKey === 'settings.quality_hint')
+          performanceHintBand = Math.max(HINT_BAND, hint.displayHeight + 8 - rowGap);
         if (this.ctx.hook) this.ctx.hook.rects[`hint.${hintKey}`] = hintRect(hint);
       }
       return { x: x + colW - ctrlW, y, w: ctrlW, h: rowH };
@@ -413,7 +420,7 @@ export class SettingsScene extends Phaser.Scene {
         },
       );
       flag(0, 1, 'settings.flashes', 'reduceFlashes');
-      choice(0, 2, 'settings.quality', QUALITY);
+      choice(0, 2, 'settings.quality', QUALITY, undefined, 'settings.quality_hint');
       choice(0, 3, 'settings.text_size', TEXT, restyle('settings.textSize'));
       // D-053: the HD pack; on a weak device the hint says HD may be slow (still selectable).
       choice(

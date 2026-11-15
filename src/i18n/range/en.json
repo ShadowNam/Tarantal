@@ -1,7 +1,7 @@
 {
   "range.title": "Skietbaan",
-  "range.subtitle": "Training ground · unranked: nothing here touches a save",
-  "range.back": "Back to admin",
+  "range.subtitle": "Practice · unranked · your progress stays unchanged",
+  "range.back": "Back",
   "range.gun": "Gun",
   "range.area": "Area",
   "range.light": "Today's light: {day}",

@@ -1,3 +1,4 @@
+import { playerDialog } from '../ui/playerDialog';
 // Title (GDD §16 step 1): over the live panorama, one giant START HUNT — no login, no settings, no
 // story wall for a new player. START reacts on press like the M2 start card: it unlocks audio and
 // fixes the hunt's inputKind from the pointer that pressed it. A new player's first hunt is the
@@ -50,6 +51,7 @@ export interface TitleData {
   ) => void;
   /** Opens the Season Run (resumes the saved run, or starts a new one). */
   readonly run: () => void;
+  readonly practice?: () => void;
   /** M7: one line under the logo (a challenge link that doesn't work). */
   readonly notice?: string;
 }
@@ -65,6 +67,7 @@ export class TitleScene extends Phaser.Scene {
   private menu: Menu | null = null;
   private data_: TitleData | null = null;
   private started = false;
+  private closeHelp: (() => void) | null = null;
 
   constructor(ctx: GameContext) {
     super({ key: 'Title' });
@@ -131,6 +134,7 @@ export class TitleScene extends Phaser.Scene {
       h: 220,
     };
     const startBtn = drawButton(this, start, t('title.start'), 'primary', 110);
+    if (returning) startBtn.text.setY(start.y + start.h * 0.42);
     this.tweens.add({
       targets: startBtn.text,
       scale: { from: startBtn.text.scale, to: startBtn.text.scale * 1.05 },
@@ -400,6 +404,20 @@ export class TitleScene extends Phaser.Scene {
         }
       }
       drawButton(this, settings, t('title.settings'), 'secondary', 44);
+      // Offer the optional art upgrade after the player has experienced a hunt, not before it.
+      if (
+        this.ctx.save.data.stats.hunts > 0 &&
+        this.ctx.save.data.settings.graphics === 'standard'
+      ) {
+        const offer = this.add
+          .text(settings.x + settings.w / 2, settings.y - 14, t('title.hd_available'), {
+            ...textStyle(24, '#FFD25A'),
+            stroke: '#1B1410',
+            strokeThickness: 5,
+          })
+          .setOrigin(0.5, 1);
+        fitText(offer, settings.w);
+      }
       // v1.8c (D-063): Die Oes, with a line over it: what it is until played, then the best.
       const hBest = this.ctx.save.data.harvest.best;
       drawButton(this, harvest, t('title.harvest'), hBest === null ? 'selected' : 'secondary', 44);
@@ -455,13 +473,33 @@ export class TitleScene extends Phaser.Scene {
           trigger: 'down',
           press: (pointerType, pointerId) => {
             if (this.started) return;
-            this.started = true;
-            this.ctx.audio.unlock();
-            this.data_?.start(
-              pointerId === null ? 'pointer' : inputKindOf(pointerType),
-              pointerId,
-              'harvest',
-            );
+            this.menu?.setActive(false);
+            this.closeHelp = playerDialog({
+              textScale: this.ctx.prefs.textScale,
+              title: t('harvest.goal_title'),
+              lines: [
+                fill(t('harvest.goal'), {
+                  score: formatScore(this.ctx.content.modes.modes.harvest.phase2.unlockScore),
+                }),
+              ],
+              close: t('ui.back'),
+              action: {
+                label: t('harvest.start'),
+                run: () => {
+                  this.started = true;
+                  this.ctx.audio.unlock();
+                  this.data_?.start(
+                    pointerId === null ? 'pointer' : inputKindOf(pointerType),
+                    null,
+                    'harvest',
+                  );
+                },
+              },
+              onClose: () => {
+                this.closeHelp = null;
+                if (this.sys.isActive()) this.menu?.setActive(true);
+              },
+            });
           },
         },
         {
@@ -485,21 +523,56 @@ export class TitleScene extends Phaser.Scene {
       const hint = this.add
         .text(
           width / 2,
-          height - safe.bottom - 40,
-          // v1.3: with a rifle as the Classic gun, how to hold, fire and cancel the sight.
-          t(
-            gunSight !== undefined
-              ? this.ctx.coarsePointer
-                ? 'start.hint_rifle_touch'
-                : 'start.hint_rifle_mouse'
-              : this.ctx.coarsePointer
-                ? 'start.hint_touch'
-                : 'start.hint_mouse',
-          ),
-          { ...textStyle(26), stroke: '#1B1410', strokeThickness: 5 },
+          start.y + start.h - 24,
+          t(open.length ? 'title.next_goal_open' : 'title.next_goal'),
+          {
+            ...textStyle(22, '#FFD25A'),
+            stroke: '#1B1410',
+            strokeThickness: 5,
+          },
         )
         .setOrigin(0.5);
-      fitText(hint, width - safe.left - safe.right - 120);
+      fitText(hint, start.w - 40);
+      const help: Rect = {
+        x: width - safe.right - 510,
+        // Below the native iPhone install banner and language/fullscreen controls.
+        y: safe.top + 240,
+        w: 340,
+        h: 140,
+      };
+      drawButton(this, help, t('title.help'), 'secondary', 28);
+      items.push({
+        id: 'help',
+        rect: () => help,
+        press: () => {
+          this.menu?.setActive(false);
+          this.closeHelp = playerDialog({
+            textScale: this.ctx.prefs.textScale,
+            title: t('help.title'),
+            lines: [
+              t(this.ctx.coarsePointer ? 'start.hint_touch' : 'start.hint_mouse'),
+              t(this.ctx.coarsePointer ? 'start.hint_rifle_touch' : 'start.hint_rifle_mouse'),
+              t('help.practice_hint'),
+              t('help.hd'),
+            ],
+            close: t('ui.back'),
+            ...(this.data_?.practice
+              ? {
+                  action: {
+                    label: t('help.practice'),
+                    run: () => {
+                      this.data_?.practice?.();
+                    },
+                  },
+                }
+              : {}),
+            onClose: () => {
+              this.closeHelp = null;
+              if (this.sys.isActive()) this.menu?.setActive(true);
+            },
+          });
+        },
+      });
       if (this.ctx.hook) {
         const hb = hint.getBounds();
         this.ctx.hook.rects['titleHint'] = { x: hb.x, y: hb.y, w: hb.width, h: hb.height };
@@ -532,6 +605,7 @@ export class TitleScene extends Phaser.Scene {
       this.ctx.hook.menu = null;
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.closeHelp?.();
       this.ctx.chrome.setOnTitle(false);
       this.menu = null;
     });
@@ -772,6 +846,7 @@ export class TitleScene extends Phaser.Scene {
     // START (or the run) was pressed: its break or hunt is on its way (D-026).
     if (this.started) return;
     this.menu?.setActive(false);
+    this.closeHelp?.();
     this.ctx.chrome.setOnTitle(false);
     this.scene.launch(key, {
       close: () => {

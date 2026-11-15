@@ -1,7 +1,7 @@
 {
   "range.title": "Skietbaan",
-  "range.subtitle": "Schießstand · ohne Wertung: hier wird nichts gespeichert",
-  "range.back": "Zurück zum Admin",
+  "range.subtitle": "Übung · ohne Wertung · dein Fortschritt bleibt unverändert",
+  "range.back": "Zurück",
   "range.gun": "Waffe",
   "range.area": "Gebiet",
   "range.light": "Licht von heute: {day}",

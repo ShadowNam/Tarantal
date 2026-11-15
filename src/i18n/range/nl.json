@@ -1,7 +1,7 @@
 {
   "range.title": "Skietbaan",
-  "range.subtitle": "Oefenbaan · telt niet mee: hier wordt niets opgeslagen",
-  "range.back": "Terug naar admin",
+  "range.subtitle": "Oefenen · zonder ranglijst · je voortgang blijft ongewijzigd",
+  "range.back": "Terug",
   "range.gun": "Geweer",
   "range.area": "Gebied",
   "range.light": "Licht van vandaag: {day}",
