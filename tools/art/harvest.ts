@@ -507,12 +507,20 @@ export function drawHog(
     const seg = `M${r2(x)} ${r2(y)}l${r2(-l)} ${r2(l * 0.5)}`;
     (t < 0.42 ? tex : texDark).push(seg);
   }
+  // Extra coat detail has its own stream, so it cannot move the mane/outline or crop bounds.
+  const detail = prng(seed + 7919);
+  for (let i = 0; i < (young ? 25 : 40); i++) {
+    const x = tb.x0 + detail() * (tb.x1 - tb.x0);
+    const y = tb.y0 + detail() * (tb.y1 - tb.y0);
+    const l = 0.012 + detail() * 0.012;
+    texDark.push(`M${r2(x)} ${r2(y)}l${r2(-l)} ${r2(l * 0.5)}`);
+  }
   out.push(
     el('path', {
       d: tex.join(''),
       stroke: shade(hide.lit, 0.15),
-      'stroke-width': 0.008,
-      opacity: 0.6,
+      'stroke-width': 0.007,
+      opacity: 0.7,
       fill: 'none',
       'clip-path': `url(#${tclip.id})`,
     }),

@@ -891,8 +891,8 @@ function hoofed(look: LookSpec, o: LookOpts): DrawnLook {
         wash(clipId, `url(#${light.id})`, wbox),
         wash(nearClip.id, `url(#${legShade.id})`, wbox),
         // Rounded masses: a lit haunch and shoulder, the elbow's shadow.
-        radial(X(-0.3) * S, -(b.croup - 0.2) * S, 0.24 * S, 0.2 * S, C.lit, 0.3),
-        radial(X(0.3) * S, -0.82 * S, 0.18 * S, 0.16 * S, C.lit, 0.22),
+        radial(X(-0.3) * S, -(b.croup - 0.2) * S, 0.24 * S, 0.2 * S, C.lit, 0.42),
+        radial(X(0.3) * S, -0.82 * S, 0.18 * S, 0.16 * S, C.lit, 0.34),
         radial(X(0.36) * S, -(b.belly + 0.03) * S, 0.1 * S, 0.06 * S, C.dark, 0.35),
         marks.bodyTop,
       ),
@@ -2166,9 +2166,9 @@ function elephant(look: LookSpec, o: LookOpts): DrawnLook {
   // Dust on the back (a reddish wash along the top) and on the lower body and legs.
   const light = vGrad(-1.0 * S, 0, [
     [0, C.dust, 0.38],
-    [0.08, C.lit, 0.3],
+    [0.08, C.lit, 0.52],
     [0.3, C.lit, 0.0],
-    [0.55, C.dark, 0.16],
+    [0.55, C.dark, 0.36],
     [0.75, C.dust, 0.3],
     [1, C.dust, 0.55],
   ]);
@@ -2187,11 +2187,19 @@ function elephant(look: LookSpec, o: LookOpts): DrawnLook {
     g(
       { 'clip-path': `url(#${clip.id})` },
       wash(clip.id, `url(#${light.id})`, box),
-      radial(X(-0.2) * S, -0.78 * S, 0.3 * S, 0.2 * S, C.lit, 0.22),
-      radial(X(0.28) * S, -0.8 * S, 0.22 * S, 0.18 * S, C.lit, 0.18),
+      radial(X(-0.2) * S, -0.78 * S, 0.3 * S, 0.2 * S, C.lit, 0.4),
+      radial(X(0.28) * S, -0.8 * S, 0.22 * S, 0.18 * S, C.lit, 0.34),
       radial(X(0.05) * S, -0.45 * S, 0.3 * S, 0.06 * S, C.dark, 0.3),
       el('path', {
-        d: wrinkles,
+        // Fine broken folds follow the barrel, rather than evenly covering the silhouette.
+        d:
+          wrinkles +
+          Array.from({ length: 14 }, () => {
+            const x = X(-0.34 + rnd() * 0.64) * S;
+            const y = (-0.8 + rnd() * 0.26) * S;
+            const length = (0.025 + rnd() * 0.035) * S;
+            return `M${r2(x)} ${r2(y)}q${r2(-length * 0.25)} ${r2(length * 0.45)} ${r2(length * 0.12)} ${r2(length)}`;
+          }).join(''),
         fill: 'none',
         stroke: shade(C.dark, -0.15),
         'stroke-width': r2(w * 0.75),

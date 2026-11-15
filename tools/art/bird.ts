@@ -379,9 +379,9 @@ function body(i: DrawInput): string {
       },
       // v1.15 review: real volume — a light grey-blue back, a near-black underside.
       el('stop', { offset: 0, 'stop-color': mixHex(i.pal.highlight, '#FFFFFF', 0.12) }),
-      el('stop', { offset: 0.3, 'stop-color': i.pal.highlight }),
+      el('stop', { offset: 0.24, 'stop-color': i.pal.highlight }),
       el('stop', { offset: 0.58, 'stop-color': i.pal.plumage }),
-      el('stop', { offset: 0.82, 'stop-color': i.pal.shadow }),
+      el('stop', { offset: 0.88, 'stop-color': i.pal.shadow }),
       el('stop', { offset: 1, 'stop-color': mixHex(i.pal.shadow, '#000000', 0.45) }),
     ),
     el('clipPath', { id: cid }, el('path', { d })),
