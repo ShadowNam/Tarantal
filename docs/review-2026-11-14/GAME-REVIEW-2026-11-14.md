@@ -1,5 +1,7 @@
 # Game flow and animal-art review — 14 November 2026
 
+Implementation follow-up: [15 November improvements and new evidence](../review-2026-11-15/IMPROVEMENTS.md). The observations and PDF below remain the historical review.
+
 This is the earlier same-day implementation review. The expanded illustrated critical playtest,
 with later Chromium and actual Linux WebKit evidence, is served through this task’s **Preview**.
 The full local evidence remains in `docs/playtest-2026-11-14/` and is not included in this GitHub handoff.
@@ -284,3 +286,14 @@ Animal-role identification examples, not an actual-size HD comparison.
 ## Handoff exclusions
 
 Only the nine screenshots linked above are included here. No resizing was needed. All other review captures, generated `docs/art-preview/compare` updates, raw browser evidence, traces, HTML report tooling and PDFs remain local. The full PDF is `docs/playtest-2026-11-14/full-review.pdf` (35,324,458 bytes); its 178 pages include 201 image placements.
+
+
+## Follow-through validation gate (15 November 2026)
+
+Physical-device status remains **not executed**: this workspace has no connected iPhone or
+Android phone. Before release, record device/OS/browser, Standard and HD cold/warm startup,
+frame-time percentiles and context-loss/input issues for two consecutive hunts per device.
+Cover Harvest Phase 2, Okavango herds/rain, hunt-to-braai, a scoped bonus range, practice exit,
+Large text, rotation, app background/resume and Standard fallback. Verify memory on-device;
+registered texture estimates alone are not peak GPU/process memory. Keep the existing 3-second
+reference startup target and 256 MiB texture target. Browser emulation cannot close this gate.

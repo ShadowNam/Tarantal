@@ -1,0 +1,155 @@
+{
+  "date": "2026-11-15",
+  "branch": "v122-review-improvements",
+  "base": "162b892e5a6aedca8c93e9b1a81e9b7a965d0f43",
+  "physical_devices_tested": false,
+  "check": {
+    "passed": true,
+    "test_files": 303,
+    "unit_tests": 2632,
+    "content_files": 57
+  },
+  "desktop_startup_ms": 2612.5000009536743,
+  "memory_mib": {
+    "okavango_spring": 240.4,
+    "harvest": 248.3,
+    "unchanged_limit": 256
+  },
+  "player_flow_cases": 15,
+  "additional_language_cases": 6,
+  "runs_including_corrected_failures": {
+    "browser-results": {
+      "startTime": "2026-11-15T08:49:32.675Z",
+      "duration": 300084.33900000004,
+      "expected": 14,
+      "skipped": 0,
+      "unexpected": 1,
+      "flaky": 0
+    },
+    "followup-results": {
+      "startTime": "2026-11-15T09:18:43.451Z",
+      "duration": 295370.276,
+      "expected": 9,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "language-results": {
+      "startTime": "2026-11-15T09:04:54.350Z",
+      "duration": 198157.86099999998,
+      "expected": 4,
+      "skipped": 0,
+      "unexpected": 2,
+      "flaky": 0
+    },
+    "extra-results": {
+      "startTime": "2026-11-15T09:23:42.847Z",
+      "duration": 27201.16,
+      "expected": 2,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "fresh-results": {
+      "startTime": "2026-11-15T09:24:12.801Z",
+      "duration": 32951.464,
+      "expected": 3,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "regression-results": {
+      "startTime": "2026-11-15T09:08:16.002Z",
+      "duration": 263993.588,
+      "expected": 4,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "startup-results": {
+      "startTime": "2026-11-15T08:48:45.516Z",
+      "duration": 22935.975,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "scenes": [
+    {
+      "biome": "bushveld-winter",
+      "status": "passed",
+      "query": "e2e=1&ftue=0&seed=7&biome=bushveld-winter&layout=sat&graphics=hd&huntSeconds=90&holdAt=300",
+      "textureMiB": 224.2753677368164,
+      "missing": [],
+      "failed": [],
+      "errors": []
+    },
+    {
+      "biome": "okavango-spring",
+      "status": "passed",
+      "query": "e2e=1&ftue=0&seed=7&biome=okavango-spring&layout=sat&graphics=hd&huntSeconds=90&holdAt=300",
+      "textureMiB": 237.3584442138672,
+      "missing": [],
+      "failed": [],
+      "errors": []
+    },
+    {
+      "biome": "namibie",
+      "status": "passed",
+      "query": "e2e=1&ftue=0&seed=7&biome=namibie&layout=sat&graphics=hd&huntSeconds=90&holdAt=300",
+      "textureMiB": 228.70524978637695,
+      "missing": [],
+      "failed": [],
+      "errors": []
+    }
+  ],
+  "production_size": {
+    "strict_passed": true,
+    "initial": {
+      "file": "TOTAL",
+      "raw": 5151537,
+      "gz": 3087749,
+      "br": 2936683
+    },
+    "lazy": {
+      "file": "TOTAL",
+      "raw": 30549385,
+      "gz": 29134140,
+      "br": 28972656
+    },
+    "budget_bytes": 5242880
+  },
+  "preview_smoke": {
+    "responses": [
+      {
+        "path": "/",
+        "status": 200
+      },
+      {
+        "path": "/improvements.html",
+        "status": 200
+      },
+      {
+        "path": "/animal-inventory.html",
+        "status": 200
+      }
+    ],
+    "observed": {
+      "graphicsCard": 0,
+      "testHook": "undefined",
+      "saved": [
+        {
+          "key": "tm.save.v1",
+          "graphics": "standard"
+        }
+      ]
+    },
+    "errors": []
+  },
+  "validation_notes": [
+    "Earlier UI failures were corrected and rerun; raw batch totals retain the unsuccessful attempts.",
+    "An intermediate size check was invalidated by rebuilding its test-artifact directory; the final production check uses an unchanged dist directory.",
+    "The recap browser fixture is a seeded completed two-hunt history, not a new twelve-hunt end-to-end playthrough."
+  ]
+}

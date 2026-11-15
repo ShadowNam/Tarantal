@@ -1821,3 +1821,16 @@ full table, with the meaning of each pun, is `docs/i18n-names.md`. Place names s
 Kalahari, Okavango; Namibië → Namibia), so do Oupa and Ouma; D-073 translates Oupa's catchphrases in English captions and speech.
 Afrikaans retains the original phrases. Settings → Afrikaans names brings the Afrikaans names
 back in any language.
+
+
+## Review follow-through (D-088, 15 November 2026)
+
+The first launch uses Standard art immediately. HD can be selected under Settings → Display &
+access → Artwork detail. Existing remembered choices and explicit Ask requests remain supported.
+After the lesson, the title highlights a normal hunt goal. Help & practice contains the full
+mouse/touch and rifle controls. Practice is player-facing on web and the app: only unlocked areas,
+no timer or progression scoring, no changes to the Season Run. The existing range's weapons can
+be tried without unlocking them for ranked play. Admin tools are not exposed to ordinary players.
+Harvest explains the configured bonus threshold (including crop bonus) and positive-crop rule
+before entry. A Season Run recap lists recorded season/hunt points, quotas and relative margins;
+it does not estimate unrecorded charm contributions. These changes do not alter simulation rules.
